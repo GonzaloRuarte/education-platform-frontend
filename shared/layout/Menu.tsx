@@ -8,23 +8,22 @@ import FactCheckIcon from '@mui/icons-material/FactCheck';
 import PersonIcon from '@mui/icons-material/Person';
 import Groups2Icon from '@mui/icons-material/Groups2';
 import BadgeIcon from '@mui/icons-material/Badge';
+import P from '@/pages'
 
 
 const Menu = () => {
   return <>
     <MenuBlock>
-      <MenuItem Icon={SchoolIcon} label='Escuelas' subMenu={
+      <MenuItem Icon={SchoolIcon} label={P.escuelas.label} href={P.escuelas.path} subMenu={
         <MenuBlock isSubMenu>
-          <MenuItem label='Comisiones' />
-          <MenuItem label='Roles' />
+          <MenuItem label={P.escuelas.subpages.agregarEscuela.label} href={P.escuelas.subpages.agregarEscuela.path} />
         </MenuBlock>
       } />
-      <MenuItem Icon={CalendarMonthIcon} label='Turnos' />
-      <MenuItem Icon={FactCheckIcon} label='Evaluaciones' />
-
-      <MenuItem Icon={PersonIcon} label='Alumnos' />
-      <MenuItem Icon={Groups2Icon} label='Comisiones' />
-      <MenuItem Icon={BadgeIcon} label='Roles' />
+      <MenuItem Icon={CalendarMonthIcon} label={P.turnos.label} href={P.turnos.path} />
+      <MenuItem Icon={FactCheckIcon} label={P.evaluaciones.label} href={P.evaluaciones.path} />
+      <MenuItem Icon={PersonIcon} label={P.alumnos.label} href={P.alumnos.path} />
+      <MenuItem Icon={Groups2Icon} label={P.comisiones.label} href={P.comisiones.path} />
+      <MenuItem Icon={BadgeIcon} label={P.roles.label} href={P.roles.path} />
     </MenuBlock>
 
     <MenuDivider />
