@@ -7,6 +7,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Head from 'next/head';
 
 import theme from '@/shared/theme';
+import MainLayout from '@/shared/layout/MainLayout';
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -32,7 +33,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <AppRouterCacheProvider>
           <CssBaseline>
             <ThemeProvider theme={theme}>
-              {children}
+              <MainLayout>{children}</MainLayout>
             </ThemeProvider>
           </CssBaseline>
         </AppRouterCacheProvider>
