@@ -8,33 +8,33 @@ type T_PagesConfig = { [key: string]: T_PageConfig }
 
 const pages /*: T_PagesConfig*/ = {
   escuelas: {
-    path: 'escuelas',
+    path: '/escuelas',
     label: 'Escuelas',
     subpages: {
       agregarEscuela: {
-        path: 'escuelas/agregar',
+        path: '/escuelas/agregar',
         label: 'Agregar escuela',
       }
     }
   },
   turnos: {
-    path: 'turnos',
+    path: '/turnos',
     label: 'Turnos'
   },
   evaluaciones: {
-    path: 'evaluaciones',
+    path: '/evaluaciones',
     label: 'Evaluaciones'
   },
   alumnos: {
-    path: 'alumnos',
+    path: '/alumnos',
     label: 'Alumnos'
   },
   comisiones: {
-    path: 'comisiones',
+    path: '/comisiones',
     label: 'Comisiones'
   },
   roles: {
-    path: 'roles',
+    path: '/roles',
     label: 'Roles'
   }
 }
