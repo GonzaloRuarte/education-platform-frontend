@@ -3,7 +3,8 @@ import React from 'react'
 
 const SchoolsList = () => {
   return <Page>
-    hola
+    <Page.Title>GUI Showcase</Page.Title>
+    <Page.Content>GUI Showcase</Page.Content>
   </Page>
 }
 

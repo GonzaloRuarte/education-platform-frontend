@@ -1,6 +1,8 @@
 import React from 'react'
 import MUI_AppBar from '@mui/material/AppBar'
-import { Toolbar, Typography } from '@mui/material'
+import { Box, Button, Toolbar, Typography } from '@mui/material'
+import Link from 'next/link'
+
 
 const AppBar = () => {
   return <>
@@ -9,6 +11,8 @@ const AppBar = () => {
         <Typography variant="h6" noWrap component="div">
           Meta
         </Typography>
+        <Box sx={{ flexGrow: 1 }} />
+        <Button LinkComponent={Link} href='gui-showcase' color="inherit">Login</Button>
       </Toolbar>
     </MUI_AppBar>
   </>
