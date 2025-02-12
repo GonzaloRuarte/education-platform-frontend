@@ -16,7 +16,7 @@ const Menu = () => {
     <MenuBlock>
       <MenuItem Icon={SchoolIcon} label={P.escuelas.label} href={P.escuelas.path} subMenu={
         <MenuBlock isSubMenu>
-          <MenuItem label={P.escuelas.subpages.agregarEscuela.label} href={P.escuelas.subpages.agregarEscuela.path} />
+          <MenuItem label={P.escuelas._.agregarEscuela.label} href={P.escuelas._.agregarEscuela.path} />
         </MenuBlock>
       } />
       <MenuItem Icon={CalendarMonthIcon} label={P.turnos.label} href={P.turnos.path} />
