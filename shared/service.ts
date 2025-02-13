@@ -1,23 +1,21 @@
-import axios from 'axios';
+import { I_FetchOptions, I_SessionSetup, T_GetMethod } from '@/shared/data/types';
 
-interface I_FetchParams {
-  page: number;
-  pageSize: number;
-  filters?: Record<string, any>;
-}
-type T_ListService<T_EntityItem> = (endpoint: string, params?: I_FetchParams) => Promise<Array<T_EntityItem>>
-const listService = async <T_EntityItem>(endpoint, params) => {
-  try {
-    const response = await axios.get<Array<T_EntityItem>>(endpoint, { params });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    throw error;
+
+
+
+
+const listService = <T_Response>(endpoint: string, getMethod: T_GetMethod) => {
+  return (sessionSetup?: I_SessionSetup) => {
+    return async (options: I_FetchOptions) => {
+      return getMethod<T_Response>({ endpoint, sessionSetup, options })
+    }
   }
 }
+
 export {
-  listService
+  listService,
 }
 export type {
-  T_ListService,
+  I_SessionSetup,
+  I_FetchOptions,
 }
