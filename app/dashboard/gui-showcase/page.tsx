@@ -1,6 +1,5 @@
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
-
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid2'
 import Typography from '@mui/material/Typography'
