@@ -1,13 +1,12 @@
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
-import CssBaseline from '@mui/material/CssBaseline';
 
 import Head from 'next/head';
 
 import theme from '@/shared/theme';
-import MainLayout from '@/shared/layout/MainLayout';
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -33,7 +32,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <AppRouterCacheProvider>
           <CssBaseline>
             <ThemeProvider theme={theme}>
-              <MainLayout>{children}</MainLayout>
+              {children}
             </ThemeProvider>
           </CssBaseline>
         </AppRouterCacheProvider>

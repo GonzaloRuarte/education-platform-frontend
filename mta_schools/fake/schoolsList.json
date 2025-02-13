@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1,
+    "name": "Escuela Primaria N°1 Domingo Faustino Sarmiento",
+    "district": "Buenos Aires",
+    "school_staff": [
+      {"user_id": 1, "name": "María Pérez"},
+      {"user_id": 2, "name": "Juan Gómez"}
+    ],
+    "contact_email": "contacto@escuela1ba.edu.ar"
+  },
+  {
+    "id": 2,
+    "name": "Instituto General José de San Martín",
+    "district": "Córdoba",
+    "school_staff": [
+      {"user_id": 3, "name": "Carlos Fernández"},
+      {"user_id": 4, "name": "Ana López"}
+    ],
+    "contact_email": "info@sanmartincba.edu.ar"
+  },
+  {
+    "id": 3,
+    "name": "Escuela Secundaria N°3 Manuel Belgrano",
+    "district": "Rosario",
+    "school_staff": [
+      {"user_id": 5, "name": "Luis Martínez"},
+      {"user_id": 6, "name": "Sofía Ramírez"}
+    ],
+    "contact_email": "contacto@belgrano3ros.edu.ar"
+  },
+  {
+    "id": 4,
+    "name": "Colegio Nacional Buenos Aires",
+    "district": "CABA",
+    "school_staff": [
+      {"user_id": 7, "name": "Gabriel Silva"},
+      {"user_id": 8, "name": "Laura Castillo"}
+    ],
+    "contact_email": "info@cnbuenosaires.edu.ar"
+  },
+  {
+    "id": 5,
+    "name": "Escuela Técnica N°5 Eva Perón",
+    "district": "Mendoza",
+    "school_staff": [
+      {"user_id": 9, "name": "Hugo Torres"},
+      {"user_id": 10, "name": "Marta Domínguez"}
+    ],
+    "contact_email": "secretaria@tecnica5mza.edu.ar"
+  },
+  {
+    "id": 6,
+    "name": "Escuela Normal Superior N°8 Almirante Brown",
+    "district": "Santa Fe",
+    "school_staff": [
+      {"user_id": 11, "name": "Pedro González"},
+      {"user_id": 12, "name": "Lucía Herrera"}
+    ],
+    "contact_email": "secretaria@normal8sf.edu.ar"
+  },
+  {
+    "id": 7,
+    "name": "Escuela Primaria N°15 Juana Azurduy",
+    "district": "Entre Ríos",
+    "school_staff": [
+      {"user_id": 13, "name": "Elena Rojas"},
+      {"user_id": 14, "name": "Roberto Díaz"}
+    ],
+    "contact_email": "contacto@azurduy15er.edu.ar"
+  },
+  {
+    "id": 8,
+    "name": "Colegio Modelo San Francisco",
+    "district": "Corrientes",
+    "school_staff": [
+      {"user_id": 15, "name": "Marcela Figueroa"},
+      {"user_id": 16, "name": "Oscar Méndez"}
+    ],
+    "contact_email": "info@sanfranciscocorrientes.edu.ar"
+  },
+  {
+    "id": 9,
+    "name": "Escuela de Comercio N°4 Juan XXIII",
+    "district": "La Pampa",
+    "school_staff": [
+      {"user_id": 17, "name": "Carolina Álvarez"},
+      {"user_id": 18, "name": "Federico Navarro"}
+    ],
+    "contact_email": "contacto@comercio4lp.edu.ar"
+  },
+  {
+    "id": 10,
+    "name": "Instituto Educativo Siglo XXI",
+    "district": "Misiones",
+    "school_staff": [
+      {"user_id": 19, "name": "Verónica Salinas"},
+      {"user_id": 20, "name": "Esteban Ortega"}
+    ],
+    "contact_email": "info@siglo21mis.edu.ar"
+  }
+]
