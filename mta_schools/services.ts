@@ -12,10 +12,12 @@ interface I_PaginatedResponse<T_ResultsInstance> {
 type T_GetSchoolsListResponse = I_PaginatedResponse<I_School>
 
 const schoolsList = listService<T_GetSchoolsListResponse>('http://127.0.0.1:8000/api/schools', axiosGet)()
+
+
 export {
-  schoolsList,
-}
+  schoolsList
+};
 
 export type {
   T_GetSchoolsListResponse
-}
+};

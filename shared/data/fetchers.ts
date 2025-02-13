@@ -6,17 +6,40 @@ const axiosGet: T_GetMethod = async <T_Response>(args: { endpoint: string, sessi
     params: args.options,
     headers: {
       'Content-Type': 'application/json',
-      Authorization: (
-        args.sessionSetup?.accessToken !== undefined
-          ? `Bearer ${args.sessionSetup?.accessToken}`
-          : undefined
-      ),
+      ...(args.sessionSetup?.accessToken && { Authorization: `Bearer ${args.sessionSetup?.accessToken}` })
+      ,
     }
   }).then(response => {
     return response.data
   })
 }
 
+const fetchBasedGet: T_GetMethod = async <T_Response>({ endpoint, sessionSetup, options }) => {
+  const url = new URL(endpoint);
+
+  Object.entries(options).forEach(([key, value]) => {
+    if (value !== undefined) {
+      url.searchParams.append(key, String(value));
+    }
+  });
+
+  const response = await fetch(url.toString(), {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(sessionSetup?.accessToken && { Authorization: `Bearer ${sessionSetup.accessToken}` }),
+      ...sessionSetup?.headers,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! Status: ${response.status}`);
+  }
+
+  return response.json() as Promise<T_Response>;
+};
+
 export {
-  axiosGet
+  axiosGet,
+  fetchBasedGet
 }

@@ -2,7 +2,9 @@
 
 import MenuDivider from '@/shared/layout/MenuDivider'
 import { ExpandLess, ExpandMore, SvgIconComponent } from '@mui/icons-material'
-import { Box, Collapse, IconButton } from '@mui/material'
+import Box from '@mui/material/Box'
+import Collapse from '@mui/material/Collapse'
+import IconButton from '@mui/material/IconButton'
 import ListItem from '@mui/material/ListItem'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'

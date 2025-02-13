@@ -64,18 +64,21 @@ const SchoolsList = () => {
   }, [pm])
 
   return <Page>
-    <StripedDataGrid
-      rows={data?.results} columns={columns}
-      getRowClassName={(params) =>
-        params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
-      }
-      paginationModel={pm}
-      pageSizeOptions={[2, 5, 10]}
-      onPaginationModelChange={setPm}
-      paginationMode='server'
-      loading={data === undefined}
-      rowCount={data?.count || 0}
-    />
+    <Page.Title>Escuelas</Page.Title>
+    <Page.Content>
+      <StripedDataGrid
+        rows={data?.results} columns={columns}
+        getRowClassName={(params) =>
+          params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
+        }
+        paginationModel={pm}
+        pageSizeOptions={[2, 5, 10]}
+        onPaginationModelChange={setPm}
+        paginationMode='server'
+        loading={data === undefined}
+        rowCount={data?.count || 0}
+      />
+    </Page.Content>
   </Page>
 }
 

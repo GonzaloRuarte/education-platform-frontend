@@ -1,6 +1,9 @@
 import React from 'react'
 import MUI_AppBar from '@mui/material/AppBar'
-import { Box, Button, Toolbar, Typography } from '@mui/material'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
 import Link from 'next/link'
 
 

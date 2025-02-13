@@ -1,5 +1,5 @@
 import { T_FCwChildren } from '@/shared/types'
-import { List } from '@mui/material'
+import List from '@mui/material/List'
 
 
 const MenuBlock: T_FCwChildren<{ isSubMenu?: boolean }> = ({ children, isSubMenu = false }) => (
