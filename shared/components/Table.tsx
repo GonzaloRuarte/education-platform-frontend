@@ -53,7 +53,7 @@ function Table({ paginationModel, onPaginationModelChange, data, count, columns 
       params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
     }
     paginationModel={paginationModel}
-    pageSizeOptions={[2, 5, 10]}
+    pageSizeOptions={[10, 25, 100]}
     onPaginationModelChange={onPaginationModelChange}
     paginationMode='server'
     loading={data === undefined}
