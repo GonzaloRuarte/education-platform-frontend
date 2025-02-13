@@ -16,8 +16,16 @@ type T_GetMethod = <T_Response>(args: {
   options: I_FetchOptions;
 }) => Promise<T_Response>
 
+interface I_PaginatedResponse<T_ResultsInstance = unknown> {
+  count: number
+  next: string
+  previous: string
+  results: Array<T_ResultsInstance>
+}
+
 export type {
   I_FetchOptions,
   I_SessionSetup,
   T_GetMethod,
+  I_PaginatedResponse,
 }

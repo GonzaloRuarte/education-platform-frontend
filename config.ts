@@ -1,0 +1,8 @@
+// Tables
+const PAGE_SIZE_OPTIONS = [10, 25, 100]
+const DEFAULT_PAGE_SIZE = 10
+
+export {
+  PAGE_SIZE_OPTIONS,
+  DEFAULT_PAGE_SIZE,
+}

@@ -9,7 +9,25 @@ import { esES } from '@mui/material/locale';
 const theme = createTheme({
   typography: {
     fontFamily: 'var(--font-roboto)',
-    fontSize: 14,
+    h1: {
+      fontSize: 42,
+      fontWeight: 'normal'
+    },
+    h2: {
+      fontSize: 38
+    },
+    h3: {
+      fontSize: 34
+    },
+    h4: {
+      fontSize: 30
+    },
+    h5: {
+      fontSize: 26
+    },
+    h6: {
+      fontSize: 22
+    },
   },
   palette: {
     primary: {
