@@ -1,13 +1,14 @@
-import { T_GetCohortsListResponse, T_GetSchoolsListResponse } from '@/mta_schools/types';
+import { T_GetCohortsListResponse, T_GetSchoolsListResponse, T_GetStudentProfileListResponse } from '@/mta_schools/types';
 import { axiosGet } from '@/shared/data/fetchers';
 import { listService } from '@/shared/service';
 
 
 const schoolsList = listService<T_GetSchoolsListResponse>('http://127.0.0.1:8000/api/schools', axiosGet)()
 const cohortsList = listService<T_GetCohortsListResponse>('http://127.0.0.1:8000/api/cohorts', axiosGet)()
+const studentProfileList = listService<T_GetStudentProfileListResponse>('http://127.0.0.1:8000/api/student-profile', axiosGet)()
 
 
 export {
-  cohortsList, schoolsList
+  cohortsList, schoolsList, studentProfileList
 };
 

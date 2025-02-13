@@ -23,15 +23,30 @@ interface I_CohortListItem {
   grade: string
 }
 
+interface I_StudentProfileListItem {
+  id: number
+  cohort: {
+    id: number
+    name: string
+  }
+  created_at: string
+  updated_at: string
+  school: string
+  personal_id: number
+}
+
 type T_GetSchoolsListResponse = I_PaginatedResponse<I_SchoolListItem>
 type T_GetCohortsListResponse = I_PaginatedResponse<I_CohortListItem>
+type T_GetStudentProfileListResponse = I_PaginatedResponse<I_StudentProfileListItem>
 
 export type {
-  T_CohortLevelCode as T_CohortLevel,
+  T_CohortLevelCode,
 
   I_SchoolListItem,
   I_CohortListItem,
+  I_StudentProfileListItem,
 
   T_GetSchoolsListResponse,
   T_GetCohortsListResponse,
+  T_GetStudentProfileListResponse,
 }

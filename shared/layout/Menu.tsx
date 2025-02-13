@@ -25,10 +25,6 @@ const Menu = () => {
                 label={P.divisiones.label}
                 href={P.divisiones.path}
               />
-              {/* <MenuItem
-                label={P.escuelas._.comisionesDeEvaluacion.label}
-                href={P.escuelas._.comisionesDeEvaluacion.path}
-              /> */}
             </MenuBlock>
           }
         />
@@ -44,8 +40,8 @@ const Menu = () => {
         />
         <MenuItem
           Icon={PersonIcon}
-          label={P.alumnos.label}
-          href={P.alumnos.path}
+          label={P.estudiantes.label}
+          href={P.estudiantes.path}
         />
         <MenuItem
           Icon={Groups2Icon}
