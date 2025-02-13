@@ -54,8 +54,8 @@ const dashboardPages = rb.root({
   nodes: [
     rb.node('Escuelas', '/escuelas', {
       subnodes: [
-        rb.node('Agregar escuela', '/agregar'),
-        rb.node('Quitar escuela', '/quitar'),
+        rb.node('Divisiones', '/divisiones'),
+        rb.node('Comisiones de evaluación', '/comisiones')
       ],
     }),
     rb.node('Turnos', '/turnos'),
@@ -64,7 +64,7 @@ const dashboardPages = rb.root({
     rb.node('Comisiones', '/comisiones'),
     rb.node('Roles', '/roles'),
   ]
-}).buildRoute();
+}).buildRoute()
 
 // const resolutionPages = rb.root({
 //   nodes: [

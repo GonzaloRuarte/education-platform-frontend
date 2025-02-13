@@ -28,7 +28,6 @@ const theme = createTheme({
     h6: {
       fontSize: 22
     },
-
   },
   palette: {
     primary: {
