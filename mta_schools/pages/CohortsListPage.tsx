@@ -13,8 +13,6 @@ const columns: Array<GridColDef> = [
   { field: 'name', headerName: 'Nombre', flex: 1 },
 ]
 
-
-
 const CohortsListPage = () => <ListPage columns={columns} fetchingService={cohortsList} title='Divisiones' />
 
 export default CohortsListPage

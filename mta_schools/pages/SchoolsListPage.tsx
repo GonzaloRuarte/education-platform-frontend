@@ -11,7 +11,6 @@ const columns: Array<GridColDef> = [
   { field: 'contact_email', headerName: 'Contacto', flex: 1 },
 ]
 
-
 const SchoolsListPage = () => <ListPage columns={columns} fetchingService={schoolsList} title='Escuelas' />
 
 
