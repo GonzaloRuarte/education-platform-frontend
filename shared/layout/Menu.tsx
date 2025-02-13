@@ -22,8 +22,8 @@ const Menu = () => {
           subMenu={
             <MenuBlock isSubMenu>
               <MenuItem
-                label={P.escuelas._.divisiones.label}
-                href={P.escuelas._.divisiones.path}
+                label={P.divisiones.label}
+                href={P.divisiones.path}
               />
               {/* <MenuItem
                 label={P.escuelas._.comisionesDeEvaluacion.label}

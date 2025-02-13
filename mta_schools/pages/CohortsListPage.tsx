@@ -1,6 +1,8 @@
 "use client"
 
-import { schoolsList, T_GetSchoolsListResponse } from '@/mta_schools/services'
+import CohortLevelChip from '@/mta_schools/components/CohortLevelChip'
+import { cohortsList } from '@/mta_schools/services'
+import { T_GetCohortsListResponse } from '@/mta_schools/types'
 import Page from '@/shared/components/Page'
 import { alpha, styled } from '@mui/material'
 import { DataGrid, gridClasses, GridColDef, GridPaginationModel } from '@mui/x-data-grid'
@@ -8,9 +10,10 @@ import React, { useEffect } from 'react'
 
 const columns: Array<GridColDef> = [
   { field: 'id', headerName: '#' },
-  { field: 'name', headerName: 'Nombre', flex: 2 },
-  { field: 'district', headerName: 'Distrito', flex: 1 },
-  { field: 'contact_email', headerName: 'Contacto', flex: 1 },
+  { field: 'school', headerName: 'Escuela', flex: 2, renderCell: ({ value }) => <>{value.name}</> },
+  { field: 'level', headerName: 'Nivel', flex: 1, renderCell: ({ value }) => <CohortLevelChip level={value} /> },
+  { field: 'grade', headerName: 'Grado/Año', flex: 1, renderCell: ({ value }) => <>{value}º</> },
+  { field: 'name', headerName: 'Nombre', flex: 1 },
 ]
 
 const ODD_OPACITY = 0.2;
@@ -48,23 +51,23 @@ const StripedDataGrid = styled(DataGrid)(({ theme }) => ({
   },
 }));
 
-const SchoolsList = () => {
+const CohortsListPage = () => {
   const [pm, setPm] = React.useState<GridPaginationModel>({
     pageSize: 10,
     page: 0,
   });
 
-  const [data, setData] = React.useState<T_GetSchoolsListResponse | undefined>(undefined)
+  const [data, setData] = React.useState<T_GetCohortsListResponse | undefined>(undefined)
 
   useEffect(() => {
-    schoolsList({ page: pm.page + 1, page_size: pm.pageSize })
+    cohortsList({ page: pm.page + 1, page_size: pm.pageSize })
       .then(res => {
         setData(res);
       })
   }, [pm])
 
   return <Page>
-    <Page.Title>Escuelas</Page.Title>
+    <Page.Title>Divisiones</Page.Title>
     <Page.Content>
       <StripedDataGrid
         rows={data?.results} columns={columns}
@@ -82,4 +85,4 @@ const SchoolsList = () => {
   </Page>
 }
 
-export default SchoolsList
+export default CohortsListPage
