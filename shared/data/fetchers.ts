@@ -1,7 +1,7 @@
 import { I_FetchOptions, I_SessionSetup, T_GetMethod } from '@/shared/data/types'
 import axios from 'axios'
 
-const axiosGet: T_GetMethod = async <T_Response>(args: { endpoint: string, sessionSetup?: I_SessionSetup, options: I_FetchOptions }) => {
+const axiosGet = async <T_Response>(args: { endpoint: string, sessionSetup?: I_SessionSetup, options: I_FetchOptions }) => {
   return axios.get<T_Response>(args.endpoint, {
     params: args.options,
     headers: {
@@ -12,6 +12,7 @@ const axiosGet: T_GetMethod = async <T_Response>(args: { endpoint: string, sessi
   }).then(response => {
     return response.data
   })
+
 }
 
 const fetchBasedGet: T_GetMethod = async <T_Response>({ endpoint, sessionSetup, options }) => {
@@ -39,7 +40,9 @@ const fetchBasedGet: T_GetMethod = async <T_Response>({ endpoint, sessionSetup, 
   return response.json() as Promise<T_Response>;
 };
 
+
 export {
   axiosGet,
   fetchBasedGet
 }
+

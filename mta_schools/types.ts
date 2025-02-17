@@ -34,10 +34,19 @@ interface I_StudentProfileListItem {
   school: string
   personal_id: number
 }
+interface I_EvaluationGroupListItem {
+  id: number
+  name: string
+  school: string
+  students_count: number
+  created_at: string
+  updated_at: string
+}
 
 type T_GetSchoolsListResponse = I_PaginatedResponse<I_SchoolListItem>
 type T_GetCohortsListResponse = I_PaginatedResponse<I_CohortListItem>
 type T_GetStudentProfileListResponse = I_PaginatedResponse<I_StudentProfileListItem>
+type T_GetEvaluationGroupListResponse = I_PaginatedResponse<I_EvaluationGroupListItem>
 
 export type {
   T_CohortLevelCode,
@@ -45,8 +54,10 @@ export type {
   I_SchoolListItem,
   I_CohortListItem,
   I_StudentProfileListItem,
+  I_EvaluationGroupListItem,
 
   T_GetSchoolsListResponse,
   T_GetCohortsListResponse,
   T_GetStudentProfileListResponse,
+  T_GetEvaluationGroupListResponse,
 }

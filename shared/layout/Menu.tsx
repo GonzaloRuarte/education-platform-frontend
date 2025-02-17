@@ -10,8 +10,6 @@ import BadgeIcon from "@mui/icons-material/Badge";
 import P from "@/pages";
 
 const Menu = () => {
-  console.log(P);
-
   return (
     <>
       <MenuBlock>

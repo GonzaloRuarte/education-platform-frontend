@@ -1,4 +1,6 @@
 import { I_FetchOptions, I_SessionSetup, T_GetMethod } from '@/shared/data/types';
+import log from '@/shared/log';
+import { errorToast } from '@/shared/toasts';
 
 
 
@@ -12,8 +14,14 @@ const listService = <T_Response>(endpoint: string, getMethod: T_GetMethod) => {
   }
 }
 
+const handleServiceError = (errorReason) => {
+  errorToast("Error en la interacción con el servidor.")
+  log.error(errorReason)
+}
+
 export {
   listService,
+  handleServiceError
 }
 export type {
   I_SessionSetup,

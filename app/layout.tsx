@@ -7,6 +7,7 @@ import { Roboto } from "next/font/google";
 import Head from 'next/head';
 
 import theme from '@/shared/theme';
+import { ToastContainer } from 'react-toastify';
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <AppRouterCacheProvider>
           <CssBaseline>
             <ThemeProvider theme={theme}>
+              <ToastContainer />
               {children}
             </ThemeProvider>
           </CssBaseline>
