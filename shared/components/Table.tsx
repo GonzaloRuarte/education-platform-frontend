@@ -44,20 +44,21 @@ interface I_Props {
   data?: DataGridProps["rows"]
   count?: number
   columns: Array<GridColDef>
+  isLoading?: boolean
 }
 
-function Table({ paginationModel, onPaginationModelChange, data, count, columns }: I_Props) {
+function Table({ isLoading = false, ...p }: I_Props) {
   return <StripedDataGrid
-    rows={data} columns={columns}
+    rows={p.data} columns={p.columns}
     getRowClassName={(params) =>
       params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
     }
-    paginationModel={paginationModel}
+    paginationModel={p.paginationModel}
     pageSizeOptions={[10, 25, 100]}
-    onPaginationModelChange={onPaginationModelChange}
+    onPaginationModelChange={p.onPaginationModelChange}
     paginationMode='server'
-    loading={data === undefined}
-    rowCount={count || 0}
+    loading={isLoading}
+    rowCount={p.count || 0}
   />
 }
 
