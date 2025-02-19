@@ -1,9 +1,9 @@
-import { T_CohortLevel } from '@/mta_schools/types'
+import type { T_CohortLevelCode } from '@/mta_schools/types'
 
 const PRIMARIA = "Primaria"
 const SECUNDARIA = "Secundaria"
 
-const cohortLevelCodeToLabel = (code: T_CohortLevel): string => (
+const cohortLevelCodeToLabel = (code: T_CohortLevelCode): string => (
   {
     P: PRIMARIA,
     S: SECUNDARIA,

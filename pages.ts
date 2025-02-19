@@ -5,7 +5,6 @@ const dashboardPages = rb.root({
   basepath: '/dashboard',
   nodes: [
     rb.node('Escuelas', '/escuelas'),
-    rb.node('Divisiones', '/divisiones'),
     rb.node('Comisiones de evaluación', '/comisiones'),
 
     rb.node('Turnos', '/turnos'),

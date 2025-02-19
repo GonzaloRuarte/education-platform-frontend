@@ -17,14 +17,6 @@ const Menu = () => {
           Icon={SchoolIcon}
           label={P.escuelas.label}
           href={P.escuelas.path}
-          subMenu={
-            <MenuBlock isSubMenu>
-              <MenuItem
-                label={P.divisiones.label}
-                href={P.divisiones.path}
-              />
-            </MenuBlock>
-          }
         />
         <MenuItem
           Icon={CalendarMonthIcon}

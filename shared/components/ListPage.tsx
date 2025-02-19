@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import debounce from 'debounce'
 import useToasts from '@/shared/toasts';
 import { useInProgress } from '@/shared/hooks';
+import log from '@/shared/log';
 
 interface I_Props<T_Response> {
   columns: Array<GridColDef>
@@ -26,6 +27,7 @@ function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>
   const [data, setData] = useState<T_Response | undefined>(undefined)
 
   const fetchData = () => {
+    log.info("fetching data")
     setIsInProgress(true)
     p.fetchingService({ page: paginationModel.page + 1, page_size: paginationModel.pageSize })
       .then(res => {
@@ -36,11 +38,7 @@ function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>
   }
 
 
-  useEffect(() => {
-    console.log(paginationModel);
-
-    fetchData()
-  }, [paginationModel])
+  useEffect(fetchData, [paginationModel])
 
   return <Page>
     <Page.Title>{p.title}</Page.Title>
