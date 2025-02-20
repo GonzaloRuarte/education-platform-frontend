@@ -3,9 +3,6 @@ import log from '@/shared/log';
 import { errorToast } from '@/shared/toasts';
 
 
-
-
-
 const listService = <T_Response>(endpoint: string, getMethod: T_GetMethod) => {
   return (requestSetup?: I_RequestSetup) => {
     return async (options: I_FetchOptions) => {
