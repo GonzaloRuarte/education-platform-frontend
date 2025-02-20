@@ -1,1 +1,1 @@
-export { default } from '@/shared/layout/GenericPageLayout'
+export { default } from '@/shared/layout/DashboardLoggedInLayout'
