@@ -1,0 +1,12 @@
+{
+  "Add use client": {
+    "prefix": "useclient",
+    "body": ["'use client'", "$0"],
+    "description": "Add 'use client' at the top of the file"
+  },
+  "Add use server": {
+    "prefix": "useserver",
+    "body": ["'use server'", "$0"],
+    "description": "Add 'use server' at the top of the file"
+  }
+}

@@ -14,19 +14,19 @@ const theme = createTheme({
       fontWeight: 'normal'
     },
     h2: {
-      fontSize: 38
+      fontSize: 36
     },
     h3: {
-      fontSize: 34
-    },
-    h4: {
       fontSize: 30
     },
+    h4: {
+      fontSize: 22
+    },
     h5: {
-      fontSize: 26
+      fontSize: 14
     },
     h6: {
-      fontSize: 22
+      fontSize: 8
     },
   },
   palette: {
