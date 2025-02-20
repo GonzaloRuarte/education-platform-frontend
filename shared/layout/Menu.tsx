@@ -1,13 +1,12 @@
+import P from "@/pages";
 import MenuBlock from "@/shared/layout/MenuBlock";
 import MenuDivider from "@/shared/layout/MenuDivider";
 import MenuItem from "@/shared/layout/MenuItem";
-import SchoolIcon from "@mui/icons-material/School";
+import BadgeIcon from "@mui/icons-material/Badge";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import FactCheckIcon from "@mui/icons-material/FactCheck";
 import PersonIcon from "@mui/icons-material/Person";
-import Groups2Icon from "@mui/icons-material/Groups2";
-import BadgeIcon from "@mui/icons-material/Badge";
-import P from "@/pages";
+import SchoolIcon from "@mui/icons-material/School";
 
 const Menu = () => {
   return (
@@ -15,30 +14,25 @@ const Menu = () => {
       <MenuBlock>
         <MenuItem
           Icon={SchoolIcon}
-          label={P.escuelas.label}
-          href={P.escuelas.path}
+          label={P.D._.escuelas.label}
+          href={P.D._.escuelas.path}
         />
         <MenuItem
           Icon={CalendarMonthIcon}
-          label={P.turnos.label}
-          href={P.turnos.path}
+          label={P.D._.turnos.label}
+          href={P.D._.turnos.path}
         />
         <MenuItem
           Icon={FactCheckIcon}
-          label={P.evaluaciones.label}
-          href={P.evaluaciones.path}
+          label={P.D._.evaluaciones.label}
+          href={P.D._.evaluaciones.path}
         />
         <MenuItem
           Icon={PersonIcon}
-          label={P.estudiantes.label}
-          href={P.estudiantes.path}
+          label={P.D._.estudiantes.label}
+          href={P.D._.estudiantes.path}
         />
-        <MenuItem
-          Icon={Groups2Icon}
-          label={P.comisiones.label}
-          href={P.comisiones.path}
-        />
-        <MenuItem Icon={BadgeIcon} label={P.roles.label} href={P.roles.path} />
+        <MenuItem Icon={BadgeIcon} label={P.D._.roles.label} href={P.D._.roles.path} />
       </MenuBlock>
 
       <MenuDivider />

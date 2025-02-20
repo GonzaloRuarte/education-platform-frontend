@@ -1,6 +1,6 @@
 import { toast, ToastOptions } from 'react-toastify'
 
-const options: ToastOptions = { position: "bottom-right" }
+const options: ToastOptions = { position: "bottom-right", style: { zIndex: 10000000 } }
 
 const errorToast = (msg: string) => toast.error(msg, options)
 const successToast = (msg: string) => toast.success(msg, options)

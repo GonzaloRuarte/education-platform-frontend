@@ -1,6 +1,7 @@
 'use client'
 
 import { create, StateCreator } from 'zustand'
+import { devtools, persist, createJSONStorage } from 'zustand/middleware'
 import { createAuthSlice, I_AuthSlice } from '@/mta_auth/state/slice'
 
 
@@ -23,10 +24,20 @@ const createCoreSlice: StateCreator<
 
 type T_CombinedSlices = I_AuthSlice & I_CoreSlice
 
-const useStore = create<T_CombinedSlices>()((...a) => ({
-  ...createAuthSlice(...a),
-  ...createCoreSlice(...a),
-}))
+const useStore = create<T_CombinedSlices>()(
+  devtools(
+    persist(
+      (...args) => ({
+        ...createAuthSlice(...args),
+        ...createCoreSlice(...args),
+      }),
+      {
+        name: 'meta_system-data'
+      }
+    )
+  )
+)
+
 
 
 

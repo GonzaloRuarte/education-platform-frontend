@@ -1,4 +1,4 @@
-import { I_FetchOptions, I_SessionSetup, T_GetMethod } from '@/shared/data/types';
+import { I_FetchOptions, I_RequestSetup, T_GetMethod, T_PostMethod } from '@/shared/data/types';
 import log from '@/shared/log';
 import { errorToast } from '@/shared/toasts';
 
@@ -7,23 +7,31 @@ import { errorToast } from '@/shared/toasts';
 
 
 const listService = <T_Response>(endpoint: string, getMethod: T_GetMethod) => {
-  return (sessionSetup?: I_SessionSetup) => {
+  return (requestSetup?: I_RequestSetup) => {
     return async (options: I_FetchOptions) => {
-      return getMethod<T_Response>({ endpoint, sessionSetup, options })
+      return getMethod<T_Response>({ endpoint, requestSetup: requestSetup, options })
     }
   }
 }
 
-const handleServiceError = (errorReason) => {
+const postService = <T_RequestData, T_Response>(endpoint: string, postMethod: T_PostMethod) => {
+  return (requestSetup?: I_RequestSetup) => {
+    return async (data: T_RequestData) => {
+      return postMethod<T_RequestData, T_Response>({ endpoint, requestSetup: requestSetup, data })
+    }
+  }
+}
+
+const handleServiceError = (errorReason: any) => {
   errorToast("Error en la interacción con el servidor.")
   log.error(errorReason)
 }
 
-export {
-  listService,
-  handleServiceError
+const handleError = (msg: string) => (errorReason: any) => {
+  errorToast(msg)
+  log.error(errorReason)
 }
-export type {
-  I_SessionSetup,
-  I_FetchOptions,
+
+export {
+  handleServiceError, handleError, listService, postService
 }

@@ -4,7 +4,7 @@ interface I_FetchOptions {
   filters?: Record<string, any>;
 }
 
-interface I_SessionSetup {
+interface I_RequestSetup {
   accessToken?: string
   refreshToken?: string
   headers?: object
@@ -12,8 +12,15 @@ interface I_SessionSetup {
 
 type T_GetMethod = <T_Response>(args: {
   endpoint: string;
-  sessionSetup?: I_SessionSetup;
+  requestSetup?: I_RequestSetup;
   options: I_FetchOptions;
+}) => Promise<T_Response>
+
+type T_PostMethod = <T_RequestData, T_Response>(args: {
+  endpoint: string;
+  requestSetup?: I_RequestSetup;
+  // options: I_FetchOptions;
+  data: T_RequestData;
 }) => Promise<T_Response>
 
 interface I_PaginatedResponse<T_ResultsInstance = unknown> {
@@ -25,7 +32,8 @@ interface I_PaginatedResponse<T_ResultsInstance = unknown> {
 
 export type {
   I_FetchOptions,
-  I_SessionSetup,
+  I_RequestSetup,
   T_GetMethod,
   I_PaginatedResponse,
+  T_PostMethod,
 }

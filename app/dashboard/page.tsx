@@ -1,8 +1,8 @@
-import React from 'react'
+import DashboardLoggedInLayout from '@/shared/layout/DashboardLoggedInLayout'
 
 const Welcome = () => {
   return (
-    <div>Bienvenido/a a Meta</div>
+    <DashboardLoggedInLayout>Bienvenido/a a Meta</DashboardLoggedInLayout>
   )
 }
 

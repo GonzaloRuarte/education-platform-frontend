@@ -1,21 +1,35 @@
-import { I_FetchOptions, I_SessionSetup, T_GetMethod } from '@/shared/data/types'
+import { I_FetchOptions, I_RequestSetup, T_GetMethod } from '@/shared/data/types'
 import axios from 'axios'
 
-const axiosGet = async <T_Response>(args: { endpoint: string, sessionSetup?: I_SessionSetup, options: I_FetchOptions }) => {
+const _axiosBaseHeaders = (requestSetup?: I_RequestSetup) => ({
+  'Content-Type': 'application/json',
+  ...(requestSetup?.accessToken && { Authorization: `Bearer ${requestSetup?.accessToken}` })
+  ,
+})
+
+const axiosGet = async <T_Response>(args: { endpoint: string, requestSetup?: I_RequestSetup, options: I_FetchOptions }) => {
   return axios.get<T_Response>(args.endpoint, {
     params: args.options,
     headers: {
-      'Content-Type': 'application/json',
-      ...(args.sessionSetup?.accessToken && { Authorization: `Bearer ${args.sessionSetup?.accessToken}` })
-      ,
+      ..._axiosBaseHeaders(args.requestSetup)
     }
   }).then(response => {
     return response.data
   })
-
 }
 
-const fetchBasedGet: T_GetMethod = async <T_Response>({ endpoint, sessionSetup, options }) => {
+const axiosPost = async <T_RequestData, T_Response>(args: { endpoint: string, requestSetup?: I_RequestSetup, options: I_FetchOptions, data: T_RequestData }) => {
+  return axios.post<T_Response>(args.endpoint, args.data, {
+    headers: {
+      ..._axiosBaseHeaders(args.requestSetup)
+    }
+  }).then(response => {
+    return response.data
+  })
+}
+
+
+const fetchBasedGet: T_GetMethod = async <T_Response>({ endpoint, requestSetup, options }) => {
   const url = new URL(endpoint);
 
   Object.entries(options).forEach(([key, value]) => {
@@ -28,8 +42,8 @@ const fetchBasedGet: T_GetMethod = async <T_Response>({ endpoint, sessionSetup, 
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      ...(sessionSetup?.accessToken && { Authorization: `Bearer ${sessionSetup.accessToken}` }),
-      ...sessionSetup?.headers,
+      ...(requestSetup?.accessToken && { Authorization: `Bearer ${requestSetup.accessToken}` }),
+      ...requestSetup?.headers,
     },
   });
 
@@ -43,6 +57,7 @@ const fetchBasedGet: T_GetMethod = async <T_Response>({ endpoint, sessionSetup, 
 
 export {
   axiosGet,
+  axiosPost,
   fetchBasedGet
 }
 
