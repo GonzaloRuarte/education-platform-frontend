@@ -1,6 +1,6 @@
 import { useAuthData } from '@/mta_auth/hooks';
 import { T_GetSchoolsListResponse } from '@/mta_schools/types';
-import { axiosGet } from '@/shared/data/fetchers';
+import { axiosGet } from '@/shared/data/axios';
 import { listHook } from '@/shared/hooks';
 
 

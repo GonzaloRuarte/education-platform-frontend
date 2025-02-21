@@ -5,11 +5,9 @@ import Input from '@/shared/components/Input'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
 import { rules } from '@/shared/forms/messages'
-import { useInProgress } from '@/shared/hooks'
-import log from '@/shared/log'
-import { useRdHome } from '@/shared/navigation'
-import { handleError } from '@/shared/service'
-import { errorToast, successToast } from '@/shared/toasts'
+import { useInProgress, useNavigateToHome } from '@/shared/hooks'
+import { handleServiceError } from '@/shared/service'
+import { successToast } from '@/shared/toasts'
 import { Backdrop } from '@mui/material'
 import { SubmitHandler, useForm } from "react-hook-form"
 
@@ -25,7 +23,7 @@ const defaultValues: I_FormFields = {
 
 export default function LoginForm() {
   const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
-  const rdHome = useRdHome()
+  const { navigateToHome } = useNavigateToHome()
   const authorize = useAuthorize()
   const storeAuthData = useStoreAuthData()
 
@@ -34,13 +32,11 @@ export default function LoginForm() {
     setIsInProgress(true)
     authorize(data)
       .then(res => {
-        successToast('¡Sesión iniciada correctamente, bienvenidx!')
+        successToast('¡Sesión iniciada correctamente, bienvenido/a!')
         storeAuthData({ accessToken: res.access, refreshToken: res.refresh })
-        rdHome()
+        navigateToHome()
       })
-      .catch((err) => {
-        errorToast('asd')
-      })
+      .catch(handleServiceError)
       .finally(() => {
         setIsInProgress(false)
       })

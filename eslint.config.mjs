@@ -25,7 +25,7 @@ const eslintConfig = [
           "patterns": ["@mui/*/*/*"]
         }
       ],
-      'no-unused-vars': _.WARN,
+      'no-unused-vars': _.ERROR,
       'comma-dangle': [_.ERROR, 'always-multiline'],
       'space-infix-ops': _.OFF,
       'space-before-function-paren': _.OFF,

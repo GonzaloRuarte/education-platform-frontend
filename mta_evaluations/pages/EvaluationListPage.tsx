@@ -1,5 +1,6 @@
-"use client"
+'use client'
 
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { useEvaluationList } from '@/mta_evaluations/hooks'
 import ListPage from '@/shared/components/ListPage'
 import { GridColDef } from '@mui/x-data-grid'
@@ -10,7 +11,16 @@ const columns: Array<GridColDef> = [
   { field: 'questions_per_page', headerName: 'Preguntas p/página', flex: 1 },
 ]
 
-const EvaluationListPage = () => <ListPage columns={columns} useService={useEvaluationList} title='Evaluaciones' />
+const EvaluationListPage = () => (
+  <ListPage
+    columns={columns}
+    useService={useEvaluationList}
+    title="Evaluaciones"
+  />
+)
 
-
-export default EvaluationListPage
+export default withAuth(EvaluationListPage, [
+  'admin',
+  'evaluator',
+  'school_staff',
+])

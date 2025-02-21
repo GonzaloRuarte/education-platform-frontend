@@ -1,0 +1,19 @@
+{
+  "Navigate to...": {
+    "prefix": "nav",
+    "body": [
+      "import { useRouter } from 'next/navigation'",
+      "import pages from '@/pages'",
+      "",
+      "const useNavigateTo$1 = () => {",
+      "  const router = useRouter()",
+      "  const navigateTo$1 = () => {",
+      "    router.push(pages.)",
+      "  }",
+      "  return { navigateTo$1 }",
+      "}",
+      "$0"
+    ],
+    "description": "Generates 'navigate to' nextjs hook"
+  }
+}

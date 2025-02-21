@@ -1,8 +1,7 @@
-'use client'
 
-import { create, StateCreator } from 'zustand'
-import { devtools, persist, createJSONStorage } from 'zustand/middleware'
 import { createAuthSlice, I_AuthSlice } from '@/mta_auth/state/slice'
+import { create, StateCreator } from 'zustand'
+import { devtools, persist } from 'zustand/middleware'
 
 
 interface I_CoreSlice {

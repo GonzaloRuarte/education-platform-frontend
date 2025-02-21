@@ -7,6 +7,7 @@ import log from '@/shared/log';
 import { handleServiceError } from '@/shared/service';
 import { T_ServiceHook } from '@/shared/types';
 import { GridColDef, GridPaginationModel } from '@mui/x-data-grid';
+import debounce from 'debounce';
 import { useEffect, useState } from 'react';
 
 
@@ -40,7 +41,7 @@ function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>
   }
 
 
-  useEffect(fetchData, [paginationModel])
+  useEffect(debounce(fetchData), [paginationModel])
 
   return <Page>
     <Page.Title>{p.title}</Page.Title>

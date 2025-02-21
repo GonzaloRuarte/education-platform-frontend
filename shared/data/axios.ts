@@ -1,11 +1,22 @@
-import { I_FetchOptions, I_RequestSetup, T_GetMethod } from '@/shared/data/types'
-import axios from 'axios'
+import { SERVER_ERROR } from '@/shared/data/constants'
+import ApiError from '@/shared/data/errors'
+import { I_FetchOptions, I_RequestSetup } from '@/shared/data/types'
+import axios, { AxiosError } from 'axios'
 
 const _axiosBaseHeaders = (requestSetup?: I_RequestSetup) => ({
   'Content-Type': 'application/json',
   ...(requestSetup?.accessToken && { Authorization: `Bearer ${requestSetup?.accessToken}` })
   ,
 })
+
+
+const _handledAxiosError = (error: AxiosError<{ detail: string }>) => {
+  throw new ApiError({
+    message: error.response?.data.detail || SERVER_ERROR,
+    status: error.response?.status,
+    rawError: error
+  })
+}
 
 const axiosGet = async <T_Response>(args: { endpoint: string, requestSetup?: I_RequestSetup, options: I_FetchOptions }) => {
   return axios.get<T_Response>(args.endpoint, {
@@ -16,6 +27,7 @@ const axiosGet = async <T_Response>(args: { endpoint: string, requestSetup?: I_R
   }).then(response => {
     return response.data
   })
+    .catch(_handledAxiosError)
 }
 
 const axiosPost = async <T_RequestData, T_Response>(args: { endpoint: string, requestSetup?: I_RequestSetup, options: I_FetchOptions, data: T_RequestData }) => {
@@ -26,38 +38,14 @@ const axiosPost = async <T_RequestData, T_Response>(args: { endpoint: string, re
   }).then(response => {
     return response.data
   })
+    .catch(_handledAxiosError)
 }
 
 
-const fetchBasedGet: T_GetMethod = async <T_Response>({ endpoint, requestSetup, options }) => {
-  const url = new URL(endpoint);
-
-  Object.entries(options).forEach(([key, value]) => {
-    if (value !== undefined) {
-      url.searchParams.append(key, String(value));
-    }
-  });
-
-  const response = await fetch(url.toString(), {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(requestSetup?.accessToken && { Authorization: `Bearer ${requestSetup.accessToken}` }),
-      ...requestSetup?.headers,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! Status: ${response.status}`);
-  }
-
-  return response.json() as Promise<T_Response>;
-};
 
 
 export {
   axiosGet,
-  axiosPost,
-  fetchBasedGet
+  axiosPost
 }
 

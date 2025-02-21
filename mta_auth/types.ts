@@ -1,10 +1,10 @@
-type T_Permissions = 'admin' | 'school_staff' | 'evaluator' | 'student'
-
+type T_AccessGroup = 'admin' | 'school_staff' | 'evaluator' | 'student'
+type T_AllowedAccessGroups = Array<T_AccessGroup> | undefined
 
 interface I_AuthData {
   accessToken?: string
   refreshToken?: string
-  permissions: Array<T_Permissions>
+  accessGroups: Array<T_AccessGroup>
 }
 
 interface I_AuthorizeRequestData {
@@ -18,7 +18,8 @@ interface I_AuthorizeResponseData {
 }
 
 export type {
-  T_Permissions,
+  T_AccessGroup,
+  T_AllowedAccessGroups,
   I_AuthData,
   I_AuthorizeRequestData,
   I_AuthorizeResponseData,
