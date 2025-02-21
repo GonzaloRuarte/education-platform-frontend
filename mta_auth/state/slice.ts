@@ -1,10 +1,11 @@
 'use client'
 
-import { I_AuthData } from '@/mta_auth/types';
-import { StateCreator } from "zustand"
+import { I_AuthData } from '@/mta_auth/types'
+import { StateCreator } from 'zustand'
 
 interface I_AuthSlice extends I_AuthData {
-  storeAuthData: (data: { accessToken: string; refreshToken: string }) => void;
+  storeAuthData: (data: { accessToken: string; refreshToken: string }) => void
+  storeRefreshedToken: (accessToken: string) => void
   clearAuthData: () => void
 }
 
@@ -12,8 +13,8 @@ const createAuthSlice: StateCreator<I_AuthSlice, [], [], I_AuthSlice> = (set, ge
   accessToken: undefined,
   refreshToken: undefined,
   accessGroups: ['admin'],
-  storeAuthData: ({ accessToken, refreshToken }) =>
-    set(() => ({ accessToken, refreshToken })),
+  storeAuthData: ({ accessToken, refreshToken }) => set(() => ({ accessToken, refreshToken })),
+  storeRefreshedToken: (accessToken) => set((state) => ({ ...state, accessToken })),
   clearAuthData: () =>
     set(() => ({
       accessToken: undefined,
@@ -22,6 +23,4 @@ const createAuthSlice: StateCreator<I_AuthSlice, [], [], I_AuthSlice> = (set, ge
 })
 
 export { createAuthSlice }
-export type {
-  I_AuthSlice
-}
+export type { I_AuthSlice }
