@@ -1,8 +1,5 @@
-import { useAuthData, useAuthResources } from '@/mta_auth/hooks'
-import {
-  T_GetSchoolsListResponse,
-  T_GetStudentProfileListResponse,
-} from '@/mta_schools/types'
+import { useAuthResources } from '@/mta_auth/hooks'
+import { T_GetSchoolsListResponse, T_GetStudentProfileListResponse } from '@/mta_schools/types'
 import { axiosGet } from '@/shared/data/axios'
 import { listHook } from '@/shared/hooks'
 

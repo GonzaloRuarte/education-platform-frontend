@@ -8,15 +8,16 @@ import {
 import pages from '@/pages'
 import { axiosPost } from '@/shared/data/axios'
 import { T_TokenRefresher } from '@/shared/data/types'
+import log from '@/shared/log'
 import { postService } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import { successToast } from '@/shared/toasts'
 import { intersection } from '@/shared/utils'
 import { useRouter } from 'next/navigation'
 
-const useIsAuthorized = () => useStore.getState().accessGroups !== undefined
+const useIsAuthorized = () => useStore.getState().accessToken !== undefined
 
-const useUserAccessGroups = () => useStore((state) => state.accessGroups)
+const useUserAccessGroups = () => useStore.getState().accessGroups
 
 const useHasPermissions = (requiredAccesses: T_AllowedAccessGroups): boolean => {
   const userAccessGroups = useUserAccessGroups()
@@ -36,6 +37,7 @@ const useAuthResources = (): I_AuthResources => {
   const storeRefreshedToken = useStore((state) => state.storeRefreshedToken)
 
   const refresh: T_TokenRefresher = (postMethod) => async (data) => {
+    log.info('Auth Token succesfully refreshed')
     return postMethod('http://localhost:8000/api/token/refresh/', data).then((res) => {
       storeRefreshedToken(res.access)
       return res

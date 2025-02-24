@@ -1,14 +1,12 @@
-import ApiError from '@/shared/data/errors';
-import { I_FetchOptions, I_RequestSetup, T_GetMethod, T_PostMethod } from '@/shared/data/types';
-import log from '@/shared/log';
-import { errorToast } from '@/shared/toasts';
-import { AxiosError } from 'axios';
-
+import ApiError from '@/shared/data/errors'
+import { I_FetchOptions, I_RequestSetup, T_GetMethod, T_PostMethod } from '@/shared/data/types'
+import log from '@/shared/log'
+import { errorToast } from '@/shared/toasts'
 
 const listService = <T_Response>(endpoint: string, getMethod: T_GetMethod) => {
   return (requestSetup?: I_RequestSetup) => {
     return async (options: I_FetchOptions) => {
-      return getMethod<T_Response>({ endpoint, requestSetup: requestSetup, options })
+      return getMethod<T_Response>({ endpoint, requestSetup, options })
     }
   }
 }
@@ -16,14 +14,14 @@ const listService = <T_Response>(endpoint: string, getMethod: T_GetMethod) => {
 const postService = <T_RequestData, T_Response>(endpoint: string, postMethod: T_PostMethod) => {
   return (requestSetup?: I_RequestSetup) => {
     return async (data: T_RequestData) => {
-      return postMethod<T_RequestData, T_Response>({ endpoint, requestSetup: requestSetup, data })
+      return postMethod<T_RequestData, T_Response>({ endpoint, requestSetup, data })
     }
   }
 }
 
-const handleServiceError = (error: ApiError) => {
+const handleServiceError = (error: ApiError<Error>) => {
   errorToast(error.message)
-  log.error(error.rawError)
+  // console.log('handleServiceError', error.rawError)
 }
 
 const handleError = (msg: string) => (errorReason: any) => {
@@ -31,6 +29,4 @@ const handleError = (msg: string) => (errorReason: any) => {
   console.log(errorReason)
 }
 
-export {
-  handleServiceError, handleError, listService, postService
-}
+export { handleError, handleServiceError, listService, postService }

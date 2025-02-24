@@ -10,9 +10,9 @@ interface I_RefreshRequestData {
 interface I_RefreshResponseData {
   access: string
 }
-type T_TokenRefresher = <T extends I_RefreshResponseData>(
-  postMethod: (url: string, data: object) => Promise<T>,
-) => (data: I_RefreshRequestData) => Promise<T>
+type T_TokenRefresher = (
+  postMethod: (url: string, data: object) => Promise<{ access: string }>,
+) => (data: I_RefreshRequestData) => Promise<any>
 interface I_RequestSetup {
   accessToken?: string
   refreshToken?: string
@@ -40,6 +40,12 @@ interface I_PaginatedResponse<T_ResultsInstance = unknown> {
   results: Array<T_ResultsInstance>
 }
 
+interface I_CommonFetcherArgs {
+  requestSetup?: I_RequestSetup
+}
+type T_BaseFetcher = (args: I_CommonFetcherArgs) => Promise<any>
+type T_401Handler = <T_Fetcher extends T_BaseFetcher>(fetcher: T_Fetcher) => T_Fetcher
+
 export type {
   I_FetchOptions,
   I_RequestSetup,
@@ -51,4 +57,6 @@ export type {
   T_TokenRefresher,
   I_RefreshRequestData,
   I_RefreshResponseData,
+  T_401Handler,
+  T_BaseFetcher,
 }

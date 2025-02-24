@@ -1,35 +1,55 @@
 import { SERVER_ERROR } from '@/shared/data/constants'
 import ApiError from '@/shared/data/errors'
-import { I_FetchOptions, I_RequestSetup } from '@/shared/data/types'
+import { I_FetchOptions, I_RequestSetup, T_401Handler, T_BaseFetcher } from '@/shared/data/types'
 import axios, { AxiosError } from 'axios'
+
+const _authHeader = (accessToken: string) => ({
+  Authorization: `Bearer ${accessToken}`,
+})
 
 const _axiosBaseHeaders = (requestSetup?: I_RequestSetup) => ({
   'Content-Type': 'application/json',
-  ...(requestSetup?.accessToken && {
-    Authorization: `Bearer ${requestSetup?.accessToken}`,
-  }),
+  ...(requestSetup?.accessToken && _authHeader(requestSetup.accessToken)),
 })
 
 const _handledAxiosError = (error: AxiosError<{ detail: string }>) => {
-  throw new ApiError({
+  throw new ApiError<AxiosError>({
     message: error.response?.data.detail || SERVER_ERROR,
-    status: error.response?.status,
+    status: error.response?.status || -1,
     rawError: error,
   })
 }
 
-interface I_CommonFetcherArgs {
-  requestSetup?: I_RequestSetup
+const axiosRefreshPostMethod: (url: string, data: object) => Promise<{ access: string }> = async (url, data) => {
+  const res = await axios.post(url, data)
+  return res.data
 }
 
-function with401Handling<T_Fetcher extends (args: I_CommonFetcherArgs) => Promise<any>>(fetcher: T_Fetcher): T_Fetcher {
+/**
+ * High order function that adds 401 (unauthorized) status handling to a AXIOS BASED fetcher
+ * @param fetcher
+ * @returns
+ */
+const with401Handling: T_401Handler = <T_Fetcher extends T_BaseFetcher>(fetcher: T_Fetcher): T_Fetcher => {
   return ((args) =>
-    fetcher(args).catch((error) => {
+    fetcher(args).catch((error: ApiError<AxiosError>) => {
       if (error instanceof ApiError) {
         if (args.requestSetup?.refresh !== undefined && args.requestSetup.refreshToken !== undefined) {
-          args.requestSetup.refresh(axios.post)({
-            refresh: args.requestSetup.refreshToken,
-          })
+          return args.requestSetup
+            .refresh(axiosRefreshPostMethod)({
+              refresh: args.requestSetup.refreshToken,
+            })
+            .then((res) => {
+              return axios
+                .request({
+                  ...error.rawError.config,
+                  headers: {
+                    ...error.rawError.config?.headers,
+                    ..._authHeader(res.access),
+                  },
+                })
+                .then((response) => response.data)
+            })
         }
       }
       throw error
