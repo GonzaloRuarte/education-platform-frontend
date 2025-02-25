@@ -35,7 +35,10 @@ const StripedDataGrid = styled(DataGrid)(({ theme }) => ({
   },
 }))
 
-type I_SelectedDataGridProps = Pick<DataGridProps, 'checkboxSelection'>
+type I_SelectedDataGridProps = Pick<
+  DataGridProps,
+  'checkboxSelection' | 'slots' | 'density' | 'rowSelectionModel' | 'onRowSelectionModelChange' | 'slotProps'
+>
 
 interface I_Props extends I_SelectedDataGridProps {
   paginationModel: GridPaginationModel
