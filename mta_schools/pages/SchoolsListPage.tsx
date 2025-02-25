@@ -3,7 +3,7 @@
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { useSchoolList } from '@/mta_schools/hooks'
 import ListPage from '@/shared/components/ListPage'
-import { Badge, Box, Chip } from '@mui/material'
+import { Chip } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 
 const columns: Array<GridColDef> = [
