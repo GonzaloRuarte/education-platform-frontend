@@ -1,3 +1,4 @@
+import { apiUrl } from '@/config'
 import {
   I_AuthData,
   I_AuthorizeRequestData,
@@ -52,7 +53,7 @@ const useAuthResources = (): I_AuthResources => {
   const clearAuthData = useStore((state) => state.clearAuthData)
 
   const refresh: T_TokenRefresher = (postMethod) => async (data) => {
-    return postMethod('http://localhost:8000/api/token/refresha/', data).then((res) => {
+    return postMethod(apiUrl('/token/refresh/'), data).then((res) => {
       storeRefreshedToken(res.access)
       log.info('Auth Token succesfully refreshed')
       return res
@@ -79,7 +80,7 @@ const useLogout = () => {
 const useStoreAuthData = () => useStore((state) => state.storeAuthData)
 
 const useAuthorize = () => {
-  const path = 'http://localhost:8000/api/token/'
+  const path = apiUrl('/token/')
   return postService<I_AuthorizeRequestData, I_AuthorizeResponseData>(path, axiosPost)()
 }
 
