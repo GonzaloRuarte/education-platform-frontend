@@ -13,11 +13,13 @@ interface I_RefreshResponseData {
 type T_TokenRefresher = (
   postMethod: (url: string, data: object) => Promise<{ access: string }>,
 ) => (data: I_RefreshRequestData) => Promise<any>
+type T_Fatal401Handler = () => void
 interface I_RequestSetup {
   accessToken?: string
   refreshToken?: string
   headers?: object
   refresh?: T_TokenRefresher
+  handleFatal401Error?: T_Fatal401Handler
 }
 
 type T_GetMethod = <T_Response>(args: {
@@ -59,4 +61,5 @@ export type {
   I_RefreshResponseData,
   T_401Handler,
   T_BaseFetcher,
+  T_Fatal401Handler,
 }

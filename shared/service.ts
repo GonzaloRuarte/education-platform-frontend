@@ -1,6 +1,5 @@
 import ApiError from '@/shared/data/errors'
 import { I_FetchOptions, I_RequestSetup, T_GetMethod, T_PostMethod } from '@/shared/data/types'
-import log from '@/shared/log'
 import { errorToast } from '@/shared/toasts'
 
 const listService = <T_Response>(endpoint: string, getMethod: T_GetMethod) => {

@@ -9,7 +9,7 @@ import { useInProgress, useNavigateToHome } from '@/shared/hooks'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { Backdrop } from '@mui/material'
-import { SubmitHandler, useForm } from "react-hook-form"
+import { SubmitHandler, useForm } from 'react-hook-form'
 
 interface I_FormFields {
   username: string
@@ -17,9 +17,8 @@ interface I_FormFields {
 }
 const defaultValues: I_FormFields = {
   username: '',
-  password: ''
+  password: '',
 }
-
 
 export default function LoginForm() {
   const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
@@ -31,9 +30,9 @@ export default function LoginForm() {
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
     setIsInProgress(true)
     authorize(data)
-      .then(res => {
+      .then((res) => {
         successToast('¡Sesión iniciada correctamente, bienvenido/a!')
-        storeAuthData({ accessToken: res.access, refreshToken: res.refresh })
+        storeAuthData({ accessToken: res.access, refreshToken: res.refresh, accessGroups: ['admin'] })
         navigateToHome()
       })
       .catch(handleServiceError)
@@ -42,17 +41,23 @@ export default function LoginForm() {
       })
   }
 
-  return <>
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <MagicGrid>
-        <Input<I_FormFields> control={control} name='username' rules={{ required: rules.required }} label='Usuario' />
-        <Input<I_FormFields> control={control} type='password' name='password' rules={{ required: rules.required }} label='Contraseña' />
-      </MagicGrid>
+  return (
+    <>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <MagicGrid>
+          <Input<I_FormFields> control={control} name="username" rules={{ required: rules.required }} label="Usuario" />
+          <Input<I_FormFields>
+            control={control}
+            type="password"
+            name="password"
+            rules={{ required: rules.required }}
+            label="Contraseña"
+          />
+        </MagicGrid>
 
-      <Submit>Ingresar</Submit>
-
-    </form>
-    <Backdrop open={isInProgress} />
-  </>
-
+        <Submit>Ingresar</Submit>
+      </form>
+      <Backdrop open={isInProgress} />
+    </>
+  )
 }

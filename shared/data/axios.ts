@@ -39,17 +39,17 @@ const with401Handling: T_401Handler = <T_Fetcher extends T_BaseFetcher>(fetcher:
             .refresh(axiosRefreshPostMethod)({
               refresh: args.requestSetup.refreshToken,
             })
-            .then((res) => {
-              return axios
-                .request({
-                  ...error.rawError.config,
-                  headers: {
-                    ...error.rawError.config?.headers,
-                    ..._authHeader(res.access),
-                  },
-                })
-                .then((response) => response.data)
+            .then(async (res) => {
+              const response = await axios.request({
+                ...error.rawError.config,
+                headers: {
+                  ...error.rawError.config?.headers,
+                  ..._authHeader(res.access),
+                },
+              })
+              return response.data
             })
+            .catch(args.requestSetup?.handleFatal401Error)
         }
       }
       throw error

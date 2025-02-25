@@ -1,4 +1,4 @@
-import { T_TokenRefresher } from '@/shared/data/types'
+import { T_Fatal401Handler, T_TokenRefresher } from '@/shared/data/types'
 
 type T_AccessGroup = 'admin' | 'school_staff' | 'evaluator' | 'student'
 type T_AllowedAccessGroups = Array<T_AccessGroup> | undefined
@@ -6,11 +6,12 @@ type T_AllowedAccessGroups = Array<T_AccessGroup> | undefined
 interface I_AuthData {
   accessToken?: string
   refreshToken?: string
-  accessGroups: Array<T_AccessGroup>
+  accessGroups?: Array<T_AccessGroup>
 }
 
 interface I_AuthResources extends I_AuthData {
   refresh: T_TokenRefresher
+  handleFatal401Error: T_Fatal401Handler
 }
 
 interface I_AuthorizeRequestData {

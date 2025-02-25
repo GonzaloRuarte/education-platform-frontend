@@ -11,17 +11,31 @@ import { T_TokenRefresher } from '@/shared/data/types'
 import log from '@/shared/log'
 import { postService } from '@/shared/service'
 import { useStore } from '@/shared/state'
-import { successToast } from '@/shared/toasts'
+import { errorToast, successToast } from '@/shared/toasts'
 import { intersection } from '@/shared/utils'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
-const useIsAuthorized = () => useStore.getState().accessToken !== undefined
+const useIsAuthorized = () => {
+  const [useFastMethod, setUseFastMethod] = useState(true)
+
+  const isAuthorizedWithFastNonReactiveMethod = useStore.getState().accessToken !== undefined
+  const isAuthorizedWithReactiveMethod = useStore((state) => state.accessToken !== undefined)
+
+  useEffect(() => {
+    const to = setTimeout(() => setUseFastMethod(false), 100)
+    return () => clearTimeout(to)
+  }, [])
+
+  return useFastMethod ? isAuthorizedWithFastNonReactiveMethod : isAuthorizedWithReactiveMethod
+}
 
 const useUserAccessGroups = () => useStore.getState().accessGroups
 
 const useHasPermissions = (requiredAccesses: T_AllowedAccessGroups): boolean => {
   const userAccessGroups = useUserAccessGroups()
 
+  if (userAccessGroups === undefined) return false
   if (requiredAccesses === undefined || requiredAccesses.length === 0) return true
 
   return intersection(requiredAccesses, userAccessGroups).length > 0
@@ -35,16 +49,22 @@ const useAuthData = (): I_AuthData => {
 const useAuthResources = (): I_AuthResources => {
   const { accessGroups, accessToken, refreshToken } = useAuthData()
   const storeRefreshedToken = useStore((state) => state.storeRefreshedToken)
+  const clearAuthData = useStore((state) => state.clearAuthData)
 
   const refresh: T_TokenRefresher = (postMethod) => async (data) => {
-    log.info('Auth Token succesfully refreshed')
-    return postMethod('http://localhost:8000/api/token/refresh/', data).then((res) => {
+    return postMethod('http://localhost:8000/api/token/refresha/', data).then((res) => {
       storeRefreshedToken(res.access)
+      log.info('Auth Token succesfully refreshed')
       return res
     })
   }
+  const handleFatal401Error = () => {
+    clearAuthData()
+    log.info("Auth Token couldn't be refreshed. Destroying session")
+    errorToast('Error con tus credenciales de acceso. Inicia sesión nuevamente')
+  }
 
-  return { accessGroups, accessToken, refreshToken, refresh }
+  return { accessGroups, accessToken, refreshToken, refresh, handleFatal401Error }
 }
 
 const useLogout = () => {
