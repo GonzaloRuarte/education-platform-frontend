@@ -6,6 +6,7 @@ import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
 import { rules } from '@/shared/forms/messages'
 import { useInProgress, useNavigateToHome } from '@/shared/hooks'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { Backdrop } from '@mui/material'
@@ -22,7 +23,7 @@ const defaultValues: I_FormFields = {
 
 export default function LoginForm() {
   const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
-  const { navigateToHome } = useNavigateToHome()
+  const navigateToHome = useNavigateToHome()
   const authorize = useAuthorize()
   const storeAuthData = useStoreAuthData()
 
@@ -45,12 +46,12 @@ export default function LoginForm() {
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
         <MagicGrid>
-          <Input<I_FormFields> control={control} name="username" rules={{ required: rules.required }} label="Usuario" />
+          <Input<I_FormFields> control={control} name="username" rules={{ ...rules.required() }} label="Usuario" />
           <Input<I_FormFields>
             control={control}
             type="password"
             name="password"
-            rules={{ required: rules.required }}
+            rules={{ ...rules.required() }}
             label="Contraseña"
           />
         </MagicGrid>

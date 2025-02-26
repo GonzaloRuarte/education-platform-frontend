@@ -86,10 +86,9 @@ const useAuthorize = () => {
 
 const useNavigateToLogin = () => {
   const router = useRouter()
-  const navigateToLogin = () => {
+  return () => {
     router.push(pages.D._.login.path)
   }
-  return { navigateToLogin }
 }
 
 export {

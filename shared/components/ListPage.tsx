@@ -5,7 +5,7 @@ import { I_PaginatedResponse } from '@/shared/data/types'
 import { useInProgress } from '@/shared/hooks'
 import log from '@/shared/log'
 import { handleServiceError } from '@/shared/service'
-import { T_ServiceHook } from '@/shared/types'
+import { T_ListServiceHook } from '@/shared/types'
 import {
   GridColDef,
   GridPaginationModel,
@@ -19,7 +19,7 @@ import { useEffect, useState } from 'react'
 interface I_Props<T_Response> {
   columns: Array<GridColDef>
 
-  useService: T_ServiceHook<T_Response>
+  useService: T_ListServiceHook<T_Response>
   title: string
 }
 function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>) {

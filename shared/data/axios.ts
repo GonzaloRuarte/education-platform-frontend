@@ -72,22 +72,39 @@ const axiosGet = with401Handling(
   },
 )
 
-const axiosPost = async <T_RequestData, T_Response>(args: {
-  endpoint: string
-  requestSetup?: I_RequestSetup
-  options: I_FetchOptions
-  data: T_RequestData
-}) => {
-  return axios
-    .post<T_Response>(args.endpoint, args.data, {
-      headers: {
-        ..._axiosBaseHeaders(args.requestSetup),
-      },
-    })
-    .then((response) => {
-      return response.data
-    })
-    .catch(_handledAxiosError)
-}
+const axiosPost = with401Handling(
+  async <T_RequestData, T_Response>(args: {
+    endpoint: string
+    requestSetup?: I_RequestSetup
+    options: I_FetchOptions
+    data: T_RequestData
+  }) => {
+    return axios
+      .post<T_Response>(args.endpoint, args.data, {
+        headers: {
+          ..._axiosBaseHeaders(args.requestSetup),
+        },
+      })
+      .then((response) => {
+        return response.data
+      })
+      .catch(_handledAxiosError)
+  },
+)
 
-export { axiosGet, axiosPost }
+const axiosDelete = with401Handling(
+  async <T_Response>(args: { endpoint: string; requestSetup?: I_RequestSetup; options: I_FetchOptions }) => {
+    return axios
+      .delete<T_Response>(args.endpoint, {
+        headers: {
+          ..._axiosBaseHeaders(args.requestSetup),
+        },
+      })
+      .then((response) => {
+        return response.data
+      })
+      .catch(_handledAxiosError)
+  },
+)
+
+export { axiosGet, axiosPost, axiosDelete }

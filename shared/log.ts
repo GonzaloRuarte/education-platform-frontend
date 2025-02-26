@@ -1,17 +1,17 @@
-const logInfo = (data: any) => {
-  console.log('INFO:', data)
+const logInfo = (...data: any) => {
+  console.log('INFO:', ...data)
 }
 
-const logWarning = (data: any) => {
-  console.log('WARNING:', data)
+const logWarning = (...data: any) => {
+  console.log('WARNING:', ...data)
 }
 
-const logError = (data: any) => {
-  console.log('ERROR:', data)
+const logError = (...data: any) => {
+  console.log('ERROR:', ...data)
 }
 
-const logDebug = (data: any) => {
-  console.log('DEBUG:', data)
+const logDebug = (...data: any) => {
+  console.log('DEBUG:', ...data)
 }
 
 const log = {

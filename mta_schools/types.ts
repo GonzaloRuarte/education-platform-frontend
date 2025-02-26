@@ -30,10 +30,17 @@ interface I_StudentProfileListItem {
 
 type T_GetStudentProfileListResponse = I_PaginatedResponse<I_StudentProfileListItem>
 
+interface I_CreateSchoolRequestData {
+  name: string
+  district: string
+  contact_email: string
+}
+
 export type {
   T_SchoolId,
   I_SchoolListItem,
   I_StudentProfileListItem,
   T_GetSchoolsListResponse,
   T_GetStudentProfileListResponse,
+  I_CreateSchoolRequestData,
 }

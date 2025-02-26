@@ -1,18 +1,11 @@
 import { ValidationRule } from 'react-hook-form'
 
 const formMessages = {
-  required: 'Campo requerido'
+  required: 'Campo requerido',
 }
 
-
-const rules: {
-  required: ValidationRule<boolean>
-} = {
-  required: { value: true, message: formMessages.required }
+const rules = {
+  required: () => ({ required: { value: true, message: formMessages.required } }),
 }
 
-
-export {
-  rules,
-  formMessages,
-}
+export { rules, formMessages }

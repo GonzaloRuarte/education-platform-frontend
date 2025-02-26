@@ -35,6 +35,8 @@ type T_PostMethod = <T_RequestData, T_Response>(args: {
   data: T_RequestData
 }) => Promise<T_Response>
 
+type T_DeleteMethod = <T_Response>(args: { endpoint: string; requestSetup?: I_RequestSetup }) => Promise<T_Response>
+
 interface I_PaginatedResponse<T_ResultsInstance = unknown> {
   count: number
   next: string
@@ -54,6 +56,7 @@ export type {
   T_GetMethod,
   I_PaginatedResponse,
   T_PostMethod,
+  T_DeleteMethod,
 
   // Refresh
   T_TokenRefresher,
