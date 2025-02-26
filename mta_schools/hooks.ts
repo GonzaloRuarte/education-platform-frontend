@@ -1,6 +1,4 @@
-import { apiUrl } from '@/config'
 import { useAuthResources } from '@/mta_auth/hooks'
-// import { useNavigateToSchoolList } from '@/mta_schools/hooks/client'
 import {
   I_CreateSchoolRequestData,
   T_GetSchoolsListResponse,
@@ -8,9 +6,11 @@ import {
   T_SchoolId,
 } from '@/mta_schools/types'
 import { axiosDelete, axiosGet, axiosPost } from '@/shared/data/axios'
-import { creationHook, listHook, deletionHook } from '@/shared/hooks'
+import { creationHook, deletionHook, listHook } from '@/shared/hooks'
 
+import pages from '@/pages'
 import { I_CreationCommonResponse } from '@/shared/types'
+import { useRouter } from 'next/navigation'
 
 const useSchoolList = listHook<T_GetSchoolsListResponse>('/schools', axiosGet, useAuthResources)
 
@@ -23,9 +23,6 @@ const useSchoolCreate = creationHook<I_CreateSchoolRequestData, I_CreationCommon
 )
 const useSchoolDelete = deletionHook<T_SchoolId, I_CreationCommonResponse>('/schools', axiosDelete, useAuthResources)
 
-import pages from '@/pages'
-import { useRouter } from 'next/navigation'
-
 const useNavigateToSchoolList = () => {
   const router = useRouter()
 
@@ -34,4 +31,4 @@ const useNavigateToSchoolList = () => {
   }
 }
 
-export { useNavigateToSchoolList, useSchoolCreate, useSchoolList, useSchoolDelete, useStudentProfileList }
+export { useNavigateToSchoolList, useSchoolCreate, useSchoolDelete, useSchoolList, useStudentProfileList }

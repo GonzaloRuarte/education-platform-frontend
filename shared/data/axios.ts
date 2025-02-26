@@ -34,7 +34,11 @@ const with401Handling: T_401Handler = <T_Fetcher extends T_BaseFetcher>(fetcher:
   return ((args) =>
     fetcher(args).catch((error: ApiError<AxiosError>) => {
       if (error instanceof ApiError) {
-        if (args.requestSetup?.refresh !== undefined && args.requestSetup.refreshToken !== undefined) {
+        if (
+          args.requestSetup?.refresh !== undefined &&
+          args.requestSetup.refreshToken !== undefined &&
+          error.status === 401
+        ) {
           return args.requestSetup
             .refresh(axiosRefreshPostMethod)({
               refresh: args.requestSetup.refreshToken,

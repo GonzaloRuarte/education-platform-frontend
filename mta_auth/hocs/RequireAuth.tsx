@@ -17,7 +17,6 @@ const RequireAuth = ({ allowedAccessGroups }: { allowedAccessGroups: T_AllowedAc
 
   const requireAuth = () => {
     if (!isAuthorized) {
-      warningToast('Debes iniciar sesión para acceder.')
       navigateToLogin()
       return
     }

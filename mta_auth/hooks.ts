@@ -80,8 +80,7 @@ const useLogout = () => {
 const useStoreAuthData = () => useStore((state) => state.storeAuthData)
 
 const useAuthorize = () => {
-  const path = apiUrl('/token/')
-  return postService<I_AuthorizeRequestData, I_AuthorizeResponseData>(path, axiosPost)()
+  return postService<I_AuthorizeRequestData, I_AuthorizeResponseData>('/token', axiosPost)()
 }
 
 const useNavigateToLogin = () => {
