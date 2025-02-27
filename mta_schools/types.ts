@@ -36,6 +36,13 @@ interface I_CreateSchoolRequestData {
   contact_email: string
 }
 
+interface I_GetSchoolDetailResponse {
+  id: number
+  name: string
+  district: string
+  contact_email: string
+}
+
 export type {
   T_SchoolId,
   I_SchoolListItem,
@@ -43,4 +50,5 @@ export type {
   T_GetSchoolsListResponse,
   T_GetStudentProfileListResponse,
   I_CreateSchoolRequestData,
+  I_GetSchoolDetailResponse,
 }

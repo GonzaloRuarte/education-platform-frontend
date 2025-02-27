@@ -1,3 +1,4 @@
+import DeleteIcon from '@mui/icons-material/Delete'
 import { DEFAULT_PAGE_SIZE } from '@/config'
 import Page from '@/shared/components/Page'
 import Table from '@/shared/components/Table'
@@ -6,13 +7,16 @@ import { useInProgress } from '@/shared/hooks'
 import log from '@/shared/log'
 import { handleServiceError } from '@/shared/service'
 import { T_ListServiceHook } from '@/shared/types'
+import { IconButton } from '@mui/material'
 import {
   GridColDef,
   GridPaginationModel,
   GridRowSelectionModel,
   GridToolbarContainer,
   GridToolbarProps,
+  GridToolbarQuickFilter,
 } from '@mui/x-data-grid'
+
 import debounce from 'debounce'
 import { useEffect, useState } from 'react'
 
@@ -75,9 +79,17 @@ function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>
 }
 
 const CustomToolbar = ({ rowSelectionModel }: GridToolbarProps & { rowSelectionModel: GridRowSelectionModel }) => {
+  const showDelete = rowSelectionModel.length > 0
   return (
     <GridToolbarContainer>
-      {/* <GridToolbarQuickFilter />
+      {showDelete && (
+        <>
+          <IconButton aria-label="delete">
+            <DeleteIcon />
+          </IconButton>
+        </>
+      )}
+      {/* 
       <GridToolbarDensitySelector /> */}
       {/* <Box sx={{ flexGrow: 1 }} /> */}
       {/* <GridToolbarExport /> */}

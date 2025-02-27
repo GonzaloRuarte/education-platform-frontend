@@ -11,6 +11,13 @@ const listService = <T_Response>(entityPath: string, getMethod: T_GetMethod) => 
     }
   }
 }
+const detailService = <T_Id, T_Response>(entityPath: string, getMethod: T_GetMethod) => {
+  return (requestSetup?: I_RequestSetup) => {
+    return async (id: T_Id) => {
+      return getMethod<T_Response>({ endpoint: apiUrl(`${entityPath}/${id}`), requestSetup })
+    }
+  }
+}
 
 const postService = <T_RequestData, T_Response>(entityPath: string, postMethod: T_PostMethod) => {
   return (requestSetup?: I_RequestSetup) => {
@@ -37,4 +44,4 @@ const handleError = (msg: string) => (errorReason: any) => {
   log.error(errorReason)
 }
 
-export { deletionService, handleError, handleServiceError, listService, postService }
+export { deletionService, handleError, handleServiceError, listService, postService, detailService }

@@ -25,7 +25,7 @@ interface I_RequestSetup {
 type T_GetMethod = <T_Response>(args: {
   endpoint: string
   requestSetup?: I_RequestSetup
-  options: I_FetchOptions
+  options?: I_FetchOptions
 }) => Promise<T_Response>
 
 type T_PostMethod = <T_RequestData, T_Response>(args: {
