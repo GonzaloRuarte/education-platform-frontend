@@ -31,11 +31,15 @@ type T_GetMethod = <T_Response>(args: {
 type T_PostMethod = <T_RequestData, T_Response>(args: {
   endpoint: string
   requestSetup?: I_RequestSetup
-  // options: I_FetchOptions;
   data: T_RequestData
 }) => Promise<T_Response>
 
 type T_DeleteMethod = <T_Response>(args: { endpoint: string; requestSetup?: I_RequestSetup }) => Promise<T_Response>
+type T_PatchMethod = <T_RequestData, T_Response>(args: {
+  endpoint: string
+  requestSetup?: I_RequestSetup
+  data: T_RequestData
+}) => Promise<T_Response>
 
 interface I_PaginatedResponse<T_ResultsInstance = unknown> {
   count: number
@@ -57,6 +61,7 @@ export type {
   I_PaginatedResponse,
   T_PostMethod,
   T_DeleteMethod,
+  T_PatchMethod,
 
   // Refresh
   T_TokenRefresher,

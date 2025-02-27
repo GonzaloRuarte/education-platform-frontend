@@ -1,6 +1,7 @@
 'use client'
 
-import { useNavigateToSchoolList, useSchoolCreate } from '@/mta_schools/hooks'
+import { useNavigateToSchoolList, useSchoolCreate, useSchoolUpdate } from '@/mta_schools/hooks'
+import { I_SchoolDetail, I_SchoolUpdateRequestData } from '@/mta_schools/types'
 import Input from '@/shared/components/Input'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
@@ -11,29 +12,27 @@ import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
-interface I_FormFields {
-  name: string
-  district: string
-  contact_email: string
+interface I_FormFields extends I_SchoolUpdateRequestData {}
+
+interface I_Props {
+  data: I_SchoolDetail
 }
-const defaultValues: I_FormFields = {
-  name: '',
-  district: '',
-  contact_email: '',
-}
-const SchoolCreateForm = () => {
-  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
+const SchoolCreateForm = ({ data }: I_Props) => {
+  const { handleSubmit, control } = useForm<I_FormFields>({
+    defaultValues: {
+      ...data,
+    },
+  })
 
   const { setIsInProgress } = useInProgress()
   const navigateToSchoolList = useNavigateToSchoolList()
-  const schoolCreate = useSchoolCreate()
-  const onSubmit: SubmitHandler<I_FormFields> = (data) => {
-    setIsInProgress(true)
-    schoolCreate(data)
-      .then((res) => {
-        log.info('New school added:', res)
+  const schoolUpdate = useSchoolUpdate()
 
-        successToast('Escuela agregada correctamente')
+  const onSubmit: SubmitHandler<I_FormFields> = (updatedData) => {
+    setIsInProgress(true)
+    schoolUpdate(data.id, updatedData)
+      .then(() => {
+        successToast('Escuela editada correctamente')
         navigateToSchoolList()
       })
       .catch(handleServiceError)
@@ -61,7 +60,7 @@ const SchoolCreateForm = () => {
         />
       </MagicGrid>
 
-      <Submit>Agregar</Submit>
+      <Submit>Guardar</Submit>
     </form>
   )
 }

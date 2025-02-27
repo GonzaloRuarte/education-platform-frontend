@@ -9,7 +9,6 @@ import { useInProgress, useNavigateToHome } from '@/shared/hooks'
 
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
-import { Backdrop } from '@mui/material'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
 interface I_FormFields {
@@ -27,7 +26,7 @@ export default function LoginForm() {
   const authorize = useAuthorize()
   const storeAuthData = useStoreAuthData()
 
-  const { isInProgress, setIsInProgress } = useInProgress()
+  const { setIsInProgress } = useInProgress()
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
     setIsInProgress(true)
     authorize(data)
@@ -58,7 +57,6 @@ export default function LoginForm() {
 
         <Submit>Ingresar</Submit>
       </form>
-      <Backdrop open={isInProgress} />
     </>
   )
 }

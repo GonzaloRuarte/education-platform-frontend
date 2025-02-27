@@ -1,6 +1,13 @@
 import { apiUrl } from '@/config'
 import ApiError from '@/shared/data/errors'
-import { I_FetchOptions, I_RequestSetup, T_DeleteMethod, T_GetMethod, T_PostMethod } from '@/shared/data/types'
+import {
+  I_FetchOptions,
+  I_RequestSetup,
+  T_DeleteMethod,
+  T_GetMethod,
+  T_PatchMethod,
+  T_PostMethod,
+} from '@/shared/data/types'
 import log from '@/shared/log'
 import { errorToast } from '@/shared/toasts'
 
@@ -30,7 +37,15 @@ const postService = <T_RequestData, T_Response>(entityPath: string, postMethod: 
 const deletionService = <T_Id, T_Response>(entityPath: string, deleteMethod: T_DeleteMethod) => {
   return (requestSetup?: I_RequestSetup) => {
     return async (id: T_Id) => {
-      return deleteMethod<T_Response>({ endpoint: apiUrl(`${entityPath}/${id}`), requestSetup })
+      return deleteMethod<T_Response>({ endpoint: apiUrl(`${entityPath}/${id}/`), requestSetup })
+    }
+  }
+}
+
+const updateService = <T_Id, T_RequestData, T_Response>(entityPath: string, patchMethod: T_PatchMethod) => {
+  return (requestSetup?: I_RequestSetup) => {
+    return async (id: T_Id, data: T_RequestData) => {
+      return patchMethod<T_RequestData, T_Response>({ endpoint: `${apiUrl(entityPath)}/${id}/`, requestSetup, data })
     }
   }
 }
@@ -44,4 +59,4 @@ const handleError = (msg: string) => (errorReason: any) => {
   log.error(errorReason)
 }
 
-export { deletionService, handleError, handleServiceError, listService, postService, detailService }
+export { deletionService, handleError, handleServiceError, listService, postService, detailService, updateService }

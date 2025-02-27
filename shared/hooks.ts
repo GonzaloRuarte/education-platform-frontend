@@ -1,14 +1,20 @@
 import { I_AuthResources } from '@/mta_auth/types'
-import { pages } from '@/pages'
-import { T_DeleteMethod, T_GetMethod, T_PostMethod } from '@/shared/data/types'
-import { deletionService, detailService, listService, postService } from '@/shared/service'
-import { T_CreateServiceHook, T_ListServiceHook } from '@/shared/types'
+import { pathWithId, pages } from '@/pages'
+import { T_DeleteMethod, T_GetMethod, T_PatchMethod, T_PostMethod } from '@/shared/data/types'
+import { deletionService, detailService, listService, postService, updateService } from '@/shared/service'
+import { useStore } from '@/shared/state'
+import { T_CreateServiceHook, T_ListServiceHook, T_UpdateServiceHook } from '@/shared/types'
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-const useInProgress = (initialValue = false) => {
+const useInProgressLocal = (initialValue = false) => {
   const [isInProgress, setIsInProgress] = useState(initialValue)
+  return { isInProgress, setIsInProgress }
+}
+const useInProgress = () => {
+  const isInProgress = useStore((state) => state.isInProgress)
+  const setIsInProgress = useStore((state) => state.setIsInProgress)
   return { isInProgress, setIsInProgress }
 }
 
@@ -59,13 +65,50 @@ const detailHook = <T_Id, T_Response>(
   }
   return useDetail
 }
-const useNavigateToHome = () => {
-  const router = useRouter()
+
+const updateHook = <T_Id, T_RequestData, T_Response>(
+  entityPath: string,
+  patchMethod: T_PatchMethod,
+  useAuthResources: () => I_AuthResources,
+) => {
+  const useUpdate: T_UpdateServiceHook<T_Id, T_RequestData, T_Response> = () => {
+    const authResources = useAuthResources()
+
+    return updateService<T_Id, T_RequestData, T_Response>(entityPath, patchMethod)(authResources)
+  }
+  return useUpdate
+}
+
+const navigationHook = (path: string) => {
   return () => {
-    router.push(pages.D.path)
+    const router = useRouter()
+    return () => {
+      router.push(path)
+    }
   }
 }
 
-export { useNavigateToHome }
+const navigationWithIdHook = (path: string) => {
+  return () => {
+    const router = useRouter()
 
-export { creationHook, deletionHook, listHook, useInProgress, detailHook }
+    return (id: string | number) => {
+      router.push(pathWithId(path, id))
+    }
+  }
+}
+
+const useNavigateToHome = navigationHook(pages.D.path)
+
+export {
+  useNavigateToHome,
+  creationHook,
+  deletionHook,
+  listHook,
+  updateHook,
+  useInProgress,
+  useInProgressLocal,
+  detailHook,
+  navigationHook,
+  navigationWithIdHook,
+}

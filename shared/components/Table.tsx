@@ -37,7 +37,13 @@ const StripedDataGrid = styled(DataGrid)(({ theme }) => ({
 
 type I_SelectedDataGridProps = Pick<
   DataGridProps,
-  'checkboxSelection' | 'slots' | 'density' | 'rowSelectionModel' | 'onRowSelectionModelChange' | 'slotProps'
+  | 'checkboxSelection'
+  | 'slots'
+  | 'density'
+  | 'rowSelectionModel'
+  | 'onRowSelectionModelChange'
+  | 'slotProps'
+  | 'onRowClick'
 >
 
 interface I_Props extends I_SelectedDataGridProps {

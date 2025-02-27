@@ -1,7 +1,7 @@
 type T_PageConfig = {
-  path: string,
-  label: string,
-  _?: { [key: string]: T_PageConfig },
+  path: string
+  label: string
+  _?: { [key: string]: T_PageConfig }
   // bcTK: string // aka. breadcrumb translation key
 }
 type T_PagesConfig = { [key: string]: T_PageConfig }
@@ -14,7 +14,7 @@ const pages = {
     _: {
       login: {
         path: '/dashboard/login',
-        label: 'Login'
+        label: 'Login',
       },
       escuelas: {
         path: '/dashboard/escuelas',
@@ -23,37 +23,36 @@ const pages = {
           agregarEscuela: {
             path: '/dashboard/escuelas/agregar',
             label: 'Agregar escuela',
-          }
-        }
+          },
+        },
       },
       turnos: {
         path: '/dashboard/turnos',
-        label: 'Turnos'
+        label: 'Turnos',
       },
       evaluaciones: {
         path: '/dashboard/evaluaciones',
-        label: 'Evaluaciones'
+        label: 'Evaluaciones',
       },
       estudiantes: {
         path: '/dashboard/estudiantes',
-        label: 'Estudiantes'
+        label: 'Estudiantes',
       },
       comisiones: {
         path: '/dashboard/comisiones',
-        label: 'Comisiones'
+        label: 'Comisiones',
       },
       roles: {
         path: '/dashboard/roles',
-        label: 'Roles'
-      }
-    }
-  }
+        label: 'Roles',
+      },
+    },
+  },
 }
 
-
-export {
-  pages,
-  // resolutionPages,
+const pathWithId = (path: string, id: string | number) => {
+  return `${path}/${id}`
 }
+export { pages, pathWithId }
 
 export default pages

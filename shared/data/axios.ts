@@ -96,6 +96,26 @@ const axiosPost = with401Handling(
   },
 )
 
+const axiosPatch = with401Handling(
+  async <T_RequestData, T_Response>(args: {
+    endpoint: string
+    requestSetup?: I_RequestSetup
+    options: I_FetchOptions
+    data: T_RequestData
+  }) => {
+    return axios
+      .patch<T_Response>(args.endpoint, args.data, {
+        headers: {
+          ..._axiosBaseHeaders(args.requestSetup),
+        },
+      })
+      .then((response) => {
+        return response.data
+      })
+      .catch(_handledAxiosError)
+  },
+)
+
 const axiosDelete = with401Handling(
   async <T_Response>(args: { endpoint: string; requestSetup?: I_RequestSetup; options: I_FetchOptions }) => {
     return axios
@@ -111,4 +131,4 @@ const axiosDelete = with401Handling(
   },
 )
 
-export { axiosGet, axiosPost, axiosDelete }
+export { axiosGet, axiosPost, axiosDelete, axiosPatch }
