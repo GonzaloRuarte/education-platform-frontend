@@ -45,13 +45,7 @@ const SchoolCreateForm = () => {
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
         <Input<I_FormFields> control={control} name="name" rules={{ ...rules.required() }} label="Nombre" />
-        <Input<I_FormFields>
-          control={control}
-          type="email"
-          name="contact_email"
-          rules={{ ...rules.required() }}
-          label="E-Mail"
-        />
+        <Input<I_FormFields> control={control} type="email" name="contact_email" label="E-Mail" />
         <Input<I_FormFields>
           control={control}
           type="text"

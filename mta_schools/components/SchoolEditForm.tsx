@@ -10,6 +10,7 @@ import { useInProgress } from '@/shared/hooks'
 import log from '@/shared/log'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
+import { Button } from '@mui/material'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
 interface I_FormFields extends I_SchoolUpdateRequestData {}
@@ -44,13 +45,7 @@ const SchoolCreateForm = ({ data }: I_Props) => {
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
         <Input<I_FormFields> control={control} name="name" rules={{ ...rules.required() }} label="Nombre" />
-        <Input<I_FormFields>
-          control={control}
-          type="email"
-          name="contact_email"
-          rules={{ ...rules.required() }}
-          label="E-Mail"
-        />
+        <Input<I_FormFields> control={control} type="email" name="contact_email" label="E-Mail" />
         <Input<I_FormFields>
           control={control}
           type="text"
@@ -61,6 +56,7 @@ const SchoolCreateForm = ({ data }: I_Props) => {
       </MagicGrid>
 
       <Submit>Guardar</Submit>
+      <Button onClick={navigateToSchoolList}>Cancelar</Button>
     </form>
   )
 }
