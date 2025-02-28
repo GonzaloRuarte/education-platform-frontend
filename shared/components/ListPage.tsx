@@ -1,4 +1,5 @@
 import { DEFAULT_PAGE_SIZE } from '@/config'
+import Button from '@/shared/components/Button'
 import Page from '@/shared/components/Page'
 import Table from '@/shared/components/Table'
 import { I_PaginatedResponse } from '@/shared/data/types'
@@ -7,7 +8,7 @@ import log from '@/shared/log'
 import { handleServiceError } from '@/shared/service'
 import { T_ListServiceHook } from '@/shared/types'
 import DeleteIcon from '@mui/icons-material/Delete'
-import { IconButton } from '@mui/material'
+import AddCircleIcon from '@mui/icons-material/AddCircle'
 import {
   GridColDef,
   GridPaginationModel,
@@ -26,6 +27,7 @@ interface I_Props<T_Response> {
   useService: T_ListServiceHook<T_Response>
   title: string
   onRowClick?: ComponentProps<typeof Table>['onRowClick']
+  onCreate?: () => void
 }
 function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>) {
   const { isInProgress, setIsInProgress } = useInProgressLocal()
@@ -36,8 +38,11 @@ function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>
     page: 0,
   })
   const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>([])
+  const showDelete = rowSelectionModel.length > 0
 
   const [data, setData] = useState<T_Response | undefined>(undefined)
+
+  const handleBatchDelete = () => {}
 
   const fetchData = () => {
     log.info('fetching data')
@@ -57,6 +62,16 @@ function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>
   return (
     <Page>
       <Page.Title>{p.title}</Page.Title>
+      <Page.Toolbar>
+        <Button onClick={p.onCreate} startIcon={<AddCircleIcon />}>
+          Agregar
+        </Button>
+        {showDelete && (
+          <Button onClick={handleBatchDelete} startIcon={<DeleteIcon />}>
+            Eliminar
+          </Button>
+        )}
+      </Page.Toolbar>
       <Page.Content>
         <Table
           data={data?.results}
@@ -69,11 +84,10 @@ function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>
           isLoading={isInProgress}
           checkboxSelection
           disableRowSelectionOnClick
-          slots={{
-            toolbar: CustomToolbar,
-          }}
-          // @ts-expect-error
-          slotProps={{ toolbar: { rowSelectionModel } }}
+          // slots={{
+          //   toolbar: CustomToolbar,
+          // }}
+
           onRowClick={p.onRowClick}
         />
       </Page.Content>
@@ -82,16 +96,8 @@ function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>
 }
 
 const CustomToolbar = ({ rowSelectionModel }: GridToolbarProps & { rowSelectionModel: GridRowSelectionModel }) => {
-  const showDelete = rowSelectionModel.length > 0
   return (
     <GridToolbarContainer>
-      {showDelete && (
-        <>
-          <IconButton aria-label="delete">
-            <DeleteIcon />
-          </IconButton>
-        </>
-      )}
       {/* 
       <GridToolbarDensitySelector /> */}
       {/* <Box sx={{ flexGrow: 1 }} /> */}
