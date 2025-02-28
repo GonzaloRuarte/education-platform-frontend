@@ -9,6 +9,7 @@ import {
 } from '@/mta_schools/types'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
 import {
+  batchDeletionHook,
   creationHook,
   deletionHook,
   detailHook,
@@ -30,6 +31,11 @@ const useSchoolCreate = creationHook<I_CreateSchoolRequestData, I_CreationCommon
   useAuthResources,
 )
 const useSchoolDelete = deletionHook<T_SchoolId, I_CreationCommonResponse>(SCHOOLS_PATH, axiosDelete, useAuthResources)
+const useSchoolBatchDelete = batchDeletionHook<T_SchoolId, I_CreationCommonResponse>(
+  SCHOOLS_PATH,
+  axiosDelete,
+  useAuthResources,
+)
 const useSchoolDetail = detailHook<T_SchoolId, I_SchoolDetail>(SCHOOLS_PATH, axiosGet, useAuthResources)
 const useSchoolUpdate = updateHook<T_SchoolId, I_SchoolUpdateRequestData, I_SchoolDetail>(
   SCHOOLS_PATH,
@@ -48,6 +54,7 @@ export {
   useNavigateToSchoolList,
   useSchoolCreate,
   useSchoolDelete,
+  useSchoolBatchDelete,
   useSchoolDetail,
   useSchoolList,
   useSchoolUpdate,

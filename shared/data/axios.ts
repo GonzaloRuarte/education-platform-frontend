@@ -1,6 +1,6 @@
 import { SERVER_ERROR } from '@/shared/data/constants'
 import ApiError from '@/shared/data/errors'
-import { I_FetchOptions, I_RequestSetup, T_401Handler, T_BaseFetcher } from '@/shared/data/types'
+import { I_FetchOptions, I_RequestSetup, T_401Handler, T_BaseFetcher, T_DeleteMethod } from '@/shared/data/types'
 import axios, { AxiosError } from 'axios'
 
 const _authHeader = (accessToken: string) => ({
@@ -116,13 +116,14 @@ const axiosPatch = with401Handling(
   },
 )
 
-const axiosDelete = with401Handling(
-  async <T_Response>(args: { endpoint: string; requestSetup?: I_RequestSetup; options: I_FetchOptions }) => {
+const axiosDelete: T_DeleteMethod = with401Handling(
+  async <T_Response, T_Data = object>(args: { endpoint: string; requestSetup?: I_RequestSetup; data?: T_Data }) => {
     return axios
       .delete<T_Response>(args.endpoint, {
         headers: {
           ..._axiosBaseHeaders(args.requestSetup),
         },
+        data: args?.data,
       })
       .then((response) => {
         return response.data

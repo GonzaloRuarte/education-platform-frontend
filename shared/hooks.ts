@@ -1,9 +1,22 @@
 import { I_AuthResources } from '@/mta_auth/types'
 import { pathWithId, pages } from '@/pages'
 import { T_DeleteMethod, T_GetMethod, T_PatchMethod, T_PostMethod } from '@/shared/data/types'
-import { deletionService, detailService, listService, postService, updateService } from '@/shared/service'
+import {
+  deletionService,
+  detailService,
+  listService,
+  postService,
+  updateService,
+  batchDeletionService,
+} from '@/shared/service'
 import { useStore } from '@/shared/state'
-import { T_CreateServiceHook, T_DeletionServiceHook, T_ListServiceHook, T_UpdateServiceHook } from '@/shared/types'
+import {
+  T_BatchDeletionServiceHook,
+  T_CreateServiceHook,
+  T_DeletionServiceHook,
+  T_ListServiceHook,
+  T_UpdateServiceHook,
+} from '@/shared/types'
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -20,9 +33,7 @@ const useInProgress = () => {
 
 const listHook = <T_Response>(entityPath: string, getMethod: T_GetMethod, useAuthResources: () => I_AuthResources) => {
   const useList: T_ListServiceHook<T_Response> = () => {
-    const authResources = useAuthResources()
-
-    return listService<T_Response>(entityPath, getMethod)(authResources)
+    return listService<T_Response>(entityPath, getMethod)(useAuthResources())
   }
   return useList
 }
@@ -33,9 +44,7 @@ const creationHook = <T_RequestData, T_Response>(
   useAuthResources: () => I_AuthResources,
 ) => {
   const useCreate: T_CreateServiceHook<T_RequestData, T_Response> = () => {
-    const authResources = useAuthResources()
-
-    return postService<T_RequestData, T_Response>(entityPath, postMethod)(authResources)
+    return postService<T_RequestData, T_Response>(entityPath, postMethod)(useAuthResources())
   }
   return useCreate
 }
@@ -47,17 +56,13 @@ const deletionHook = <T_Id, T_Response>(
 ): T_DeletionServiceHook<T_Id, T_Response> => {
   return () => deletionService<T_Id, T_Response>(entityPath, deleteMethod)(useAuthResources())
 }
+
 const batchDeletionHook = <T_Id, T_Response>(
   entityPath: string,
   deleteMethod: T_DeleteMethod,
   useAuthResources: () => I_AuthResources,
-) => {
-  const useBatchDelete: T_CreateServiceHook<T_Id, T_Response> = () => {
-    const authResources = useAuthResources()
-
-    return deletionService<T_Id, T_Response>(entityPath, deleteMethod)(authResources)
-  }
-  return useBatchDelete
+): T_BatchDeletionServiceHook<T_Id, T_Response> => {
+  return () => batchDeletionService<T_Id, T_Response>(entityPath, deleteMethod)(useAuthResources())
 }
 
 const detailHook = <T_Id, T_Response>(
@@ -66,9 +71,7 @@ const detailHook = <T_Id, T_Response>(
   useAuthResources: () => I_AuthResources,
 ) => {
   const useDetail = () => {
-    const authResources = useAuthResources()
-
-    return detailService<T_Id, T_Response>(entityPath, getMethod)(authResources)
+    return detailService<T_Id, T_Response>(entityPath, getMethod)(useAuthResources())
   }
   return useDetail
 }
@@ -79,9 +82,7 @@ const updateHook = <T_Id, T_RequestData, T_Response>(
   useAuthResources: () => I_AuthResources,
 ) => {
   const useUpdate: T_UpdateServiceHook<T_Id, T_RequestData, T_Response> = () => {
-    const authResources = useAuthResources()
-
-    return updateService<T_Id, T_RequestData, T_Response>(entityPath, patchMethod)(authResources)
+    return updateService<T_Id, T_RequestData, T_Response>(entityPath, patchMethod)(useAuthResources())
   }
   return useUpdate
 }
@@ -113,6 +114,7 @@ export {
   deletionHook,
   listHook,
   updateHook,
+  batchDeletionHook,
   useInProgress,
   useInProgressLocal,
   detailHook,

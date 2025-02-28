@@ -10,6 +10,7 @@ import {
 } from '@/shared/data/types'
 import log from '@/shared/log'
 import { errorToast } from '@/shared/toasts'
+import { T_BatchDeletionCommonRequestData } from '@/shared/types'
 
 const listService = <T_Response>(entityPath: string, getMethod: T_GetMethod) => {
   return (requestSetup?: I_RequestSetup) => {
@@ -41,6 +42,17 @@ const deletionService = <T_Id, T_Response>(entityPath: string, deleteMethod: T_D
     }
   }
 }
+const batchDeletionService = <T_Id, T_Response>(entityPath: string, deleteMethod: T_DeleteMethod) => {
+  return (requestSetup?: I_RequestSetup) => {
+    return async (ids: Array<T_Id>) => {
+      return deleteMethod<T_Response, T_BatchDeletionCommonRequestData<T_Id>>({
+        endpoint: apiUrl(`${entityPath}/batch-delete/`),
+        requestSetup,
+        data: { ids: ids },
+      })
+    }
+  }
+}
 
 const updateService = <T_Id, T_RequestData, T_Response>(entityPath: string, patchMethod: T_PatchMethod) => {
   return (requestSetup?: I_RequestSetup) => {
@@ -59,4 +71,13 @@ const handleError = (msg: string) => (errorReason: any) => {
   log.error(errorReason)
 }
 
-export { deletionService, handleError, handleServiceError, listService, postService, detailService, updateService }
+export {
+  deletionService,
+  handleError,
+  handleServiceError,
+  listService,
+  postService,
+  detailService,
+  updateService,
+  batchDeletionService,
+}

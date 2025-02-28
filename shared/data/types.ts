@@ -34,7 +34,11 @@ type T_PostMethod = <T_RequestData, T_Response>(args: {
   data: T_RequestData
 }) => Promise<T_Response>
 
-type T_DeleteMethod = <T_Response>(args: { endpoint: string; requestSetup?: I_RequestSetup }) => Promise<T_Response>
+type T_DeleteMethod = <T_Response, T_Data = object>(args: {
+  endpoint: string
+  requestSetup?: I_RequestSetup
+  data?: T_Data
+}) => Promise<T_Response>
 type T_PatchMethod = <T_RequestData, T_Response>(args: {
   endpoint: string
   requestSetup?: I_RequestSetup
