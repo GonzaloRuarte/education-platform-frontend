@@ -41,6 +41,7 @@ const useStudentProfileList = listHook<T_GetStudentProfileListResponse>('/studen
 
 const useNavigateToSchoolList = navigationHook(pages.D._.escuelas.path)
 const useNavigateToSchoolDetail = navigationWithIdHook(pages.D._.escuelas.path)
+const useNavigateToSchoolCreate = navigationHook(pages.D._.escuelas._.agregarEscuela.path)
 
 export {
   useNavigateToSchoolDetail,
@@ -51,4 +52,5 @@ export {
   useSchoolList,
   useSchoolUpdate,
   useStudentProfileList,
+  useNavigateToSchoolCreate,
 }
