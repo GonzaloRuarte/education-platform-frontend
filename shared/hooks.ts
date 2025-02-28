@@ -3,7 +3,7 @@ import { pathWithId, pages } from '@/pages'
 import { T_DeleteMethod, T_GetMethod, T_PatchMethod, T_PostMethod } from '@/shared/data/types'
 import { deletionService, detailService, listService, postService, updateService } from '@/shared/service'
 import { useStore } from '@/shared/state'
-import { T_CreateServiceHook, T_ListServiceHook, T_UpdateServiceHook } from '@/shared/types'
+import { T_CreateServiceHook, T_DeletionServiceHook, T_ListServiceHook, T_UpdateServiceHook } from '@/shared/types'
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -44,13 +44,20 @@ const deletionHook = <T_Id, T_Response>(
   entityPath: string,
   deleteMethod: T_DeleteMethod,
   useAuthResources: () => I_AuthResources,
+): T_DeletionServiceHook<T_Id, T_Response> => {
+  return () => deletionService<T_Id, T_Response>(entityPath, deleteMethod)(useAuthResources())
+}
+const batchDeletionHook = <T_Id, T_Response>(
+  entityPath: string,
+  deleteMethod: T_DeleteMethod,
+  useAuthResources: () => I_AuthResources,
 ) => {
-  const useDelete: T_CreateServiceHook<T_Id, T_Response> = () => {
+  const useBatchDelete: T_CreateServiceHook<T_Id, T_Response> = () => {
     const authResources = useAuthResources()
 
     return deletionService<T_Id, T_Response>(entityPath, deleteMethod)(authResources)
   }
-  return useDelete
+  return useBatchDelete
 }
 
 const detailHook = <T_Id, T_Response>(
