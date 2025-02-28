@@ -44,6 +44,7 @@ type I_SelectedDataGridProps = Pick<
   | 'onRowSelectionModelChange'
   | 'slotProps'
   | 'onRowClick'
+  | 'disableRowSelectionOnClick'
 >
 
 interface I_Props extends I_SelectedDataGridProps {
