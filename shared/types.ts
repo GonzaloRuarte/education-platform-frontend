@@ -19,6 +19,7 @@ interface I_ApiError {
 interface I_CreationCommonResponse<T = number> {
   id: T
 }
+interface I_DeletionCommonResponse {}
 
 export type {
   T_FCwChildren,
@@ -30,4 +31,5 @@ export type {
   T_DeletionServiceHook,
   T_BatchDeletionServiceHook,
   T_BatchDeletionCommonRequestData,
+  I_DeletionCommonResponse,
 }

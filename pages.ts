@@ -20,7 +20,7 @@ const pages = {
         path: '/dashboard/escuelas',
         label: 'Escuelas',
         _: {
-          agregarEscuela: {
+          agregar: {
             path: '/dashboard/escuelas/agregar',
             label: 'Agregar escuela',
           },
@@ -33,6 +33,12 @@ const pages = {
       evaluaciones: {
         path: '/dashboard/evaluaciones',
         label: 'Evaluaciones',
+        _: {
+          agregar: {
+            path: '/dashboard/evaluaciones/agregar',
+            label: 'Agregar evaluación',
+          },
+        },
       },
       estudiantes: {
         path: '/dashboard/estudiantes',

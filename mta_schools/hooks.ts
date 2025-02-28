@@ -20,7 +20,7 @@ import {
 } from '@/shared/hooks'
 
 import pages from '@/pages'
-import { I_CreationCommonResponse } from '@/shared/types'
+import { I_CreationCommonResponse, I_DeletionCommonResponse } from '@/shared/types'
 
 const SCHOOLS_PATH = '/schools'
 
@@ -30,12 +30,8 @@ const useSchoolCreate = creationHook<I_CreateSchoolRequestData, I_CreationCommon
   axiosPost,
   useAuthResources,
 )
-const useSchoolDelete = deletionHook<T_SchoolId, I_CreationCommonResponse>(SCHOOLS_PATH, axiosDelete, useAuthResources)
-const useSchoolBatchDelete = batchDeletionHook<T_SchoolId, I_CreationCommonResponse>(
-  SCHOOLS_PATH,
-  axiosDelete,
-  useAuthResources,
-)
+const useSchoolDelete = deletionHook<T_SchoolId>(SCHOOLS_PATH, axiosDelete, useAuthResources)
+const useSchoolBatchDelete = batchDeletionHook<T_SchoolId>(SCHOOLS_PATH, axiosDelete, useAuthResources)
 const useSchoolDetail = detailHook<T_SchoolId, I_SchoolDetail>(SCHOOLS_PATH, axiosGet, useAuthResources)
 const useSchoolUpdate = updateHook<T_SchoolId, I_SchoolUpdateRequestData, I_SchoolDetail>(
   SCHOOLS_PATH,
@@ -47,7 +43,7 @@ const useStudentProfileList = listHook<T_GetStudentProfileListResponse>('/studen
 
 const useNavigateToSchoolList = navigationHook(pages.D._.escuelas.path)
 const useNavigateToSchoolDetail = navigationWithIdHook(pages.D._.escuelas.path)
-const useNavigateToSchoolCreate = navigationHook(pages.D._.escuelas._.agregarEscuela.path)
+const useNavigateToSchoolCreate = navigationHook(pages.D._.escuelas._.agregar.path)
 
 export {
   useNavigateToSchoolDetail,

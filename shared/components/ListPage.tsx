@@ -83,9 +83,11 @@ function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>
           <Button onClick={fetchData} startIcon={<ReplayIcon />}>
             Actualizar
           </Button>
-          <Button onClick={p.onCreate} startIcon={<AddCircleIcon />}>
-            Agregar
-          </Button>
+          {p.onCreate !== undefined && (
+            <Button onClick={p.onCreate} startIcon={<AddCircleIcon />}>
+              Agregar
+            </Button>
+          )}
           {showDelete && (
             <Button onClick={handleBatchDelete} startIcon={<DeleteIcon />}>
               Eliminar

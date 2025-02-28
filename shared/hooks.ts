@@ -11,6 +11,7 @@ import {
 } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import {
+  I_DeletionCommonResponse,
   T_BatchDeletionServiceHook,
   T_CreateServiceHook,
   T_DeletionServiceHook,
@@ -49,7 +50,7 @@ const creationHook = <T_RequestData, T_Response>(
   return useCreate
 }
 
-const deletionHook = <T_Id, T_Response>(
+const deletionHook = <T_Id, T_Response = I_DeletionCommonResponse>(
   entityPath: string,
   deleteMethod: T_DeleteMethod,
   useAuthResources: () => I_AuthResources,
@@ -57,7 +58,7 @@ const deletionHook = <T_Id, T_Response>(
   return () => deletionService<T_Id, T_Response>(entityPath, deleteMethod)(useAuthResources())
 }
 
-const batchDeletionHook = <T_Id, T_Response>(
+const batchDeletionHook = <T_Id, T_Response = I_DeletionCommonResponse>(
   entityPath: string,
   deleteMethod: T_DeleteMethod,
   useAuthResources: () => I_AuthResources,
