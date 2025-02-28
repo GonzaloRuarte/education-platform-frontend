@@ -1,7 +1,7 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
-import { useNavigateToSchoolDetail, useSchoolList } from '@/mta_schools/hooks'
+import { useNavigateToSchoolCreate, useNavigateToSchoolDetail, useSchoolList } from '@/mta_schools/hooks'
 import ListPage from '@/shared/components/ListPage'
 import { Chip } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
@@ -30,12 +30,14 @@ const columns: Array<GridColDef> = [
 
 const SchoolsListPage = () => {
   const navigateToSchoolDetail = useNavigateToSchoolDetail()
+  const navigateToSchoolCreate = useNavigateToSchoolCreate()
   return (
     <ListPage
       columns={columns}
       useService={useSchoolList}
       title="Escuelas"
       onRowClick={ListPage.mapNavToOnRowClick(navigateToSchoolDetail)}
+      onCreate={navigateToSchoolCreate}
     />
   )
 }
