@@ -9,7 +9,6 @@ import { rules } from '@/shared/forms/messages'
 import { useInProgress } from '@/shared/hooks'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
-import { Button } from '@mui/material'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
 interface I_FormFields extends I_SchoolUpdateRequestData {}
@@ -55,7 +54,6 @@ const SchoolCreateForm = ({ data }: I_Props) => {
       </MagicGrid>
 
       <Submit>Guardar</Submit>
-      <Button onClick={navigateToSchoolList}>Cancelar</Button>
     </form>
   )
 }

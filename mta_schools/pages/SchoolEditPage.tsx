@@ -11,6 +11,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import { Button } from '@mui/material'
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import ClearIcon from '@mui/icons-material/Clear'
 
 const SchoolEditPage = () => {
   const schoolDetail = useSchoolDetail()
@@ -39,6 +40,9 @@ const SchoolEditPage = () => {
       <Page>
         <Page.Title>Editar Escuela</Page.Title>
         <Page.Toolbar>
+          <Button onClick={navigateToSchoolList} startIcon={<ClearIcon />}>
+            Cancelar
+          </Button>
           <Button onClick={handleDelete} startIcon={<DeleteIcon />}>
             Eliminar
           </Button>
