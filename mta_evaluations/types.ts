@@ -24,6 +24,25 @@ interface I_EvaluationListItem {
 }
 type T_EvaluationList = I_PaginatedResponse<I_EvaluationListItem>
 
+interface I_EvaluationDetail {
+  id: number
+  questions: Array<{
+    id: number
+    order: number
+    content: string
+    is_mandatory: boolean
+  }>
+  created_at: string
+  updated_at: string
+  title: string
+  code: string
+  header: string
+  questions_per_page: number
+  status: string
+  subject: string
+  created_by: number
+}
+
 interface I_EvaluationSubject {
   id: T_EvaluationSubjectId
   name: string
@@ -44,6 +63,7 @@ export type {
   T_EvaluationId,
   I_EvaluationListItem,
   T_EvaluationList,
+  I_EvaluationDetail,
   T_EvaluationStatusCode,
   I_EvaluationCreateRequestData,
   T_EvaluationSubjectList,
