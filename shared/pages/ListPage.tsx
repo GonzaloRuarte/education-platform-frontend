@@ -10,14 +10,7 @@ import { T_ListServiceHook } from '@/shared/types'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ReplayIcon from '@mui/icons-material/Replay'
-import {
-  GridColDef,
-  GridPaginationModel,
-  GridRowParams,
-  GridRowSelectionModel,
-  GridToolbarContainer,
-  GridToolbarProps,
-} from '@mui/x-data-grid'
+import { GridColDef, GridPaginationModel, GridRowParams, GridRowSelectionModel, GridToolbarContainer, GridToolbarProps } from '@mui/x-data-grid'
 
 import { useConfirm } from '@/shared/confirm'
 import { successToast } from '@/shared/toasts'
@@ -26,8 +19,7 @@ import { ComponentProps, useEffect, useState } from 'react'
 
 interface I_Props<T_Response> {
   columns: Array<GridColDef>
-
-  useService: T_ListServiceHook<T_Response>
+  useList: T_ListServiceHook<T_Response>
   title: string
   onRowClick?: ComponentProps<typeof Table>['onRowClick']
   onCreate?: () => void
@@ -36,7 +28,7 @@ interface I_Props<T_Response> {
 function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>) {
   const { isInProgress, setIsInProgress } = useInProgressLocal()
   const { ConfirmDialogComponent, showConfirm } = useConfirm()
-  const fetchingService = p.useService()
+  const fetchingService = p.useList()
 
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     pageSize: DEFAULT_PAGE_SIZE,
@@ -106,10 +98,6 @@ function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>
             isLoading={isInProgress}
             checkboxSelection
             disableRowSelectionOnClick
-            // slots={{
-            //   toolbar: CustomToolbar,
-            // }}
-
             onRowClick={p.onRowClick}
           />
         </Page.Content>
