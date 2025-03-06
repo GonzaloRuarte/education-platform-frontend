@@ -1,10 +1,10 @@
 import { useAuthResources } from '@/mta_auth/hooks'
 import {
-  I_CreateSchoolRequestData,
+  I_SchoolCreateRequestData,
   I_SchoolDetail,
   I_SchoolUpdateRequestData,
-  T_GetSchoolsListResponse,
-  T_GetStudentProfileListResponse,
+  T_SchoolsList,
+  T_StudentProfileList,
   T_SchoolId,
 } from '@/mta_schools/types'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
@@ -24,8 +24,8 @@ import { I_CreationCommonResponse, I_DeletionCommonResponse } from '@/shared/typ
 
 const SCHOOLS_PATH = '/schools'
 
-const useSchoolList = listHook<T_GetSchoolsListResponse>(SCHOOLS_PATH, axiosGet, useAuthResources)
-const useSchoolCreate = creationHook<I_CreateSchoolRequestData, I_CreationCommonResponse>(
+const useSchoolList = listHook<T_SchoolsList>(SCHOOLS_PATH, axiosGet, useAuthResources)
+const useSchoolCreate = creationHook<I_SchoolCreateRequestData, I_CreationCommonResponse>(
   SCHOOLS_PATH,
   axiosPost,
   useAuthResources,
@@ -39,7 +39,7 @@ const useSchoolUpdate = updateHook<T_SchoolId, I_SchoolUpdateRequestData, I_Scho
   useAuthResources,
 )
 
-const useStudentProfileList = listHook<T_GetStudentProfileListResponse>('/student-profile', axiosGet, useAuthResources)
+const useStudentProfileList = listHook<T_StudentProfileList>('/student-profile', axiosGet, useAuthResources)
 
 const useNavigateToSchoolList = navigationHook(pages.D._.escuelas.path)
 const useNavigateToSchoolDetail = navigationWithIdHook(pages.D._.escuelas.path)

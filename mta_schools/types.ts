@@ -14,23 +14,9 @@ interface I_SchoolListItem {
   }>
   contact_email: string
 }
-type T_GetSchoolsListResponse = I_PaginatedResponse<I_SchoolListItem>
+type T_SchoolsList = I_PaginatedResponse<I_SchoolListItem>
 
-interface I_StudentProfileListItem {
-  id: number
-  cohort: {
-    id: number
-    name: string
-  }
-  created_at: string
-  updated_at: string
-  school: string
-  personal_id: number
-}
-
-type T_GetStudentProfileListResponse = I_PaginatedResponse<I_StudentProfileListItem>
-
-interface I_CreateSchoolRequestData {
+interface I_SchoolCreateRequestData {
   name: string
   district: string
   contact_email: string
@@ -49,13 +35,27 @@ interface I_SchoolUpdateRequestData {
   contact_email: string
 }
 
+interface I_StudentProfileListItem {
+  id: number
+  cohort: {
+    id: number
+    name: string
+  }
+  created_at: string
+  updated_at: string
+  school: string
+  personal_id: number
+}
+
+type T_StudentProfileList = I_PaginatedResponse<I_StudentProfileListItem>
+
 export type {
   T_SchoolId,
   I_SchoolDetail,
   I_SchoolListItem,
   I_StudentProfileListItem,
-  T_GetSchoolsListResponse,
-  T_GetStudentProfileListResponse,
-  I_CreateSchoolRequestData,
+  T_SchoolsList,
+  T_StudentProfileList,
+  I_SchoolCreateRequestData,
   I_SchoolUpdateRequestData,
 }
