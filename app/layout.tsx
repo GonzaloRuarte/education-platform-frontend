@@ -9,6 +9,9 @@ import Head from 'next/head'
 import theme from '@/shared/theme'
 import { ToastContainer } from 'react-toastify'
 import GlobalBackdrop from '@/shared/components/GlobalBackdrop'
+import { ApplicationServices } from '@/shared/appServices/ApplicationServices'
+
+import RecoverEvaluationSubjects from '@/mta_evaluations/appServices/RecoverEvaluationSubjects'
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -35,6 +38,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <ThemeProvider theme={theme}>
               <ToastContainer />
               <GlobalBackdrop />
+              <ApplicationServices version={'0.1.0'} services={[RecoverEvaluationSubjects]} d={{}} />
               {children}
             </ThemeProvider>
           </CssBaseline>
