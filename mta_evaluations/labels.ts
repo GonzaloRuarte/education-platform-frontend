@@ -1,7 +1,12 @@
 import { T_EvaluationStatusCode } from '@/mta_evaluations/types'
 
 const evaluationLabels = {
-  status: {
+  title: 'Título',
+  code: 'Código',
+  header: 'Encabezado',
+  questions_per_page: 'Preguntas por página',
+  status: 'Estado',
+  statuses: {
     published: 'Publicada',
     draft: 'Borrador',
   },
@@ -9,8 +14,8 @@ const evaluationLabels = {
 
 const evaluationStatusCodeToLabels = (code: T_EvaluationStatusCode): string =>
   ({
-    P: evaluationLabels.status.published,
-    D: evaluationLabels.status.draft,
+    P: evaluationLabels.statuses.published,
+    D: evaluationLabels.statuses.draft,
   })[code]
 
-export { evaluationStatusCodeToLabels }
+export { evaluationStatusCodeToLabels, evaluationLabels }
