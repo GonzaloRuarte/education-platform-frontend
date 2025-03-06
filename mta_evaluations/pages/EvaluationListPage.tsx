@@ -2,7 +2,13 @@
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import EvaluationStatusChip from '@/mta_evaluations/components/EvaluationStatusChip'
-import { useEvaluationBatchDelete, useEvaluationList, useNavigateToEvaluationCreate, useNavigateToEvaluationDetail } from '@/mta_evaluations/hooks'
+import {
+  useEvaluationBatchDelete,
+  useEvaluationList,
+  useNavigateToEvaluationContentEdit,
+  useNavigateToEvaluationCreate,
+  useNavigateToEvaluationDetail,
+} from '@/mta_evaluations/hooks'
 import Chip from '@/shared/components/Chip'
 import ListPage from '@/shared/pages/ListPage'
 import { GridColDef } from '@mui/x-data-grid'
@@ -28,7 +34,7 @@ const columns: Array<GridColDef> = [
 
 const EvaluationListPage = () => {
   const batchDelete = useEvaluationBatchDelete()
-  const navigateToEvaluationDetail = useNavigateToEvaluationDetail()
+  const navigateToEvaluationContentEdit = useNavigateToEvaluationContentEdit()
   const navigateToEvaluationCreate = useNavigateToEvaluationCreate()
 
   return (
@@ -38,7 +44,7 @@ const EvaluationListPage = () => {
       title="Evaluaciones"
       onBatchDelete={batchDelete}
       onCreate={navigateToEvaluationCreate}
-      onRowClick={ListPage.mapNavToOnRowClick(navigateToEvaluationDetail)}
+      onRowClick={(params) => navigateToEvaluationContentEdit({ id: params.id })}
     />
   )
 }

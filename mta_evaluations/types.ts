@@ -14,7 +14,7 @@ interface I_EvaluationListItem {
   title: string
   code: string
   questions_per_page: number
-  status: string
+  status: T_EvaluationStatusCode
   created_by: {
     id: number
     first_name: string
@@ -25,7 +25,7 @@ interface I_EvaluationListItem {
 type T_EvaluationList = I_PaginatedResponse<I_EvaluationListItem>
 
 interface I_EvaluationDetail {
-  id: number
+  id: T_EvaluationId
   questions: Array<{
     id: number
     order: number
@@ -38,8 +38,8 @@ interface I_EvaluationDetail {
   code: string
   header: string
   questions_per_page: number
-  status: string
-  subject: string
+  status: T_EvaluationStatusCode
+  subject_id: T_EvaluationSubjectId
   created_by: number
 }
 

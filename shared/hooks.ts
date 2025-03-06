@@ -103,6 +103,17 @@ const navigationWithIdHook = (path: string) => {
     }
   }
 }
+type T_ExtractPathParams<T extends string> = T extends `${infer _Start}{${infer Param}:${infer _Type}}${infer Rest}` ? Param | T_ExtractPathParams<Rest> : never
+const dynamicNavigationHook = <T extends string>(path: T) => {
+  return () => {
+    const router = useRouter()
+
+    return (args: Record<T_ExtractPathParams<T>, string | number>) => {
+      const resolvedPath = path.replace(/{(\w+):\w+}/g, (_, key) => args[key].toString())
+      router.push(resolvedPath)
+    }
+  }
+}
 
 const useNavigateToHome = navigationHook(pages.D.path)
 
@@ -119,4 +130,5 @@ export {
   useInProgress,
   useInProgressLocal,
   useNavigateToHome,
+  dynamicNavigationHook,
 }
