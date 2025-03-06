@@ -1,13 +1,14 @@
 import { I_AuthResources } from '@/mta_auth/types'
-import { pathWithId, pages } from '@/pages'
+import { pages, pathWithId } from '@/pages'
 import { I_FetchOptions, T_DeleteMethod, T_GetMethod, T_PatchMethod, T_PostMethod } from '@/shared/data/types'
-import { deletionService, detailService, listService, postService, updateService, batchDeletionService, listService2 } from '@/shared/service'
+import { batchDeletionService, deletionService, detailService, listService, listService2, postService, updateService } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import {
   I_DeletionCommonResponse,
   T_BatchDeletionServiceHook,
   T_CreateServiceHook,
   T_DeletionServiceHook,
+  T_DetailServiceHook,
   T_ListServiceHook,
   T_ListServiceHookV2,
   T_UpdateServiceHook,
@@ -15,7 +16,6 @@ import {
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import useSWR from 'swr'
 
 const useInProgressLocal = (initialValue = false) => {
   const [isInProgress, setIsInProgress] = useState(initialValue)
@@ -72,7 +72,7 @@ const batchDeletionHook = <T_Id, T_Response = I_DeletionCommonResponse>(
 }
 
 const detailHook = <T_Id, T_Response>(entityPath: string, getMethod: T_DeleteMethod, useAuthResources: () => I_AuthResources) => {
-  const useDetail = () => {
+  const useDetail: T_DetailServiceHook<T_Id, T_Response> = () => {
     return detailService<T_Id, T_Response>(entityPath, getMethod)(useAuthResources())
   }
   return useDetail
@@ -107,16 +107,16 @@ const navigationWithIdHook = (path: string) => {
 const useNavigateToHome = navigationHook(pages.D.path)
 
 export {
-  useNavigateToHome,
+  batchDeletionHook,
   creationHook,
   deletionHook,
+  detailHook,
   listHook,
   listHookV2,
-  updateHook,
-  batchDeletionHook,
-  useInProgress,
-  useInProgressLocal,
-  detailHook,
   navigationHook,
   navigationWithIdHook,
+  updateHook,
+  useInProgress,
+  useInProgressLocal,
+  useNavigateToHome,
 }
