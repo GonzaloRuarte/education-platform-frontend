@@ -10,6 +10,7 @@ const evaluationLabels = {
     published: 'Publicada',
     draft: 'Borrador',
   },
+  subject: 'Materia',
 }
 
 const evaluationStatusCodeToLabels = (code: T_EvaluationStatusCode): string =>

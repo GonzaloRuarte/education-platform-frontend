@@ -16,17 +16,18 @@
     "@mui/material": "^6.4.3",
     "@mui/material-nextjs": "^6.4.3",
     "@mui/x-data-grid": "^7.26.0",
+    "@serwist/next": "9.0.12",
     "axios": "^1.7.9",
     "debounce": "^2.2.0",
     "next": "15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.54.2",
+    "react-quill-new": "^3.3.3",
     "react-toastify": "^11.0.3",
+    "serwist": "9.0.12",
     "swr": "^2.3.2",
-    "zustand": "^5.0.3",
-    "@serwist/next": "9.0.12",
-    "serwist": "9.0.12"
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -36,5 +37,6 @@
     "eslint-config-next": "15.1.6",
     "prettier": "^3.5.1",
     "typescript": "^5"
-  }
+  },
+  "packageManager": "pnpm@10.6.0+sha256.71ea235e611e2c8e6043ffca1c278f82089f71dfec4d1e9d01b47825e5e92f89"
 }
