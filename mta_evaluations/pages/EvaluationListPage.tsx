@@ -2,14 +2,9 @@
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import EvaluationStatusChip from '@/mta_evaluations/components/EvaluationStatusChip'
-import {
-  useEvaluationBatchDelete,
-  useEvaluationList,
-  useNavigateToEvaluationCreate,
-  useNavigateToEvaluationDetail,
-} from '@/mta_evaluations/hooks'
+import { useEvaluationBatchDelete, useEvaluationList, useNavigateToEvaluationCreate, useNavigateToEvaluationDetail } from '@/mta_evaluations/hooks'
 import Chip from '@/shared/components/Chip'
-import ListPage from '@/shared/components/ListPage'
+import ListPage from '@/shared/pages/ListPage'
 import { GridColDef } from '@mui/x-data-grid'
 
 const columns: Array<GridColDef> = [
@@ -39,7 +34,7 @@ const EvaluationListPage = () => {
   return (
     <ListPage
       columns={columns}
-      useService={useEvaluationList}
+      useList={useEvaluationList}
       title="Evaluaciones"
       onBatchDelete={batchDelete}
       onCreate={navigateToEvaluationCreate}

@@ -2,7 +2,7 @@
 
 import EvaluationCreateForm from '@/mta_evaluations/components/EvaluationCreateForm'
 import { useNavigateToEvaluationList } from '@/mta_evaluations/hooks'
-import CreationPage from '@/shared/components/CreationPage'
+import CreationPage from '@/shared/pages/CreationPage'
 
 const EvaluationCreatePage = () => {
   const navigateToList = useNavigateToEvaluationList()
