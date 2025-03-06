@@ -1,20 +1,13 @@
 import { apiUrl } from '@/config'
 import ApiError from '@/shared/data/errors'
-import {
-  I_FetchOptions,
-  I_RequestSetup,
-  T_DeleteMethod,
-  T_GetMethod,
-  T_PatchMethod,
-  T_PostMethod,
-} from '@/shared/data/types'
+import { I_FetchOptions, I_RequestSetup, T_DeleteMethod, T_GetMethod, T_PatchMethod, T_PostMethod } from '@/shared/data/types'
 import log from '@/shared/log'
 import { errorToast } from '@/shared/toasts'
 import { T_BatchDeletionCommonRequestData } from '@/shared/types'
 
 const listService = <T_Response>(entityPath: string, getMethod: T_GetMethod) => {
   return (requestSetup?: I_RequestSetup) => {
-    return async (options: I_FetchOptions) => {
+    return async (options?: I_FetchOptions) => {
       return getMethod<T_Response>({ endpoint: apiUrl(entityPath), requestSetup, options })
     }
   }
@@ -71,13 +64,4 @@ const handleError = (msg: string) => (errorReason: any) => {
   log.error(errorReason)
 }
 
-export {
-  deletionService,
-  handleError,
-  handleServiceError,
-  listService,
-  postService,
-  detailService,
-  updateService,
-  batchDeletionService,
-}
+export { deletionService, handleError, handleServiceError, listService, postService, detailService, updateService, batchDeletionService }
