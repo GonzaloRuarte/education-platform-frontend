@@ -1,8 +1,8 @@
 import { useAuthResources } from '@/mta_auth/hooks'
-import { I_EvaluationCreateRequestData, T_EvaluationId, T_EvaluationList, T_EvaluationSubjectList } from '@/mta_evaluations/types'
+import { I_EvaluationCreateRequestData, I_EvaluationDetail, T_EvaluationId, T_EvaluationList, T_EvaluationSubjectList } from '@/mta_evaluations/types'
 import pages from '@/pages'
 import { axiosDelete, axiosGet, axiosPost } from '@/shared/data/axios'
-import { batchDeletionHook, creationHook, deletionHook, listHook, navigationHook, navigationWithIdHook } from '@/shared/hooks'
+import { batchDeletionHook, creationHook, deletionHook, detailHook, listHook, navigationHook, navigationWithIdHook } from '@/shared/hooks'
 import { useStore } from '@/shared/state'
 import { I_CreationCommonResponse } from '@/shared/types'
 
@@ -12,7 +12,7 @@ const useEvaluationList = listHook<T_EvaluationList>(EVALUATIONS_PATH, axiosGet,
 const useEvaluationCreate = creationHook<I_EvaluationCreateRequestData, I_CreationCommonResponse>(EVALUATIONS_PATH, axiosPost, useAuthResources)
 const useEvaluationDelete = deletionHook<T_EvaluationId>(EVALUATIONS_PATH, axiosDelete, useAuthResources)
 const useEvaluationBatchDelete = batchDeletionHook<T_EvaluationId>(EVALUATIONS_PATH, axiosDelete, useAuthResources)
-
+const useEvaluationDetail = detailHook<T_EvaluationId, I_EvaluationDetail>(EVALUATIONS_PATH, axiosGet, useAuthResources)
 const useNavigateToEvaluationList = navigationHook(pages.D._.evaluaciones.path)
 const useNavigateToEvaluationDetail = navigationWithIdHook(pages.D._.evaluaciones.path)
 const useNavigateToEvaluationCreate = navigationHook(pages.D._.evaluaciones._.agregar.path)
@@ -36,12 +36,13 @@ const useEvaluationSubjects = () => {
 
 export {
   useEvaluationBatchDelete,
-  useEvaluationDelete,
-  useEvaluationList,
   useEvaluationCreate,
+  useEvaluationDelete,
+  useEvaluationDetail,
+  useEvaluationList,
+  useEvaluationSubjects,
   useNavigateToEvaluationCreate,
   useNavigateToEvaluationDetail,
   useNavigateToEvaluationList,
   useRecoverAndStoreEvaluationSubjects,
-  useEvaluationSubjects,
 }
