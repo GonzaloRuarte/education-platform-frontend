@@ -31,6 +31,7 @@ interface I_EvaluationDetail {
     order: number
     content: string
     is_mandatory: boolean
+    break_page_after: boolean
   }>
   created_at: string
   updated_at: string

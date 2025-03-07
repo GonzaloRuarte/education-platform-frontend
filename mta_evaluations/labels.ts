@@ -11,6 +11,10 @@ const evaluationLabels = {
     draft: 'Borrador',
   },
   subject: 'Materia',
+  create: 'Crear',
+  pageBreak: 'Salto de Página',
+  newQuestion: 'Nueva pregunta',
+  createdQuestions: 'Preguntas Creadas',
 }
 
 const evaluationStatusCodeToLabels = (code: T_EvaluationStatusCode): string =>

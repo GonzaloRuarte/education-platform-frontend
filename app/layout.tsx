@@ -1,7 +1,7 @@
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Roboto } from 'next/font/google'
 
 import Head from 'next/head'
@@ -25,13 +25,14 @@ export const metadata: Metadata = {
   description: 'Sistema de evaluaciones.',
 }
 
+export const viewport: Viewport = {
+  initialScale: 1,
+  width: 'device-width',
+}
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <Head>
-        <meta name="viewport" content="initial-scale=1, width=device-width" />
-      </Head>
-
       <body className={roboto.variable}>
         <AppRouterCacheProvider>
           <CssBaseline>

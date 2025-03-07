@@ -27,6 +27,8 @@ interface I_CreationCommonResponse<T = number> {
 }
 interface I_DeletionCommonResponse {}
 
+type T_ArrayElement<ArrayType extends readonly unknown[]> = ArrayType extends readonly (infer ElementType)[] ? ElementType : never
+
 export type {
   T_FCwChildren,
   T_ListServiceHook,
@@ -41,4 +43,5 @@ export type {
   T_BatchDeletionCommonRequestData,
   I_DeletionCommonResponse,
   T_NavigateToListHook,
+  T_ArrayElement,
 }

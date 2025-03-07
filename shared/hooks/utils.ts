@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '@/shared/state'
 import { successToast } from '@/shared/toasts'
+import { useTheme as useMUITheme } from '@mui/material'
 
 const useInProgressLocal = (initialValue = false) => {
   const [isInProgress, setIsInProgress] = useState(initialValue)
@@ -29,5 +30,6 @@ const useHandleDelete = (
     })
   }
 }
+const useTheme = useMUITheme
 
-export { useInProgress, useInProgressLocal, useHandleDelete }
+export { useInProgress, useInProgressLocal, useHandleDelete, useTheme }
