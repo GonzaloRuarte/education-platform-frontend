@@ -2,7 +2,7 @@ import Button from '@/shared/components/Button'
 import Page from '@/shared/components/Page'
 import Spinner from '@/shared/components/Spinner'
 import { useConfirm } from '@/shared/confirm'
-import { successToast } from '@/shared/toasts'
+import { useHandleDelete } from '@/shared/hooks'
 import { T_DeletionServiceHook, T_DetailServiceHook, T_NavigateToListHook } from '@/shared/types'
 import ClearIcon from '@mui/icons-material/Clear'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -26,14 +26,8 @@ export default function EditionPage<T_Id, T_Data>(p: I_Props<T_Id, T_Data>) {
 
   const { ConfirmDialogComponent, showConfirm } = useConfirm()
 
-  const handleDelete = () => {
-    showConfirm(`Eliminar escuela #${id}`, '¿Estás seguro/a que querés eliminar esta Escuela?').then(() => {
-      deleteInstance(id as T_Id).then(() => {
-        successToast(`${p.entityName} eliminada correctamente.`)
-        navigateToList()
-      })
-    })
-  }
+  const handleDelete = useHandleDelete(id, { showConfirm, deleteInstance, callback: navigateToList, entityName: p.entityName })
+
   useEffect(() => {
     detail(id as T_Id).then(setData)
   }, [id])
