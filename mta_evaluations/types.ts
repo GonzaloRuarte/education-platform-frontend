@@ -1,9 +1,12 @@
 import { I_PaginatedResponse } from '@/shared/data/types'
 
 type T_EvaluationId = number
+type T_QuestionId = number
+type T_AnswerId = number
 type T_EvaluationSubjectId = string
 
 type T_EvaluationStatusCode = 'P' | 'D'
+type T_AnswerType = 'Numeric' | 'MultipleChoice'
 enum EvaluationStatus {
   Published = 'P',
   Draft = 'D',
@@ -24,23 +27,41 @@ interface I_EvaluationListItem {
 }
 type T_EvaluationList = I_PaginatedResponse<I_EvaluationListItem>
 
+interface I_EvaluationDetail_Answer {
+  id: T_AnswerId
+  resource_type: T_AnswerType
+}
+interface I_EvaluationDetail_NumericAnswer extends I_EvaluationDetail_Answer {
+  value: number
+  is_int: boolean
+}
+interface I_EvaluationDetail_MultipleChoiceAnswer extends I_EvaluationDetail_Answer {
+  options: Array<{
+    id: number
+    name: string
+    content: string
+    is_true: boolean
+  }>
+}
+
 interface I_EvaluationDetail {
   id: T_EvaluationId
   questions: Array<{
-    id: number
+    id: T_QuestionId
     order: number
     content: string
     is_mandatory: boolean
     break_page_after: boolean
+    answer: I_EvaluationDetail_NumericAnswer | I_EvaluationDetail_MultipleChoiceAnswer
   }>
+  subject_id: T_EvaluationSubjectId
   created_at: string
   updated_at: string
   title: string
   code: string
   header: string
-  questions_per_page: number
-  status: T_EvaluationStatusCode
-  subject_id: T_EvaluationSubjectId
+  status: string
+  subject: string
   created_by: number
 }
 
@@ -69,5 +90,8 @@ export type {
   I_EvaluationCreateRequestData,
   T_EvaluationSubjectList,
   I_EvaluationSubject,
+  T_AnswerType,
+  I_EvaluationDetail_NumericAnswer,
+  I_EvaluationDetail_MultipleChoiceAnswer,
 }
 export { EvaluationStatus }
