@@ -1,8 +1,6 @@
 import { I_AuthResources } from '@/mta_auth/types'
-import { pages, pathWithId } from '@/pages'
 import { I_FetchOptions, T_DeleteMethod, T_GetMethod, T_PatchMethod, T_PostMethod } from '@/shared/data/types'
 import { batchDeletionService, deletionService, detailService, listService, listService2, postService, updateService } from '@/shared/service'
-import { useStore } from '@/shared/state'
 import {
   I_DeletionCommonResponse,
   T_BatchDeletionServiceHook,
@@ -14,18 +12,7 @@ import {
   T_UpdateServiceHook,
 } from '@/shared/types'
 
-import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-
-const useInProgressLocal = (initialValue = false) => {
-  const [isInProgress, setIsInProgress] = useState(initialValue)
-  return { isInProgress, setIsInProgress }
-}
-const useInProgress = () => {
-  const isInProgress = useStore((state) => state.isInProgress)
-  const setIsInProgress = useStore((state) => state.setIsInProgress)
-  return { isInProgress, setIsInProgress }
-}
 
 const listHook = <T_Response>(entityPath: string, getMethod: T_GetMethod, useAuthResources: () => I_AuthResources) => {
   const useList: T_ListServiceHook<T_Response> = () => {
@@ -85,50 +72,4 @@ const updateHook = <T_Id, T_RequestData, T_Response>(entityPath: string, patchMe
   return useUpdate
 }
 
-const navigationHook = (path: string) => {
-  return () => {
-    const router = useRouter()
-    return () => {
-      router.push(path)
-    }
-  }
-}
-
-const navigationWithIdHook = (path: string) => {
-  return () => {
-    const router = useRouter()
-
-    return (id: string | number) => {
-      router.push(pathWithId(path, id))
-    }
-  }
-}
-type T_ExtractPathParams<T extends string> = T extends `${infer _Start}{${infer Param}:${infer _Type}}${infer Rest}` ? Param | T_ExtractPathParams<Rest> : never
-const dynamicNavigationHook = <T extends string>(path: T) => {
-  return () => {
-    const router = useRouter()
-
-    return (args: Record<T_ExtractPathParams<T>, string | number>) => {
-      const resolvedPath = path.replace(/{(\w+):\w+}/g, (_, key) => args[key].toString())
-      router.push(resolvedPath)
-    }
-  }
-}
-
-const useNavigateToHome = navigationHook(pages.D.path)
-
-export {
-  batchDeletionHook,
-  creationHook,
-  deletionHook,
-  detailHook,
-  listHook,
-  listHookV2,
-  navigationHook,
-  navigationWithIdHook,
-  updateHook,
-  useInProgress,
-  useInProgressLocal,
-  useNavigateToHome,
-  dynamicNavigationHook,
-}
+export { batchDeletionHook, creationHook, deletionHook, detailHook, listHook, listHookV2, updateHook }
