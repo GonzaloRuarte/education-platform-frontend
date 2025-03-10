@@ -2,7 +2,7 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'
 import type { Metadata, Viewport } from 'next'
-import { Roboto } from 'next/font/google'
+import { Montserrat, Roboto } from 'next/font/google'
 
 import Head from 'next/head'
 
@@ -13,11 +13,11 @@ import { ApplicationServices } from '@/shared/appServices/ApplicationServices'
 
 import RecoverEvaluationSubjects from '@/mta_evaluations/appServices/RecoverEvaluationSubjects'
 
-const roboto = Roboto({
+const monstserrat = Montserrat({
   weight: ['300', '400', '500', '700'],
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-roboto',
+  variable: '--font-montserrat',
 })
 
 export const metadata: Metadata = {
@@ -33,7 +33,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={roboto.variable}>
+      <body className={monstserrat.variable}>
         <AppRouterCacheProvider>
           <CssBaseline>
             <ThemeProvider theme={theme}>
