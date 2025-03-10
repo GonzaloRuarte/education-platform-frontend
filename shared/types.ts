@@ -12,6 +12,7 @@ type T_ListServiceHookV2<T_Response> = (options?: I_FetchOptions) => I_FetchingH
 type T_CreateServiceHook<T_RequestData, T_Response> = () => (data: T_RequestData) => Promise<T_Response>
 type T_UpdateServiceHook<T_Id, T_RequestData, T_Response> = () => (id: T_Id, data: T_RequestData) => Promise<T_Response>
 type T_DetailServiceHook<T_Id, T_Response> = () => (id: T_Id) => Promise<T_Response>
+type T_DetailServiceHookV2<T_Id, T_Response> = (id: T_Id) => I_FetchingHookResources<T_Response>
 type T_DeletionServiceHook<T_Id, T_Response> = () => (id: T_Id) => Promise<T_Response>
 type T_BatchDeletionServiceHook<T_Id, T_Response> = () => (ids: Array<T_Id>) => Promise<T_Response>
 type T_BatchDeletionCommonRequestData<T_Id = number> = { ids: Array<T_Id> }
@@ -44,4 +45,5 @@ export type {
   I_DeletionCommonResponse,
   T_NavigateToListHook,
   T_ArrayElement,
+  T_DetailServiceHookV2,
 }
