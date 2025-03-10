@@ -3,6 +3,7 @@ import { I_PaginatedResponse } from '@/shared/data/types'
 type T_EvaluationId = number
 type T_QuestionId = number
 type T_AnswerId = number
+
 type T_EvaluationSubjectId = string
 
 type T_EvaluationStatusCode = 'P' | 'D'
@@ -44,23 +45,25 @@ interface I_EvaluationDetail_MultipleChoiceAnswer extends I_EvaluationDetail_Ans
   }>
 }
 
+interface I_QuestionDetail {
+  id: T_QuestionId
+  order: number
+  content: string
+  is_mandatory: boolean
+  breaks_page_after: boolean
+  answer: I_EvaluationDetail_NumericAnswer | I_EvaluationDetail_MultipleChoiceAnswer
+}
+
 interface I_EvaluationDetail {
   id: T_EvaluationId
-  questions: Array<{
-    id: T_QuestionId
-    order: number
-    content: string
-    is_mandatory: boolean
-    break_page_after: boolean
-    answer: I_EvaluationDetail_NumericAnswer | I_EvaluationDetail_MultipleChoiceAnswer
-  }>
+  questions: Array<I_QuestionDetail>
   subject_id: T_EvaluationSubjectId
   created_at: string
   updated_at: string
   title: string
   code: string
   header: string
-  status: string
+  status: T_EvaluationStatusCode
   subject: string
   created_by: number
 }
@@ -81,8 +84,17 @@ interface I_EvaluationCreateRequestData {
   status: T_EvaluationStatusCode
 }
 
+interface I_QuestionEditRequestData {
+  title: string
+  content: string
+  is_mandatory: boolean
+}
+
 export type {
   T_EvaluationId,
+  T_QuestionId,
+  T_AnswerId,
+  T_EvaluationSubjectId,
   I_EvaluationListItem,
   T_EvaluationList,
   I_EvaluationDetail,
@@ -93,5 +105,7 @@ export type {
   T_AnswerType,
   I_EvaluationDetail_NumericAnswer,
   I_EvaluationDetail_MultipleChoiceAnswer,
+  I_QuestionDetail,
+  I_QuestionEditRequestData,
 }
 export { EvaluationStatus }

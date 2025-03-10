@@ -1,5 +1,13 @@
 import { useAuthResources } from '@/mta_auth/hooks'
-import { I_EvaluationCreateRequestData, I_EvaluationDetail, T_EvaluationId, T_EvaluationList, T_EvaluationSubjectList } from '@/mta_evaluations/types'
+import {
+  I_EvaluationCreateRequestData,
+  I_EvaluationDetail,
+  I_QuestionDetail,
+  T_EvaluationId,
+  T_EvaluationList,
+  T_EvaluationSubjectList,
+  T_QuestionId,
+} from '@/mta_evaluations/types'
 import pages, { evaluationsEditContentPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
 import {
@@ -7,6 +15,7 @@ import {
   creationHook,
   deletionHook,
   detailHook,
+  detailHookV2,
   dynamicNavigationHook,
   listHook,
   navigationHook,
@@ -35,6 +44,8 @@ const useRecoverAndStoreEvaluationSubjects = () => {
       return res
     })
 }
+const QUESTIONS_PATH = '/questions'
+const useQuestionDetail = detailHookV2<T_QuestionId, I_QuestionDetail>(QUESTIONS_PATH, axiosGet, useAuthResources)
 
 // Navigation
 const useNavigateToEvaluationList = navigationHook(pages.D._.evaluaciones.path)
@@ -55,4 +66,5 @@ export {
   useNavigateToEvaluationDetail,
   useNavigateToEvaluationList,
   useRecoverAndStoreEvaluationSubjects,
+  useQuestionDetail,
 }

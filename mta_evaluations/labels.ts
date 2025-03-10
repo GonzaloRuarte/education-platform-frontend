@@ -23,4 +23,8 @@ const evaluationStatusCodeToLabels = (code: T_EvaluationStatusCode): string =>
     D: evaluationLabels.statuses.draft,
   })[code]
 
-export { evaluationStatusCodeToLabels, evaluationLabels }
+const questionLabels = {
+  title: 'Título',
+  content: 'Contenido',
+}
+export { evaluationStatusCodeToLabels, evaluationLabels, questionLabels }
