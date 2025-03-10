@@ -1,6 +1,12 @@
 import Checkbox from '@mui/material/Checkbox'
 
-import { I_EvaluationDetail, I_EvaluationDetail_MultipleChoiceAnswer, I_EvaluationDetail_NumericAnswer, T_AnswerType } from '@/mta_evaluations/types'
+import {
+  I_EvaluationDetail,
+  I_EvaluationDetail_MultipleChoiceAnswer,
+  I_EvaluationDetail_NumericAnswer,
+  T_AnswerType,
+  T_QuestionId,
+} from '@/mta_evaluations/types'
 import Button from '@/shared/components/Button'
 import Chip from '@/shared/components/Chip'
 import MagicGrid from '@/shared/components/MagicGrid'
@@ -18,26 +24,27 @@ import UploadIcon from '@mui/icons-material/Upload'
 import { Accordion, AccordionDetails, AccordionSummary, Box, FormControlLabel, FormGroup, Grid2 as Grid } from '@mui/material'
 import parse from 'html-react-parser'
 import React, { FC } from 'react'
+import { useFullScreenDialog } from '@/shared/dialogs/fullScreenDialog'
+import QuestionEdit from '@/mta_evaluations/components/QuestionEdit'
 
-const Toolbar = () => {
+const Toolbar: FC<{ id: T_QuestionId }> = ({ id }) => {
+  const { showFullScreenDialog, FullScreenDialogComponent, componentProps } = useFullScreenDialog()
+  const handleEdit = () => {
+    showFullScreenDialog(`Editar pregunta ${id}`, <QuestionEdit id={id} />)
+  }
   return (
     <>
       <Grid container justifyContent="flex-end" alignItems="center">
-        <Grid container spacing={2}>
-          <Grid>
-            <Button startIcon={<EditIcon />}>{sharedLabels.edit}</Button>
-          </Grid>
-          <Grid>
-            <Button startIcon={<UploadIcon />}>{sharedLabels.moveUp}</Button>
-          </Grid>
-          <Grid>
-            <Button startIcon={<DownloadIcon />}>{sharedLabels.moveDown}</Button>
-          </Grid>
-          <Grid>
-            <Button startIcon={<DeleteIcon />}>{sharedLabels.delete}</Button>
-          </Grid>
-        </Grid>
+        <MagicGrid itemSize={'auto'}>
+          <Button onClick={handleEdit} startIcon={<EditIcon />}>
+            {sharedLabels.edit}
+          </Button>
+          <Button startIcon={<UploadIcon />}>{sharedLabels.moveUp}</Button>
+          <Button startIcon={<DownloadIcon />}>{sharedLabels.moveDown}</Button>
+          <Button startIcon={<DeleteIcon />}>{sharedLabels.delete}</Button>
+        </MagicGrid>
       </Grid>
+      <FullScreenDialogComponent {...componentProps} />
     </>
   )
 }
@@ -102,11 +109,12 @@ const QuestionAccordion: FC<{
           </>
         )}
       </AccordionSummary>
+
       <AccordionDetails>
         <MagicGrid>
           <Box>{parse(question.content)}</Box>
           <AnswerComponent data={question.answer} />
-          <Toolbar />
+          <Toolbar id={question.id} />
         </MagicGrid>
       </AccordionDetails>
     </Accordion>

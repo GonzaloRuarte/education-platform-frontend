@@ -18,7 +18,7 @@ const CreatedQuestions: FC<{ data: I_EvaluationDetail }> = ({ data }) => {
         return (
           <React.Fragment key={question.id}>
             <QuestionAccordion {...{ isExpanded, setExpanded, question }} />
-            {question.break_page_after && <PageBreak afterQuestionId={question.id} />}
+            {question.breaks_page_after && <PageBreak afterQuestionId={question.id} />}
           </React.Fragment>
         )
       })}

@@ -1,5 +1,6 @@
 import { evaluationLabels } from '@/mta_evaluations/labels'
 import Button from '@/shared/components/Button'
+import MagicGrid from '@/shared/components/MagicGrid'
 import Pastilla from '@/shared/components/Pastilla'
 import Spacer from '@/shared/components/Spacer'
 import { sharedLabels } from '@/shared/labels'
@@ -15,17 +16,11 @@ const PageBreak: FC<{ afterQuestionId: number | string }> = ({ afterQuestionId }
       <Pastilla>
         <Grid container justifyContent="center" alignItems="center">
           <Grid size="grow">{evaluationLabels.pageBreak}</Grid>
-          <Grid container spacing={2}>
-            <Grid>
-              <Button startIcon={<DeleteIcon />}>{sharedLabels.delete}</Button>
-            </Grid>
-            <Grid>
-              <Button startIcon={<UploadIcon />}>{sharedLabels.moveUp}</Button>
-            </Grid>
-            <Grid>
-              <Button startIcon={<DownloadIcon />}>{sharedLabels.moveDown}</Button>
-            </Grid>
-          </Grid>
+          <MagicGrid itemSize="auto">
+            <Button startIcon={<DeleteIcon />}>{sharedLabels.delete}</Button>
+            <Button startIcon={<UploadIcon />}>{sharedLabels.moveUp}</Button>
+            <Button startIcon={<DownloadIcon />}>{sharedLabels.moveDown}</Button>
+          </MagicGrid>
         </Grid>
       </Pastilla>
       <Spacer space="s" />
