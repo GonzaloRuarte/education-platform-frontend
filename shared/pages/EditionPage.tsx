@@ -15,10 +15,12 @@ interface I_Props<T_Id, T_Data> {
   useDetail: T_DetailServiceHook<T_Id, T_Data>
   useDelete: T_DeletionServiceHook<T_Id, any>
   useNavigateToList: T_NavigateToListHook
+  idFieldName?: string
 }
 
-export default function EditionPage<T_Id, T_Data>(p: I_Props<T_Id, T_Data>) {
-  const { id } = useParams<{ id: string }>()
+export default function EditionPage<T_Id extends string | number, T_Data>({ idFieldName = 'id', ...p }: I_Props<T_Id, T_Data>) {
+  const urlParams = useParams()
+  const id = urlParams[idFieldName] as T_Id
   const detail = p.useDetail()
   const deleteInstance = p.useDelete()
   const navigateToList = p.useNavigateToList()
@@ -29,7 +31,7 @@ export default function EditionPage<T_Id, T_Data>(p: I_Props<T_Id, T_Data>) {
   const handleDelete = useHandleDelete(id, { showConfirm, deleteInstance, callback: navigateToList, entityName: p.entityName })
 
   useEffect(() => {
-    detail(id as T_Id).then(setData)
+    detail(id).then(setData)
   }, [id])
   return (
     <>

@@ -2,14 +2,12 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'
 import type { Metadata, Viewport } from 'next'
-import { Montserrat, Roboto } from 'next/font/google'
+import { Montserrat } from 'next/font/google'
 
-import Head from 'next/head'
-
+import { ApplicationServices } from '@/shared/appServices/ApplicationServices'
+import GlobalBackdrop from '@/shared/components/GlobalBackdrop'
 import theme from '@/shared/theme'
 import { ToastContainer } from 'react-toastify'
-import GlobalBackdrop from '@/shared/components/GlobalBackdrop'
-import { ApplicationServices } from '@/shared/appServices/ApplicationServices'
 
 import RecoverEvaluationSubjects from '@/mta_evaluations/appServices/RecoverEvaluationSubjects'
 

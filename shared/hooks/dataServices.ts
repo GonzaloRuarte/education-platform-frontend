@@ -1,5 +1,6 @@
 import { I_AuthResources } from '@/mta_auth/types'
 import { I_FetchOptions, T_DeleteMethod, T_GetMethod, T_PatchMethod, T_PostMethod } from '@/shared/data/types'
+import { useInProgressLocal } from '@/shared/hooks/utils'
 import { batchDeletionService, deletionService, detailService, detailService2, listService, listService2, postService, updateService } from '@/shared/service'
 import {
   I_DeletionCommonResponse,
@@ -8,6 +9,7 @@ import {
   T_DeletionServiceHook,
   T_DetailServiceHook,
   T_DetailServiceHookV2,
+  T_InProgressHook,
   T_ListServiceHook,
   T_ListServiceHookV2,
   T_UpdateServiceHook,
@@ -23,15 +25,21 @@ const listHook = <T_Response>(entityPath: string, getMethod: T_GetMethod, useAut
 }
 
 const listHookV2 = <T_Response>(entityPath: string, getMethod: T_GetMethod, useAuthResources: () => I_AuthResources) => {
-  const useList: T_ListServiceHookV2<T_Response> = (options?: I_FetchOptions) => {
+  const useList: T_ListServiceHookV2<T_Response> = (options?: I_FetchOptions, useInProgress: T_InProgressHook = useInProgressLocal) => {
     const [data, setData] = useState<undefined | T_Response>(undefined)
+    const { isInProgress, setIsInProgress } = useInProgress()
     const fetcher = listService2<T_Response>(entityPath, getMethod)(useAuthResources(), options)
     const reload = () => {
-      fetcher().then((res) => setData(res))
+      setIsInProgress(true)
+      fetcher()
+        .then((res) => setData(res))
+        .finally(() => {
+          setIsInProgress(false)
+        })
     }
     useEffect(reload, [options, entityPath])
 
-    return { data, reload }
+    return { data, reload, isLoading: isInProgress }
   }
   return useList
 }
@@ -67,17 +75,23 @@ const detailHook = <T_Id, T_Response>(entityPath: string, getMethod: T_DeleteMet
 }
 
 const detailHookV2 = <T_Id, T_Response>(entityPath: string, getMethod: T_GetMethod, useAuthResources: () => I_AuthResources) => {
-  const useList: T_DetailServiceHookV2<T_Id, T_Response> = (id: T_Id, options?: I_FetchOptions) => {
+  const useDetail: T_DetailServiceHookV2<T_Id, T_Response> = (id: T_Id, options?: I_FetchOptions, useInProgress: T_InProgressHook = useInProgressLocal) => {
     const [data, setData] = useState<undefined | T_Response>(undefined)
+    const { isInProgress, setIsInProgress } = useInProgress()
     const fetcher = detailService2<T_Id, T_Response>(entityPath, getMethod)(id, useAuthResources(), options)
     const reload = () => {
-      fetcher().then((res) => setData(res))
+      setIsInProgress(true)
+      fetcher()
+        .then((res) => setData(res))
+        .finally(() => {
+          setIsInProgress(false)
+        })
     }
     useEffect(reload, [options, entityPath])
 
-    return { data, reload }
+    return { data, reload, isLoading: isInProgress }
   }
-  return useList
+  return useDetail
 }
 
 const updateHook = <T_Id, T_RequestData, T_Response>(entityPath: string, patchMethod: T_PatchMethod, useAuthResources: () => I_AuthResources) => {

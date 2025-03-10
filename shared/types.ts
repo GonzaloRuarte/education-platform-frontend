@@ -5,6 +5,7 @@ type T_FCwChildren<T_OtherProps = object> = React.FC<{ children: React.ReactNode
 interface I_FetchingHookResources<T_Data> {
   data: T_Data | undefined
   reload: () => void
+  isLoading: boolean
 }
 
 type T_ListServiceHook<T_Response> = () => (options?: I_FetchOptions) => Promise<T_Response>
@@ -30,6 +31,11 @@ interface I_DeletionCommonResponse {}
 
 type T_ArrayElement<ArrayType extends readonly unknown[]> = ArrayType extends readonly (infer ElementType)[] ? ElementType : never
 
+type T_InProgressHook = () => {
+  isInProgress: boolean
+  setIsInProgress: (status: boolean) => void
+}
+
 export type {
   T_FCwChildren,
   T_ListServiceHook,
@@ -46,4 +52,5 @@ export type {
   T_NavigateToListHook,
   T_ArrayElement,
   T_DetailServiceHookV2,
+  T_InProgressHook,
 }

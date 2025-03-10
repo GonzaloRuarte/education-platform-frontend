@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { useStore } from '@/shared/state'
 import { successToast } from '@/shared/toasts'
 import { useTheme as useMUITheme } from '@mui/material'
+import { T_InProgressHook } from '@/shared/types'
 
-const useInProgressLocal = (initialValue = false) => {
-  const [isInProgress, setIsInProgress] = useState(initialValue)
+const useInProgressLocal: T_InProgressHook = () => {
+  const [isInProgress, setIsInProgress] = useState(false)
   return { isInProgress, setIsInProgress }
 }
-const useInProgress = () => {
+const useInProgress: T_InProgressHook = () => {
   const isInProgress = useStore((state) => state.isInProgress)
   const setIsInProgress = useStore((state) => state.setIsInProgress)
   return { isInProgress, setIsInProgress }
