@@ -11,6 +11,7 @@ const EvaluationEditPage = () => (
     useDelete={useEvaluationDelete}
     useDetail={useEvaluationDetail}
     useNavigateToList={useNavigateToEvaluationList}
+    idFieldName="evaluationId"
   />
 )
 

@@ -19,26 +19,23 @@ import { useEffect, useState } from 'react'
 const entityName = 'Evaluación'
 
 const EvaluationContentEditPage = () => {
-  const { id } = useParams<{ id: string }>()
-  const detail = useEvaluationDetail()
-  const [data, setData] = useState<I_EvaluationDetail | undefined>(undefined)
+  const { evaluationId } = useParams<{ evaluationId: string }>()
+  const { data, reload } = useEvaluationDetail(Number(evaluationId))
+
   const navigateToList = useNavigateToEvaluationList()
   const deleteInstance = useEvaluationDelete()
   const { ConfirmDialogComponent, showConfirm } = useConfirm()
 
-  const handleDelete = useHandleDelete(id, { showConfirm, deleteInstance, callback: navigateToList, entityName })
-  const fetchData = () => {
-    setData(undefined)
-    detail(id as unknown as T_EvaluationId).then(setData)
-  }
-  useEffect(fetchData, [id])
+  const handleDelete = useHandleDelete(evaluationId, { showConfirm, deleteInstance, callback: navigateToList, entityName })
+
+  useEffect(reload, [evaluationId])
 
   return (
     <>
       <Page>
         <Page.Title>Editar contenio de {entityName}</Page.Title>
         <Page.Toolbar>
-          <Button onClick={fetchData} startIcon={<ReplayIcon />}>
+          <Button onClick={reload} startIcon={<ReplayIcon />}>
             Actualizar
           </Button>
           <Button onClick={navigateToList} startIcon={<ClearIcon />}>

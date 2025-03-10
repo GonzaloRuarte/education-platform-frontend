@@ -7,7 +7,8 @@ type T_PageConfig = {
 type T_PagesConfig = { [key: string]: T_PageConfig }
 
 // const pages: T_PagesConfig = {
-const evaluationsEditContentPath = '/dashboard/evaluaciones/{id:number}/editar-contenido'
+const evaluationsEditContentPath = '/dashboard/evaluaciones/{evaluationId:number}/editar-contenido'
+const questionEditPath = '/dashboard/evaluaciones/{evaluationId:number}/pregunta/{questionId:number}'
 const pages = {
   D: {
     path: '/dashboard',
@@ -43,6 +44,10 @@ const pages = {
                 path: evaluationsEditContentPath,
                 label: 'Editar Contenido de Evaluación',
               },
+              editarPregunta: {
+                path: questionEditPath,
+                label: 'Editar Pregunta',
+              },
             },
           },
           agregar: {
@@ -71,6 +76,6 @@ const pathWithId = (path: string, id: string | number) => {
   return `${path}/${id}`
 }
 
-export { pages, pathWithId, evaluationsEditContentPath }
+export { pages, pathWithId, evaluationsEditContentPath, questionEditPath }
 
 export default pages

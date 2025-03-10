@@ -8,7 +8,7 @@ import {
   T_EvaluationSubjectList,
   T_QuestionId,
 } from '@/mta_evaluations/types'
-import pages, { evaluationsEditContentPath } from '@/pages'
+import pages, { evaluationsEditContentPath, questionEditPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
 import {
   batchDeletionHook,
@@ -32,7 +32,7 @@ const useEvaluationCreate = creationHook<I_EvaluationCreateRequestData, I_Creati
 const useEvaluationUpdate = updateHook<T_EvaluationId, I_EvaluationCreateRequestData, I_CreationCommonResponse>(EVALUATIONS_PATH, axiosPatch, useAuthResources)
 const useEvaluationDelete = deletionHook<T_EvaluationId>(EVALUATIONS_PATH, axiosDelete, useAuthResources)
 const useEvaluationBatchDelete = batchDeletionHook<T_EvaluationId>(EVALUATIONS_PATH, axiosDelete, useAuthResources)
-const useEvaluationDetail = detailHook<T_EvaluationId, I_EvaluationDetail>(EVALUATIONS_PATH, axiosGet, useAuthResources)
+const useEvaluationDetail = detailHookV2<T_EvaluationId, I_EvaluationDetail>(EVALUATIONS_PATH, axiosGet, useAuthResources)
 const useEvaluationSubjects = () => useStore((state) => state.subjects)
 const useRecoverAndStoreEvaluationSubjects = () => {
   const useRecover = listHook<T_EvaluationSubjectList>('/evaluation-subjects', axiosGet, useAuthResources)
@@ -52,6 +52,7 @@ const useNavigateToEvaluationList = navigationHook(pages.D._.evaluaciones.path)
 const useNavigateToEvaluationDetail = navigationWithIdHook(pages.D._.evaluaciones.path)
 const useNavigateToEvaluationCreate = navigationHook(pages.D._.evaluaciones._.agregar.path)
 const useNavigateToEvaluationContentEdit = dynamicNavigationHook(evaluationsEditContentPath)
+const useNavigateToQuestionEdit = dynamicNavigationHook(questionEditPath)
 
 export {
   useEvaluationBatchDelete,
@@ -61,10 +62,11 @@ export {
   useEvaluationList,
   useEvaluationSubjects,
   useEvaluationUpdate,
+  useRecoverAndStoreEvaluationSubjects,
+  useQuestionDetail,
   useNavigateToEvaluationContentEdit,
   useNavigateToEvaluationCreate,
   useNavigateToEvaluationDetail,
   useNavigateToEvaluationList,
-  useRecoverAndStoreEvaluationSubjects,
-  useQuestionDetail,
+  useNavigateToQuestionEdit,
 }

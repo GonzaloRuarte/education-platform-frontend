@@ -5,6 +5,7 @@ import {
   I_EvaluationDetail_MultipleChoiceAnswer,
   I_EvaluationDetail_NumericAnswer,
   T_AnswerType,
+  T_EvaluationId,
   T_QuestionId,
 } from '@/mta_evaluations/types'
 import Button from '@/shared/components/Button'
@@ -24,13 +25,12 @@ import UploadIcon from '@mui/icons-material/Upload'
 import { Accordion, AccordionDetails, AccordionSummary, Box, FormControlLabel, FormGroup, Grid2 as Grid } from '@mui/material'
 import parse from 'html-react-parser'
 import React, { FC } from 'react'
-import { useFullScreenDialog } from '@/shared/dialogs/fullScreenDialog'
-import QuestionEdit from '@/mta_evaluations/components/QuestionEdit'
+import { useNavigateToQuestionEdit } from '@/mta_evaluations/hooks'
 
-const Toolbar: FC<{ id: T_QuestionId }> = ({ id }) => {
-  const { showFullScreenDialog, FullScreenDialogComponent, componentProps } = useFullScreenDialog()
+const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId }> = ({ questionId, evaluationId }) => {
+  const navigateToEdit = useNavigateToQuestionEdit()
   const handleEdit = () => {
-    showFullScreenDialog(`Editar pregunta ${id}`, <QuestionEdit id={id} />)
+    navigateToEdit({ evaluationId, questionId })
   }
   return (
     <>
@@ -44,7 +44,6 @@ const Toolbar: FC<{ id: T_QuestionId }> = ({ id }) => {
           <Button startIcon={<DeleteIcon />}>{sharedLabels.delete}</Button>
         </MagicGrid>
       </Grid>
-      <FullScreenDialogComponent {...componentProps} />
     </>
   )
 }
@@ -86,10 +85,11 @@ const answersComponents: Record<T_AnswerType, FC<any>> = {
 }
 
 const QuestionAccordion: FC<{
+  evaluationId: T_EvaluationId
   question: T_ArrayElement<I_EvaluationDetail['questions']>
   isExpanded: boolean
   setExpanded: React.Dispatch<React.SetStateAction<number | false>>
-}> = ({ isExpanded, setExpanded, question }) => {
+}> = ({ isExpanded, setExpanded, question, evaluationId }) => {
   const handleChange = (panel: I_EvaluationDetail['id']) => (_: React.SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false)
   }
@@ -114,7 +114,7 @@ const QuestionAccordion: FC<{
         <MagicGrid>
           <Box>{parse(question.content)}</Box>
           <AnswerComponent data={question.answer} />
-          <Toolbar id={question.id} />
+          <Toolbar evaluationId={evaluationId} questionId={question.id} />
         </MagicGrid>
       </AccordionDetails>
     </Accordion>

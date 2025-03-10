@@ -44,7 +44,7 @@ const EvaluationListPage = () => {
       title="Evaluaciones"
       onBatchDelete={batchDelete}
       onCreate={navigateToEvaluationCreate}
-      onRowClick={(params) => navigateToEvaluationContentEdit({ id: params.id })}
+      onRowClick={(params) => navigateToEvaluationContentEdit({ evaluationId: params.id })}
     />
   )
 }

@@ -21,6 +21,8 @@ interface I_Props {
   data: I_QuestionDetail
 }
 const QuestionEditForm = ({ data }: I_Props) => {
+  console.log({ data })
+
   const { answer, content, id, is_mandatory } = data
 
   const { handleSubmit, control } = useForm<I_FormFields>({
