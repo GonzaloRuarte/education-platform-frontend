@@ -21,7 +21,7 @@
     "jsx": "preserve",
     "incremental": true,
     "resolveJsonModule": true,
-    "types": ["@serwist/next/typings"],
+    // "types": ["@serwist/next/typings"],
     "plugins": [
       {
         "name": "next"
