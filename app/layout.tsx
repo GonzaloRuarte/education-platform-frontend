@@ -31,7 +31,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={monstserrat.variable} style={{ background: '#f1eeee !important' }}>
+      <body className={monstserrat.variable} style={{ background: '#f1f1f1 !important' }}>
         <AppRouterCacheProvider>
           <CssBaseline>
             <ThemeProvider theme={theme}>

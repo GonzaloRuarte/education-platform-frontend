@@ -26,6 +26,7 @@ import { Accordion, AccordionDetails, AccordionSummary, Box, FormControlLabel, F
 import parse from 'html-react-parser'
 import React, { FC } from 'react'
 import { useNavigateToQuestionEdit } from '@/mta_evaluations/hooks'
+import AnswerTypeChip from '@/mta_evaluations/components/AnswerTypeChip'
 
 const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId }> = ({ questionId, evaluationId }) => {
   const navigateToEdit = useNavigateToQuestionEdit()
@@ -104,7 +105,7 @@ const QuestionAccordion: FC<{
         {!isExpanded && (
           <>
             <Body2 component="span" sx={{ color: 'text.secondary' }}>
-              <Chip variant="outlined" size="small" label={question.answer.resource_type} /> {truncateString(strippedString(question.content), 40)}
+              <AnswerTypeChip type={question.answer.resource_type} /> {truncateString(strippedString(question.content), 40)}
             </Body2>
           </>
         )}

@@ -6,6 +6,7 @@ import {
   T_EvaluationId,
   T_EvaluationList,
   T_EvaluationSubjectList,
+  T_MultiplChoiceOptionId,
   T_QuestionId,
 } from '@/mta_evaluations/types'
 import pages, { evaluationsEditContentPath, questionEditPath } from '@/pages'
@@ -46,6 +47,9 @@ const useRecoverAndStoreEvaluationSubjects = () => {
 const QUESTIONS_PATH = '/questions'
 const useQuestionDetail = detailHookV2<T_QuestionId, I_QuestionDetail>(QUESTIONS_PATH, axiosGet, useAuthResources)
 
+const MULTIPLE_CHOICE_PATH = '/multiple-choice'
+const useMultipleChoiceOptionDelete = deletionHook<T_MultiplChoiceOptionId>(`${MULTIPLE_CHOICE_PATH}/delete-option`, axiosDelete, useAuthResources)
+
 // Navigation
 const useNavigateToEvaluationList = navigationHook(pages.D._.evaluaciones.path)
 const useNavigateToEvaluationDetail = navigationWithIdHook(pages.D._.evaluaciones.path)
@@ -68,4 +72,5 @@ export {
   useNavigateToQuestionEdit,
   useQuestionDetail,
   useRecoverAndStoreEvaluationSubjects,
+  useMultipleChoiceOptionDelete,
 }

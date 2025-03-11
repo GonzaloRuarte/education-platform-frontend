@@ -25,7 +25,7 @@ const DeleteButton = ({ useDelete, id, callback, entityName }) => {
 }
 
 interface I_Props<T_Id, T_Data> {
-  EditionForm: React.ComponentType<{ data: T_Data }>
+  EditionForm: React.ComponentType<{ data: T_Data; reload?: () => void }>
   entityName: EntityName
   useDetail: T_DetailServiceHookV2<T_Id, T_Data>
   useDelete?: T_DeletionServiceHook<T_Id, any>
@@ -36,7 +36,7 @@ interface I_Props<T_Id, T_Data> {
 export default function EditionPage<T_Id extends string | number, T_Data>({ idFieldName = 'id', ...p }: I_Props<T_Id, T_Data>) {
   const urlParams = useParams()
   const id = urlParams[idFieldName] as T_Id
-  const { data } = p.useDetail(id)
+  const { reload, data } = p.useDetail(id)
 
   return (
     <>
@@ -48,7 +48,7 @@ export default function EditionPage<T_Id extends string | number, T_Data>({ idFi
           </Button>
           {p.useDelete !== undefined && <DeleteButton callback={p.onExit} entityName={p.entityName} useDelete={p.useDelete} id={id} />}
         </Page.Toolbar>
-        <Page.Content>{data === undefined ? <Spinner /> : <p.EditionForm data={data} />}</Page.Content>
+        <Page.Content>{data === undefined ? <Spinner /> : <p.EditionForm {...{ data, reload }} />}</Page.Content>
       </Page>
     </>
   )

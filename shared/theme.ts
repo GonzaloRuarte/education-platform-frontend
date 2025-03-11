@@ -53,6 +53,7 @@ const theme = createTheme(
           },
         },
       },
+      // MuiIconButton: { defaultProps: { style: { background: colorsTheme.palette.primary.main } } },
       MuiButton: { defaultProps: { style: { borderRadius: 20 }, disableElevation: true } },
       MuiTypography: {
         defaultProps: {
