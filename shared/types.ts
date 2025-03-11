@@ -35,6 +35,11 @@ type T_InProgressHook = () => {
   isInProgress: boolean
   setIsInProgress: (status: boolean) => void
 }
+interface I_EntityName {
+  singular: string
+  plural: string
+  gender: 'M' | 'F'
+}
 
 export type {
   T_FCwChildren,
@@ -53,4 +58,5 @@ export type {
   T_ArrayElement,
   T_DetailServiceHookV2,
   T_InProgressHook,
+  I_EntityName,
 }
