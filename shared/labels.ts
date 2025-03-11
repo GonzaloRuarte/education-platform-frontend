@@ -1,4 +1,7 @@
 const sharedLabels = {
+  update: 'Actualizar',
+  add: 'Agregar',
+  cancel: 'Cancelar',
   delete: 'Eliminar',
   edit: 'Editar',
   moveUp: 'Mover arriba',

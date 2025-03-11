@@ -10,6 +10,7 @@ import { useInProgress } from '@/shared/hooks'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import Spacer from '@/shared/components/Spacer'
 
 interface I_FormFields extends I_SchoolUpdateRequestData {}
 
@@ -46,6 +47,7 @@ const SchoolCreateForm = ({ data }: I_Props) => {
         <Input<I_FormFields> control={control} type="email" name="contact_email" label="E-Mail" />
         <Input<I_FormFields> control={control} type="text" name="district" rules={{ ...rules.required() }} label="Distrito" />
       </MagicGrid>
+      <Spacer />
 
       <Submit>Guardar</Submit>
     </form>

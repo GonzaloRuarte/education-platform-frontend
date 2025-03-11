@@ -11,8 +11,8 @@ import { GridColDef, GridPaginationModel, GridRowParams, GridRowSelectionModel }
 
 import { useConfirm } from '@/shared/confirm'
 import { successToast } from '@/shared/toasts'
-import { ComponentProps, useState } from 'react'
 import { EntityName } from '@/shared/utils'
+import { ComponentProps, useState } from 'react'
 
 interface I_Props<T_Response> {
   columns: Array<GridColDef>
@@ -45,19 +45,6 @@ function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>
         .finally(reload)
     })
   }
-
-  // const fetchData = () => {
-  //   log.info('fetching data')
-  //   setIsInProgress(true)
-  //   fetchingService({ page: paginationModel.page + 1, page_size: paginationModel.pageSize })
-  //     .then((res) => {
-  //       setData(res)
-  //     })
-  //     .catch(handleServiceError)
-  //     .finally(() => {
-  //       setIsInProgress(false)
-  //     })
-  // }
 
   return (
     <>

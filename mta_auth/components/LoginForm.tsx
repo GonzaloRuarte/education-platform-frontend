@@ -10,6 +10,7 @@ import { useInProgress, useNavigateToHome } from '@/shared/hooks'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import Spacer from '@/shared/components/Spacer'
 
 interface I_FormFields {
   username: string
@@ -48,7 +49,7 @@ export default function LoginForm() {
           <Input<I_FormFields> control={control} name="username" rules={{ ...rules.required() }} label="Usuario" />
           <Input<I_FormFields> control={control} type="password" name="password" rules={{ ...rules.required() }} label="Contraseña" />
         </MagicGrid>
-
+        <Spacer />
         <Submit>Ingresar</Submit>
       </form>
     </>

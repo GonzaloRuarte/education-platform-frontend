@@ -5,11 +5,13 @@ import { useEvaluationCreate, useEvaluationUpdate, useNavigateToEvaluationList }
 import { evaluationLabels } from '@/mta_evaluations/labels'
 import { EvaluationStatus, I_EvaluationCreateRequestData, I_EvaluationDetail } from '@/mta_evaluations/types'
 import MagicGrid from '@/shared/components/MagicGrid'
+import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import Input from '@/shared/forms/Input'
 import { rules } from '@/shared/forms/messages'
 import WysiwygEditor from '@/shared/forms/WysiwygEditor'
 import { useInProgress } from '@/shared/hooks'
+import { sharedLabels } from '@/shared/labels'
 import log from '@/shared/log'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
@@ -59,8 +61,8 @@ const EvaluationEditForm = ({ data }: I_Props) => {
         <SubjectOptions {...{ control }} name="subject_id" />
         <WysiwygEditor {...{ control }} label={evaluationLabels.header} rules={{ ...rules.required() }} name="header" />
       </MagicGrid>
-
-      <Submit>Actualizar</Submit>
+      <Spacer />
+      <Submit>{sharedLabels.update}</Submit>
     </form>
   )
 }

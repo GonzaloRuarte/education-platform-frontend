@@ -53,6 +53,7 @@ const theme = createTheme(
           },
         },
       },
+      MuiButton: { defaultProps: { style: { borderRadius: 20 }, disableElevation: true } },
       MuiTypography: {
         defaultProps: {
           variantMapping: {

@@ -5,11 +5,13 @@ import { useEvaluationUpdate, useNavigateToEvaluationList } from '@/mta_evaluati
 import { questionLabels } from '@/mta_evaluations/labels'
 import { I_EvaluationCreateRequestData, I_EvaluationDetail, I_QuestionDetail, I_QuestionEditRequestData } from '@/mta_evaluations/types'
 import MagicGrid from '@/shared/components/MagicGrid'
+import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import Input from '@/shared/forms/Input'
 import { rules } from '@/shared/forms/messages'
 import WysiwygEditor from '@/shared/forms/WysiwygEditor'
 import { useInProgress } from '@/shared/hooks'
+import { sharedLabels } from '@/shared/labels'
 import log from '@/shared/log'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
@@ -53,8 +55,8 @@ const QuestionEditForm = ({ data }: I_Props) => {
         {/* <SubjectOptions {...{ control }} name="subject_id" /> */}
         <WysiwygEditor<I_FormFields> {...{ control }} label={questionLabels.content} rules={{ ...rules.required() }} name="content" />
       </MagicGrid>
-
-      <Submit>Actualizar</Submit>
+      <Spacer />
+      <Submit>{sharedLabels.update}</Submit>
     </form>
   )
 }
