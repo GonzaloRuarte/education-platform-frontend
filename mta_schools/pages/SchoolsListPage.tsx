@@ -1,6 +1,7 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
+import { SCHOOL_NAME } from '@/mta_schools/constants'
 import { useNavigateToSchoolCreate, useNavigateToSchoolDetail, useSchoolBatchDelete, useSchoolList } from '@/mta_schools/hooks'
 import ListPage from '@/shared/pages/ListPage'
 import { Chip } from '@mui/material'
@@ -36,7 +37,7 @@ const SchoolsListPage = () => {
     <ListPage
       columns={columns}
       useList={useSchoolList}
-      entityName="Escuelas"
+      entityName={SCHOOL_NAME}
       onRowClick={ListPage.mapNavToOnRowClick(navigateToSchoolDetail)}
       onCreate={navigateToSchoolCreate}
       onBatchDelete={schoolBatchDelete}

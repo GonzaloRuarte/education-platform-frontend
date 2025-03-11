@@ -36,6 +36,17 @@ const truncateString = (str: string, maxLength: number): string => {
   return str.slice(0, maxLength) + '...'
 }
 
-export default truncateString
+type T_Gender = 'M' | 'F' | 'X'
+class EntityName {
+  readonly singular: string
+  readonly plural: string
+  readonly gender: T_Gender
 
-export { toCamelCase, intersection, slugify, strippedString, truncateString }
+  constructor(args: { singular: string; plural: string; gender: T_Gender }) {
+    this.singular = args.singular
+    this.plural = args.plural
+    this.gender = args.gender
+  }
+}
+
+export { EntityName, intersection, slugify, strippedString, toCamelCase, truncateString }

@@ -4,6 +4,7 @@ import Spinner from '@/shared/components/Spinner'
 import { useConfirm } from '@/shared/confirm'
 import { useHandleDelete } from '@/shared/hooks'
 import { T_DeletionServiceHook, T_DetailServiceHookV2, T_NavigateToListHook } from '@/shared/types'
+import { EntityName } from '@/shared/utils'
 import ClearIcon from '@mui/icons-material/Clear'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { useParams } from 'next/navigation'
@@ -25,7 +26,7 @@ const DeleteButton = ({ useDelete, id, callback, entityName }) => {
 
 interface I_Props<T_Id, T_Data> {
   EditionForm: React.ComponentType<{ data: T_Data }>
-  entityName: string
+  entityName: EntityName
   useDetail: T_DetailServiceHookV2<T_Id, T_Data>
   useDelete?: T_DeletionServiceHook<T_Id, any>
   onExit: () => void
@@ -40,7 +41,7 @@ export default function EditionPage<T_Id extends string | number, T_Data>({ idFi
   return (
     <>
       <Page>
-        <Page.Title>Editar {p.entityName}</Page.Title>
+        <Page.Title>Editar {p.entityName.singular}</Page.Title>
         <Page.Toolbar>
           <Button onClick={p.onExit} startIcon={<ClearIcon />}>
             Cancelar

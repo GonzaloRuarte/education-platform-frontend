@@ -14,7 +14,7 @@ import MagicGrid from '@/shared/components/MagicGrid'
 import { Body1, Body2 } from '@/shared/components/Typography'
 import { sharedLabels } from '@/shared/labels'
 import { T_ArrayElement } from '@/shared/types'
-import truncateString, { strippedString } from '@/shared/utils'
+import { truncateString, strippedString } from '@/shared/utils'
 
 import Bold from '@/shared/components/Bold'
 import DeleteIcon from '@mui/icons-material/Delete'

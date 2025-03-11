@@ -12,11 +12,12 @@ import { GridColDef, GridPaginationModel, GridRowParams, GridRowSelectionModel }
 import { useConfirm } from '@/shared/confirm'
 import { successToast } from '@/shared/toasts'
 import { ComponentProps, useState } from 'react'
+import { EntityName } from '@/shared/utils'
 
 interface I_Props<T_Response> {
   columns: Array<GridColDef>
   useList: T_ListServiceHookV2<T_Response>
-  entityName: string
+  entityName: EntityName
   onRowClick?: ComponentProps<typeof Table>['onRowClick']
   onCreate?: () => void
   onBatchDelete?: (ids: Array<number | string>) => Promise<any>
@@ -35,7 +36,7 @@ function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>
   const handleBatchDelete = () => {
     const ids = rowSelectionModel as Array<number>
 
-    showConfirm(`Eliminar ${p.entityName} ${ids}`, '¿Estás seguro/a que querés eliminar estas Escuelas?').then(() => {
+    showConfirm(`Eliminar ${p.entityName.plural} ${ids}`, '¿Estás seguro/a que querés proceder?').then(() => {
       if (p.onBatchDelete === undefined) return
       p.onBatchDelete(ids)
         .then(() => {
@@ -61,7 +62,7 @@ function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>
   return (
     <>
       <Page>
-        <Page.Title>Listado de {p.entityName}</Page.Title>
+        <Page.Title>Listado de {p.entityName.plural}</Page.Title>
         <Page.Toolbar>
           <Button onClick={reload} startIcon={<ReplayIcon />}>
             Actualizar

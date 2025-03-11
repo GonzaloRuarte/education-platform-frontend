@@ -3,6 +3,7 @@ import { useStore } from '@/shared/state'
 import { successToast } from '@/shared/toasts'
 import { useTheme as useMUITheme } from '@mui/material'
 import { T_InProgressHook } from '@/shared/types'
+import { EntityName } from '@/shared/utils'
 
 const useInProgressLocal: T_InProgressHook = () => {
   const [isInProgress, setIsInProgress] = useState(false)
@@ -18,14 +19,14 @@ const useHandleDelete = (
   d: {
     showConfirm: (title: string, content: string) => Promise<void>
     deleteInstance: (id: any) => Promise<any>
-    entityName: string
+    entityName: EntityName
     callback: () => void
   },
 ) => {
   return () => {
-    d.showConfirm(`Eliminar escuela #${id}`, '¿Estás seguro/a que querés eliminar esta Escuela?').then(() => {
+    d.showConfirm(`Eliminar ${d.entityName.singular} #${id}`, '¿Estás seguro/a que querés proceder?').then(() => {
       d.deleteInstance(id).then(() => {
-        successToast(`${d.entityName} eliminada correctamente.`)
+        successToast(`${d.entityName.singular} eliminada correctamente.`)
         d.callback()
       })
     })

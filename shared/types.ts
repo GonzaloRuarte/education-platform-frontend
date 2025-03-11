@@ -33,17 +33,11 @@ type T_InProgressHook = () => {
   isInProgress: boolean
   setIsInProgress: (status: boolean) => void
 }
-interface I_EntityName {
-  singular: string
-  plural: string
-  gender: 'M' | 'F'
-}
 
 export type {
   I_ApiError,
   I_CreationCommonResponse,
   I_DeletionCommonResponse,
-  I_EntityName,
   T_ArrayElement,
   T_BatchDeletionCommonRequestData,
   T_BatchDeletionServiceHook,
