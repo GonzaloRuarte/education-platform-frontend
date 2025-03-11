@@ -14,8 +14,9 @@ import {
   T_ListServiceHookV2,
   T_UpdateServiceHook,
 } from '@/shared/types'
+import debounce from 'debounce'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 const listHook = <T_Response>(entityPath: string, getMethod: T_GetMethod, useAuthResources: () => I_AuthResources) => {
   const useList: T_ListServiceHook<T_Response> = () => {
@@ -29,15 +30,16 @@ const listHookV2 = <T_Response>(entityPath: string, getMethod: T_GetMethod, useA
     const [data, setData] = useState<undefined | T_Response>(undefined)
     const { isInProgress, setIsInProgress } = useInProgress()
     const fetcher = listService2<T_Response>(entityPath, getMethod)(useAuthResources(), options)
-    const reload = () => {
+    const reload = useCallback(() => {
       setIsInProgress(true)
       fetcher()
         .then((res) => setData(res))
         .finally(() => {
           setIsInProgress(false)
         })
-    }
-    useEffect(reload, [options, entityPath])
+    }, [options?.page, options?.page_size])
+
+    useEffect(debounce(reload), [entityPath, options?.page, options?.page_size])
 
     return { data, reload, isLoading: isInProgress }
   }

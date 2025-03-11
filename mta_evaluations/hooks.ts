@@ -14,10 +14,10 @@ import {
   batchDeletionHook,
   creationHook,
   deletionHook,
-  detailHook,
   detailHookV2,
   dynamicNavigationHook,
   listHook,
+  listHookV2,
   navigationHook,
   navigationWithIdHook,
   updateHook,
@@ -27,7 +27,7 @@ import { I_CreationCommonResponse } from '@/shared/types'
 
 // Data Service
 const EVALUATIONS_PATH = '/evaluations'
-const useEvaluationList = listHook<T_EvaluationList>(EVALUATIONS_PATH, axiosGet, useAuthResources)
+const useEvaluationList = listHookV2<T_EvaluationList>(EVALUATIONS_PATH, axiosGet, useAuthResources)
 const useEvaluationCreate = creationHook<I_EvaluationCreateRequestData, I_CreationCommonResponse>(EVALUATIONS_PATH, axiosPost, useAuthResources)
 const useEvaluationUpdate = updateHook<T_EvaluationId, I_EvaluationCreateRequestData, I_CreationCommonResponse>(EVALUATIONS_PATH, axiosPatch, useAuthResources)
 const useEvaluationDelete = deletionHook<T_EvaluationId>(EVALUATIONS_PATH, axiosDelete, useAuthResources)
@@ -62,11 +62,11 @@ export {
   useEvaluationList,
   useEvaluationSubjects,
   useEvaluationUpdate,
-  useRecoverAndStoreEvaluationSubjects,
-  useQuestionDetail,
   useNavigateToEvaluationContentEdit,
   useNavigateToEvaluationCreate,
   useNavigateToEvaluationDetail,
   useNavigateToEvaluationList,
   useNavigateToQuestionEdit,
+  useQuestionDetail,
+  useRecoverAndStoreEvaluationSubjects,
 }
