@@ -5,6 +5,7 @@ import { useEvaluationCreate, useNavigateToEvaluationContentEdit, useNavigateToE
 import { evaluationLabels } from '@/mta_evaluations/labels'
 import { EvaluationStatus, I_EvaluationCreateRequestData } from '@/mta_evaluations/types'
 import MagicGrid from '@/shared/components/MagicGrid'
+import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import Input from '@/shared/forms/Input'
 import { rules } from '@/shared/forms/messages'
@@ -26,7 +27,7 @@ const defaultValues: I_FormFields = {
   status: EvaluationStatus.Draft,
   subject_id: null,
 }
-const EvaluationCreateForm = () => {
+const OptionCreateForm = () => {
   const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
 
   const { setIsInProgress } = useInProgress()
@@ -53,10 +54,11 @@ const EvaluationCreateForm = () => {
         <SubjectOptions<I_FormFields> {...{ control }} name="subject_id" />
         <WysiwygEditor<I_FormFields> {...{ control }} label={evaluationLabels.header} rules={{ ...rules.required() }} name="header" />
       </MagicGrid>
+      <Spacer />
 
       <Submit>Agregar</Submit>
     </form>
   )
 }
 
-export default EvaluationCreateForm
+export default OptionCreateForm

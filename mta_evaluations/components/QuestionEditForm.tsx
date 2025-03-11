@@ -1,5 +1,6 @@
 'use client'
 
+import OptionCreateForm from '@/mta_evaluations/components/OptionCreateForm'
 import { useEvaluationUpdate, useMultipleChoiceOptionDelete, useNavigateToEvaluationList } from '@/mta_evaluations/hooks'
 import { questionLabels } from '@/mta_evaluations/labels'
 import {
@@ -11,11 +12,13 @@ import {
   T_MultiplChoiceOptionId,
 } from '@/mta_evaluations/types'
 import Bold from '@/shared/components/Bold'
+import { AddButton } from '@/shared/components/buttons'
 import Chip from '@/shared/components/Chip'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
-import { Body1 } from '@/shared/components/Typography'
+import { Body1, H4 } from '@/shared/components/Typography'
+import { useDialog } from '@/shared/dialogs'
 import { rules } from '@/shared/forms/messages'
 import WysiwygEditor from '@/shared/forms/WysiwygEditor'
 import { useInProgress } from '@/shared/hooks'
@@ -23,42 +26,53 @@ import { sharedLabels } from '@/shared/labels'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { Box, Checkbox, IconButton } from '@mui/material'
 import Grid from '@mui/material/Grid2'
-import { useRouter } from 'next/navigation'
 import { FC, Fragment } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 interface I_FormFields extends I_QuestionEditRequestData {}
 
 const MultipleChoice: FC<{ data: I_EvaluationDetail_MultipleChoiceAnswer; reload: () => void }> = ({ data, reload }) => {
   const deleteInstance = useMultipleChoiceOptionDelete()
-  const router = useRouter()
   const handleDelete = (id: T_MultiplChoiceOptionId) => {
     deleteInstance(id)
     reload()
   }
+  const { DialogComponent, componentProps, showDialog } = useDialog()
+  const handleAddOption = () => {
+    showDialog({ title: 'Agregar Opción', content: <OptionCreateForm />, actions: [] })
+  }
 
   return (
-    <Box maxWidth="md">
-      {data.options.map((option) => {
-        return (
-          <Grid spacing={1} key={option.id} component="div" container justifyContent="center" alignItems="center">
-            <Grid>
-              <Checkbox checked={option.is_true} />
-            </Grid>
-            <Grid size="auto">
-              <Chip label={option.name} />
-            </Grid>
-            <Grid size="grow">{option.content}</Grid>
-            <Grid size={1} container>
+    <>
+      <Box maxWidth="md">
+        <H4>
+          Opciones <AddButton onClick={handleAddOption} size="small" variant="outlined" />
+        </H4>
+
+        <Spacer />
+
+        {data.options.map((option) => {
+          return (
+            <Grid spacing={1} key={option.id} component="div" container justifyContent="center" alignItems="center">
               <Grid>
-                <IconButton onClick={() => handleDelete(option.id)}>
-                  <DeleteIcon />
-                </IconButton>
+                <Checkbox checked={option.is_true} />
+              </Grid>
+              <Grid size="auto">
+                <Chip label={option.name} />
+              </Grid>
+              <Grid size="grow">{option.content}</Grid>
+              <Grid size={1} container>
+                <Grid>
+                  <IconButton onClick={() => handleDelete(option.id)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </Grid>
               </Grid>
             </Grid>
-          </Grid>
-        )
-      })}
-    </Box>
+          )
+        })}
+      </Box>
+      <DialogComponent {...componentProps} />
+    </>
   )
 }
 const Numeric: FC<{ data: I_EvaluationDetail_NumericAnswer }> = ({ data }) => {
