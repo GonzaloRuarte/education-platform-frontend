@@ -2,6 +2,7 @@
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import EvaluationStatusChip from '@/mta_evaluations/components/EvaluationStatusChip'
+import { EVALUATION_NAME } from '@/mta_evaluations/constants'
 import { useEvaluationBatchDelete, useEvaluationList, useNavigateToEvaluationContentEdit, useNavigateToEvaluationCreate } from '@/mta_evaluations/hooks'
 import Chip from '@/shared/components/Chip'
 import ListPage from '@/shared/pages/ListPage'
@@ -35,7 +36,7 @@ const EvaluationListPage = () => {
     <ListPage
       columns={columns}
       useList={useEvaluationList}
-      entityName="Evaluaciones"
+      entityName={EVALUATION_NAME}
       onBatchDelete={batchDelete}
       onCreate={navigateToEvaluationCreate}
       onRowClick={(params) => navigateToEvaluationContentEdit({ evaluationId: params.id })}
