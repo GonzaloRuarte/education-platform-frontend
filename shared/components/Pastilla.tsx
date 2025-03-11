@@ -5,7 +5,7 @@ import { Box } from '@mui/material'
 const Pastilla: T_FCwChildren = ({ children }) => {
   const theme = useTheme()
   return (
-    <Box style={{ background: theme.palette.grey[200] }} borderRadius={theme.shape.borderRadius} padding=".5em 1em">
+    <Box style={{ background: theme.palette.divider }} borderRadius={theme.shape.borderRadius} padding=".5em 1em">
       {children}
     </Box>
   )

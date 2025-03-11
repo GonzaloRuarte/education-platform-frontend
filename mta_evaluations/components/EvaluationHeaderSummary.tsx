@@ -11,7 +11,7 @@ const EvaluationHeaderSummary: FC<{ data: I_EvaluationDetail }> = ({ data }) => 
   const navigateToEvaluationDetail = useNavigateToEvaluationDetail()
   return (
     <>
-      <Paper variant="elevation" style={{ padding: 20 }}>
+      <Paper variant="elevation" style={{ padding: 20, borderRadius: 20 }} elevation={4}>
         <H3>{data.title}</H3>
         <Body1>{data.subject_id}</Body1>
         <Spacer space="s" />

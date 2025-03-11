@@ -51,7 +51,7 @@ const EvaluationContentEditPage = () => {
           <>
             <Page.Content>
               <EvaluationHeaderSummary {...{ data }} />
-              <Spacer />
+              <Spacer space="l" />
               <EvaluationQuestionsManager {...{ data }} />
             </Page.Content>
           </>
