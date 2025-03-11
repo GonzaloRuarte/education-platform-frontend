@@ -5,13 +5,6 @@ import log from '@/shared/log'
 import { errorToast } from '@/shared/toasts'
 import { T_BatchDeletionCommonRequestData } from '@/shared/types'
 
-const listService = <T_Response>(entityPath: string, getMethod: T_GetMethod) => {
-  return (requestSetup?: I_RequestSetup) => {
-    return async (options?: I_FetchOptions) => {
-      return getMethod<T_Response>({ endpoint: apiUrl(entityPath), requestSetup, options })
-    }
-  }
-}
 const listService2 = <T_Response>(entityPath: string, getMethod: T_GetMethod) => {
   return (requestSetup?: I_RequestSetup, options?: I_FetchOptions) => {
     return async () => {
@@ -19,14 +12,7 @@ const listService2 = <T_Response>(entityPath: string, getMethod: T_GetMethod) =>
     }
   }
 }
-const detailService = <T_Id, T_Response>(entityPath: string, getMethod: T_GetMethod) => {
-  return (requestSetup?: I_RequestSetup) => {
-    return async (id: T_Id) => {
-      return getMethod<T_Response>({ endpoint: apiUrl(`${entityPath}/${id}`), requestSetup })
-    }
-  }
-}
-const detailService2 = <T_Id, T_Response>(entityPath: string, getMethod: T_GetMethod) => {
+const detailServiceV2 = <T_Id, T_Response>(entityPath: string, getMethod: T_GetMethod) => {
   return (id: T_Id, requestSetup?: I_RequestSetup, options?: I_FetchOptions) => {
     return async () => {
       return getMethod<T_Response>({ endpoint: apiUrl(`${entityPath}/${id}`), requestSetup })
@@ -78,15 +64,4 @@ const handleError = (msg: string) => (errorReason: any) => {
   log.error(errorReason)
 }
 
-export {
-  deletionService,
-  handleError,
-  handleServiceError,
-  listService,
-  listService2,
-  postService,
-  detailService,
-  detailService2,
-  updateService,
-  batchDeletionService,
-}
+export { batchDeletionService, deletionService, detailServiceV2, handleError, handleServiceError, listService2, postService, updateService }

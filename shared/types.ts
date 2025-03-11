@@ -8,11 +8,9 @@ interface I_FetchingHookResources<T_Data> {
   isLoading: boolean
 }
 
-type T_ListServiceHook<T_Response> = () => (options?: I_FetchOptions) => Promise<T_Response>
 type T_ListServiceHookV2<T_Response> = (options?: I_FetchOptions) => I_FetchingHookResources<T_Response>
 type T_CreateServiceHook<T_RequestData, T_Response> = () => (data: T_RequestData) => Promise<T_Response>
 type T_UpdateServiceHook<T_Id, T_RequestData, T_Response> = () => (id: T_Id, data: T_RequestData) => Promise<T_Response>
-type T_DetailServiceHook<T_Id, T_Response> = () => (id: T_Id) => Promise<T_Response>
 type T_DetailServiceHookV2<T_Id, T_Response> = (id: T_Id) => I_FetchingHookResources<T_Response>
 type T_DeletionServiceHook<T_Id, T_Response> = () => (id: T_Id) => Promise<T_Response>
 type T_BatchDeletionServiceHook<T_Id, T_Response> = () => (ids: Array<T_Id>) => Promise<T_Response>
@@ -42,21 +40,19 @@ interface I_EntityName {
 }
 
 export type {
-  T_FCwChildren,
-  T_ListServiceHook,
-  T_ListServiceHookV2,
   I_ApiError,
-  T_CreateServiceHook,
   I_CreationCommonResponse,
-  T_UpdateServiceHook,
-  T_DeletionServiceHook,
-  T_DetailServiceHook,
-  T_BatchDeletionServiceHook,
-  T_BatchDeletionCommonRequestData,
   I_DeletionCommonResponse,
-  T_NavigateToListHook,
-  T_ArrayElement,
-  T_DetailServiceHookV2,
-  T_InProgressHook,
   I_EntityName,
+  T_ArrayElement,
+  T_BatchDeletionCommonRequestData,
+  T_BatchDeletionServiceHook,
+  T_CreateServiceHook,
+  T_DeletionServiceHook,
+  T_DetailServiceHookV2,
+  T_FCwChildren,
+  T_InProgressHook,
+  T_ListServiceHookV2,
+  T_NavigateToListHook,
+  T_UpdateServiceHook,
 }
