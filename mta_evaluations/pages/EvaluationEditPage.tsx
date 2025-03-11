@@ -10,7 +10,7 @@ const EvaluationEditPage = () => (
     entityName="Evaluación"
     useDelete={useEvaluationDelete}
     useDetail={useEvaluationDetail}
-    useNavigateToList={useNavigateToEvaluationList}
+    onExit={useNavigateToEvaluationList()}
     idFieldName="evaluationId"
   />
 )

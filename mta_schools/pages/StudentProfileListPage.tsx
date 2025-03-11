@@ -17,6 +17,6 @@ const columns: Array<GridColDef> = [
   { field: 'cohort', headerName: 'División', flex: 2 },
 ]
 
-const StudentProfileListPage = () => <ListPage columns={columns} useList={useStudentProfileList} title="Estudiantes" />
+const StudentProfileListPage = () => <ListPage columns={columns} useList={useStudentProfileList} entityName="Estudiantes" />
 
 export default withAuth(StudentProfileListPage, ['admin', 'school_staff'])

@@ -36,7 +36,7 @@ const SchoolsListPage = () => {
     <ListPage
       columns={columns}
       useList={useSchoolList}
-      title="Escuelas"
+      entityName="Escuelas"
       onRowClick={ListPage.mapNavToOnRowClick(navigateToSchoolDetail)}
       onCreate={navigateToSchoolCreate}
       onBatchDelete={schoolBatchDelete}

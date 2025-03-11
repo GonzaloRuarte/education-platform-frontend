@@ -1,5 +1,6 @@
 'use client'
 
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import EvaluationHeaderSummary from '@/mta_evaluations/components/EvaluationHeaderSummary'
 import EvaluationQuestionsManager from '@/mta_evaluations/components/EvaluationQuestionsManager'
 import { useEvaluationDelete, useEvaluationDetail, useNavigateToEvaluationList } from '@/mta_evaluations/hooks'
@@ -62,4 +63,4 @@ const EvaluationContentEditPage = () => {
   )
 }
 
-export default EvaluationContentEditPage
+export default withAuth(EvaluationContentEditPage, ['admin', 'evaluator'])

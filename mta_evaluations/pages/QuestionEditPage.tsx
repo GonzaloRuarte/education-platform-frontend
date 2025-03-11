@@ -1,14 +1,13 @@
+'use client'
+
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import QuestionEditForm from '@/mta_evaluations/components/QuestionEditForm'
 import { useQuestionDetail } from '@/mta_evaluations/hooks'
-import { T_QuestionId } from '@/mta_evaluations/types'
-import Spinner from '@/shared/components/Spinner'
-import { FC } from 'react'
+import EditionPage from '@/shared/pages/EditionPage'
+import { useRouter } from 'next/navigation'
 
-const QuestionEdit: FC<{ id: T_QuestionId }> = ({ id }) => {
-  const { data, reload } = useQuestionDetail(id)
+const QuestionEditPage = () => (
+  <EditionPage EditionForm={QuestionEditForm} entityName="Pregunta" idFieldName="questionId" useDetail={useQuestionDetail} onExit={useRouter().back} />
+)
 
-  if (data === undefined) return <Spinner />
-  return <QuestionEditForm data={data} />
-}
-
-export default QuestionEdit
+export default withAuth(QuestionEditPage, ['admin', 'evaluator'])
