@@ -8,7 +8,7 @@ services:
     ports:
       - '3113:3000'
     environment:
-      - NODE_ENV=pre_staging
+      - NODE_ENV=staging
       - NEXT_PUBLIC_API_BASE_PATH=http://meta.liaa.dc.uba.ar:8118/api
     volumes:
       - .:/app
