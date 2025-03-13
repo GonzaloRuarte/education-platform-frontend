@@ -13,6 +13,7 @@ import { useInProgress } from '@/shared/hooks'
 import log from '@/shared/log'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
+import { T_VoidFn } from '@/shared/types'
 import { FC } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
@@ -23,7 +24,7 @@ const defaultValues: I_FormFields = {
   content: '',
   is_true: false,
 }
-const OptionCreateForm: FC<{ multipleChoiceId: T_MultiplChoiceId }> = ({ multipleChoiceId }) => {
+const OptionCreateForm: FC<{ multipleChoiceId: T_MultiplChoiceId; reload: T_VoidFn }> = ({ multipleChoiceId, reload }) => {
   const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
 
   const { setIsInProgress } = useInProgress()
@@ -39,6 +40,7 @@ const OptionCreateForm: FC<{ multipleChoiceId: T_MultiplChoiceId }> = ({ multipl
       .catch(handleServiceError)
       .finally(() => {
         setIsInProgress(false)
+        reload()
       })
   }
   return (

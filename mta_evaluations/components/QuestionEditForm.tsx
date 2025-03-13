@@ -31,10 +31,14 @@ interface I_FormFields extends I_QuestionEditRequestData {}
 
 const MultipleChoice: FC<{ data: I_EvaluationDetail_MultipleChoiceAnswer; reload: T_VoidFn }> = ({ data, reload }) => {
   const { DialogComponent, componentProps, showDialog, closeDialog } = useDialog()
+  const handleReloadAfterCreate = () => {
+    closeDialog()
+    reload()
+  }
   const handleAddOption = () => {
     showDialog({
       title: 'Agregar Opción',
-      content: <OptionCreateForm multipleChoiceId={data.id} />,
+      content: <OptionCreateForm multipleChoiceId={data.id} reload={handleReloadAfterCreate} />,
       actions: [
         {
           buttonLabel: sharedLabels.cancel,
