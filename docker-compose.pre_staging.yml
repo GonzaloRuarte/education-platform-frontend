@@ -9,8 +9,11 @@ services:
       - '3113:3000'
     environment:
       - NODE_ENV=staging
+      - PORT=3000
       - NEXT_PUBLIC_API_BASE_PATH=http://meta.liaa.dc.uba.ar:8118/api
+      - NEXT_TELEMETRY_DISABLED=1
+      - HOSTNAME=localhost
     volumes:
       - .:/app
       - /app/node_modules
-    command: pnpm start
+    command: node server.js
