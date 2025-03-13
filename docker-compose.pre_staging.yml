@@ -1,0 +1,15 @@
+name: meta_frontend_prestaging
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3113:3000'
+    environment:
+      - NODE_ENV=pre_staging
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: pnpm start
