@@ -1,7 +1,8 @@
-import React from 'react'
-import { Button, ButtonProps } from '@mui/material'
+import React, { ComponentProps } from 'react'
 
-type T_Props = Omit<ButtonProps, 'type'>
+import Button from '@/shared/components/Button'
+
+type T_Props = Omit<ComponentProps<typeof Button>, 'type'>
 
 const Submit: React.FC<T_Props> = ({ children, ...props }) => (
   <Button type="submit" {...props}>

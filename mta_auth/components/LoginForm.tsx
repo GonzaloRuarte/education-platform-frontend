@@ -1,7 +1,7 @@
 'use client'
 
 import { useAuthorize, useStoreAuthData } from '@/mta_auth/hooks'
-import Input from '@/shared/components/Input'
+import Input from '@/shared/forms/Input'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
 import { rules } from '@/shared/forms/messages'
@@ -10,6 +10,7 @@ import { useInProgress, useNavigateToHome } from '@/shared/hooks'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import Spacer from '@/shared/components/Spacer'
 
 interface I_FormFields {
   username: string
@@ -46,15 +47,9 @@ export default function LoginForm() {
       <form onSubmit={handleSubmit(onSubmit)}>
         <MagicGrid>
           <Input<I_FormFields> control={control} name="username" rules={{ ...rules.required() }} label="Usuario" />
-          <Input<I_FormFields>
-            control={control}
-            type="password"
-            name="password"
-            rules={{ ...rules.required() }}
-            label="Contraseña"
-          />
+          <Input<I_FormFields> control={control} type="password" name="password" rules={{ ...rules.required() }} label="Contraseña" />
         </MagicGrid>
-
+        <Spacer />
         <Submit>Ingresar</Submit>
       </form>
     </>

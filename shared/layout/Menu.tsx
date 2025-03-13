@@ -18,7 +18,7 @@ const Menu = () => {
           href={P.D._.escuelas.path}
           subMenu={
             <MenuBlock isSubMenu>
-              <MenuItem label={P.D._.escuelas._.agregarEscuela.label} href={P.D._.escuelas._.agregarEscuela.path} />
+              <MenuItem label={P.D._.escuelas._.agregar.label} href={P.D._.escuelas._.agregar.path} />
             </MenuBlock>
           }
         />

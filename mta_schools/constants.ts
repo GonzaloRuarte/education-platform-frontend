@@ -1,12 +1,6 @@
-import type { T_CohortLevelCode } from '@/mta_schools/types'
+import { EntityName } from '@/shared/utils'
 
-const PRIMARIA = 'Primaria'
-const SECUNDARIA = 'Secundaria'
+const STUDENT_PROFILE_NAME = new EntityName({ gender: 'X', plural: 'estudiantes', singular: 'estudiante' })
+const SCHOOL_NAME = new EntityName({ gender: 'F', plural: 'escuelas', singular: 'escuela' })
 
-const cohortLevelCodeToLabel = (code: T_CohortLevelCode): string =>
-  ({
-    P: PRIMARIA,
-    S: SECUNDARIA,
-  })[code]
-
-export { cohortLevelCodeToLabel, PRIMARIA, SECUNDARIA }
+export { STUDENT_PROFILE_NAME, SCHOOL_NAME }

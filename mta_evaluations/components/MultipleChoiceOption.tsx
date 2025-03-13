@@ -1,0 +1,52 @@
+'use client'
+
+import { useMultipleChoiceOptionDelete, useMultipleChoiceOptionEditIsTrue } from '@/mta_evaluations/hooks'
+import { I_EvaluationDetail_MultipleChoiceAnswer, T_MultiplChoiceOptionId } from '@/mta_evaluations/types'
+import Chip from '@/shared/components/Chip'
+import { T_ArrayElement, T_VoidFn } from '@/shared/types'
+import DeleteIcon from '@mui/icons-material/Delete'
+import { Checkbox, IconButton } from '@mui/material'
+import Grid from '@mui/material/Grid2'
+import parse from 'html-react-parser'
+import { FC, MouseEvent } from 'react'
+
+const MultipleChoiceOption: FC<{ data: T_ArrayElement<I_EvaluationDetail_MultipleChoiceAnswer['options']>; reload?: T_VoidFn; withDelete?: boolean }> = ({
+  data,
+  reload,
+  withDelete = false,
+}) => {
+  const { content, id, is_true, name } = data
+  const deleteInstance = useMultipleChoiceOptionDelete()
+  const handleDelete = (id: T_MultiplChoiceOptionId) => {
+    deleteInstance(id)
+    reload && reload()
+  }
+  const multipleChoiceOptionEditIsTrue = useMultipleChoiceOptionEditIsTrue()
+  const handleChangeIsTrue = (_, value: boolean) => {
+    if (reload === undefined) return
+    multipleChoiceOptionEditIsTrue(id, { is_true: value })
+    reload()
+  }
+
+  return (
+    <Grid spacing={1} key={id} component="div" container justifyContent="center" alignItems="center">
+      <Grid>
+        <Checkbox checked={is_true} onChange={handleChangeIsTrue} />
+      </Grid>
+      <Grid size="auto">
+        <Chip label={name} />
+      </Grid>
+      <Grid size="grow">{parse(content)}</Grid>
+      {withDelete && (
+        <Grid size={1} container>
+          <Grid>
+            <IconButton onClick={() => handleDelete(id)}>
+              <DeleteIcon />
+            </IconButton>
+          </Grid>
+        </Grid>
+      )}
+    </Grid>
+  )
+}
+export default MultipleChoiceOption

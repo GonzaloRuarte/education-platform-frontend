@@ -1,8 +1,9 @@
-import Box from '@mui/material/Box'
-import React from 'react'
-import Typography from '@mui/material/Typography'
+import MagicGrid from '@/shared/components/MagicGrid'
 import Section from '@/shared/components/Section'
 import Spacer from '@/shared/components/Spacer'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import React from 'react'
 
 interface I_Props {
   children: React.ReactNode
@@ -22,8 +23,10 @@ Page.Title = ({ children, disableMarginBottom = false }: I_Props) => {
 Page.Content = ({ children }: I_Props) => <Section children={children} />
 Page.Toolbar = ({ children }: I_Props) => (
   <Box>
-    <Section>{children}</Section>
-    <Spacer space="s" />
+    <Section>
+      <MagicGrid itemSize="auto"> {children}</MagicGrid>
+    </Section>
+    <Spacer space="m" />
   </Box>
 )
 

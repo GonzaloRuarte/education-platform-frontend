@@ -21,6 +21,11 @@ const log = {
   debug: logDebug,
 }
 
+type T_LogTypes = 'info' | 'warning' | 'error' | 'debug'
+type T_LogService = (...data: any) => void
+type T_Loggger = Record<T_LogTypes, T_LogService>
+
 export default log
 
 export { logInfo, logWarning, logError, logDebug }
+export type { T_Loggger, T_LogService }

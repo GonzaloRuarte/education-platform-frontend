@@ -1,26 +1,47 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
-import { useEvaluationList } from '@/mta_evaluations/hooks'
-import ListPage from '@/shared/components/ListPage'
+import EvaluationStatusChip from '@/mta_evaluations/components/EvaluationStatusChip'
+import { EVALUATION_NAME } from '@/mta_evaluations/constants'
+import { useEvaluationBatchDelete, useEvaluationList, useNavigateToEvaluationContentEdit, useNavigateToEvaluationCreate } from '@/mta_evaluations/hooks'
+import Chip from '@/shared/components/Chip'
+import ListPage from '@/shared/pages/ListPage'
 import { GridColDef } from '@mui/x-data-grid'
 
 const columns: Array<GridColDef> = [
   { field: 'id', headerName: '#' },
   { field: 'title', headerName: 'Título', flex: 2 },
-  { field: 'questions_per_page', headerName: 'Preguntas p/página', flex: 1 },
+  {
+    field: 'code',
+    headerName: 'Código',
+    flex: 1,
+    renderCell: (params) => <Chip variant="outlined" size="small" label={params.value} />,
+  },
+  {
+    field: 'status',
+    headerName: 'Estado',
+    flex: 1,
+    renderCell: (params) => <EvaluationStatusChip status={params.value} size="small" />,
+  },
+
+  // { field: 'questions_per_page', headerName: 'Preguntas p/página', flex: 1 },
 ]
 
-const EvaluationListPage = () => (
-  <ListPage
-    columns={columns}
-    useService={useEvaluationList}
-    title="Evaluaciones"
-  />
-)
+const EvaluationListPage = () => {
+  const batchDelete = useEvaluationBatchDelete()
+  const navigateToEvaluationContentEdit = useNavigateToEvaluationContentEdit()
+  const navigateToEvaluationCreate = useNavigateToEvaluationCreate()
 
-export default withAuth(EvaluationListPage, [
-  'admin',
-  'evaluator',
-  'school_staff',
-])
+  return (
+    <ListPage
+      columns={columns}
+      useList={useEvaluationList}
+      entityName={EVALUATION_NAME}
+      onBatchDelete={batchDelete}
+      onCreate={navigateToEvaluationCreate}
+      onRowClick={(params) => navigateToEvaluationContentEdit({ evaluationId: params.id })}
+    />
+  )
+}
+
+export default withAuth(EvaluationListPage, ['admin', 'evaluator', 'school_staff'])

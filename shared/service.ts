@@ -1,27 +1,20 @@
 import { apiUrl } from '@/config'
 import ApiError from '@/shared/data/errors'
-import {
-  I_FetchOptions,
-  I_RequestSetup,
-  T_DeleteMethod,
-  T_GetMethod,
-  T_PatchMethod,
-  T_PostMethod,
-} from '@/shared/data/types'
+import { I_FetchOptions, I_RequestSetup, T_DeleteMethod, T_GetMethod, T_PatchMethod, T_PostMethod } from '@/shared/data/types'
 import log from '@/shared/log'
 import { errorToast } from '@/shared/toasts'
 import { T_BatchDeletionCommonRequestData } from '@/shared/types'
 
-const listService = <T_Response>(entityPath: string, getMethod: T_GetMethod) => {
-  return (requestSetup?: I_RequestSetup) => {
-    return async (options: I_FetchOptions) => {
+const listService2 = <T_Response>(entityPath: string, getMethod: T_GetMethod) => {
+  return (requestSetup?: I_RequestSetup, options?: I_FetchOptions) => {
+    return async () => {
       return getMethod<T_Response>({ endpoint: apiUrl(entityPath), requestSetup, options })
     }
   }
 }
-const detailService = <T_Id, T_Response>(entityPath: string, getMethod: T_GetMethod) => {
-  return (requestSetup?: I_RequestSetup) => {
-    return async (id: T_Id) => {
+const detailServiceV2 = <T_Id, T_Response>(entityPath: string, getMethod: T_GetMethod) => {
+  return (id: T_Id, requestSetup?: I_RequestSetup, options?: I_FetchOptions) => {
+    return async () => {
       return getMethod<T_Response>({ endpoint: apiUrl(`${entityPath}/${id}`), requestSetup })
     }
   }
@@ -54,10 +47,21 @@ const batchDeletionService = <T_Id, T_Response>(entityPath: string, deleteMethod
   }
 }
 
-const updateService = <T_Id, T_RequestData, T_Response>(entityPath: string, patchMethod: T_PatchMethod) => {
+/**
+ *
+ * @param entityPath
+ * @param patchMethod
+ * @param options {pathSuffix} adds a suffix in the path after the id
+ * @returns
+ */
+const updateService = <T_Id, T_RequestData, T_Response>(entityPath: string, patchMethod: T_PatchMethod, options?: { pathSuffix?: string }) => {
   return (requestSetup?: I_RequestSetup) => {
     return async (id: T_Id, data: T_RequestData) => {
-      return patchMethod<T_RequestData, T_Response>({ endpoint: `${apiUrl(entityPath)}/${id}/`, requestSetup, data })
+      return patchMethod<T_RequestData, T_Response>({
+        endpoint: `${apiUrl(entityPath)}/${id}${options?.pathSuffix !== undefined ? options.pathSuffix : ''}/`,
+        requestSetup,
+        data,
+      })
     }
   }
 }
@@ -71,13 +75,4 @@ const handleError = (msg: string) => (errorReason: any) => {
   log.error(errorReason)
 }
 
-export {
-  deletionService,
-  handleError,
-  handleServiceError,
-  listService,
-  postService,
-  detailService,
-  updateService,
-  batchDeletionService,
-}
+export { batchDeletionService, deletionService, detailServiceV2, handleError, handleServiceError, listService2, postService, updateService }

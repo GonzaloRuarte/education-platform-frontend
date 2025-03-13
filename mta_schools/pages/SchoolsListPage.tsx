@@ -1,13 +1,9 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
-import {
-  useNavigateToSchoolCreate,
-  useNavigateToSchoolDetail,
-  useSchoolBatchDelete,
-  useSchoolList,
-} from '@/mta_schools/hooks'
-import ListPage from '@/shared/components/ListPage'
+import { SCHOOL_NAME } from '@/mta_schools/constants'
+import { useNavigateToSchoolCreate, useNavigateToSchoolDetail, useSchoolBatchDelete, useSchoolList } from '@/mta_schools/hooks'
+import ListPage from '@/shared/pages/ListPage'
 import { Chip } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 
@@ -40,8 +36,8 @@ const SchoolsListPage = () => {
   return (
     <ListPage
       columns={columns}
-      useService={useSchoolList}
-      title="Escuelas"
+      useList={useSchoolList}
+      entityName={SCHOOL_NAME}
       onRowClick={ListPage.mapNavToOnRowClick(navigateToSchoolDetail)}
       onCreate={navigateToSchoolCreate}
       onBatchDelete={schoolBatchDelete}
