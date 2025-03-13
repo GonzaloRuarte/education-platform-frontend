@@ -1,8 +1,14 @@
 import { useAuthResources } from '@/mta_auth/hooks'
-import { I_MultipleChoiceOptionCreateRequestData, I_QuestionDetail, T_MultiplChoiceOptionId, T_QuestionId } from '@/mta_evaluations/types'
+import {
+  I_MultipleChoiceOptionCreateRequestData,
+  I_MultipleChoiceOptionEditIsTrueRequestData,
+  I_QuestionDetail,
+  T_MultiplChoiceOptionId,
+  T_QuestionId,
+} from '@/mta_evaluations/types'
 import { questionEditPath } from '@/pages'
-import { axiosDelete, axiosGet, axiosPost } from '@/shared/data/axios'
-import { creationHook, deletionHook, detailHookV2, dynamicNavigationHook } from '@/shared/hooks'
+import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
+import { creationHook, deletionHook, detailHookV2, dynamicNavigationHook, updateHook } from '@/shared/hooks'
 import { I_CreationCommonResponse } from '@/shared/types'
 
 // Data Service
@@ -18,9 +24,21 @@ const useMultipleChoiceOptionCreate = creationHook<I_MultipleChoiceOptionCreateR
   axiosPost,
   useAuthResources,
 )
+const useMultipleChoiceOptionEditIsTrue = updateHook<
+  T_MultiplChoiceOptionId,
+  I_MultipleChoiceOptionEditIsTrueRequestData,
+  I_MultipleChoiceOptionCreateRequestData
+>(`${MULTIPLE_CHOICE_PATH}/option`, axiosPatch, useAuthResources, { pathSuffix: '/edit-is-true' })
 
 // Navigation
 const useNavigateToQuestionEdit = dynamicNavigationHook(questionEditPath)
 
-export { useMultipleChoiceOptionCreate, useMultipleChoiceOptionDelete, useNavigateToQuestionEdit, useQuestionDetail, useQuestionDelete }
+export {
+  useMultipleChoiceOptionCreate,
+  useMultipleChoiceOptionDelete,
+  useNavigateToQuestionEdit,
+  useQuestionDetail,
+  useQuestionDelete,
+  useMultipleChoiceOptionEditIsTrue,
+}
 export * from './evaluationHooks'

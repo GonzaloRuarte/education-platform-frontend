@@ -99,6 +99,17 @@ interface I_MultipleChoiceOptionCreateRequestData {
   content: string
 }
 
+interface I_MultipleChoiceOptionEditIsTrueRequestData {
+  is_true: boolean
+}
+
+interface I_MultipleChoiceOptionEditIsTrueResponseData {
+  multiple_choice_id: T_MultiplChoiceId
+  is_true: boolean
+  name: string
+  content: string
+}
+
 export type {
   T_EvaluationId,
   T_QuestionId,
@@ -119,5 +130,7 @@ export type {
   T_MultiplChoiceId,
   T_MultiplChoiceOptionId,
   I_MultipleChoiceOptionCreateRequestData,
+  I_MultipleChoiceOptionEditIsTrueRequestData,
+  I_MultipleChoiceOptionEditIsTrueResponseData,
 }
 export { EvaluationStatus }

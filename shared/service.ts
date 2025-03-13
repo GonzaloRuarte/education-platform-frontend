@@ -47,10 +47,21 @@ const batchDeletionService = <T_Id, T_Response>(entityPath: string, deleteMethod
   }
 }
 
-const updateService = <T_Id, T_RequestData, T_Response>(entityPath: string, patchMethod: T_PatchMethod) => {
+/**
+ *
+ * @param entityPath
+ * @param patchMethod
+ * @param options {pathSuffix} adds a suffix in the path after the id
+ * @returns
+ */
+const updateService = <T_Id, T_RequestData, T_Response>(entityPath: string, patchMethod: T_PatchMethod, options?: { pathSuffix?: string }) => {
   return (requestSetup?: I_RequestSetup) => {
     return async (id: T_Id, data: T_RequestData) => {
-      return patchMethod<T_RequestData, T_Response>({ endpoint: `${apiUrl(entityPath)}/${id}/`, requestSetup, data })
+      return patchMethod<T_RequestData, T_Response>({
+        endpoint: `${apiUrl(entityPath)}/${id}${options?.pathSuffix !== undefined ? options.pathSuffix : ''}/`,
+        requestSetup,
+        data,
+      })
     }
   }
 }

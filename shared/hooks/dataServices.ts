@@ -80,9 +80,14 @@ const detailHookV2 = <T_Id, T_Response>(entityPath: string, getMethod: T_GetMeth
   return useDetail
 }
 
-const updateHook = <T_Id, T_RequestData, T_Response>(entityPath: string, patchMethod: T_PatchMethod, useAuthResources: () => I_AuthResources) => {
+const updateHook = <T_Id, T_RequestData, T_Response>(
+  entityPath: string,
+  patchMethod: T_PatchMethod,
+  useAuthResources: () => I_AuthResources,
+  options?: { pathSuffix?: string },
+) => {
   const useUpdate: T_UpdateServiceHook<T_Id, T_RequestData, T_Response> = () => {
-    return updateService<T_Id, T_RequestData, T_Response>(entityPath, patchMethod)(useAuthResources())
+    return updateService<T_Id, T_RequestData, T_Response>(entityPath, patchMethod, options)(useAuthResources())
   }
   return useUpdate
 }
