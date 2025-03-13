@@ -1,15 +1,6 @@
 import { useAuthResources } from '@/mta_auth/hooks'
-import {
-  I_EvaluationCreateRequestData,
-  I_EvaluationDetail,
-  I_QuestionDetail,
-  T_EvaluationId,
-  T_EvaluationList,
-  T_EvaluationSubjectList,
-  T_MultiplChoiceOptionId,
-  T_QuestionId,
-} from '@/mta_evaluations/types'
-import pages, { evaluationsEditContentPath, questionEditPath } from '@/pages'
+import { I_EvaluationCreateRequestData, I_EvaluationDetail, T_EvaluationId, T_EvaluationList, T_EvaluationSubjectList } from '@/mta_evaluations/types'
+import pages, { evaluationsEditContentPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
 import {
   batchDeletionHook,
@@ -44,18 +35,12 @@ const useRecoverAndStoreEvaluationSubjects = () => {
       return res
     })
 }
-const QUESTIONS_PATH = '/questions'
-const useQuestionDetail = detailHookV2<T_QuestionId, I_QuestionDetail>(QUESTIONS_PATH, axiosGet, useAuthResources)
-
-const MULTIPLE_CHOICE_PATH = '/multiple-choice'
-const useMultipleChoiceOptionDelete = deletionHook<T_MultiplChoiceOptionId>(`${MULTIPLE_CHOICE_PATH}/delete-option`, axiosDelete, useAuthResources)
 
 // Navigation
 const useNavigateToEvaluationList = navigationHook(pages.D._.evaluaciones.path)
 const useNavigateToEvaluationDetail = navigationWithIdHook(pages.D._.evaluaciones.path)
 const useNavigateToEvaluationCreate = navigationHook(pages.D._.evaluaciones._.agregar.path)
 const useNavigateToEvaluationContentEdit = dynamicNavigationHook(evaluationsEditContentPath)
-const useNavigateToQuestionEdit = dynamicNavigationHook(questionEditPath)
 
 export {
   useEvaluationBatchDelete,
@@ -69,8 +54,5 @@ export {
   useNavigateToEvaluationCreate,
   useNavigateToEvaluationDetail,
   useNavigateToEvaluationList,
-  useNavigateToQuestionEdit,
-  useQuestionDetail,
   useRecoverAndStoreEvaluationSubjects,
-  useMultipleChoiceOptionDelete,
 }

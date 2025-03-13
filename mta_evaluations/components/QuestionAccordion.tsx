@@ -15,7 +15,7 @@ import { Body1, Body2 } from '@/shared/components/Typography'
 import { sharedLabels } from '@/shared/labels'
 import { T_ArrayElement } from '@/shared/types'
 import { truncateString, strippedString } from '@/shared/utils'
-
+import parse from 'html-react-parser'
 import Bold from '@/shared/components/Bold'
 import DeleteIcon from '@mui/icons-material/Delete'
 import DownloadIcon from '@mui/icons-material/Download'
@@ -23,10 +23,10 @@ import EditIcon from '@mui/icons-material/Edit'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import UploadIcon from '@mui/icons-material/Upload'
 import { Accordion, AccordionDetails, AccordionSummary, Box, FormControlLabel, FormGroup, Grid2 as Grid } from '@mui/material'
-import parse from 'html-react-parser'
 import React, { FC } from 'react'
 import { useNavigateToQuestionEdit } from '@/mta_evaluations/hooks'
 import AnswerTypeChip from '@/mta_evaluations/components/AnswerTypeChip'
+import MultipleChoiceOption from '@/mta_evaluations/components/MultipleChoiceOption'
 
 const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId }> = ({ questionId, evaluationId }) => {
   const navigateToEdit = useNavigateToQuestionEdit()
@@ -52,21 +52,9 @@ const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId }> = 
 const MultipleChoiceAnswer: FC<{ data: I_EvaluationDetail_MultipleChoiceAnswer }> = ({ data }) => {
   return (
     <React.Fragment>
-      <FormGroup>
-        {data.options.map((option) => {
-          return (
-            <FormControlLabel
-              key={option.id}
-              control={<Checkbox checked={option.is_true} />}
-              label={
-                <>
-                  <Chip label={option.name} /> {option.content}
-                </>
-              }
-            />
-          )
-        })}
-      </FormGroup>
+      {data.options.map((option) => {
+        return <MultipleChoiceOption key={option.id} data={option} />
+      })}
     </React.Fragment>
   )
 }

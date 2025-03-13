@@ -1,4 +1,5 @@
 import { T_EvaluationStatusCode } from '@/mta_evaluations/types'
+import { sharedLabels } from '@/shared/labels'
 
 const evaluationLabels = {
   title: 'Título',
@@ -24,7 +25,14 @@ const evaluationStatusCodeToLabels = (code: T_EvaluationStatusCode): string =>
   })[code]
 
 const questionLabels = {
-  title: 'Título',
-  content: 'Contenido',
+  title: sharedLabels.title,
+  content: sharedLabels.content,
 }
-export { evaluationStatusCodeToLabels, evaluationLabels, questionLabels }
+
+const multipleChoiceLabels = {
+  option: {
+    name: sharedLabels.name,
+    content: sharedLabels.content,
+  },
+}
+export { evaluationLabels, evaluationStatusCodeToLabels, multipleChoiceLabels, questionLabels }

@@ -3,6 +3,7 @@ import { I_PaginatedResponse } from '@/shared/data/types'
 type T_EvaluationId = number
 type T_QuestionId = number
 type T_AnswerId = number
+type T_MultiplChoiceId = number
 type T_MultiplChoiceOptionId = number
 
 type T_EvaluationSubjectId = string
@@ -91,6 +92,13 @@ interface I_QuestionEditRequestData {
   is_mandatory: boolean
 }
 
+interface I_MultipleChoiceOptionCreateRequestData {
+  multiple_choice_id: T_MultiplChoiceId
+  is_true: boolean
+  name: string
+  content: string
+}
+
 export type {
   T_EvaluationId,
   T_QuestionId,
@@ -108,6 +116,8 @@ export type {
   I_EvaluationDetail_MultipleChoiceAnswer,
   I_QuestionDetail,
   I_QuestionEditRequestData,
+  T_MultiplChoiceId,
   T_MultiplChoiceOptionId,
+  I_MultipleChoiceOptionCreateRequestData,
 }
 export { EvaluationStatus }

@@ -1,9 +1,8 @@
 'use client'
 
-import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
-import { useEvaluationCreate, useNavigateToEvaluationContentEdit, useNavigateToEvaluationList } from '@/mta_evaluations/hooks'
-import { evaluationLabels } from '@/mta_evaluations/labels'
-import { EvaluationStatus, I_EvaluationCreateRequestData } from '@/mta_evaluations/types'
+import { useMultipleChoiceOptionCreate, useNavigateToEvaluationContentEdit } from '@/mta_evaluations/hooks'
+import { multipleChoiceLabels } from '@/mta_evaluations/labels'
+import { I_MultipleChoiceOptionCreateRequestData, T_MultiplChoiceId } from '@/mta_evaluations/types'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
@@ -14,32 +13,28 @@ import { useInProgress } from '@/shared/hooks'
 import log from '@/shared/log'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
+import { FC } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
-interface I_FormFields extends Omit<I_EvaluationCreateRequestData, 'subject_id'> {
-  subject_id: I_EvaluationCreateRequestData['subject_id'] | null
-}
+interface I_FormFields extends Omit<I_MultipleChoiceOptionCreateRequestData, 'multiple_choice_id'> {}
 
 const defaultValues: I_FormFields = {
-  title: '',
-  code: '',
-  header: '',
-  status: EvaluationStatus.Draft,
-  subject_id: null,
+  name: '',
+  content: '',
+  is_true: false,
 }
-const OptionCreateForm = () => {
+const OptionCreateForm: FC<{ multipleChoiceId: T_MultiplChoiceId }> = ({ multipleChoiceId }) => {
   const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
 
   const { setIsInProgress } = useInProgress()
-  const navigateToEvaluationContentEdit = useNavigateToEvaluationContentEdit()
-  const evaluationCreate = useEvaluationCreate()
+
+  const create = useMultipleChoiceOptionCreate()
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
     setIsInProgress(true)
-    evaluationCreate({ ...data, subject_id: data.subject_id as string })
+    create({ multiple_choice_id: multipleChoiceId, ...data })
       .then((res) => {
-        log.info('New Evaluation added:', res)
-        successToast('Evaluación agregada correctamente')
-        navigateToEvaluationContentEdit({ evaluationId: res.id })
+        log.info('New Ooption added:', res)
+        successToast('Opción agregada correctamente')
       })
       .catch(handleServiceError)
       .finally(() => {
@@ -49,10 +44,8 @@ const OptionCreateForm = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <Input<I_FormFields> {...{ control }} name="title" rules={{ ...rules.required() }} label={evaluationLabels.title} />
-        <Input<I_FormFields> {...{ control }} name="code" rules={{ ...rules.required() }} label={evaluationLabels.code} />
-        <SubjectOptions<I_FormFields> {...{ control }} name="subject_id" />
-        <WysiwygEditor<I_FormFields> {...{ control }} label={evaluationLabels.header} rules={{ ...rules.required() }} name="header" />
+        <Input<I_FormFields> {...{ control }} name="name" rules={{ ...rules.required() }} label={multipleChoiceLabels.option.name} />
+        <WysiwygEditor<I_FormFields> {...{ control }} label={multipleChoiceLabels.option.content} rules={{ ...rules.required() }} name="content" />
       </MagicGrid>
       <Spacer />
 

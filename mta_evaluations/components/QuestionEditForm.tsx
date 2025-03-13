@@ -1,7 +1,8 @@
 'use client'
 
+import MultipleChoiceOption from '@/mta_evaluations/components/MultipleChoiceOption'
 import OptionCreateForm from '@/mta_evaluations/components/OptionCreateForm'
-import { useEvaluationUpdate, useMultipleChoiceOptionDelete, useNavigateToEvaluationList } from '@/mta_evaluations/hooks'
+import { useEvaluationUpdate, useNavigateToEvaluationList } from '@/mta_evaluations/hooks'
 import { questionLabels } from '@/mta_evaluations/labels'
 import {
   I_EvaluationDetail_MultipleChoiceAnswer,
@@ -9,11 +10,9 @@ import {
   I_QuestionDetail,
   I_QuestionEditRequestData,
   T_AnswerType,
-  T_MultiplChoiceOptionId,
 } from '@/mta_evaluations/types'
 import Bold from '@/shared/components/Bold'
 import { AddButton } from '@/shared/components/buttons'
-import Chip from '@/shared/components/Chip'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
@@ -23,22 +22,26 @@ import { rules } from '@/shared/forms/messages'
 import WysiwygEditor from '@/shared/forms/WysiwygEditor'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
-import DeleteIcon from '@mui/icons-material/Delete'
-import { Box, Checkbox, IconButton } from '@mui/material'
-import Grid from '@mui/material/Grid2'
+import { Box } from '@mui/material'
 import { FC, Fragment } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
+
 interface I_FormFields extends I_QuestionEditRequestData {}
 
 const MultipleChoice: FC<{ data: I_EvaluationDetail_MultipleChoiceAnswer; reload: () => void }> = ({ data, reload }) => {
-  const deleteInstance = useMultipleChoiceOptionDelete()
-  const handleDelete = (id: T_MultiplChoiceOptionId) => {
-    deleteInstance(id)
-    reload()
-  }
-  const { DialogComponent, componentProps, showDialog } = useDialog()
+  const { DialogComponent, componentProps, showDialog, closeDialog } = useDialog()
   const handleAddOption = () => {
-    showDialog({ title: 'Agregar Opción', content: <OptionCreateForm />, actions: [] })
+    showDialog({
+      title: 'Agregar Opción',
+      content: <OptionCreateForm multipleChoiceId={data.id} />,
+      actions: [
+        {
+          buttonLabel: sharedLabels.cancel,
+          onPress: closeDialog,
+          key: 'close',
+        },
+      ],
+    })
   }
 
   return (
@@ -47,29 +50,11 @@ const MultipleChoice: FC<{ data: I_EvaluationDetail_MultipleChoiceAnswer; reload
         <H4>
           Opciones <AddButton onClick={handleAddOption} size="small" variant="outlined" />
         </H4>
-
         <Spacer />
 
-        {data.options.map((option) => {
-          return (
-            <Grid spacing={1} key={option.id} component="div" container justifyContent="center" alignItems="center">
-              <Grid>
-                <Checkbox checked={option.is_true} />
-              </Grid>
-              <Grid size="auto">
-                <Chip label={option.name} />
-              </Grid>
-              <Grid size="grow">{option.content}</Grid>
-              <Grid size={1} container>
-                <Grid>
-                  <IconButton onClick={() => handleDelete(option.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Grid>
-              </Grid>
-            </Grid>
-          )
-        })}
+        {data.options.map((option) => (
+          <MultipleChoiceOption key={option.id} data={option} reload={reload} withDelete />
+        ))}
       </Box>
       <DialogComponent {...componentProps} />
     </>
