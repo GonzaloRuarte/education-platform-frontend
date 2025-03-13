@@ -1,13 +1,14 @@
 import React, { useState, useCallback } from 'react'
 
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material'
+import { T_VoidFn } from '@/shared/types'
 
 interface I_ConfirmDialogProps {
   open: boolean
   title: string
   content: string
-  onConfirm: () => void
-  onCancel: () => void
+  onConfirm: T_VoidFn
+  onCancel: T_VoidFn
 }
 
 const ConfirmDialog: React.FC<I_ConfirmDialogProps> = ({ open, title, content, onConfirm, onCancel }) => {
@@ -61,9 +62,7 @@ const useConfirm = (): I_UseConfirm => {
   }, [])
 
   const ConfirmDialogComponent: React.FC = useCallback(
-    () => (
-      <ConfirmDialog open={open} title={title} content={content} onConfirm={handleConfirm} onCancel={handleCancel} />
-    ),
+    () => <ConfirmDialog open={open} title={title} content={content} onConfirm={handleConfirm} onCancel={handleCancel} />,
     [open, title, content, handleConfirm, handleCancel],
   )
 

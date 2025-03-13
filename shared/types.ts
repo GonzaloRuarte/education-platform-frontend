@@ -1,10 +1,12 @@
 import { I_FetchOptions } from '@/shared/data/types'
 
+type T_VoidFn = () => void
+
 type T_FCwChildren<T_OtherProps = object> = React.FC<{ children: React.ReactNode } & T_OtherProps>
 
 interface I_FetchingHookResources<T_Data> {
   data: T_Data | undefined
-  reload: () => void
+  reload: T_VoidFn
   isLoading: boolean
 }
 
@@ -15,7 +17,7 @@ type T_DetailServiceHookV2<T_Id, T_Response> = (id: T_Id) => I_FetchingHookResou
 type T_DeletionServiceHook<T_Id, T_Response> = () => (id: T_Id) => Promise<T_Response>
 type T_BatchDeletionServiceHook<T_Id, T_Response> = () => (ids: Array<T_Id>) => Promise<T_Response>
 type T_BatchDeletionCommonRequestData<T_Id = number> = { ids: Array<T_Id> }
-type T_NavigateToListHook = () => () => void
+type T_NavigateToListHook = () => T_VoidFn
 interface I_ApiError {
   message: string
   status?: number
@@ -49,4 +51,5 @@ export type {
   T_ListServiceHookV2,
   T_NavigateToListHook,
   T_UpdateServiceHook,
+  T_VoidFn,
 }

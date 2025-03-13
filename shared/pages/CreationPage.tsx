@@ -1,11 +1,12 @@
 import Button from '@/shared/components/Button'
 import Page from '@/shared/components/Page'
+import { T_VoidFn } from '@/shared/types'
 import { EntityName } from '@/shared/utils'
 import ClearIcon from '@mui/icons-material/Clear'
 import React from 'react'
 
 interface I_Props {
-  onCancel?: () => void
+  onCancel?: T_VoidFn
   CreationForm: React.ComponentType
   entityName: EntityName
 }

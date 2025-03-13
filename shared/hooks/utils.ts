@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '@/shared/state'
 import { successToast } from '@/shared/toasts'
 import { useTheme as useMUITheme } from '@mui/material'
-import { T_InProgressHook } from '@/shared/types'
+import { T_InProgressHook, T_VoidFn } from '@/shared/types'
 import { EntityName } from '@/shared/utils'
 
 const useInProgressLocal: T_InProgressHook = () => {
@@ -20,7 +20,7 @@ const useHandleDelete = (
     showConfirm: (title: string, content: string) => Promise<void>
     deleteInstance: (id: any) => Promise<any>
     entityName: EntityName
-    callback: () => void
+    callback: T_VoidFn
   },
 ) => {
   return () => {

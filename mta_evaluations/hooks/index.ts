@@ -9,6 +9,7 @@ import { I_CreationCommonResponse } from '@/shared/types'
 
 const QUESTIONS_PATH = '/questions'
 const useQuestionDetail = detailHookV2<T_QuestionId, I_QuestionDetail>(QUESTIONS_PATH, axiosGet, useAuthResources)
+const useQuestionDelete = deletionHook<T_QuestionId>(QUESTIONS_PATH, axiosDelete, useAuthResources)
 
 const MULTIPLE_CHOICE_PATH = '/multiple-choice'
 const useMultipleChoiceOptionDelete = deletionHook<T_MultiplChoiceOptionId>(`${MULTIPLE_CHOICE_PATH}/delete-option`, axiosDelete, useAuthResources)
@@ -21,5 +22,5 @@ const useMultipleChoiceOptionCreate = creationHook<I_MultipleChoiceOptionCreateR
 // Navigation
 const useNavigateToQuestionEdit = dynamicNavigationHook(questionEditPath)
 
-export { useMultipleChoiceOptionCreate, useMultipleChoiceOptionDelete, useNavigateToQuestionEdit, useQuestionDetail }
+export { useMultipleChoiceOptionCreate, useMultipleChoiceOptionDelete, useNavigateToQuestionEdit, useQuestionDetail, useQuestionDelete }
 export * from './evaluationHooks'

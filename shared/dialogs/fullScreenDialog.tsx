@@ -1,4 +1,5 @@
 import { useTheme } from '@/shared/hooks'
+import { T_VoidFn } from '@/shared/types'
 import CloseIcon from '@mui/icons-material/Close'
 import { AppBar, Button, Container, Dialog, DialogContent, IconButton, Slide, Toolbar, Typography } from '@mui/material'
 import { TransitionProps } from '@mui/material/transitions'
@@ -17,8 +18,8 @@ interface I_FullScreenDialogProps {
   open: boolean
   title: string
   content: React.ReactNode
-  onConfirm: () => void
-  onCancel: () => void
+  onConfirm: T_VoidFn
+  onCancel: T_VoidFn
 }
 
 const FullScreenDialog: React.FC<I_FullScreenDialogProps> = ({ open, title, content, onConfirm, onCancel }) => {

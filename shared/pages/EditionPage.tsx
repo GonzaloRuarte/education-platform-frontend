@@ -1,35 +1,18 @@
-import Button from '@/shared/components/Button'
+import { CancelButton, UpdateButton } from '@/shared/components/buttons'
+import DeleteInstanceButton from '@/shared/components/DeleteInstanceButton'
 import Page from '@/shared/components/Page'
 import Spinner from '@/shared/components/Spinner'
-import { useConfirm } from '@/shared/confirm'
-import { useHandleDelete } from '@/shared/hooks'
-import { T_DeletionServiceHook, T_DetailServiceHookV2 } from '@/shared/types'
+import { T_DeletionServiceHook, T_DetailServiceHookV2, T_VoidFn } from '@/shared/types'
 import { EntityName } from '@/shared/utils'
-import ClearIcon from '@mui/icons-material/Clear'
-import DeleteIcon from '@mui/icons-material/Delete'
 import { useParams } from 'next/navigation'
 import React from 'react'
 
-const DeleteButton = ({ useDelete, id, callback, entityName }) => {
-  const deleteInstance = useDelete()
-  const { ConfirmDialogComponent, showConfirm } = useConfirm()
-  const handleDelete = useHandleDelete(id, { showConfirm, deleteInstance, callback, entityName })
-  return (
-    <>
-      <Button onClick={handleDelete} startIcon={<DeleteIcon />}>
-        Eliminar
-      </Button>
-      <ConfirmDialogComponent />
-    </>
-  )
-}
-
 interface I_Props<T_Id, T_Data> {
-  EditionForm: React.ComponentType<{ data: T_Data; reload?: () => void }>
+  EditionForm: React.ComponentType<{ data: T_Data; reload?: T_VoidFn }>
   entityName: EntityName
   useDetail: T_DetailServiceHookV2<T_Id, T_Data>
   useDelete?: T_DeletionServiceHook<T_Id, any>
-  onExit: () => void
+  onExit: T_VoidFn
   idFieldName?: string
 }
 
@@ -43,10 +26,9 @@ export default function EditionPage<T_Id extends string | number, T_Data>({ idFi
       <Page>
         <Page.Title>Editar {p.entityName.singular}</Page.Title>
         <Page.Toolbar>
-          <Button onClick={p.onExit} startIcon={<ClearIcon />}>
-            Cancelar
-          </Button>
-          {p.useDelete !== undefined && <DeleteButton callback={p.onExit} entityName={p.entityName} useDelete={p.useDelete} id={id} />}
+          <CancelButton onClick={p.onExit} />
+          <UpdateButton onClick={reload} />
+          {p.useDelete !== undefined && <DeleteInstanceButton callback={p.onExit} entityName={p.entityName} useDelete={p.useDelete} id={id} />}
         </Page.Toolbar>
         <Page.Content>{data === undefined ? <Spinner /> : <p.EditionForm {...{ data, reload }} />}</Page.Content>
       </Page>

@@ -1,8 +1,9 @@
+import { T_VoidFn } from '@/shared/types'
 import { ReactNode } from 'react'
 
 interface I_DialogAction {
   buttonLabel: string
-  onPress: () => void
+  onPress: T_VoidFn
   key: string
 }
 interface I_DialogProps {
@@ -10,7 +11,7 @@ interface I_DialogProps {
   title: string
   content: ReactNode
   actions: Array<I_DialogAction>
-  onClose: () => void
+  onClose: T_VoidFn
 }
 interface I_DialogConfig {
   title: string

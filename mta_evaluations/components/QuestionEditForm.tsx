@@ -22,13 +22,14 @@ import { rules } from '@/shared/forms/messages'
 import WysiwygEditor from '@/shared/forms/WysiwygEditor'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
+import { T_VoidFn } from '@/shared/types'
 import { Box } from '@mui/material'
 import { FC, Fragment } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
 interface I_FormFields extends I_QuestionEditRequestData {}
 
-const MultipleChoice: FC<{ data: I_EvaluationDetail_MultipleChoiceAnswer; reload: () => void }> = ({ data, reload }) => {
+const MultipleChoice: FC<{ data: I_EvaluationDetail_MultipleChoiceAnswer; reload: T_VoidFn }> = ({ data, reload }) => {
   const { DialogComponent, componentProps, showDialog, closeDialog } = useDialog()
   const handleAddOption = () => {
     showDialog({
@@ -77,7 +78,7 @@ const answersContentComponents: Record<T_AnswerType, FC<any>> = {
 
 interface I_Props {
   data: I_QuestionDetail
-  reload: () => void
+  reload: T_VoidFn
 }
 const QuestionEditForm = ({ data, reload }: I_Props) => {
   const { answer, content, id, is_mandatory } = data
@@ -108,9 +109,6 @@ const QuestionEditForm = ({ data, reload }: I_Props) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        {/* <Input<I_FormFields> {...{ control }} name="title" rules={{ ...rules.required() }} label={questionLabels.title} /> */}
-        {/* <Input<I_FormFields> {...{ control }} name="code" rules={{ ...rules.required() }} label={questionLabels.code} /> */}
-        {/* <SubjectOptions {...{ control }} name="subject_id" /> */}
         <WysiwygEditor<I_FormFields> {...{ control }} label={questionLabels.content} rules={{ ...rules.required() }} name="content" />
       </MagicGrid>
       <Spacer />

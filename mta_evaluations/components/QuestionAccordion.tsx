@@ -1,5 +1,7 @@
-import Checkbox from '@mui/material/Checkbox'
-
+import AnswerTypeChip from '@/mta_evaluations/components/AnswerTypeChip'
+import MultipleChoiceOption from '@/mta_evaluations/components/MultipleChoiceOption'
+import { QUESTION_NAME } from '@/mta_evaluations/constants'
+import { useNavigateToQuestionEdit, useQuestionDelete } from '@/mta_evaluations/hooks'
 import {
   I_EvaluationDetail,
   I_EvaluationDetail_MultipleChoiceAnswer,
@@ -8,27 +10,24 @@ import {
   T_EvaluationId,
   T_QuestionId,
 } from '@/mta_evaluations/types'
+import Bold from '@/shared/components/Bold'
 import Button from '@/shared/components/Button'
 import Chip from '@/shared/components/Chip'
+import DeleteInstanceButton from '@/shared/components/DeleteInstanceButton'
 import MagicGrid from '@/shared/components/MagicGrid'
 import { Body1, Body2 } from '@/shared/components/Typography'
 import { sharedLabels } from '@/shared/labels'
-import { T_ArrayElement } from '@/shared/types'
-import { truncateString, strippedString } from '@/shared/utils'
-import parse from 'html-react-parser'
-import Bold from '@/shared/components/Bold'
-import DeleteIcon from '@mui/icons-material/Delete'
+import { T_ArrayElement, T_VoidFn } from '@/shared/types'
+import { strippedString, truncateString } from '@/shared/utils'
 import DownloadIcon from '@mui/icons-material/Download'
 import EditIcon from '@mui/icons-material/Edit'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import UploadIcon from '@mui/icons-material/Upload'
-import { Accordion, AccordionDetails, AccordionSummary, Box, FormControlLabel, FormGroup, Grid2 as Grid } from '@mui/material'
+import { Accordion, AccordionDetails, AccordionSummary, Box, Grid2 as Grid } from '@mui/material'
+import parse from 'html-react-parser'
 import React, { FC } from 'react'
-import { useNavigateToQuestionEdit } from '@/mta_evaluations/hooks'
-import AnswerTypeChip from '@/mta_evaluations/components/AnswerTypeChip'
-import MultipleChoiceOption from '@/mta_evaluations/components/MultipleChoiceOption'
 
-const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId }> = ({ questionId, evaluationId }) => {
+const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId; reload: T_VoidFn }> = ({ questionId, evaluationId, reload }) => {
   const navigateToEdit = useNavigateToQuestionEdit()
   const handleEdit = () => {
     navigateToEdit({ evaluationId, questionId })
@@ -42,7 +41,7 @@ const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId }> = 
           </Button>
           <Button startIcon={<UploadIcon />}>{sharedLabels.moveUp}</Button>
           <Button startIcon={<DownloadIcon />}>{sharedLabels.moveDown}</Button>
-          <Button startIcon={<DeleteIcon />}>{sharedLabels.delete}</Button>
+          <DeleteInstanceButton callback={reload} entityName={QUESTION_NAME} useDelete={useQuestionDelete} id={questionId} />
         </MagicGrid>
       </Grid>
     </>
@@ -78,7 +77,8 @@ const QuestionAccordion: FC<{
   question: T_ArrayElement<I_EvaluationDetail['questions']>
   isExpanded: boolean
   setExpanded: React.Dispatch<React.SetStateAction<number | false>>
-}> = ({ isExpanded, setExpanded, question, evaluationId }) => {
+  reload: T_VoidFn
+}> = ({ isExpanded, setExpanded, question, evaluationId, reload }) => {
   const handleChange = (panel: I_EvaluationDetail['id']) => (_: React.SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false)
   }
@@ -103,7 +103,7 @@ const QuestionAccordion: FC<{
         <MagicGrid>
           <Box>{parse(question.content)}</Box>
           <AnswerComponent data={question.answer} />
-          <Toolbar evaluationId={evaluationId} questionId={question.id} />
+          <Toolbar evaluationId={evaluationId} questionId={question.id} reload={reload} />
         </MagicGrid>
       </AccordionDetails>
     </Accordion>

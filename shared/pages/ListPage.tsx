@@ -3,7 +3,7 @@ import Button from '@/shared/components/Button'
 import Page from '@/shared/components/Page'
 import Table from '@/shared/components/Table'
 import { I_PaginatedResponse } from '@/shared/data/types'
-import { T_ListServiceHookV2 } from '@/shared/types'
+import { T_ListServiceHookV2, T_VoidFn } from '@/shared/types'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ReplayIcon from '@mui/icons-material/Replay'
@@ -19,7 +19,7 @@ interface I_Props<T_Response> {
   useList: T_ListServiceHookV2<T_Response>
   entityName: EntityName
   onRowClick?: ComponentProps<typeof Table>['onRowClick']
-  onCreate?: () => void
+  onCreate?: T_VoidFn
   onBatchDelete?: (ids: Array<number | string>) => Promise<any>
 }
 function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>) {
