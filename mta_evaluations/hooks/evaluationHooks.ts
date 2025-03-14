@@ -13,7 +13,7 @@ import {
   navigationWithIdHook,
   updateHook,
 } from '@/shared/hooks'
-import { listService2 } from '@/shared/service'
+import { listService } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import { I_CreationCommonResponse } from '@/shared/types'
 
@@ -27,7 +27,7 @@ const useEvaluationBatchDelete = batchDeletionHook<T_EvaluationId>(EVALUATIONS_P
 const useEvaluationDetail = detailHook<T_EvaluationId, I_EvaluationDetail>(EVALUATIONS_PATH, axiosGet, useAuthResources)
 const useEvaluationSubjects = () => useStore((state) => state.subjects)
 const useRecoverAndStoreEvaluationSubjects = () => {
-  const recover = listService2<T_EvaluationSubjectList>('/evaluation-subjects', axiosGet)(useAuthResources())
+  const recover = listService<T_EvaluationSubjectList>('/evaluation-subjects', axiosGet)(useAuthResources())
   const store = useStore((state) => state.storeSubjects)
   return async () =>
     recover().then((res) => {
