@@ -16,7 +16,7 @@ import debounce from 'debounce'
 
 import { useCallback, useEffect, useState } from 'react'
 
-const listHookV2 = <T_Response>(entityPath: string, getMethod: T_GetMethod, useAuthResources: () => I_AuthResources) => {
+const listHook = <T_Response>(entityPath: string, getMethod: T_GetMethod, useAuthResources: () => I_AuthResources) => {
   const useList: T_ListServiceHookV2<T_Response> = (options?: I_FetchOptions, useInProgress: T_InProgressHook = useInProgressLocal) => {
     const [data, setData] = useState<undefined | T_Response>(undefined)
     const { isInProgress, setIsInProgress } = useInProgress()
@@ -60,7 +60,7 @@ const batchDeletionHook = <T_Id, T_Response = I_DeletionCommonResponse>(
   return () => batchDeletionService<T_Id, T_Response>(entityPath, deleteMethod)(useAuthResources())
 }
 
-const detailHookV2 = <T_Id, T_Response>(entityPath: string, getMethod: T_GetMethod, useAuthResources: () => I_AuthResources) => {
+const detailHook = <T_Id, T_Response>(entityPath: string, getMethod: T_GetMethod, useAuthResources: () => I_AuthResources) => {
   const useDetail: T_DetailServiceHookV2<T_Id, T_Response> = (id: T_Id, options?: I_FetchOptions, useInProgress: T_InProgressHook = useInProgressLocal) => {
     const [data, setData] = useState<undefined | T_Response>(undefined)
     const { isInProgress, setIsInProgress } = useInProgress()
@@ -92,4 +92,4 @@ const updateHook = <T_Id, T_RequestData, T_Response = {}>(
   return useUpdate
 }
 
-export { batchDeletionHook, creationHook, deletionHook, detailHookV2, listHookV2, updateHook }
+export { batchDeletionHook, creationHook, deletionHook, detailHook, listHook, updateHook }
