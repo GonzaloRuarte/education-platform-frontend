@@ -6,12 +6,17 @@ import AddCircleIcon from '@mui/icons-material/AddCircle'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ReplayIcon from '@mui/icons-material/Replay'
 import CancelIcon from '@mui/icons-material/Cancel'
-
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 interface I_ButtonProps extends Omit<ComponentProps<typeof Button>, 'startIcon' | 'children'> {}
 
-const UpdateButton: React.FC<I_ButtonProps> = ({ ...props }) => (
+const ReloadButton: React.FC<I_ButtonProps> = ({ ...props }) => (
   <Button {...props} startIcon={<ReplayIcon />}>
-    {sharedLabels.update}
+    {sharedLabels.reload}
+  </Button>
+)
+const BackButton: React.FC<I_ButtonProps> = ({ ...props }) => (
+  <Button {...props} startIcon={<ArrowBackIcon />}>
+    {sharedLabels.back}
   </Button>
 )
 
@@ -35,4 +40,4 @@ const DeleteButton: React.FC<I_DeleteButtonProps> = ({ ...props }) => (
   </Button>
 )
 
-export { AddButton, DeleteButton, UpdateButton, CancelButton }
+export { AddButton, DeleteButton, ReloadButton, CancelButton, BackButton }

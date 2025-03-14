@@ -1,25 +1,26 @@
+import { useRemovePageBreak } from '@/mta_evaluations/hooks'
 import { evaluationLabels } from '@/mta_evaluations/labels'
-import Button from '@/shared/components/Button'
+import { DeleteButton } from '@/shared/components/buttons'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Pastilla from '@/shared/components/Pastilla'
 import Spacer from '@/shared/components/Spacer'
-import { sharedLabels } from '@/shared/labels'
-import DeleteIcon from '@mui/icons-material/Delete'
-import DownloadIcon from '@mui/icons-material/Download'
-import UploadIcon from '@mui/icons-material/Upload'
+import { T_VoidFn } from '@/shared/types'
 import { Grid2 as Grid } from '@mui/material'
 import { FC } from 'react'
 
-const PageBreak: FC<{ afterQuestionId: number | string }> = ({ afterQuestionId }) => {
+const PageBreak: FC<{ afterQuestionId: number; reload: T_VoidFn }> = ({ afterQuestionId, reload }) => {
+  const remove = useRemovePageBreak()
+  const handleDelete = () => {
+    remove({ after_question_id: afterQuestionId })
+    reload()
+  }
   return (
     <>
       <Pastilla>
         <Grid container justifyContent="center" alignItems="center">
           <Grid size="grow">{evaluationLabels.pageBreak}</Grid>
           <MagicGrid itemSize="auto">
-            <Button startIcon={<DeleteIcon />}>{sharedLabels.delete}</Button>
-            <Button startIcon={<UploadIcon />}>{sharedLabels.moveUp}</Button>
-            <Button startIcon={<DownloadIcon />}>{sharedLabels.moveDown}</Button>
+            <DeleteButton onClick={handleDelete} />
           </MagicGrid>
         </Grid>
       </Pastilla>

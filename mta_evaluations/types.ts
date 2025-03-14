@@ -111,6 +111,9 @@ interface I_QuestionUpdateRequestData {
 interface I_QuestionAddPageBreakRequestData {
   after_question_id: T_QuestionId
 }
+interface I_QuestionRemovePageBreakRequestData {
+  after_question_id: T_QuestionId
+}
 
 export type {
   T_EvaluationId,
@@ -135,5 +138,6 @@ export type {
   I_MultipleChoiceOptionEditIsTrueResponseData,
   I_QuestionUpdateRequestData,
   I_QuestionAddPageBreakRequestData,
+  I_QuestionRemovePageBreakRequestData,
 }
 export { EvaluationStatus }

@@ -4,6 +4,7 @@ import {
   I_MultipleChoiceOptionEditIsTrueRequestData,
   I_QuestionAddPageBreakRequestData,
   I_QuestionDetail,
+  I_QuestionRemovePageBreakRequestData,
   I_QuestionUpdateRequestData,
   T_MultiplChoiceOptionId,
   T_QuestionId,
@@ -20,6 +21,7 @@ const useQuestionDetail = detailHook<T_QuestionId, I_QuestionDetail>(QUESTIONS_P
 const useQuestionDelete = deletionHook<T_QuestionId>(QUESTIONS_PATH, axiosDelete, useAuthResources)
 const useQuestionUpdate = updateHook<T_QuestionId, I_QuestionUpdateRequestData>(QUESTIONS_PATH, axiosPatch, useAuthResources)
 const useAddPageBreak = actionHook<I_QuestionAddPageBreakRequestData, T_EmptyResponse>(`${QUESTIONS_PATH}/add-page-break`, axiosPost, useAuthResources)
+const useRemovePageBreak = actionHook<I_QuestionRemovePageBreakRequestData, T_EmptyResponse>(`${QUESTIONS_PATH}/remove-page-break`, axiosPost, useAuthResources)
 
 const MULTIPLE_CHOICE_PATH = '/multiple-choice'
 const useMultipleChoiceOptionDelete = deletionHook<T_MultiplChoiceOptionId>(`${MULTIPLE_CHOICE_PATH}/delete-option`, axiosDelete, useAuthResources)
@@ -37,14 +39,15 @@ const useMultipleChoiceOptionEditIsTrue = updateHook<
 // Navigation
 const useNavigateToQuestionEdit = dynamicNavigationHook(questionEditPath)
 
+export * from './evaluationHooks'
 export {
+  useAddPageBreak,
   useMultipleChoiceOptionCreate,
   useMultipleChoiceOptionDelete,
-  useNavigateToQuestionEdit,
-  useQuestionDetail,
-  useQuestionDelete,
   useMultipleChoiceOptionEditIsTrue,
+  useNavigateToQuestionEdit,
+  useQuestionDelete,
+  useQuestionDetail,
   useQuestionUpdate,
-  useAddPageBreak,
+  useRemovePageBreak,
 }
-export * from './evaluationHooks'

@@ -16,12 +16,16 @@ import { FC } from 'react'
 
 const AddPageBreakForm: FC<{ close: T_VoidFn; reload: T_VoidFn; questions: I_EvaluationDetail['questions'] }> = ({ reload, close, questions }) => {
   const add = useAddPageBreak()
+  const availableQuestions = questions.filter((question) => !question.breaks_page_after)
+  if (availableQuestions.length === 0) {
+    return <Body1>Ups. Ya tienen salto de línea todas las preguntas.</Body1>
+  }
   return (
     <>
       <Body1>Agregar salto después de pregunta nº...</Body1>
       <Spacer />
       <MagicGrid itemSize="auto">
-        {questions.map((question) => (
+        {availableQuestions.map((question) => (
           <Button
             key={question.id}
             onClick={() => {

@@ -6,6 +6,7 @@ import EvaluationQuestionsManager from '@/mta_evaluations/components/EvaluationQ
 import { EVALUATION_NAME } from '@/mta_evaluations/constants'
 import { useEvaluationDelete, useEvaluationDetail, useNavigateToEvaluationList } from '@/mta_evaluations/hooks'
 import Button from '@/shared/components/Button'
+import { BackButton, DeleteButton, ReloadButton } from '@/shared/components/buttons'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import Spinner from '@/shared/components/Spinner'
@@ -15,6 +16,7 @@ import { sharedLabels } from '@/shared/labels'
 import ClearIcon from '@mui/icons-material/Clear'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ReplayIcon from '@mui/icons-material/Replay'
+import { Box, Grid2 } from '@mui/material'
 import { useParams } from 'next/navigation'
 import { useEffect } from 'react'
 
@@ -35,15 +37,9 @@ const EvaluationContentEditPage = () => {
       <Page>
         <Page.Title>Editar contenio de {EVALUATION_NAME.singular}</Page.Title>
         <Page.Toolbar>
-          <Button onClick={reload} startIcon={<ReplayIcon />}>
-            {sharedLabels.update}
-          </Button>
-          <Button onClick={navigateToList} startIcon={<ClearIcon />}>
-            {sharedLabels.cancel}
-          </Button>
-          <Button onClick={handleDelete} startIcon={<DeleteIcon />}>
-            {sharedLabels.delete}
-          </Button>
+          <BackButton onClick={navigateToList} />
+          <ReloadButton onClick={reload} />
+          <DeleteButton onClick={handleDelete} color="error" />
         </Page.Toolbar>
         {data === undefined ? (
           <Spinner />
