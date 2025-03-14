@@ -54,6 +54,7 @@ interface I_QuestionDetail {
   is_mandatory: boolean
   breaks_page_after: boolean
   answer: I_EvaluationDetail_NumericAnswer | I_EvaluationDetail_MultipleChoiceAnswer
+  evaluation_id: T_EvaluationId
 }
 
 interface I_EvaluationDetail {
@@ -86,12 +87,6 @@ interface I_EvaluationCreateRequestData {
   status: T_EvaluationStatusCode
 }
 
-interface I_QuestionEditRequestData {
-  title: string
-  content: string
-  is_mandatory: boolean
-}
-
 interface I_MultipleChoiceOptionCreateRequestData {
   multiple_choice_id: T_MultiplChoiceId
   is_true: boolean
@@ -107,6 +102,10 @@ interface I_MultipleChoiceOptionEditIsTrueResponseData {
   multiple_choice_id: T_MultiplChoiceId
   is_true: boolean
   name: string
+  content: string
+}
+
+interface I_QuestionUpdateRequestData {
   content: string
 }
 
@@ -126,11 +125,11 @@ export type {
   I_EvaluationDetail_NumericAnswer,
   I_EvaluationDetail_MultipleChoiceAnswer,
   I_QuestionDetail,
-  I_QuestionEditRequestData,
   T_MultiplChoiceId,
   T_MultiplChoiceOptionId,
   I_MultipleChoiceOptionCreateRequestData,
   I_MultipleChoiceOptionEditIsTrueRequestData,
   I_MultipleChoiceOptionEditIsTrueResponseData,
+  I_QuestionUpdateRequestData,
 }
 export { EvaluationStatus }

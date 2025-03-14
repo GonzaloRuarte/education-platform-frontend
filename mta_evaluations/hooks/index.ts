@@ -3,6 +3,7 @@ import {
   I_MultipleChoiceOptionCreateRequestData,
   I_MultipleChoiceOptionEditIsTrueRequestData,
   I_QuestionDetail,
+  I_QuestionUpdateRequestData,
   T_MultiplChoiceOptionId,
   T_QuestionId,
 } from '@/mta_evaluations/types'
@@ -16,6 +17,7 @@ import { I_CreationCommonResponse } from '@/shared/types'
 const QUESTIONS_PATH = '/questions'
 const useQuestionDetail = detailHookV2<T_QuestionId, I_QuestionDetail>(QUESTIONS_PATH, axiosGet, useAuthResources)
 const useQuestionDelete = deletionHook<T_QuestionId>(QUESTIONS_PATH, axiosDelete, useAuthResources)
+const useQuestionUpdate = updateHook<T_QuestionId, I_QuestionUpdateRequestData>(QUESTIONS_PATH, axiosPatch, useAuthResources)
 
 const MULTIPLE_CHOICE_PATH = '/multiple-choice'
 const useMultipleChoiceOptionDelete = deletionHook<T_MultiplChoiceOptionId>(`${MULTIPLE_CHOICE_PATH}/delete-option`, axiosDelete, useAuthResources)
@@ -40,5 +42,6 @@ export {
   useQuestionDetail,
   useQuestionDelete,
   useMultipleChoiceOptionEditIsTrue,
+  useQuestionUpdate,
 }
 export * from './evaluationHooks'

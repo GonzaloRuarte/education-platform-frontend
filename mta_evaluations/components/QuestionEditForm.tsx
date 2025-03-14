@@ -2,14 +2,15 @@
 
 import MultipleChoiceOption from '@/mta_evaluations/components/MultipleChoiceOption'
 import OptionCreateForm from '@/mta_evaluations/components/OptionCreateForm'
-import { useEvaluationUpdate, useNavigateToEvaluationList } from '@/mta_evaluations/hooks'
+import { useNavigateToEvaluationContentEdit, useNavigateToEvaluationDetail, useQuestionUpdate } from '@/mta_evaluations/hooks'
 import { questionLabels } from '@/mta_evaluations/labels'
 import {
   I_EvaluationDetail_MultipleChoiceAnswer,
   I_EvaluationDetail_NumericAnswer,
   I_QuestionDetail,
-  I_QuestionEditRequestData,
+  I_QuestionUpdateRequestData,
   T_AnswerType,
+  T_EvaluationId,
 } from '@/mta_evaluations/types'
 import Bold from '@/shared/components/Bold'
 import { AddButton } from '@/shared/components/buttons'
@@ -22,12 +23,15 @@ import { rules } from '@/shared/forms/messages'
 import WysiwygEditor from '@/shared/forms/WysiwygEditor'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
+import log from '@/shared/log'
+import { handleServiceError } from '@/shared/service'
+import { successToast } from '@/shared/toasts'
 import { T_VoidFn } from '@/shared/types'
 import { Box } from '@mui/material'
 import { FC, Fragment } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
-interface I_FormFields extends I_QuestionEditRequestData {}
+interface I_FormFields extends I_QuestionUpdateRequestData {}
 
 const MultipleChoice: FC<{ data: I_EvaluationDetail_MultipleChoiceAnswer; reload: T_VoidFn }> = ({ data, reload }) => {
   const { DialogComponent, componentProps, showDialog, closeDialog } = useDialog()
@@ -85,7 +89,7 @@ interface I_Props {
   reload: T_VoidFn
 }
 const QuestionEditForm = ({ data, reload }: I_Props) => {
-  const { answer, content, id, is_mandatory } = data
+  const { content, evaluation_id } = data
 
   const { handleSubmit, control } = useForm<I_FormFields>({
     defaultValues: {
@@ -94,20 +98,20 @@ const QuestionEditForm = ({ data, reload }: I_Props) => {
   })
 
   const { setIsInProgress } = useInProgress()
-  const navigateToEvaluationList = useNavigateToEvaluationList()
-  const evaluationUpdate = useEvaluationUpdate()
+  const backToDetail = useNavigateToEvaluationContentEdit()
+  const update = useQuestionUpdate()
   const onSubmit: SubmitHandler<I_FormFields> = (updatedData) => {
-    // setIsInProgress(true)
-    // evaluationUpdate(data.id, { ...updatedData, subject_id: updatedData.subject_id as string })
-    //   .then((res) => {
-    //     log.info('New Evaluation added:', res)
-    //     successToast('Evaluación editada correctamente')
-    //     navigateToEvaluationList()
-    //   })
-    //   .catch(handleServiceError)
-    //   .finally(() => {
-    //     setIsInProgress(false)
-    //   })
+    setIsInProgress(true)
+    update(data.id, { ...updatedData })
+      .then(() => {
+        log.info('Question edited succesfully:')
+        successToast('Pregunta editada correctamente')
+        backToDetail({ evaluationId: evaluation_id })
+      })
+      .catch(handleServiceError)
+      .finally(() => {
+        setIsInProgress(false)
+      })
   }
   const AnswerContent = answersContentComponents[data.answer.resource_type]
   return (
