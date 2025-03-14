@@ -1,7 +1,7 @@
 import AnswerTypeChip from '@/mta_evaluations/components/AnswerTypeChip'
 import MultipleChoiceOption from '@/mta_evaluations/components/MultipleChoiceOption'
 import { QUESTION_NAME } from '@/mta_evaluations/constants'
-import { useNavigateToQuestionEdit, useQuestionDelete } from '@/mta_evaluations/hooks'
+import { useNavigateToQuestionEdit, useQuestionDelete, useQuestionMoveBackward, useQuestionMoveForward } from '@/mta_evaluations/hooks'
 import {
   I_EvaluationDetail,
   I_EvaluationDetail_MultipleChoiceAnswer,
@@ -29,8 +29,18 @@ import React, { FC } from 'react'
 
 const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId; reload: T_VoidFn }> = ({ questionId, evaluationId, reload }) => {
   const navigateToEdit = useNavigateToQuestionEdit()
+  const mBackward = useQuestionMoveBackward()
+  const mForward = useQuestionMoveForward()
   const handleEdit = () => {
     navigateToEdit({ evaluationId, questionId })
+  }
+  const handleMoveForward = () => {
+    mForward(questionId, {})
+    reload()
+  }
+  const handleMoveBackward = () => {
+    mBackward(questionId, {})
+    reload()
   }
   return (
     <>
@@ -39,8 +49,12 @@ const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId; relo
           <Button onClick={handleEdit} startIcon={<EditIcon />}>
             {sharedLabels.edit}
           </Button>
-          <Button startIcon={<UploadIcon />}>{sharedLabels.moveUp}</Button>
-          <Button startIcon={<DownloadIcon />}>{sharedLabels.moveDown}</Button>
+          <Button onClick={handleMoveBackward} startIcon={<UploadIcon />}>
+            {sharedLabels.moveUp}
+          </Button>
+          <Button onClick={handleMoveForward} startIcon={<DownloadIcon />}>
+            {sharedLabels.moveDown}
+          </Button>
           <DeleteInstanceButton callback={reload} entityName={QUESTION_NAME} useDelete={useQuestionDelete} id={questionId} />
         </MagicGrid>
       </Grid>

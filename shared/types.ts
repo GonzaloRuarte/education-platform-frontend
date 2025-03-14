@@ -36,7 +36,7 @@ type T_InProgressHook = () => {
   isInProgress: boolean
   setIsInProgress: (status: boolean) => void
 }
-type T_EmptyResponse = {}
+type T_EmptyPayload = {}
 
 export type {
   I_ApiError,
@@ -55,5 +55,5 @@ export type {
   T_UpdateServiceHook,
   T_ActionServiceHook,
   T_VoidFn,
-  T_EmptyResponse,
+  T_EmptyPayload,
 }
