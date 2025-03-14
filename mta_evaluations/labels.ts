@@ -27,6 +27,9 @@ const evaluationStatusCodeToLabels = (code: T_EvaluationStatusCode): string =>
 const questionLabels = {
   title: sharedLabels.title,
   content: sharedLabels.content,
+  pageBreak: {
+    add: 'Agregar salto de página',
+  },
 }
 
 const multipleChoiceLabels = {

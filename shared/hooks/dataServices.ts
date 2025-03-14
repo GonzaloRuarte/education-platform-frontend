@@ -1,9 +1,10 @@
 import { I_AuthResources } from '@/mta_auth/types'
-import { I_FetchOptions, T_DeleteMethod, T_GetMethod, T_PatchMethod, T_PostMethod } from '@/shared/data/types'
+import { I_FetchOptions, T_DeleteMethod, T_GetMethod, T_HttpMethod, T_PatchMethod, T_PostMethod } from '@/shared/data/types'
 import { useInProgressLocal } from '@/shared/hooks/utils'
 import { batchDeletionService, deletionService, detailService, listService, postService, updateService } from '@/shared/service'
 import {
   I_DeletionCommonResponse,
+  T_ActionServiceHook,
   T_BatchDeletionServiceHook,
   T_CreateServiceHook,
   T_DeletionServiceHook,
@@ -42,6 +43,13 @@ const creationHook = <T_RequestData, T_Response>(path: string, postMethod: T_Pos
     return postService<T_RequestData, T_Response>(path, postMethod)(useAuthResources())
   }
   return useCreate
+}
+
+const actionHook = <T_RequestData, T_Response>(path: string, httpMethod: T_HttpMethod, useAuthResources: () => I_AuthResources) => {
+  const useAction: T_ActionServiceHook<T_RequestData, T_Response> = () => {
+    return postService<T_RequestData, T_Response>(path, httpMethod)(useAuthResources())
+  }
+  return useAction
 }
 
 const deletionHook = <T_Id, T_Response = I_DeletionCommonResponse>(
@@ -92,4 +100,4 @@ const updateHook = <T_Id, T_RequestData, T_Response = {}>(
   return useUpdate
 }
 
-export { batchDeletionHook, creationHook, deletionHook, detailHook, listHook, updateHook }
+export { batchDeletionHook, creationHook, deletionHook, detailHook, listHook, updateHook, actionHook }

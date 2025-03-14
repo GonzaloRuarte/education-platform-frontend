@@ -12,6 +12,7 @@ interface I_FetchingHookResources<T_Data> {
 
 type T_ListServiceHookV2<T_Response> = (options?: I_FetchOptions) => I_FetchingHookResources<T_Response>
 type T_CreateServiceHook<T_RequestData, T_Response> = () => (data: T_RequestData) => Promise<T_Response>
+type T_ActionServiceHook<T_RequestData, T_Response> = () => (data: T_RequestData) => Promise<T_Response>
 type T_UpdateServiceHook<T_Id, T_RequestData, T_Response> = () => (id: T_Id, data: T_RequestData) => Promise<T_Response>
 type T_DetailServiceHookV2<T_Id, T_Response> = (id: T_Id) => I_FetchingHookResources<T_Response>
 type T_DeletionServiceHook<T_Id, T_Response> = () => (id: T_Id) => Promise<T_Response>
@@ -35,6 +36,7 @@ type T_InProgressHook = () => {
   isInProgress: boolean
   setIsInProgress: (status: boolean) => void
 }
+type T_EmptyResponse = {}
 
 export type {
   I_ApiError,
@@ -51,5 +53,7 @@ export type {
   T_ListServiceHookV2,
   T_NavigateToListHook,
   T_UpdateServiceHook,
+  T_ActionServiceHook,
   T_VoidFn,
+  T_EmptyResponse,
 }

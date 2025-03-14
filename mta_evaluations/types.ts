@@ -108,6 +108,9 @@ interface I_MultipleChoiceOptionEditIsTrueResponseData {
 interface I_QuestionUpdateRequestData {
   content: string
 }
+interface I_QuestionAddPageBreakRequestData {
+  after_question_id: T_QuestionId
+}
 
 export type {
   T_EvaluationId,
@@ -131,5 +134,6 @@ export type {
   I_MultipleChoiceOptionEditIsTrueRequestData,
   I_MultipleChoiceOptionEditIsTrueResponseData,
   I_QuestionUpdateRequestData,
+  I_QuestionAddPageBreakRequestData,
 }
 export { EvaluationStatus }

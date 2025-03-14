@@ -27,6 +27,8 @@ type T_PostMethod = <T_RequestData, T_Response>(args: { url: string; requestSetu
 type T_DeleteMethod = <T_Response, T_Data = object>(args: { url: string; requestSetup?: I_RequestSetup; data?: T_Data }) => Promise<T_Response>
 type T_PatchMethod = <T_RequestData, T_Response>(args: { url: string; requestSetup?: I_RequestSetup; data: T_RequestData }) => Promise<T_Response>
 
+type T_HttpMethod = T_GetMethod | T_PostMethod | T_DeleteMethod | T_PatchMethod
+
 interface I_PaginatedResponse<T_ResultsInstance = unknown> {
   count: number
   next: string
@@ -48,6 +50,7 @@ export type {
   T_PostMethod,
   T_DeleteMethod,
   T_PatchMethod,
+  T_HttpMethod,
 
   // Refresh
   T_TokenRefresher,
