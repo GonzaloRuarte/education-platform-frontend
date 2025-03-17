@@ -10,7 +10,7 @@ import {
   T_MultiplChoiceOptionId,
   T_QuestionId,
 } from '@/mta_evaluations/types'
-import { questionEditPath } from '@/pages'
+import { questionCreateMCPath, questionCreateNumericPath, questionEditPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
 import { actionHook, creationHook, deletionHook, detailHook, dynamicNavigationHook, updateHook } from '@/shared/hooks'
 import { I_CreationCommonResponse, T_EmptyPayload } from '@/shared/types'
@@ -46,6 +46,8 @@ const useMultipleChoiceOptionEditIsTrue = updateHook<
 
 // Navigation
 const useNavigateToQuestionEdit = dynamicNavigationHook(questionEditPath)
+const useNavigateToQuestionCreateMultipleChoice = dynamicNavigationHook(questionCreateMCPath)
+const useNavigateToQuestionCreateNumeric = dynamicNavigationHook(questionCreateNumericPath)
 
 export * from './evaluationHooks'
 export {
@@ -61,4 +63,6 @@ export {
   useQuestionMultipleChoiceUpdate,
   useQuestionNumericUpdate,
   useRemovePageBreak,
+  useNavigateToQuestionCreateMultipleChoice,
+  useNavigateToQuestionCreateNumeric,
 }

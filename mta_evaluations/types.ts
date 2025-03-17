@@ -12,6 +12,7 @@ type T_EvaluationSubjectId = string
 
 type T_EvaluationStatusCode = 'P' | 'D'
 type T_AnswerType = 'Numeric' | 'MultipleChoice'
+type T_AnswerTypeUrlParams = 'numerica' | 'multiple-choice'
 enum EvaluationStatus {
   Published = 'P',
   Draft = 'D',
@@ -150,6 +151,7 @@ export type {
   T_EvaluationSubjectList,
   I_EvaluationSubject,
   T_AnswerType,
+  T_AnswerTypeUrlParams,
   I_AnswerNumericDetail,
   I_AnswerMultipleChoiceDetail,
   I_QuestionDetail,

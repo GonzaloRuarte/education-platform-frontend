@@ -1,6 +1,6 @@
-import { useAddPageBreak } from '@/mta_evaluations/hooks'
+import { useAddPageBreak, useNavigateToQuestionCreateMultipleChoice, useNavigateToQuestionCreateNumeric } from '@/mta_evaluations/hooks'
 import { evaluationLabels, questionLabels } from '@/mta_evaluations/labels'
-import { I_EvaluationDetail } from '@/mta_evaluations/types'
+import { I_EvaluationDetail, T_AnswerType, T_EvaluationId } from '@/mta_evaluations/types'
 import Button from '@/shared/components/Button'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Pastilla from '@/shared/components/Pastilla'
@@ -43,12 +43,39 @@ const AddPageBreakForm: FC<{ close: T_VoidFn; reload: T_VoidFn; questions: I_Eva
   )
 }
 
+const CreateQuestionDialogContent: FC<{ close: T_VoidFn; evaluationId: T_EvaluationId }> = ({ close, evaluationId }) => {
+  const navToCreateMC = useNavigateToQuestionCreateMultipleChoice()
+  const navToCreateNumeric = useNavigateToQuestionCreateNumeric()
+
+  const buttons: Record<T_AnswerType, FC<any>> = {
+    MultipleChoice: () => <Button onClick={() => navToCreateMC({ evaluationId })}>Multiple Choice</Button>,
+    Numeric: () => <Button onClick={() => navToCreateNumeric({ evaluationId })}>Numérica</Button>,
+  }
+  return (
+    <>
+      <MagicGrid itemSize="auto">
+        {Object.entries(buttons).map(([key, CreationButton]) => (
+          <CreationButton key={key} />
+        ))}
+      </MagicGrid>
+      <Spacer />
+    </>
+  )
+}
+
 const QuestionCreationToolbar = ({ data, reload }: { data: I_EvaluationDetail; reload: T_VoidFn }) => {
   const { showDialog, closeDialog, DialogComponent, componentProps } = useDialog()
   const handleAddPageBreak = () => {
     showDialog({
       title: questionLabels.pageBreak.add,
       content: <AddPageBreakForm close={closeDialog} reload={reload} questions={data.questions} />,
+      actions: [{ buttonLabel: sharedLabels.cancel, key: sharedLabels.cancel, onPress: closeDialog }],
+    })
+  }
+  const handleCreateQuestion = () => {
+    showDialog({
+      title: questionLabels.create,
+      content: <CreateQuestionDialogContent close={closeDialog} evaluationId={data.id} />,
       actions: [{ buttonLabel: sharedLabels.cancel, key: sharedLabels.cancel, onPress: closeDialog }],
     })
   }
@@ -61,7 +88,9 @@ const QuestionCreationToolbar = ({ data, reload }: { data: I_EvaluationDetail; r
             <Button onClick={handleAddPageBreak} startIcon={<InsertPageBreakIcon />}>
               {evaluationLabels.pageBreak}
             </Button>
-            <Button startIcon={<QuizIcon />}>{evaluationLabels.newQuestion}</Button>
+            <Button onClick={handleCreateQuestion} startIcon={<QuizIcon />}>
+              {evaluationLabels.newQuestion}
+            </Button>
           </MagicGrid>
         </Grid>
       </Pastilla>

@@ -27,6 +27,7 @@ const evaluationStatusCodeToLabels = (code: T_EvaluationStatusCode): string =>
 const questionLabels = {
   title: sharedLabels.title,
   content: sharedLabels.content,
+  create: 'Crear pregunta',
   pageBreak: {
     add: 'Agregar salto de página',
   },

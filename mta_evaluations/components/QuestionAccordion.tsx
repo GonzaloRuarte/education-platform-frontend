@@ -28,12 +28,10 @@ const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId; relo
     navigateToEdit({ evaluationId, questionId })
   }
   const handleMoveForward = () => {
-    mForward(questionId, {})
-    reload()
+    mForward(questionId, {}).then(reload)
   }
   const handleMoveBackward = () => {
-    mBackward(questionId, {})
-    reload()
+    mBackward(questionId, {}).then(reload)
   }
   return (
     <>
