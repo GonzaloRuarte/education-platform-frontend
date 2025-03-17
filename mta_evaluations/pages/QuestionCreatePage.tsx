@@ -1,5 +1,7 @@
 'use client'
 
+import MultipleChoiceCreateForm from '@/mta_evaluations/components/MultipleChoiceCreateForm'
+import NumericCreateForm from '@/mta_evaluations/components/NumericCreateForm'
 import { MULTIPLE_CHOICE_NAME, urlPathsToAnswerTypes } from '@/mta_evaluations/constants'
 import { useNavigateToEvaluationContentEdit } from '@/mta_evaluations/hooks'
 import { T_AnswerType } from '@/mta_evaluations/types'
@@ -11,7 +13,7 @@ const MultipleChoiceCreatePage = ({ evaluationId }) => {
   const back = useNavigateToEvaluationContentEdit()
   return (
     <CreationPage
-      CreationForm={() => <></>}
+      CreationForm={MultipleChoiceCreateForm}
       entityName={MULTIPLE_CHOICE_NAME}
       onCancel={() => {
         back({ evaluationId })
@@ -23,7 +25,7 @@ const NumericCreatePage = ({ evaluationId }) => {
   const back = useNavigateToEvaluationContentEdit()
   return (
     <CreationPage
-      CreationForm={() => <></>}
+      CreationForm={NumericCreateForm}
       entityName={MULTIPLE_CHOICE_NAME}
       onCancel={() => {
         back({ evaluationId })

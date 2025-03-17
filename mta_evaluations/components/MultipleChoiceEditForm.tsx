@@ -25,7 +25,7 @@ import { SubmitHandler, useForm } from 'react-hook-form'
 
 interface I_FormFields extends I_QuestionUpdateMultipleChoiceRequestData {}
 
-const MultipleChoice: FC<{ data: I_AnswerMultipleChoiceDetail; reload: T_VoidFn }> = ({ data, reload }) => {
+const Options: FC<{ data: I_AnswerMultipleChoiceDetail; reload: T_VoidFn }> = ({ data, reload }) => {
   const { DialogComponent, componentProps, showDialog, closeDialog } = useDialog()
   const handleReloadAfterCreate = () => {
     closeDialog()
@@ -62,7 +62,7 @@ const MultipleChoice: FC<{ data: I_AnswerMultipleChoiceDetail; reload: T_VoidFn 
   )
 }
 
-const MultipleChoiceForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({ data, reload }) => {
+const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({ data, reload }) => {
   const { content, evaluation_id } = data
 
   const { handleSubmit, control } = useForm<I_FormFields>({
@@ -99,7 +99,7 @@ const MultipleChoiceForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({ data
       </MagicGrid>
       <Spacer />
 
-      <MultipleChoice data={data.answer} reload={reload} />
+      <Options data={data.answer} reload={reload} />
       <Spacer />
 
       <Submit>{sharedLabels.update}</Submit>
@@ -107,4 +107,4 @@ const MultipleChoiceForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({ data
   )
 }
 
-export default MultipleChoiceForm
+export default MultipleChoiceEditForm

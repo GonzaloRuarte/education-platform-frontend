@@ -18,7 +18,7 @@ import { SubmitHandler, useForm } from 'react-hook-form'
 
 interface I_FormFields extends I_QuestionUpdateNumericRequestData {}
 
-const NumericForm: T_QuestionForm<I_AnswerNumericDetail> = ({ data, reload }) => {
+const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({ data, reload }) => {
   const { content, evaluation_id, answer } = data
 
   const { handleSubmit, control } = useForm<I_FormFields>({
@@ -58,4 +58,4 @@ const NumericForm: T_QuestionForm<I_AnswerNumericDetail> = ({ data, reload }) =>
   )
 }
 
-export default NumericForm
+export default NumericEditForm

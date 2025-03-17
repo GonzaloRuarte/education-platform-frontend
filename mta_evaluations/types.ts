@@ -126,6 +126,19 @@ interface I_QuestionUpdateNumericRequestData {
   content: string
   value: number
 }
+interface I_QuestionCreateMultipleChoiceRequestData {
+  evaluation_id: T_EvaluationId
+  content: string
+}
+interface I_QuestionCreateNumericRequestData {
+  evaluation_id: T_EvaluationId
+  content: string
+  value: number
+}
+interface I_QuestionCreateResponseData {
+  evaluation_id: T_EvaluationId
+  question_id: T_QuestionId
+}
 interface I_QuestionAddPageBreakRequestData {
   after_question_id: T_QuestionId
 }
@@ -165,7 +178,10 @@ export type {
   I_QuestionUpdateNumericRequestData,
   I_QuestionAddPageBreakRequestData,
   I_QuestionRemovePageBreakRequestData,
+  I_QuestionCreateMultipleChoiceRequestData,
+  I_QuestionCreateNumericRequestData,
   T_QuestionForm,
   T_AnswerPolymorphicDetail,
+  I_QuestionCreateResponseData,
 }
 export { EvaluationStatus }

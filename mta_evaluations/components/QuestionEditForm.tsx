@@ -1,13 +1,13 @@
 'use client'
 
-import MultipleChoiceForm from '@/mta_evaluations/components/MultipleChoiceForm'
-import NumericForm from '@/mta_evaluations/components/NumericForm'
+import MultipleChoiceEditForm from '@/mta_evaluations/components/MultipleChoiceEditForm'
+import NumericEditForm from '@/mta_evaluations/components/NumericEditForm'
 import { I_QuestionDetail, T_AnswerPolymorphicDetail, T_AnswerType, T_QuestionForm } from '@/mta_evaluations/types'
 import { T_VoidFn } from '@/shared/types'
 
 const formComponents: Record<T_AnswerType, T_QuestionForm<T_AnswerPolymorphicDetail>> = {
-  MultipleChoice: MultipleChoiceForm,
-  Numeric: NumericForm,
+  MultipleChoice: MultipleChoiceEditForm,
+  Numeric: NumericEditForm,
 }
 
 interface I_Props {
