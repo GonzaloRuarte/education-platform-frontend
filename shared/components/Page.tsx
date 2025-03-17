@@ -24,7 +24,7 @@ Page.Content = ({ children }: I_Props) => <Section children={children} />
 Page.Toolbar = ({ children }: I_Props) => (
   <Box>
     <Section>
-      <MagicGrid itemSize="auto"> {children}</MagicGrid>
+      <MagicGrid itemSize="auto">{children}</MagicGrid>
     </Section>
     <Spacer space="m" />
   </Box>

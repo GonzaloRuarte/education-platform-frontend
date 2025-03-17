@@ -17,7 +17,7 @@ function DeleteInstanceButton<T_Id extends number | string>({ useDelete, id, cal
   const handleDelete = useHandleDelete(id, { showConfirm, deleteInstance, callback, entityName })
   return (
     <>
-      <DeleteButton onClick={handleDelete} />
+      <DeleteButton onClick={handleDelete} color="error" />
       <ConfirmDialogComponent />
     </>
   )

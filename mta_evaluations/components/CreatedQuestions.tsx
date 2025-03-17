@@ -19,7 +19,7 @@ const CreatedQuestions: FC<{ data: I_EvaluationDetail; reload: T_VoidFn }> = ({ 
         return (
           <React.Fragment key={question.id}>
             <QuestionAccordion reload={reload} evaluationId={data.id} {...{ isExpanded, setExpanded, question }} />
-            {question.breaks_page_after && <PageBreak afterQuestionId={question.id} />}
+            {question.breaks_page_after && <PageBreak afterQuestionId={question.id} reload={reload} />}
           </React.Fragment>
         )
       })}

@@ -5,41 +5,41 @@ import log from '@/shared/log'
 import { errorToast } from '@/shared/toasts'
 import { T_BatchDeletionCommonRequestData } from '@/shared/types'
 
-const listService2 = <T_Response>(entityPath: string, getMethod: T_GetMethod) => {
+const listService = <T_Response>(path: string, getMethod: T_GetMethod) => {
   return (requestSetup?: I_RequestSetup, options?: I_FetchOptions) => {
     return async () => {
-      return getMethod<T_Response>({ endpoint: apiUrl(entityPath), requestSetup, options })
+      return getMethod<T_Response>({ url: apiUrl(path), requestSetup, options })
     }
   }
 }
-const detailServiceV2 = <T_Id, T_Response>(entityPath: string, getMethod: T_GetMethod) => {
+const detailService = <T_Id, T_Response>(path: string, getMethod: T_GetMethod) => {
   return (id: T_Id, requestSetup?: I_RequestSetup, options?: I_FetchOptions) => {
     return async () => {
-      return getMethod<T_Response>({ endpoint: apiUrl(`${entityPath}/${id}`), requestSetup })
+      return getMethod<T_Response>({ url: apiUrl(`${path}/${id}`), requestSetup, options })
     }
   }
 }
 
-const postService = <T_RequestData, T_Response>(entityPath: string, postMethod: T_PostMethod) => {
+const postService = <T_RequestData, T_Response>(path: string, postMethod: T_PostMethod) => {
   return (requestSetup?: I_RequestSetup) => {
     return async (data: T_RequestData) => {
-      return postMethod<T_RequestData, T_Response>({ endpoint: `${apiUrl(entityPath)}/`, requestSetup, data })
+      return postMethod<T_RequestData, T_Response>({ url: `${apiUrl(path)}/`, requestSetup, data })
     }
   }
 }
 
-const deletionService = <T_Id, T_Response>(entityPath: string, deleteMethod: T_DeleteMethod) => {
+const deletionService = <T_Id, T_Response>(path: string, deleteMethod: T_DeleteMethod) => {
   return (requestSetup?: I_RequestSetup) => {
     return async (id: T_Id) => {
-      return deleteMethod<T_Response>({ endpoint: apiUrl(`${entityPath}/${id}/`), requestSetup })
+      return deleteMethod<T_Response>({ url: apiUrl(`${path}/${id}/`), requestSetup })
     }
   }
 }
-const batchDeletionService = <T_Id, T_Response>(entityPath: string, deleteMethod: T_DeleteMethod) => {
+const batchDeletionService = <T_Id, T_Response>(path: string, deleteMethod: T_DeleteMethod) => {
   return (requestSetup?: I_RequestSetup) => {
     return async (ids: Array<T_Id>) => {
       return deleteMethod<T_Response, T_BatchDeletionCommonRequestData<T_Id>>({
-        endpoint: apiUrl(`${entityPath}/batch-delete/`),
+        url: apiUrl(`${path}/batch-delete/`),
         requestSetup,
         data: { ids: ids },
       })
@@ -49,16 +49,16 @@ const batchDeletionService = <T_Id, T_Response>(entityPath: string, deleteMethod
 
 /**
  *
- * @param entityPath
+ * @param path
  * @param patchMethod
  * @param options {pathSuffix} adds a suffix in the path after the id
  * @returns
  */
-const updateService = <T_Id, T_RequestData, T_Response>(entityPath: string, patchMethod: T_PatchMethod, options?: { pathSuffix?: string }) => {
+const updateService = <T_Id, T_RequestData, T_Response>(path: string, patchMethod: T_PatchMethod, options?: { pathSuffix?: string }) => {
   return (requestSetup?: I_RequestSetup) => {
     return async (id: T_Id, data: T_RequestData) => {
       return patchMethod<T_RequestData, T_Response>({
-        endpoint: `${apiUrl(entityPath)}/${id}${options?.pathSuffix !== undefined ? options.pathSuffix : ''}/`,
+        url: `${apiUrl(path)}/${id}${options?.pathSuffix !== undefined ? options.pathSuffix : ''}/`,
         requestSetup,
         data,
       })
@@ -75,4 +75,4 @@ const handleError = (msg: string) => (errorReason: any) => {
   log.error(errorReason)
 }
 
-export { batchDeletionService, deletionService, detailServiceV2, handleError, handleServiceError, listService2, postService, updateService }
+export { batchDeletionService, deletionService, detailService, handleError, handleServiceError, listService, postService, updateService }

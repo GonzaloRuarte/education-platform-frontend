@@ -1,4 +1,4 @@
-import { CancelButton, UpdateButton } from '@/shared/components/buttons'
+import { BackButton, CancelButton, ReloadButton } from '@/shared/components/buttons'
 import DeleteInstanceButton from '@/shared/components/DeleteInstanceButton'
 import Page from '@/shared/components/Page'
 import Spinner from '@/shared/components/Spinner'
@@ -26,8 +26,8 @@ export default function EditionPage<T_Id extends string | number, T_Data>({ idFi
       <Page>
         <Page.Title>Editar {p.entityName.singular}</Page.Title>
         <Page.Toolbar>
-          <CancelButton onClick={p.onExit} />
-          <UpdateButton onClick={reload} />
+          <BackButton onClick={p.onExit} />
+          <ReloadButton onClick={reload} />
           {p.useDelete !== undefined && <DeleteInstanceButton callback={p.onExit} entityName={p.entityName} useDelete={p.useDelete} id={id} />}
         </Page.Toolbar>
         <Page.Content>{data === undefined ? <Spinner /> : <p.EditionForm {...{ data, reload }} />}</Page.Content>

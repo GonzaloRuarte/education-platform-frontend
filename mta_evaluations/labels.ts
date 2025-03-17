@@ -27,6 +27,10 @@ const evaluationStatusCodeToLabels = (code: T_EvaluationStatusCode): string =>
 const questionLabels = {
   title: sharedLabels.title,
   content: sharedLabels.content,
+  create: 'Crear pregunta',
+  pageBreak: {
+    add: 'Agregar salto de página',
+  },
 }
 
 const multipleChoiceLabels = {
@@ -35,4 +39,8 @@ const multipleChoiceLabels = {
     content: sharedLabels.content,
   },
 }
-export { evaluationLabels, evaluationStatusCodeToLabels, multipleChoiceLabels, questionLabels }
+const numericLabels = {
+  value: 'Valor',
+}
+
+export { evaluationLabels, evaluationStatusCodeToLabels, multipleChoiceLabels, questionLabels, numericLabels }

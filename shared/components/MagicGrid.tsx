@@ -8,7 +8,7 @@ type T_MagicGridProps = GridProps & {
 
 const MagicGrid: React.FC<T_MagicGridProps> = ({ children, itemSize = 12, ...props }) => {
   return (
-    <Grid container spacing={2} {...props}>
+    <Grid container spacing={2} {...props} alignItems={'center'}>
       {React.Children.map(children, (child, index) => (
         <Grid size={itemSize} key={index}>
           {child}

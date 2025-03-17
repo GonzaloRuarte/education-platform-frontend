@@ -6,28 +6,28 @@ import {
   batchDeletionHook,
   creationHook,
   deletionHook,
-  detailHookV2,
+  detailHook,
   dynamicNavigationHook,
-  listHookV2,
+  listHook,
   navigationHook,
   navigationWithIdHook,
   updateHook,
 } from '@/shared/hooks'
-import { listService2 } from '@/shared/service'
+import { listService } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import { I_CreationCommonResponse } from '@/shared/types'
 
 // Data Service
 const EVALUATIONS_PATH = '/evaluations'
-const useEvaluationList = listHookV2<T_EvaluationList>(EVALUATIONS_PATH, axiosGet, useAuthResources)
+const useEvaluationList = listHook<T_EvaluationList>(EVALUATIONS_PATH, axiosGet, useAuthResources)
 const useEvaluationCreate = creationHook<I_EvaluationCreateRequestData, I_CreationCommonResponse>(EVALUATIONS_PATH, axiosPost, useAuthResources)
 const useEvaluationUpdate = updateHook<T_EvaluationId, I_EvaluationCreateRequestData, I_CreationCommonResponse>(EVALUATIONS_PATH, axiosPatch, useAuthResources)
 const useEvaluationDelete = deletionHook<T_EvaluationId>(EVALUATIONS_PATH, axiosDelete, useAuthResources)
 const useEvaluationBatchDelete = batchDeletionHook<T_EvaluationId>(EVALUATIONS_PATH, axiosDelete, useAuthResources)
-const useEvaluationDetail = detailHookV2<T_EvaluationId, I_EvaluationDetail>(EVALUATIONS_PATH, axiosGet, useAuthResources)
+const useEvaluationDetail = detailHook<T_EvaluationId, I_EvaluationDetail>(EVALUATIONS_PATH, axiosGet, useAuthResources)
 const useEvaluationSubjects = () => useStore((state) => state.subjects)
 const useRecoverAndStoreEvaluationSubjects = () => {
-  const recover = listService2<T_EvaluationSubjectList>('/evaluation-subjects', axiosGet)(useAuthResources())
+  const recover = listService<T_EvaluationSubjectList>('/evaluation-subjects', axiosGet)(useAuthResources())
   const store = useStore((state) => state.storeSubjects)
   return async () =>
     recover().then((res) => {

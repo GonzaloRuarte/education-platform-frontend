@@ -1,3 +1,5 @@
+import { answerTypesToUrlPaths } from '@/mta_evaluations/constants'
+
 type T_PageConfig = {
   path: string
   label: string
@@ -9,6 +11,8 @@ type T_PagesConfig = { [key: string]: T_PageConfig }
 // const pages: T_PagesConfig = {
 const evaluationsEditContentPath = '/dashboard/evaluaciones/{evaluationId:number}/editar-contenido'
 const questionEditPath = '/dashboard/evaluaciones/{evaluationId:number}/pregunta/{questionId:number}'
+const questionCreateMCPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.MultipleChoice}`
+const questionCreateNumericPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.Numeric}`
 const pages = {
   D: {
     path: '/dashboard',
@@ -48,6 +52,14 @@ const pages = {
                 path: questionEditPath,
                 label: 'Editar Pregunta',
               },
+              crearMultipleChoice: {
+                path: questionCreateMCPath,
+                label: 'Crear Multiple Choice',
+              },
+              crearNumerica: {
+                path: questionCreateNumericPath,
+                label: 'Crear Numérica',
+              },
             },
           },
           agregar: {
@@ -76,6 +88,6 @@ const pathWithId = (path: string, id: string | number) => {
   return `${path}/${id}`
 }
 
-export { pages, pathWithId, evaluationsEditContentPath, questionEditPath }
+export { pages, pathWithId, evaluationsEditContentPath, questionEditPath, questionCreateMCPath, questionCreateNumericPath }
 
 export default pages
