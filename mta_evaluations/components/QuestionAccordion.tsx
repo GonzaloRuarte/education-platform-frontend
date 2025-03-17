@@ -2,14 +2,7 @@ import AnswerTypeChip from '@/mta_evaluations/components/AnswerTypeChip'
 import MultipleChoiceOption from '@/mta_evaluations/components/MultipleChoiceOption'
 import { QUESTION_NAME } from '@/mta_evaluations/constants'
 import { useNavigateToQuestionEdit, useQuestionDelete, useQuestionMoveBackward, useQuestionMoveForward } from '@/mta_evaluations/hooks'
-import {
-  I_EvaluationDetail,
-  I_EvaluationDetail_MultipleChoiceAnswer,
-  I_EvaluationDetail_NumericAnswer,
-  T_AnswerType,
-  T_EvaluationId,
-  T_QuestionId,
-} from '@/mta_evaluations/types'
+import { I_EvaluationDetail, I_AnswerMultipleChoiceDetail, I_AnswerNumericDetail, T_AnswerType, T_EvaluationId, T_QuestionId } from '@/mta_evaluations/types'
 import Bold from '@/shared/components/Bold'
 import Button from '@/shared/components/Button'
 import Chip from '@/shared/components/Chip'
@@ -62,7 +55,7 @@ const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId; relo
   )
 }
 
-const MultipleChoiceAnswer: FC<{ data: I_EvaluationDetail_MultipleChoiceAnswer }> = ({ data }) => {
+const MultipleChoiceAnswer: FC<{ data: I_AnswerMultipleChoiceDetail }> = ({ data }) => {
   return (
     <React.Fragment>
       {data.options.map((option) => {
@@ -71,7 +64,7 @@ const MultipleChoiceAnswer: FC<{ data: I_EvaluationDetail_MultipleChoiceAnswer }
     </React.Fragment>
   )
 }
-const NumericAnswer: FC<{ data: I_EvaluationDetail_NumericAnswer }> = ({ data }) => {
+const NumericAnswer: FC<{ data: I_AnswerNumericDetail }> = ({ data }) => {
   return (
     <React.Fragment key={data.id}>
       <Body1>

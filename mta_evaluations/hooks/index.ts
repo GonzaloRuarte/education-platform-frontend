@@ -5,6 +5,8 @@ import {
   I_QuestionAddPageBreakRequestData,
   I_QuestionDetail,
   I_QuestionRemovePageBreakRequestData,
+  I_QuestionUpdateMultipleChoiceRequestData,
+  I_QuestionUpdateNumericRequestData,
   T_MultiplChoiceOptionId,
   T_QuestionId,
 } from '@/mta_evaluations/types'
@@ -18,7 +20,12 @@ import { I_CreationCommonResponse, T_EmptyPayload } from '@/shared/types'
 const QUESTIONS_PATH = '/questions'
 const useQuestionDetail = detailHook<T_QuestionId, I_QuestionDetail>(QUESTIONS_PATH, axiosGet, useAuthResources)
 const useQuestionDelete = deletionHook<T_QuestionId>(QUESTIONS_PATH, axiosDelete, useAuthResources)
-const useQuestionUpdate = updateHook<T_QuestionId, T_EmptyPayload>(QUESTIONS_PATH, axiosPatch, useAuthResources)
+const useQuestionMultipleChoiceUpdate = updateHook<T_QuestionId, I_QuestionUpdateMultipleChoiceRequestData>(QUESTIONS_PATH, axiosPatch, useAuthResources, {
+  pathSuffix: '/update-multiple-choice',
+})
+const useQuestionNumericUpdate = updateHook<T_QuestionId, I_QuestionUpdateNumericRequestData>(QUESTIONS_PATH, axiosPatch, useAuthResources, {
+  pathSuffix: '/update-numeric',
+})
 const useQuestionMoveBackward = updateHook<T_QuestionId, T_EmptyPayload>(`${QUESTIONS_PATH}`, axiosPatch, useAuthResources, { pathSuffix: '/move-backward' })
 const useQuestionMoveForward = updateHook<T_QuestionId, T_EmptyPayload>(`${QUESTIONS_PATH}`, axiosPatch, useAuthResources, { pathSuffix: '/move-forward' })
 const useAddPageBreak = actionHook<I_QuestionAddPageBreakRequestData, T_EmptyPayload>(`${QUESTIONS_PATH}/add-page-break`, axiosPost, useAuthResources)
@@ -51,6 +58,7 @@ export {
   useQuestionDetail,
   useQuestionMoveBackward,
   useQuestionMoveForward,
-  useQuestionUpdate,
+  useQuestionMultipleChoiceUpdate,
+  useQuestionNumericUpdate,
   useRemovePageBreak,
 }

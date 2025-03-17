@@ -1,7 +1,7 @@
 'use client'
 
 import { useMultipleChoiceOptionDelete, useMultipleChoiceOptionEditIsTrue } from '@/mta_evaluations/hooks'
-import { I_EvaluationDetail_MultipleChoiceAnswer, T_MultiplChoiceOptionId } from '@/mta_evaluations/types'
+import { I_AnswerMultipleChoiceDetail, T_MultiplChoiceOptionId } from '@/mta_evaluations/types'
 import Chip from '@/shared/components/Chip'
 import { T_ArrayElement, T_VoidFn } from '@/shared/types'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -10,7 +10,7 @@ import Grid from '@mui/material/Grid2'
 import parse from 'html-react-parser'
 import { FC, MouseEvent } from 'react'
 
-const MultipleChoiceOption: FC<{ data: T_ArrayElement<I_EvaluationDetail_MultipleChoiceAnswer['options']>; reload?: T_VoidFn; withDelete?: boolean }> = ({
+const MultipleChoiceOption: FC<{ data: T_ArrayElement<I_AnswerMultipleChoiceDetail['options']>; reload?: T_VoidFn; withDelete?: boolean }> = ({
   data,
   reload,
   withDelete = false,
