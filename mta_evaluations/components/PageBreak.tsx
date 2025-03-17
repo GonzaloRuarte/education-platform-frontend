@@ -11,8 +11,7 @@ import { FC } from 'react'
 const PageBreak: FC<{ afterQuestionId: number; reload: T_VoidFn }> = ({ afterQuestionId, reload }) => {
   const remove = useRemovePageBreak()
   const handleDelete = () => {
-    remove({ after_question_id: afterQuestionId })
-    reload()
+    remove({ after_question_id: afterQuestionId }).then(reload)
   }
   return (
     <>

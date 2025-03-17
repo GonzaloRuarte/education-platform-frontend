@@ -2,17 +2,17 @@
 
 import MultipleChoiceOption from '@/mta_evaluations/components/MultipleChoiceOption'
 import OptionCreateForm from '@/mta_evaluations/components/OptionCreateForm'
-import { useNavigateToEvaluationContentEdit, useNavigateToEvaluationDetail, useQuestionUpdate } from '@/mta_evaluations/hooks'
+import { useNavigateToEvaluationContentEdit, useQuestionUpdate } from '@/mta_evaluations/hooks'
 import { questionLabels } from '@/mta_evaluations/labels'
 import {
   I_EvaluationDetail_MultipleChoiceAnswer,
   I_EvaluationDetail_NumericAnswer,
   I_QuestionDetail,
-  I_QuestionUpdateRequestData,
+  I_QuestionUpdateMultipleChoiceRequestData,
   T_AnswerType,
-  T_EvaluationId,
 } from '@/mta_evaluations/types'
 import Bold from '@/shared/components/Bold'
+import Button from '@/shared/components/Button'
 import { AddButton } from '@/shared/components/buttons'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
@@ -31,7 +31,7 @@ import { Box } from '@mui/material'
 import { FC, Fragment } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
-interface I_FormFields extends I_QuestionUpdateRequestData {}
+interface I_FormFields extends I_QuestionUpdateMultipleChoiceRequestData {}
 
 const MultipleChoice: FC<{ data: I_EvaluationDetail_MultipleChoiceAnswer; reload: T_VoidFn }> = ({ data, reload }) => {
   const { DialogComponent, componentProps, showDialog, closeDialog } = useDialog()
@@ -69,13 +69,33 @@ const MultipleChoice: FC<{ data: I_EvaluationDetail_MultipleChoiceAnswer; reload
     </>
   )
 }
-const Numeric: FC<{ data: I_EvaluationDetail_NumericAnswer }> = ({ data }) => {
+
+const Numeric: FC<{ data: I_EvaluationDetail_NumericAnswer; reload: T_VoidFn }> = ({ data, reload }) => {
+  const { DialogComponent, componentProps, showDialog, closeDialog } = useDialog()
+  const handleEdit = () => {
+    showDialog({
+      title: 'Agregar Opción',
+      content: <OptionCreateForm multipleChoiceId={data.id} reload={handleReloadAfterCreate} />,
+      actions: [
+        {
+          buttonLabel: sharedLabels.cancel,
+          onPress: closeDialog,
+          key: 'close',
+        },
+      ],
+    })
+  }
   return (
-    <Fragment key={data.id}>
+    <>
       <Body1>
-        Respuesta: <Bold>{data.value}</Bold>
+        Respuesta: <Bold>{data.value}</Bold>{' '}
+        <Button size="small" variant="outlined">
+          Editar valor de respuesta
+        </Button>
       </Body1>
-    </Fragment>
+      <Spacer />
+      <DialogComponent {...componentProps} />
+    </>
   )
 }
 
@@ -118,6 +138,10 @@ const QuestionEditForm = ({ data, reload }: I_Props) => {
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
         <WysiwygEditor<I_FormFields> {...{ control }} label={questionLabels.content} rules={{ ...rules.required() }} name="content" />
+
+        {/* This is only for Numeric:
+        <Input<I_FormFields> {...{ control }} label={numericLabels.value} rules={{ ...rules.required() }} name="value" /> 
+        */}
       </MagicGrid>
       <Spacer />
 

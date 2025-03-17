@@ -29,10 +29,10 @@ const AddPageBreakForm: FC<{ close: T_VoidFn; reload: T_VoidFn; questions: I_Eva
           <Button
             key={question.id}
             onClick={() => {
-              add({ after_question_id: question.id })
-
-              close()
-              reload()
+              add({ after_question_id: question.id }).then(() => {
+                close()
+                reload()
+              })
             }}
           >
             {question.order + 1}

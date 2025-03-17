@@ -38,4 +38,8 @@ const multipleChoiceLabels = {
     content: sharedLabels.content,
   },
 }
-export { evaluationLabels, evaluationStatusCodeToLabels, multipleChoiceLabels, questionLabels }
+const numericLabels = {
+  value: 'Valor',
+}
+
+export { evaluationLabels, evaluationStatusCodeToLabels, multipleChoiceLabels, questionLabels, numericLabels }

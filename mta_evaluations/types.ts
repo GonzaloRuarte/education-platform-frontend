@@ -105,7 +105,7 @@ interface I_MultipleChoiceOptionEditIsTrueResponseData {
   content: string
 }
 
-interface I_QuestionUpdateRequestData {
+interface I_QuestionUpdateMultipleChoiceRequestData {
   content: string
 }
 interface I_QuestionAddPageBreakRequestData {
@@ -136,7 +136,7 @@ export type {
   I_MultipleChoiceOptionCreateRequestData,
   I_MultipleChoiceOptionEditIsTrueRequestData,
   I_MultipleChoiceOptionEditIsTrueResponseData,
-  I_QuestionUpdateRequestData,
+  I_QuestionUpdateMultipleChoiceRequestData,
   I_QuestionAddPageBreakRequestData,
   I_QuestionRemovePageBreakRequestData,
 }
