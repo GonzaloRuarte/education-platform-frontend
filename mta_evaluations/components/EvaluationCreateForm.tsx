@@ -1,10 +1,15 @@
 'use client'
 
 import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
-import { useEvaluationCreate, useNavigateToEvaluationContentEdit, useNavigateToEvaluationList } from '@/mta_evaluations/hooks'
+import {
+  useEvaluationCreate,
+  useNavigateToEvaluationContentEdit,
+  useNavigateToEvaluationList,
+} from '@/mta_evaluations/hooks'
 import { evaluationLabels } from '@/mta_evaluations/labels'
 import { EvaluationStatus, I_EvaluationCreateRequestData } from '@/mta_evaluations/types'
 import MagicGrid from '@/shared/components/MagicGrid'
+import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import Input from '@/shared/forms/Input'
 import { rules } from '@/shared/forms/messages'
@@ -48,11 +53,27 @@ const EvaluationCreateForm = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <Input<I_FormFields> {...{ control }} name="title" rules={{ ...rules.required() }} label={evaluationLabels.title} />
-        <Input<I_FormFields> {...{ control }} name="code" rules={{ ...rules.required() }} label={evaluationLabels.code} />
+        <Input<I_FormFields>
+          {...{ control }}
+          name="title"
+          rules={{ ...rules.required() }}
+          label={evaluationLabels.title}
+        />
+        <Input<I_FormFields>
+          {...{ control }}
+          name="code"
+          rules={{ ...rules.required() }}
+          label={evaluationLabels.code}
+        />
         <SubjectOptions<I_FormFields> {...{ control }} name="subject_id" />
-        <WysiwygEditor<I_FormFields> {...{ control }} label={evaluationLabels.header} rules={{ ...rules.required() }} name="header" />
+        <WysiwygEditor<I_FormFields>
+          {...{ control }}
+          label={evaluationLabels.header}
+          rules={{ ...rules.required() }}
+          name="header"
+        />
       </MagicGrid>
+      <Spacer />
 
       <Submit>Agregar</Submit>
     </form>
