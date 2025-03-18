@@ -1,11 +1,15 @@
 'use client'
 
-import katex from 'katex'
-import 'katex/dist/katex.min.css'
+import dynamic from 'next/dynamic'
 
-// @ts-expect-error
-window.katex = katex
-
-const LoadFormulasResources = () => <></>
+const LoadFormulasResources = dynamic(
+  async () => {
+    const { default: ClientLoadFormulasResources } = await import('./ClientLoader')
+    return () => <ClientLoadFormulasResources />
+  },
+  {
+    ssr: false,
+  },
+)
 
 export default LoadFormulasResources

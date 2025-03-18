@@ -47,7 +47,13 @@ export default function LoginForm() {
       <form onSubmit={handleSubmit(onSubmit)}>
         <MagicGrid>
           <Input<I_FormFields> control={control} name="username" rules={{ ...rules.required() }} label="Usuario" />
-          <Input<I_FormFields> control={control} type="password" name="password" rules={{ ...rules.required() }} label="Contraseña" />
+          <Input<I_FormFields>
+            control={control}
+            type="password"
+            name="password"
+            rules={{ ...rules.required() }}
+            label="Contraseña"
+          />
         </MagicGrid>
         <Spacer />
         <Submit>Ingresar</Submit>
