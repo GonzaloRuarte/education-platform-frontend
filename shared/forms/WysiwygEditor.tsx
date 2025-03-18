@@ -1,6 +1,7 @@
 import { FormControl, FormHelperText, FormLabel } from '@mui/material'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 import dynamic from 'next/dynamic'
+
 import 'react-quill-new/dist/quill.snow.css'
 import { ComponentProps } from 'react'
 
@@ -42,7 +43,7 @@ export default function WysiwygEditor<T_FormFields extends FieldValues>({
         modules={{
           toolbar: [
             ['bold', 'italic'],
-            ['link', 'blockquote', 'code-block', 'image'],
+            ['link', 'blockquote', 'code-block', 'image', 'formula'],
             [{ list: 'ordered' }, { list: 'bullet' }],
           ],
         }}
