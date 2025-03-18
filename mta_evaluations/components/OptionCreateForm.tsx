@@ -24,7 +24,10 @@ const defaultValues: I_FormFields = {
   content: '',
   is_true: false,
 }
-const OptionCreateForm: FC<{ multipleChoiceId: T_MultiplChoiceId; reload: T_VoidFn }> = ({ multipleChoiceId, reload }) => {
+const OptionCreateForm: FC<{ multipleChoiceId: T_MultiplChoiceId; reload: T_VoidFn }> = ({
+  multipleChoiceId,
+  reload,
+}) => {
   const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
 
   const { setIsInProgress } = useInProgress()
@@ -34,7 +37,7 @@ const OptionCreateForm: FC<{ multipleChoiceId: T_MultiplChoiceId; reload: T_Void
     setIsInProgress(true)
     create({ multiple_choice_id: multipleChoiceId, ...data })
       .then((res) => {
-        log.info('New Ooption added:', res)
+        log.info('New Option added:', res)
         successToast('Opción agregada correctamente')
       })
       .catch(handleServiceError)
@@ -46,8 +49,18 @@ const OptionCreateForm: FC<{ multipleChoiceId: T_MultiplChoiceId; reload: T_Void
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <Input<I_FormFields> {...{ control }} name="name" rules={{ ...rules.required() }} label={multipleChoiceLabels.option.name} />
-        <WysiwygEditor<I_FormFields> {...{ control }} label={multipleChoiceLabels.option.content} rules={{ ...rules.required() }} name="content" />
+        <Input<I_FormFields>
+          {...{ control }}
+          name="name"
+          rules={{ ...rules.required() }}
+          label={multipleChoiceLabels.option.name}
+        />
+        <WysiwygEditor<I_FormFields>
+          {...{ control }}
+          label={multipleChoiceLabels.option.content}
+          rules={{ ...rules.required() }}
+          name="content"
+        />
       </MagicGrid>
       <Spacer />
 

@@ -4,7 +4,11 @@ import MultipleChoiceOption from '@/mta_evaluations/components/MultipleChoiceOpt
 import OptionCreateForm from '@/mta_evaluations/components/OptionCreateForm'
 import { useNavigateToEvaluationContentEdit, useQuestionMultipleChoiceUpdate } from '@/mta_evaluations/hooks'
 import { questionLabels } from '@/mta_evaluations/labels'
-import { I_AnswerMultipleChoiceDetail, I_QuestionUpdateMultipleChoiceRequestData, T_QuestionForm } from '@/mta_evaluations/types'
+import {
+  I_AnswerMultipleChoiceDetail,
+  I_QuestionUpdateMultipleChoiceRequestData,
+  T_QuestionForm,
+} from '@/mta_evaluations/types'
 import { AddButton } from '@/shared/components/buttons'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
@@ -89,20 +93,21 @@ const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({ 
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form>
       <MagicGrid>
-        <WysiwygEditor<I_FormFields> {...{ control }} label={questionLabels.content} rules={{ ...rules.required() }} name="content" />
-
-        {/* This is only for Numeric:
-    <Input<I_FormFields> {...{ control }} label={numericLabels.value} rules={{ ...rules.required() }} name="value" /> 
-    */}
+        <WysiwygEditor<I_FormFields>
+          {...{ control }}
+          label={questionLabels.content}
+          rules={{ ...rules.required() }}
+          name="content"
+        />
       </MagicGrid>
       <Spacer />
 
       <Options data={data.answer} reload={reload} />
       <Spacer />
 
-      <Submit>{sharedLabels.update}</Submit>
+      <Submit onClick={handleSubmit(onSubmit)}>{sharedLabels.update}</Submit>
     </form>
   )
 }

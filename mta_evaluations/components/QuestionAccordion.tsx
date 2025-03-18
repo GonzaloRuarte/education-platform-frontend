@@ -1,8 +1,20 @@
 import AnswerTypeChip from '@/mta_evaluations/components/AnswerTypeChip'
 import MultipleChoiceOption from '@/mta_evaluations/components/MultipleChoiceOption'
 import { QUESTION_NAME } from '@/mta_evaluations/constants'
-import { useNavigateToQuestionEdit, useQuestionDelete, useQuestionMoveBackward, useQuestionMoveForward } from '@/mta_evaluations/hooks'
-import { I_EvaluationDetail, I_AnswerMultipleChoiceDetail, I_AnswerNumericDetail, T_AnswerType, T_EvaluationId, T_QuestionId } from '@/mta_evaluations/types'
+import {
+  useNavigateToQuestionEdit,
+  useQuestionDelete,
+  useQuestionMoveBackward,
+  useQuestionMoveForward,
+} from '@/mta_evaluations/hooks'
+import {
+  I_EvaluationDetail,
+  I_AnswerMultipleChoiceDetail,
+  I_AnswerNumericDetail,
+  T_AnswerType,
+  T_EvaluationId,
+  T_QuestionId,
+} from '@/mta_evaluations/types'
 import Bold from '@/shared/components/Bold'
 import Button from '@/shared/components/Button'
 import Chip from '@/shared/components/Chip'
@@ -20,7 +32,11 @@ import { Accordion, AccordionDetails, AccordionSummary, Box, Grid2 as Grid } fro
 import parse from 'html-react-parser'
 import React, { FC } from 'react'
 
-const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId; reload: T_VoidFn }> = ({ questionId, evaluationId, reload }) => {
+const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId; reload: T_VoidFn }> = ({
+  questionId,
+  evaluationId,
+  reload,
+}) => {
   const navigateToEdit = useNavigateToQuestionEdit()
   const mBackward = useQuestionMoveBackward()
   const mForward = useQuestionMoveForward()
@@ -46,7 +62,12 @@ const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId; relo
           <Button onClick={handleMoveForward} startIcon={<DownloadIcon />}>
             {sharedLabels.moveDown}
           </Button>
-          <DeleteInstanceButton callback={reload} entityName={QUESTION_NAME} useDelete={useQuestionDelete} id={questionId} />
+          <DeleteInstanceButton
+            callback={reload}
+            entityName={QUESTION_NAME}
+            useDelete={useQuestionDelete}
+            id={questionId}
+          />
         </MagicGrid>
       </Grid>
     </>
@@ -90,15 +111,22 @@ const QuestionAccordion: FC<{
   const AnswerComponent = answersComponents[question.answer.resource_type]
 
   return (
-    <Accordion style={{ margin: '.5em 0' }} slotProps={{ transition: { unmountOnExit: true } }} expanded={isExpanded} onChange={handleChange(question.id)}>
+    <Accordion
+      style={{ margin: '.5em 0' }}
+      slotProps={{ transition: { unmountOnExit: true } }}
+      expanded={isExpanded}
+      onChange={handleChange(question.id)}
+    >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Body1 component="span" sx={{ width: '33%', flexShrink: 0 }}>
-          Pregunta #{question.order + 1} {question.is_mandatory && <Chip variant="outlined" size="small" label="Obligatoria" />}
+          Pregunta #{question.order + 1}{' '}
+          {question.is_mandatory && <Chip variant="outlined" size="small" label="Obligatoria" />}
         </Body1>
         {!isExpanded && (
           <>
             <Body2 component="span" sx={{ color: 'text.secondary' }}>
-              <AnswerTypeChip type={question.answer.resource_type} /> {truncateString(strippedString(question.content), 40)}
+              <AnswerTypeChip type={question.answer.resource_type} />{' '}
+              {truncateString(strippedString(question.content), 40)}
             </Body2>
           </>
         )}

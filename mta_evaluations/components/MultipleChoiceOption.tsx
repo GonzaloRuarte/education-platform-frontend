@@ -8,13 +8,13 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import { Checkbox, IconButton } from '@mui/material'
 import Grid from '@mui/material/Grid2'
 import parse from 'html-react-parser'
-import { FC, MouseEvent } from 'react'
+import { FC } from 'react'
 
-const MultipleChoiceOption: FC<{ data: T_ArrayElement<I_AnswerMultipleChoiceDetail['options']>; reload?: T_VoidFn; withDelete?: boolean }> = ({
-  data,
-  reload,
-  withDelete = false,
-}) => {
+const MultipleChoiceOption: FC<{
+  data: T_ArrayElement<I_AnswerMultipleChoiceDetail['options']>
+  reload?: T_VoidFn
+  withDelete?: boolean
+}> = ({ data, reload, withDelete = false }) => {
   const { content, id, is_true, name } = data
   const deleteInstance = useMultipleChoiceOptionDelete()
   const handleDelete = (id: T_MultiplChoiceOptionId) => {
@@ -29,24 +29,26 @@ const MultipleChoiceOption: FC<{ data: T_ArrayElement<I_AnswerMultipleChoiceDeta
   }
 
   return (
-    <Grid spacing={1} key={id} component="div" container justifyContent="center" alignItems="center">
-      <Grid>
-        <Checkbox checked={is_true} onChange={handleChangeIsTrue} />
-      </Grid>
-      <Grid size="auto">
-        <Chip label={name} />
-      </Grid>
-      <Grid size="grow">{parse(content)}</Grid>
-      {withDelete && (
-        <Grid size={1} container>
-          <Grid>
-            <IconButton onClick={() => handleDelete(id)}>
-              <DeleteIcon />
-            </IconButton>
-          </Grid>
+    <div suppressContentEditableWarning={true}>
+      <Grid spacing={1} key={id} component="div" container justifyContent="center" alignItems="center">
+        <Grid>
+          <Checkbox checked={is_true} onChange={handleChangeIsTrue} />
         </Grid>
-      )}
-    </Grid>
+        <Grid size="auto">
+          <Chip label={name} />
+        </Grid>
+        <Grid size="grow">{parse(content)}</Grid>
+        {withDelete && (
+          <Grid size={1} container>
+            <Grid>
+              <IconButton onClick={() => handleDelete(id)}>
+                <DeleteIcon />
+              </IconButton>
+            </Grid>
+          </Grid>
+        )}
+      </Grid>
+    </div>
   )
 }
 export default MultipleChoiceOption
