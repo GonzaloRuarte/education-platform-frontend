@@ -35,6 +35,12 @@ const pages = {
       turnos: {
         path: '/dashboard/turnos',
         label: 'Turnos',
+        _: {
+          agregar: {
+            path: '/dashboard/turnos/agregar',
+            label: 'Agregar turno',
+          },
+        },
       },
       evaluaciones: {
         path: '/dashboard/evaluaciones',
@@ -88,6 +94,13 @@ const pathWithId = (path: string, id: string | number) => {
   return `${path}/${id}`
 }
 
-export { pages, pathWithId, evaluationsEditContentPath, questionEditPath, questionCreateMCPath, questionCreateNumericPath }
+export {
+  pages,
+  pathWithId,
+  evaluationsEditContentPath,
+  questionEditPath,
+  questionCreateMCPath,
+  questionCreateNumericPath,
+}
 
 export default pages
