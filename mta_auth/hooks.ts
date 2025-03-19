@@ -3,6 +3,7 @@ import {
   I_AuthData,
   I_AuthorizeRequestData,
   I_AuthorizeResponseData,
+  I_AuthorizeStudentRequestData,
   I_AuthResources,
   T_AllowedAccessGroups,
 } from '@/mta_auth/types'
@@ -84,6 +85,10 @@ const useAuthorize = () => {
   return postService<I_AuthorizeRequestData, I_AuthorizeResponseData>('/token', axiosPost)()
 }
 
+const useAuthorizeStudent = () => {
+  return postService<I_AuthorizeStudentRequestData, I_AuthorizeResponseData>('/token', axiosPost)()
+}
+
 const useNavigateToLogin = navigationHook(pages.D._.login.path)
 
 export {
@@ -96,4 +101,5 @@ export {
   useNavigateToLogin,
   useStoreAuthData,
   useUserAccessGroups,
+  useAuthorizeStudent,
 }

@@ -4,7 +4,7 @@ const appointmentStatusCodeToColors: Record<
   T_AppointmentStatus,
   'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'
 > = {
-  F: 'default',
+  F: 'info',
   P: 'warning',
   A: 'success',
   R: 'error',

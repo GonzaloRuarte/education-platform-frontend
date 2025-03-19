@@ -1,30 +1,28 @@
 'use client'
 
-import { useAuthorize, useStoreAuthData } from '@/mta_auth/hooks'
-import Input from '@/shared/forms/Input'
+import { useAuthorizeStudent, useStoreAuthData } from '@/mta_auth/hooks'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
+import Input from '@/shared/forms/Input'
 import { rules } from '@/shared/forms/messages'
 import { useInProgress, useNavigateToHome } from '@/shared/hooks'
 
+import { T_StudentProfilePersonalId } from '@/mta_schools/types'
+import Spacer from '@/shared/components/Spacer'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
-import Spacer from '@/shared/components/Spacer'
 
 interface I_FormFields {
-  username: string
-  password: string
-}
-const defaultValues: I_FormFields = {
-  username: '',
-  password: '',
+  personal_id: T_StudentProfilePersonalId
 }
 
-export default function LoginForm() {
-  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
+export default function StudentsLoginForm() {
+  const { handleSubmit, control } = useForm<I_FormFields>({
+    defaultValues: { personal_id: undefined },
+  })
   const navigateToHome = useNavigateToHome()
-  const authorize = useAuthorize()
+  const authorize = useAuthorizeStudent()
   const storeAuthData = useStoreAuthData()
 
   const { setIsInProgress } = useInProgress()
@@ -32,7 +30,7 @@ export default function LoginForm() {
     setIsInProgress(true)
     authorize(data)
       .then((res) => {
-        successToast('¡Sesión iniciada correctamente, bienvenido/a!')
+        successToast('¡Pudiste ingresar correctamente, bienvenido/a. ¡Suerte en tu Evaluación!')
         storeAuthData({ accessToken: res.access, refreshToken: res.refresh, accessGroups: ['admin'] })
         navigateToHome()
       })
@@ -46,17 +44,16 @@ export default function LoginForm() {
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
         <MagicGrid>
-          <Input<I_FormFields> control={control} name="username" rules={{ ...rules.required() }} label="Usuario" />
           <Input<I_FormFields>
             control={control}
-            type="password"
-            name="password"
+            name="personal_id"
+            type="number"
             rules={{ ...rules.required() }}
-            label="Contraseña"
+            label="DNI"
           />
         </MagicGrid>
         <Spacer />
-        <Submit>Ingresar</Submit>
+        <Submit>Comenzar</Submit>
       </form>
     </>
   )

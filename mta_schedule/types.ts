@@ -1,5 +1,5 @@
 import { T_EvaluationId } from '@/mta_evaluations/types'
-import { T_SchoolId } from '@/mta_schools/types'
+import { T_SchoolId, T_StudentProfileId, T_StudentProfilePersonalId } from '@/mta_schools/types'
 import { I_PaginatedResponse } from '@/shared/data/types'
 
 type T_AppointmentId = number
@@ -18,6 +18,11 @@ interface I_AppointmentDetail {
     title: string
   }
   status: T_AppointmentStatus
+  students: Array<{
+    id: T_StudentProfileId
+    personal_id: T_StudentProfilePersonalId
+    cohort: string
+  }>
 }
 interface I_AppointmentListItem {
   id: T_AppointmentId

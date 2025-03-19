@@ -1,3 +1,4 @@
+import { T_StudentProfilePersonalId } from '@/mta_schools/types'
 import { T_Fatal401Handler, T_TokenRefresher } from '@/shared/data/types'
 
 type T_AccessGroup = 'admin' | 'school_staff' | 'evaluator' | 'student'
@@ -18,6 +19,9 @@ interface I_AuthorizeRequestData {
   username: string
   password: string
 }
+interface I_AuthorizeStudentRequestData {
+  personal_id: T_StudentProfilePersonalId
+}
 
 interface I_AuthorizeResponseData {
   access: string
@@ -31,4 +35,5 @@ export type {
   I_AuthResources,
   I_AuthorizeRequestData,
   I_AuthorizeResponseData,
+  I_AuthorizeStudentRequestData,
 }

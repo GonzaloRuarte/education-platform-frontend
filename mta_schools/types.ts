@@ -2,6 +2,8 @@ import { T_UserId } from '@/mta_users/types'
 import { I_PaginatedResponse } from '@/shared/data/types'
 
 type T_SchoolId = number
+type T_StudentProfileId = number
+type T_StudentProfilePersonalId = number
 
 interface I_SchoolListItem {
   id: T_SchoolId
@@ -36,7 +38,7 @@ interface I_SchoolUpdateRequestData {
 }
 
 interface I_StudentProfileListItem {
-  id: number
+  id: T_StudentProfileId
   cohort: {
     id: number
     name: string
@@ -44,13 +46,15 @@ interface I_StudentProfileListItem {
   created_at: string
   updated_at: string
   school: string
-  personal_id: number
+  personal_id: T_StudentProfileId
 }
 
 type T_StudentProfileList = I_PaginatedResponse<I_StudentProfileListItem>
 
 export type {
   T_SchoolId,
+  T_StudentProfileId,
+  T_StudentProfilePersonalId,
   I_SchoolDetail,
   I_SchoolListItem,
   I_StudentProfileListItem,

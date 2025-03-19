@@ -29,7 +29,7 @@ const columns: Array<GridColDef> = [
   {
     field: 'status',
     headerName: 'Estado',
-    // flex: 1.5,
+    flex: 0.7,
     renderCell: ({ value }) => <AppointmentStatusChip status={value} size="small" />,
   },
   {
