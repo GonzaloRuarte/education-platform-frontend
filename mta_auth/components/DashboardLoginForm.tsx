@@ -5,7 +5,7 @@ import Input from '@/shared/forms/Input'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
 import { rules } from '@/shared/forms/messages'
-import { useInProgress, useNavigateToHome } from '@/shared/hooks'
+import { useInProgress, useNavigateToDashboardHome } from '@/shared/hooks'
 
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
@@ -23,7 +23,7 @@ const defaultValues: I_FormFields = {
 
 export default function DashboardLoginForm() {
   const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
-  const navigateToHome = useNavigateToHome()
+  const navigateToHome = useNavigateToDashboardHome()
   const authorize = useAuthorize()
   const storeAuthData = useStoreAuthData()
 

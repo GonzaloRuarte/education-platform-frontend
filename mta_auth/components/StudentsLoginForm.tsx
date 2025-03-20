@@ -5,13 +5,14 @@ import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
 import Input from '@/shared/forms/Input'
 import { rules } from '@/shared/forms/messages'
-import { useInProgress, useNavigateToHome } from '@/shared/hooks'
+import { useInProgress } from '@/shared/hooks'
 
 import { T_StudentProfilePersonalId } from '@/mta_schools/types'
 import Spacer from '@/shared/components/Spacer'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import { useNavigateToResolutionPage } from '@/mta_resolutions/hooks'
 
 interface I_FormFields {
   personal_id: T_StudentProfilePersonalId
@@ -21,7 +22,7 @@ export default function StudentsLoginForm() {
   const { handleSubmit, control } = useForm<I_FormFields>({
     defaultValues: { personal_id: undefined },
   })
-  const navigateToHome = useNavigateToHome()
+  const navigateToBeginResolution = useNavigateToResolutionPage()
   const authorize = useAuthorizeStudent()
   const storeAuthData = useStoreAuthData()
 
@@ -32,7 +33,7 @@ export default function StudentsLoginForm() {
       .then((res) => {
         successToast('¡Pudiste ingresar correctamente, bienvenido/a. ¡Suerte en tu Evaluación!')
         storeAuthData({ accessToken: res.access, refreshToken: res.refresh, accessGroups: ['admin'] })
-        navigateToHome()
+        navigateToBeginResolution()
       })
       .catch(handleServiceError)
       .finally(() => {

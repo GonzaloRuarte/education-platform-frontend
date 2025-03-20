@@ -20,7 +20,9 @@ const navigationWithIdHook = (path: string) => {
     }
   }
 }
-type T_ExtractPathParams<T extends string> = T extends `${infer _Start}{${infer Param}:${infer _Type}}${infer Rest}` ? Param | T_ExtractPathParams<Rest> : never
+type T_ExtractPathParams<T extends string> = T extends `${infer _Start}{${infer Param}:${infer _Type}}${infer Rest}`
+  ? Param | T_ExtractPathParams<Rest>
+  : never
 const dynamicNavigationHook = <T extends string>(path: T) => {
   return () => {
     const router = useRouter()
@@ -32,6 +34,6 @@ const dynamicNavigationHook = <T extends string>(path: T) => {
   }
 }
 
-const useNavigateToHome = navigationHook(pages.D.path)
+const useNavigateToDashboardHome = navigationHook(pages.D.path)
 
-export { dynamicNavigationHook, navigationHook, navigationWithIdHook, useNavigateToHome }
+export { dynamicNavigationHook, navigationHook, navigationWithIdHook, useNavigateToDashboardHome }

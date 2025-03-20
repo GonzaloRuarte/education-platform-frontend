@@ -86,7 +86,10 @@ const useAuthorize = () => {
 }
 
 const useAuthorizeStudent = () => {
-  return postService<I_AuthorizeStudentRequestData, I_AuthorizeResponseData>('/token', axiosPost)()
+  return postService<I_AuthorizeStudentRequestData, I_AuthorizeResponseData>(
+    '/student-profile/authorize-for-resolution',
+    axiosPost,
+  )()
 }
 
 const useNavigateToLogin = navigationHook(pages.D._.login.path)

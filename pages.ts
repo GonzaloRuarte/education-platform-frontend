@@ -14,6 +14,16 @@ const questionEditPath = '/dashboard/evaluaciones/{evaluationId:number}/pregunta
 const questionCreateMCPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.MultipleChoice}`
 const questionCreateNumericPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.Numeric}`
 const pages = {
+  R: {
+    path: '/',
+    label: 'Bienvenida',
+    _: {
+      resolverEvaluacion: {
+        path: '/resolver-evaluacion',
+        label: 'Resolver Evaluación',
+      },
+    },
+  },
   D: {
     path: '/dashboard',
     label: 'Dashboard',
