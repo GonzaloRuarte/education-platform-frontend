@@ -20,7 +20,7 @@ interface I_FormFields {
 
 export default function StudentsLoginForm() {
   const { handleSubmit, control } = useForm<I_FormFields>({
-    defaultValues: { personal_id: undefined },
+    defaultValues: { personal_id: 44432525 },
   })
   const navigateToBeginResolution = useNavigateToResolutionPage()
   const authorize = useAuthorizeStudent()
