@@ -42,6 +42,13 @@ const useResolutionResume = () => {
 }
 
 const useResolutionEvaluationToResolve = () => useStore((state) => state.evaluationToResolve)
+const useResolutionPagination = () => {
+  return {
+    currentPage: useStore((state) => state.resolutionCurrentPage),
+    pagesQuantity: useStore((state) => state.evaluationToResolve?.evaluation_data.pages.length),
+    storeNewPage: useStore((state) => state.storeResolutionCurrentPage),
+  }
+}
 
 const useResolutionExit = () => {
   const logOut = useLogout(pages.R._.login.path)
@@ -53,4 +60,10 @@ const useResolutionExit = () => {
   }
 }
 
-export { useNavigateToResolutionPage, useResolutionResume, useResolutionEvaluationToResolve, useResolutionExit }
+export {
+  useNavigateToResolutionPage,
+  useResolutionResume,
+  useResolutionEvaluationToResolve,
+  useResolutionExit,
+  useResolutionPagination,
+}
