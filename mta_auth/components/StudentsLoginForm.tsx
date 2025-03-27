@@ -3,7 +3,7 @@
 import { useAuthorizeStudent, useStoreAuthData } from '@/mta_auth/hooks'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
-import Input from '@/shared/forms/Input'
+import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
 import { useInProgress } from '@/shared/hooks'
 
@@ -45,7 +45,7 @@ export default function StudentsLoginForm() {
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
         <MagicGrid>
-          <Input<I_FormFields>
+          <InputControlled<I_FormFields>
             control={control}
             name="personal_id"
             type="number"

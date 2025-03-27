@@ -1,7 +1,7 @@
 'use client'
 
 import { useAuthorize, useStoreAuthData } from '@/mta_auth/hooks'
-import Input from '@/shared/forms/Input'
+import InputControlled from '@/shared/forms/InputControlled'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
 import { rules } from '@/shared/forms/messages'
@@ -46,8 +46,13 @@ export default function DashboardLoginForm() {
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
         <MagicGrid>
-          <Input<I_FormFields> control={control} name="username" rules={{ ...rules.required() }} label="Usuario" />
-          <Input<I_FormFields>
+          <InputControlled<I_FormFields>
+            control={control}
+            name="username"
+            rules={{ ...rules.required() }}
+            label="Usuario"
+          />
+          <InputControlled<I_FormFields>
             control={control}
             type="password"
             name="password"
