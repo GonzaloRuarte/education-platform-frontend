@@ -4,11 +4,13 @@ import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 
 type T_OmittedFields = 'value' | 'onChange' | 'onBlur' | 'name' | 'ref' | 'defaultValue'
 
-interface I_ToggleProps<T_FormFields extends FieldValues> extends UseControllerProps<T_FormFields>, Omit<React.ComponentProps<typeof Switch>, T_OmittedFields> {
+interface I_ToggleProps<T_FormFields extends FieldValues>
+  extends UseControllerProps<T_FormFields>,
+    Omit<React.ComponentProps<typeof Switch>, T_OmittedFields> {
   label: string
 }
 
-export default function Toggle<T_FormFields extends FieldValues>({
+export default function ToggleControlled<T_FormFields extends FieldValues>({
   name,
   rules,
   shouldUnregister,

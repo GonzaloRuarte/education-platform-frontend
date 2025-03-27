@@ -17,12 +17,14 @@ interface I_Option {
   value: string | number
 }
 
-interface I_Props<T_FormFields extends FieldValues> extends UseControllerProps<T_FormFields>, Omit<MuiRadioGroupProps, T_OmittedFields> {
+interface I_Props<T_FormFields extends FieldValues>
+  extends UseControllerProps<T_FormFields>,
+    Omit<MuiRadioGroupProps, T_OmittedFields> {
   options: I_Option[]
   label: string
 }
 
-export default function RadioGroup<T_FormFields extends FieldValues>({
+export default function RadioGroupControlled<T_FormFields extends FieldValues>({
   name,
   rules,
   shouldUnregister,
