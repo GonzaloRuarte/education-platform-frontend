@@ -45,7 +45,7 @@ const MultipleChoiceForm: FC<{ data: T_EvaluationToResolve_MultipleChoiceAnswer;
 }) => {
   const resolutionState = useResolutionState()
   const { updateMultipleChoice } = useResolutionStateUpdateAnswer()
-  const specific_data = { ...resolutionState?.answers[questionId]?.specific_data } as
+  const specific_data = resolutionState?.answers[questionId]?.specific_data as
     | T_ResolutionState_MultipleChoiceAnswerData['specific_data']
     | undefined
   const handleCbChange = (name: string, checked: boolean) => {
@@ -62,46 +62,46 @@ const MultipleChoiceForm: FC<{ data: T_EvaluationToResolve_MultipleChoiceAnswer;
     }
     updateMultipleChoice(questionId, data.id, checked ? checkedOption() : uncheckedOption())
   }
-  const handleRadioChange = (name: string, checked: boolean) => {}
-  const Group = data.specific_data.is_multiselect ? FormGroup : RadioGroup
+  const handleRadioChange = (name: string, _: boolean) => {
+    updateMultipleChoice(questionId, data.id, [name])
+  }
+
   return (
-    <FormControl component="fieldset">
-      <Group>
-        {data.specific_data.options.map((option) => {
-          return (
-            <Fragment key={`answer_${data.id}-option_${option.id}`}>
-              <FormControlLabel
-                value={option.content}
-                control={
-                  data.specific_data.is_multiselect ? (
-                    <Checkbox
-                      onChange={(_, checked) => {
-                        handleCbChange(option.name, checked)
-                      }}
-                      checked={specific_data?.choosed_options?.includes(option.name)}
-                    />
-                  ) : (
-                    <Radio
-                      onChange={(_, checked) => {
-                        handleRadioChange(option.name, checked)
-                      }}
-                      checked={specific_data?.choosed_options?.includes(option.name)}
-                    />
-                  )
-                }
-                label={
-                  <Grid spacing={2} component="div" container justifyContent="center" alignItems="center">
-                    <Grid>
-                      <Chip label={option.name} />
-                    </Grid>
-                    <Grid>{option.content}</Grid>
+    <FormControl>
+      {data.specific_data.options.map((option) => {
+        return (
+          <Fragment key={`answer_${data.id}-option_${option.id}`}>
+            <FormControlLabel
+              value={option.content}
+              control={
+                data.specific_data.is_multiselect ? (
+                  <Checkbox
+                    onChange={(_, checked) => {
+                      handleCbChange(option.name, checked)
+                    }}
+                    checked={specific_data?.choosed_options?.includes(option.name) || false}
+                  />
+                ) : (
+                  <Radio
+                    onChange={(_, checked) => {
+                      handleRadioChange(option.name, checked)
+                    }}
+                    checked={specific_data?.choosed_options?.includes(option.name) || false}
+                  />
+                )
+              }
+              label={
+                <Grid spacing={2} component="div" container justifyContent="center" alignItems="center">
+                  <Grid>
+                    <Chip label={option.name} />
                   </Grid>
-                }
-              />
-            </Fragment>
-          )
-        })}
-      </Group>
+                  <Grid>{option.content}</Grid>
+                </Grid>
+              }
+            />
+          </Fragment>
+        )
+      })}
     </FormControl>
   )
 }
