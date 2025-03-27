@@ -1,5 +1,10 @@
 import { useAuthResources, useLogout } from '@/mta_auth/hooks'
-import { I_EvaluationToResolve } from '@/mta_resolutions/types'
+import { T_AnswerId, T_AnswerType, T_QuestionId } from '@/mta_evaluations/types'
+import {
+  I_ResumeResolutionResponse,
+  T_ResolutionState_MultipleChoiceAnswerData,
+  T_ResolutionState_NumericAnswerData,
+} from '@/mta_resolutions/types'
 import pages from '@/pages'
 import { axiosPost } from '@/shared/data/axios'
 import { actionHook, navigationHook, useInProgress } from '@/shared/hooks'
@@ -13,7 +18,7 @@ const useNavigateToResolutionPage = navigationHook(pages.R._.resolverEvaluacion.
 // Data Service
 const RESOLUTIONS_PATH = '/resolutions'
 
-const _useRequestResume = actionHook<T_EmptyPayload, I_EvaluationToResolve>(
+const _useRequestResume = actionHook<T_EmptyPayload, I_ResumeResolutionResponse>(
   `${RESOLUTIONS_PATH}/resume`,
   axiosPost,
   useAuthResources,
@@ -26,13 +31,22 @@ const _useStoreEvaluationToResolve = () => {
 const useResolutionResume = () => {
   const requestResume = _useRequestResume()
   const storeEvaluationToResolve = _useStoreEvaluationToResolve()
+  const storeResolutionState = useStore((state) => state.storeResolutionState)
   const { setIsNotInProgress, setIsInProgress } = useInProgress()
   const { errorToast } = useToasts()
 
   const resume = () => {
     setIsInProgress()
     requestResume({})
-      .then(storeEvaluationToResolve)
+      .then((data) => {
+        storeEvaluationToResolve(data)
+        storeResolutionState({
+          student_pesonal_id: data.student_personal_id,
+          appointment_id: data.appointment_id,
+          last_login_datetime: new Date().toISOString(),
+          answers: {},
+        })
+      })
       .catch((err) => {
         errorToast('Hubo un error iniciando la evaluación. ')
       })
@@ -42,10 +56,50 @@ const useResolutionResume = () => {
 }
 
 const useResolutionEvaluationToResolve = () => useStore((state) => state.evaluationToResolve)
+const useResolutionState = () => useStore((state) => state.resolutionState)
+const useResolutionStateUpdateAnswer = () => {
+  const resolutionState = useResolutionState()
+  const storeResolutionState = useStore((state) => state.storeResolutionState)
+  if (resolutionState === undefined) throw new Error('Resolution local state not initialized')
+
+  const updaters: Record<T_AnswerType, (...args: any) => void> = {
+    Numeric: (questionId: T_QuestionId, answerId: T_AnswerId, value: number) => {
+      const answerData: T_ResolutionState_NumericAnswerData = {
+        id: answerId,
+        last_update_datetime: new Date().toISOString(),
+        resource_type: 'Numeric',
+        specific_data: { value },
+      }
+      storeResolutionState({
+        ...resolutionState,
+        answers: {
+          ...resolutionState.answers,
+          [questionId]: answerData,
+        },
+      })
+    },
+    MultipleChoice: (questionId: T_QuestionId, answerId: T_AnswerId, choosed_options: Array<string>) => {
+      const answerData: T_ResolutionState_MultipleChoiceAnswerData = {
+        id: answerId,
+        last_update_datetime: new Date().toISOString(),
+        resource_type: 'MultipleChoice',
+        specific_data: { choosed_options },
+      }
+      storeResolutionState({
+        ...resolutionState,
+        answers: {
+          ...resolutionState.answers,
+          [questionId]: answerData,
+        },
+      })
+    },
+  }
+  return { updateMultipleChoice: updaters.MultipleChoice, updateNumeric: updaters.Numeric }
+}
 const useResolutionPagination = () => {
   return {
     currentPage: useStore((state) => state.resolutionCurrentPage),
-    pagesQuantity: useStore((state) => state.evaluationToResolve?.evaluation_data.pages.length),
+    pagesQuantity: useStore((state) => state.evaluationToResolve?.pages_quantity),
     storeNewPage: useStore((state) => state.storeResolutionCurrentPage),
   }
 }
@@ -66,4 +120,6 @@ export {
   useResolutionEvaluationToResolve,
   useResolutionExit,
   useResolutionPagination,
+  useResolutionState,
+  useResolutionStateUpdateAnswer,
 }

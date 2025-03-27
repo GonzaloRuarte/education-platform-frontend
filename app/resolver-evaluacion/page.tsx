@@ -1,1 +1,1 @@
-export { default } from '@/mta_resolutions/pages/ResolveEvaluation'
+export { default } from '@/mta_resolutions/pages/ResolveEvaluationPage'

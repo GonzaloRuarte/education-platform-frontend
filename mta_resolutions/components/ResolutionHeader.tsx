@@ -1,10 +1,10 @@
-import { I_EvaluationToResolve } from '@/mta_resolutions/types'
+import { I_ResumeResolutionResponse } from '@/mta_resolutions/types'
 import Spacer from '@/shared/components/Spacer'
 import { Body1, H3 } from '@/shared/components/Typography'
 import { HorizontalRule } from '@mui/icons-material'
 import { FC } from 'react'
 
-const ResolutionHeader: FC<{ evaluationToResolve: I_EvaluationToResolve }> = ({ evaluationToResolve }) => {
+const ResolutionHeader: FC<{ evaluationToResolve: I_ResumeResolutionResponse }> = ({ evaluationToResolve }) => {
   return (
     <>
       <Spacer />
@@ -15,7 +15,6 @@ const ResolutionHeader: FC<{ evaluationToResolve: I_EvaluationToResolve }> = ({ 
       <H3>¡Comencemos!</H3>
       <Spacer />
       <HorizontalRule />
-      <Spacer />
     </>
   )
 }

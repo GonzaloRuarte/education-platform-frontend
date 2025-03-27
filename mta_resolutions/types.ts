@@ -15,7 +15,7 @@ type T_EvaluationToResolve_MultipleChoiceAnswer = I_EvaluationToResolve_BaseAnsw
   }>
   is_multiselect: boolean
 }>
-interface I_EvaluationToResolve {
+interface I_ResumeResolutionResponse {
   evaluation_data: {
     id: T_EvaluationId
     code: string
@@ -33,6 +33,9 @@ interface I_EvaluationToResolve {
       }>
     >
   }
+  pages_quantity: number
+  appointment_id: T_AppointmentId
+  student_personal_id: number
 }
 
 interface I_ResolutionState_BaseAnswer<T extends T_AnswerType, T_SpecificData> {
@@ -57,12 +60,14 @@ interface I_ResolutionState {
   appointment_id: T_AppointmentId
   student_pesonal_id: number
   last_login_datetime: string
-  answers: Record<number, T_ResolutionState_NumericAnswerData | T_ResolutionState_MultipleChoiceAnswerData>
+  answers: Record<T_QuestionId, T_ResolutionState_NumericAnswerData | T_ResolutionState_MultipleChoiceAnswerData>
 }
 
 export type {
-  I_EvaluationToResolve,
+  I_ResumeResolutionResponse,
   T_EvaluationToResolve_NumericAnswer,
   T_EvaluationToResolve_MultipleChoiceAnswer,
   I_ResolutionState,
+  T_ResolutionState_NumericAnswerData,
+  T_ResolutionState_MultipleChoiceAnswerData,
 }
