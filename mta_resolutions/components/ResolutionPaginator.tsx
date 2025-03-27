@@ -1,4 +1,4 @@
-import { useResolutionPagination } from '@/mta_resolutions/hooks'
+import { useResolutionPagination } from '@/mta_resolutions/hooks/data'
 import Pagination from '@mui/material/Pagination'
 
 const ResolutionPaginator = () => {

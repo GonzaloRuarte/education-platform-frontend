@@ -7,13 +7,10 @@ import {
 } from '@/mta_resolutions/types'
 import pages from '@/pages'
 import { axiosPost } from '@/shared/data/axios'
-import { actionHook, navigationHook, useInProgress } from '@/shared/hooks'
+import { actionHook, useInProgress } from '@/shared/hooks'
 import { useStore } from '@/shared/state'
 import useToasts from '@/shared/toasts'
 import { T_EmptyPayload } from '@/shared/types'
-
-const useNavigateToResolutionPage = navigationHook(pages.R._.resolverEvaluacion.path)
-// const useNavigateToResolutionLogin = navigationHook(pages.R._.login.path)
 
 // Data Service
 const RESOLUTIONS_PATH = '/resolutions'
@@ -117,11 +114,10 @@ const useResolutionExit = () => {
 }
 
 export {
-  useNavigateToResolutionPage,
-  useResolutionResume,
   useResolutionEvaluationToResolve,
   useResolutionExit,
   useResolutionPagination,
+  useResolutionResume,
   useResolutionState,
   useResolutionStateUpdateAnswer,
 }

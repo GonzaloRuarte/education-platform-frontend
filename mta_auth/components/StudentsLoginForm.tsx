@@ -7,12 +7,12 @@ import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
 import { useInProgress } from '@/shared/hooks'
 
+import { useNavigateToResolutionPage } from '@/mta_resolutions/hooks/navigation'
 import { T_StudentProfilePersonalId } from '@/mta_schools/types'
 import Spacer from '@/shared/components/Spacer'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
-import { useNavigateToResolutionPage } from '@/mta_resolutions/hooks'
 
 interface I_FormFields {
   personal_id: T_StudentProfilePersonalId

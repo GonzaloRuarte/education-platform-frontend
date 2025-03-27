@@ -1,5 +1,9 @@
 import { T_AnswerType, T_QuestionId } from '@/mta_evaluations/types'
-import { useResolutionPagination, useResolutionState, useResolutionStateUpdateAnswer } from '@/mta_resolutions/hooks'
+import {
+  useResolutionPagination,
+  useResolutionState,
+  useResolutionStateUpdateAnswer,
+} from '@/mta_resolutions/hooks/data'
 import {
   I_ResumeResolutionResponse,
   T_EvaluationToResolve_MultipleChoiceAnswer,

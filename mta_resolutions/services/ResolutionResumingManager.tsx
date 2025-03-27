@@ -1,6 +1,6 @@
 'use client'
 
-import { useResolutionResume } from '@/mta_resolutions/hooks'
+import { useResolutionResume } from '@/mta_resolutions/hooks/data'
 import { useEffect } from 'react'
 
 const ResolutionResumingManager = () => {
