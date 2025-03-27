@@ -1,7 +1,7 @@
 'use client'
 
 import { useNavigateToSchoolList, useSchoolCreate } from '@/mta_schools/hooks'
-import Input from '@/shared/forms/Input'
+import InputControlled from '@/shared/forms/InputControlled'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
 import { rules } from '@/shared/forms/messages'
@@ -44,9 +44,9 @@ const SchoolCreateForm = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <Input<I_FormFields> control={control} name="name" rules={{ ...rules.required() }} label="Nombre" />
-        <Input<I_FormFields> control={control} type="email" name="contact_email" label="E-Mail" />
-        <Input<I_FormFields>
+        <InputControlled<I_FormFields> control={control} name="name" rules={{ ...rules.required() }} label="Nombre" />
+        <InputControlled<I_FormFields> control={control} type="email" name="contact_email" label="E-Mail" />
+        <InputControlled<I_FormFields>
           control={control}
           type="text"
           name="district"
