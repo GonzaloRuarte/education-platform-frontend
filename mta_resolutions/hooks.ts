@@ -61,40 +61,42 @@ const useResolutionStateUpdateAnswer = () => {
   const resolutionState = useResolutionState()
   const storeResolutionState = useStore((state) => state.storeResolutionState)
   if (resolutionState === undefined) throw new Error('Resolution local state not initialized')
-
-  const updaters: Record<T_AnswerType, (...args: any) => void> = {
-    Numeric: (questionId: T_QuestionId, answerId: T_AnswerId, value: number) => {
-      const answerData: T_ResolutionState_NumericAnswerData = {
-        id: answerId,
-        last_update_datetime: new Date().toISOString(),
-        resource_type: 'Numeric',
-        specific_data: { value },
-      }
-      storeResolutionState({
-        ...resolutionState,
-        answers: {
-          ...resolutionState.answers,
-          [questionId]: answerData,
-        },
-      })
-    },
-    MultipleChoice: (questionId: T_QuestionId, answerId: T_AnswerId, choosed_options: Array<string>) => {
-      const answerData: T_ResolutionState_MultipleChoiceAnswerData = {
-        id: answerId,
-        last_update_datetime: new Date().toISOString(),
-        resource_type: 'MultipleChoice',
-        specific_data: { choosed_options },
-      }
-      storeResolutionState({
-        ...resolutionState,
-        answers: {
-          ...resolutionState.answers,
-          [questionId]: answerData,
-        },
-      })
-    },
+  const Numeric = (questionId: T_QuestionId, answerId: T_AnswerId, value: number) => {
+    const answerData: T_ResolutionState_NumericAnswerData = {
+      id: answerId,
+      last_update_datetime: new Date().toISOString(),
+      resource_type: 'Numeric',
+      specific_data: { value },
+    }
+    storeResolutionState({
+      ...resolutionState,
+      answers: {
+        ...resolutionState.answers,
+        [questionId]: answerData,
+      },
+    })
   }
-  return { updateMultipleChoice: updaters.MultipleChoice, updateNumeric: updaters.Numeric }
+  const MultipleChoice = (questionId: T_QuestionId, answerId: T_AnswerId, choosed_options: Array<string>) => {
+    const answerData: T_ResolutionState_MultipleChoiceAnswerData = {
+      id: answerId,
+      last_update_datetime: new Date().toISOString(),
+      resource_type: 'MultipleChoice',
+      specific_data: { choosed_options },
+    }
+    storeResolutionState({
+      ...resolutionState,
+      answers: {
+        ...resolutionState.answers,
+        [questionId]: answerData,
+      },
+    })
+  }
+
+  const _: Record<T_AnswerType, any> = {
+    Numeric,
+    MultipleChoice,
+  }
+  return { updateMultipleChoice: MultipleChoice, updateNumeric: Numeric }
 }
 const useResolutionPagination = () => {
   return {

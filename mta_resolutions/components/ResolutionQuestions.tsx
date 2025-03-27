@@ -4,15 +4,15 @@ import {
   I_ResumeResolutionResponse,
   T_EvaluationToResolve_MultipleChoiceAnswer,
   T_EvaluationToResolve_NumericAnswer,
+  T_ResolutionState_MultipleChoiceAnswerData,
   T_ResolutionState_NumericAnswerData,
 } from '@/mta_resolutions/types'
 import Chip from '@/shared/components/Chip'
 import Spacer from '@/shared/components/Spacer'
 import { H4 } from '@/shared/components/Typography'
 import Input from '@/shared/forms/Input'
-import { parseHtml } from '@/shared/htmlParser'
 
-import { Checkbox, Grid2 as Grid, Radio } from '@mui/material'
+import { Checkbox, FormControl, FormControlLabel, FormGroup, Grid2 as Grid, Radio, RadioGroup } from '@mui/material'
 import { FC, Fragment } from 'react'
 
 const NumericForm: FC<{ data: T_EvaluationToResolve_NumericAnswer; questionId: T_QuestionId }> = ({
@@ -33,7 +33,7 @@ const NumericForm: FC<{ data: T_EvaluationToResolve_NumericAnswer; questionId: T
         label="Respuesta"
         value={specific_data?.value === undefined ? '' : specific_data.value}
         onChange={(e) => {
-          updateNumeric(questionId, data.id, e.target.value)
+          updateNumeric(questionId, data.id, Number(e.target.value))
         }}
       />
     </>
@@ -43,22 +43,66 @@ const MultipleChoiceForm: FC<{ data: T_EvaluationToResolve_MultipleChoiceAnswer;
   data,
   questionId,
 }) => {
+  const resolutionState = useResolutionState()
+  const { updateMultipleChoice } = useResolutionStateUpdateAnswer()
+  const specific_data = { ...resolutionState?.answers[questionId]?.specific_data } as
+    | T_ResolutionState_MultipleChoiceAnswerData['specific_data']
+    | undefined
+  const handleCbChange = (name: string, checked: boolean) => {
+    if (checked && specific_data?.choosed_options?.includes(name)) return
+    if (!checked && !specific_data?.choosed_options?.includes(name)) return
+
+    const checkedOption = () => {
+      const newChosenOptions = specific_data?.choosed_options?.map((i) => i) || []
+      newChosenOptions.push(name)
+      return newChosenOptions
+    }
+    const uncheckedOption = () => {
+      return specific_data?.choosed_options.filter((i) => i !== name) || []
+    }
+    updateMultipleChoice(questionId, data.id, checked ? checkedOption() : uncheckedOption())
+  }
+  const handleRadioChange = (name: string, checked: boolean) => {}
+  const Group = data.specific_data.is_multiselect ? FormGroup : RadioGroup
   return (
-    <>
-      {data.specific_data.options.map((option) => {
-        return (
-          <Fragment key={`answer_${data.id}-option_${option.id}`}>
-            <Grid spacing={1} component="div" container justifyContent="center" alignItems="center">
-              <Grid>{data.specific_data.is_multiselect ? <Checkbox /> : <Radio />}</Grid>
-              <Grid size="auto">
-                <Chip label={option.name} />
-              </Grid>
-              <Grid size="grow">{parseHtml(option.content)}</Grid>
-            </Grid>
-          </Fragment>
-        )
-      })}
-    </>
+    <FormControl component="fieldset">
+      <Group>
+        {data.specific_data.options.map((option) => {
+          return (
+            <Fragment key={`answer_${data.id}-option_${option.id}`}>
+              <FormControlLabel
+                value={option.content}
+                control={
+                  data.specific_data.is_multiselect ? (
+                    <Checkbox
+                      onChange={(_, checked) => {
+                        handleCbChange(option.name, checked)
+                      }}
+                      checked={specific_data?.choosed_options?.includes(option.name)}
+                    />
+                  ) : (
+                    <Radio
+                      onChange={(_, checked) => {
+                        handleRadioChange(option.name, checked)
+                      }}
+                      checked={specific_data?.choosed_options?.includes(option.name)}
+                    />
+                  )
+                }
+                label={
+                  <Grid spacing={2} component="div" container justifyContent="center" alignItems="center">
+                    <Grid>
+                      <Chip label={option.name} />
+                    </Grid>
+                    <Grid>{option.content}</Grid>
+                  </Grid>
+                }
+              />
+            </Fragment>
+          )
+        })}
+      </Group>
+    </FormControl>
   )
 }
 const forms: Record<T_AnswerType, FC<any>> = {
