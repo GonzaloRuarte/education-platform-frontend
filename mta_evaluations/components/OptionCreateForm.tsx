@@ -6,9 +6,9 @@ import { I_MultipleChoiceOptionCreateRequestData, T_MultiplChoiceId } from '@/mt
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
-import Input from '@/shared/forms/Input'
+import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
-import WysiwygEditor from '@/shared/forms/WysiwygEditor'
+import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { useInProgress } from '@/shared/hooks'
 import log from '@/shared/log'
 import { handleServiceError } from '@/shared/service'
@@ -49,13 +49,13 @@ const OptionCreateForm: FC<{ multipleChoiceId: T_MultiplChoiceId; reload: T_Void
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <Input<I_FormFields>
+        <InputControlled<I_FormFields>
           {...{ control }}
           name="name"
           rules={{ ...rules.required() }}
           label={multipleChoiceLabels.option.name}
         />
-        <WysiwygEditor<I_FormFields>
+        <WysiwygEditorControlled<I_FormFields>
           {...{ control }}
           label={multipleChoiceLabels.option.content}
           rules={{ ...rules.required() }}

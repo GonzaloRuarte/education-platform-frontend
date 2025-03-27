@@ -7,9 +7,9 @@ import { EvaluationStatus, I_EvaluationCreateRequestData, I_EvaluationDetail } f
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
-import Input from '@/shared/forms/Input'
+import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
-import WysiwygEditor from '@/shared/forms/WysiwygEditor'
+import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
 import log from '@/shared/log'
@@ -56,20 +56,25 @@ const EvaluationEditForm = ({ data }: I_Props) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <Input<I_FormFields>
+        <InputControlled<I_FormFields>
           {...{ control }}
           name="title"
           rules={{ ...rules.required() }}
           label={evaluationLabels.title}
         />
-        <Input<I_FormFields>
+        <InputControlled<I_FormFields>
           {...{ control }}
           name="code"
           rules={{ ...rules.required() }}
           label={evaluationLabels.code}
         />
         <SubjectOptions {...{ control }} name="subject_id" />
-        <WysiwygEditor {...{ control }} label={evaluationLabels.header} rules={{ ...rules.required() }} name="header" />
+        <WysiwygEditorControlled
+          {...{ control }}
+          label={evaluationLabels.header}
+          rules={{ ...rules.required() }}
+          name="header"
+        />
       </MagicGrid>
       <Spacer />
       <Submit>{sharedLabels.update}</Submit>

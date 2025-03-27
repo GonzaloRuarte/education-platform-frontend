@@ -12,7 +12,7 @@ import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import { Body1 } from '@/shared/components/Typography'
 import { rules } from '@/shared/forms/messages'
-import WysiwygEditor from '@/shared/forms/WysiwygEditor'
+import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
 import log from '@/shared/log'
@@ -53,7 +53,7 @@ const MultipleChoiceCreateForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = (
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <WysiwygEditor<I_FormFields>
+        <WysiwygEditorControlled<I_FormFields>
           {...{ control }}
           label={questionLabels.content}
           rules={{ ...rules.required() }}

@@ -6,9 +6,9 @@ import { I_AnswerNumericDetail, I_QuestionUpdateNumericRequestData, T_QuestionFo
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
-import Input from '@/shared/forms/Input'
+import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
-import WysiwygEditor from '@/shared/forms/WysiwygEditor'
+import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
 import log from '@/shared/log'
@@ -48,13 +48,13 @@ const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({ data, reload }
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <WysiwygEditor<I_FormFields>
+        <WysiwygEditorControlled<I_FormFields>
           {...{ control }}
           label={questionLabels.content}
           rules={{ ...rules.required() }}
           name="content"
         />
-        <Input<I_FormFields>
+        <InputControlled<I_FormFields>
           {...{ control }}
           label={numericLabels.value}
           rules={{ ...rules.required() }}

@@ -16,7 +16,7 @@ import Submit from '@/shared/components/Submit'
 import { H4 } from '@/shared/components/Typography'
 import { useDialog } from '@/shared/dialogs'
 import { rules } from '@/shared/forms/messages'
-import WysiwygEditor from '@/shared/forms/WysiwygEditor'
+import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
 import log from '@/shared/log'
@@ -95,7 +95,7 @@ const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({ 
   return (
     <form>
       <MagicGrid>
-        <WysiwygEditor<I_FormFields>
+        <WysiwygEditorControlled<I_FormFields>
           {...{ control }}
           label={questionLabels.content}
           rules={{ ...rules.required() }}

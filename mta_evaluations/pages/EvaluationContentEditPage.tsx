@@ -28,7 +28,12 @@ const EvaluationContentEditPage = () => {
   const deleteInstance = useEvaluationDelete()
   const { ConfirmDialogComponent, showConfirm } = useConfirm()
 
-  const handleDelete = useHandleDelete(evaluationId, { showConfirm, deleteInstance, callback: navigateToList, entityName: EVALUATION_NAME })
+  const handleDelete = useHandleDelete(evaluationId, {
+    showConfirm,
+    deleteInstance,
+    callback: navigateToList,
+    entityName: EVALUATION_NAME,
+  })
 
   useEffect(reload, [evaluationId])
 
@@ -47,7 +52,7 @@ const EvaluationContentEditPage = () => {
           <>
             <Page.Content>
               <EvaluationHeaderSummary {...{ data }} />
-              <Spacer space="l" />
+              <Spacer size="l" />
               <EvaluationQuestionsManager {...{ data, reload }} />
             </Page.Content>
           </>

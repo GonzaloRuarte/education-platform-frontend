@@ -14,7 +14,7 @@ const EvaluationHeaderSummary: FC<{ data: I_EvaluationDetail }> = ({ data }) => 
       <Paper variant="elevation" style={{ padding: 20, borderRadius: 20 }} elevation={4}>
         <H3>{data.title}</H3>
         <Body1>{data.subject_id}</Body1>
-        <Spacer space="s" />
+        <Spacer size="s" />
         <>{parse(data.header)}</>
         <Spacer />
         <Button onClick={() => navigateToEvaluationDetail(data.id)}>Editar encabezado</Button>
