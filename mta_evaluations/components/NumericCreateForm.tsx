@@ -29,11 +29,11 @@ const NumericCreateForm: T_QuestionForm<I_AnswerNumericDetail> = () => {
     },
   })
 
-  const { setIsInProgress } = useInProgress()
+  const { setInProgressStatus } = useInProgress()
   const backToDetail = useNavigateToEvaluationContentEdit()
   const createNumeric = useQuestionNumericCreate()
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
-    setIsInProgress(true)
+    setInProgressStatus(true)
     const payload = {
       content: data.content,
       value: Number(data.value),
@@ -49,7 +49,7 @@ const NumericCreateForm: T_QuestionForm<I_AnswerNumericDetail> = () => {
       })
       .catch(handleServiceError)
       .finally(() => {
-        setIsInProgress(false)
+        setInProgressStatus(false)
       })
   }
 

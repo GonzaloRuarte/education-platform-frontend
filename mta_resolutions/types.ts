@@ -1,33 +1,31 @@
 import { T_AnswerId, T_AnswerType, T_EvaluationId, T_QuestionId } from '@/mta_evaluations/types'
 
-type T_SerializedEvaluationVersion = '1'
-
 interface I_EvaluationToResolve {
-  version: T_SerializedEvaluationVersion
-  data: {
+  evaluation_data: {
     id: T_EvaluationId
-    title: string
     code: string
-    subject: string
+    title: string
     header: string
+    subject: string
     questions: Array<{
       id: T_QuestionId
-      content: string
       order: number
-      breaks_page_after: boolean
-      is_mandatory: boolean
       answer: {
         id: T_AnswerId
         resource_type: T_AnswerType
-        specific_data: {
+        specific_data: null | {
           id: number
-          options?: Array<{
+          options: Array<{
             id: number
-            name: string
             content: string
+            name: string
           }>
+          resource_type: T_AnswerType
         }
       }
+      content: string
+      is_mandatory: boolean
+      breaks_page_after: boolean
     }>
   }
 }

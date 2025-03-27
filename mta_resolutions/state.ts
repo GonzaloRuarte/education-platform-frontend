@@ -4,7 +4,7 @@ import { I_EvaluationToResolve } from '@/mta_resolutions/types'
 import { StateCreator } from 'zustand'
 
 interface I_ResolutionsSlice {
-  storeEvaluationToResolve: (evaluation: I_EvaluationToResolve) => void
+  storeEvaluationToResolve: (evaluation: I_EvaluationToResolve | undefined) => void
   evaluationToResolve: I_EvaluationToResolve | undefined
 }
 

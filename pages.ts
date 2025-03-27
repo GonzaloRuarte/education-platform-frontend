@@ -18,6 +18,10 @@ const pages = {
     path: '/',
     label: 'Bienvenida',
     _: {
+      login: {
+        path: '/login',
+        label: 'Login Estudiante',
+      },
       resolverEvaluacion: {
         path: '/resolver-evaluacion',
         label: 'Resolver Evaluación',

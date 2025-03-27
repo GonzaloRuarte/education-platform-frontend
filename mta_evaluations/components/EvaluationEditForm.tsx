@@ -37,11 +37,11 @@ const EvaluationEditForm = ({ data }: I_Props) => {
     },
   })
 
-  const { setIsInProgress } = useInProgress()
+  const { setInProgressStatus } = useInProgress()
   const navigateToEvaluationList = useNavigateToEvaluationList()
   const evaluationUpdate = useEvaluationUpdate()
   const onSubmit: SubmitHandler<I_FormFields> = (updatedData) => {
-    setIsInProgress(true)
+    setInProgressStatus(true)
     evaluationUpdate(data.id, { ...updatedData, subject_id: updatedData.subject_id as string })
       .then((res) => {
         log.info('New Evaluation added:', res)
@@ -50,14 +50,24 @@ const EvaluationEditForm = ({ data }: I_Props) => {
       })
       .catch(handleServiceError)
       .finally(() => {
-        setIsInProgress(false)
+        setInProgressStatus(false)
       })
   }
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <Input<I_FormFields> {...{ control }} name="title" rules={{ ...rules.required() }} label={evaluationLabels.title} />
-        <Input<I_FormFields> {...{ control }} name="code" rules={{ ...rules.required() }} label={evaluationLabels.code} />
+        <Input<I_FormFields>
+          {...{ control }}
+          name="title"
+          rules={{ ...rules.required() }}
+          label={evaluationLabels.title}
+        />
+        <Input<I_FormFields>
+          {...{ control }}
+          name="code"
+          rules={{ ...rules.required() }}
+          label={evaluationLabels.code}
+        />
         <SubjectOptions {...{ control }} name="subject_id" />
         <WysiwygEditor {...{ control }} label={evaluationLabels.header} rules={{ ...rules.required() }} name="header" />
       </MagicGrid>

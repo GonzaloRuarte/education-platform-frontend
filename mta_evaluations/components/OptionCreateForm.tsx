@@ -30,11 +30,11 @@ const OptionCreateForm: FC<{ multipleChoiceId: T_MultiplChoiceId; reload: T_Void
 }) => {
   const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
 
-  const { setIsInProgress } = useInProgress()
+  const { setInProgressStatus } = useInProgress()
 
   const create = useMultipleChoiceOptionCreate()
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
-    setIsInProgress(true)
+    setInProgressStatus(true)
     create({ multiple_choice_id: multipleChoiceId, ...data })
       .then((res) => {
         log.info('New Option added:', res)
@@ -42,7 +42,7 @@ const OptionCreateForm: FC<{ multipleChoiceId: T_MultiplChoiceId; reload: T_Void
       })
       .catch(handleServiceError)
       .finally(() => {
-        setIsInProgress(false)
+        setInProgressStatus(false)
         reload()
       })
   }

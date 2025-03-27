@@ -1,7 +1,1 @@
-import React from 'react'
-
-const ResolveElavution = () => {
-  return <div>resolver-evaluacion</div>
-}
-
-export default ResolveElavution
+export { default } from '@/mta_resolutions/pages/ResolveEvaluation'

@@ -28,11 +28,11 @@ const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({ data, reload }
     },
   })
 
-  const { setIsInProgress } = useInProgress()
+  const { setInProgressStatus } = useInProgress()
   const backToDetail = useNavigateToEvaluationContentEdit()
   const update = useQuestionNumericUpdate()
   const onSubmit: SubmitHandler<I_FormFields> = (updatedData) => {
-    setIsInProgress(true)
+    setInProgressStatus(true)
     update(data.id, { ...updatedData })
       .then(() => {
         log.info('Question edited succesfully:')
@@ -41,15 +41,26 @@ const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({ data, reload }
       })
       .catch(handleServiceError)
       .finally(() => {
-        setIsInProgress(false)
+        setInProgressStatus(false)
       })
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <WysiwygEditor<I_FormFields> {...{ control }} label={questionLabels.content} rules={{ ...rules.required() }} name="content" />
-        <Input<I_FormFields> {...{ control }} label={numericLabels.value} rules={{ ...rules.required() }} name="value" type="number" />
+        <WysiwygEditor<I_FormFields>
+          {...{ control }}
+          label={questionLabels.content}
+          rules={{ ...rules.required() }}
+          name="content"
+        />
+        <Input<I_FormFields>
+          {...{ control }}
+          label={numericLabels.value}
+          rules={{ ...rules.required() }}
+          name="value"
+          type="number"
+        />
       </MagicGrid>
       <Spacer />
 

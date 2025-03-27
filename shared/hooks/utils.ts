@@ -6,13 +6,23 @@ import { T_InProgressHook, T_VoidFn } from '@/shared/types'
 import { EntityName } from '@/shared/utils'
 
 const useInProgressLocal: T_InProgressHook = () => {
-  const [isInProgress, setIsInProgress] = useState(false)
-  return { isInProgress, setIsInProgress }
+  const [isInProgress, setInProgressStatus] = useState(false)
+  return {
+    isInProgress,
+    setInProgressStatus,
+    setIsNotInProgress: () => setInProgressStatus(false),
+    setIsInProgress: () => setInProgressStatus(true),
+  }
 }
 const useInProgress: T_InProgressHook = () => {
   const isInProgress = useStore((state) => state.isInProgress)
-  const setIsInProgress = useStore((state) => state.setIsInProgress)
-  return { isInProgress, setIsInProgress }
+  const setInProgressStatus = useStore((state) => state.setIsInProgress)
+  return {
+    isInProgress,
+    setInProgressStatus,
+    setIsNotInProgress: () => setInProgressStatus(false),
+    setIsInProgress: () => setInProgressStatus(true),
+  }
 }
 const useHandleDelete = (
   id: number | string,

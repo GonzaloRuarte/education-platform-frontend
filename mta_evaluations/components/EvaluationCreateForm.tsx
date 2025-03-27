@@ -34,11 +34,11 @@ const defaultValues: I_FormFields = {
 const EvaluationCreateForm = () => {
   const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
 
-  const { setIsInProgress } = useInProgress()
+  const { setInProgressStatus } = useInProgress()
   const navigateToEvaluationContentEdit = useNavigateToEvaluationContentEdit()
   const evaluationCreate = useEvaluationCreate()
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
-    setIsInProgress(true)
+    setInProgressStatus(true)
     evaluationCreate({ ...data, subject_id: data.subject_id as string })
       .then((res) => {
         log.info('New Evaluation added:', res)
@@ -47,7 +47,7 @@ const EvaluationCreateForm = () => {
       })
       .catch(handleServiceError)
       .finally(() => {
-        setIsInProgress(false)
+        setInProgressStatus(false)
       })
   }
   return (

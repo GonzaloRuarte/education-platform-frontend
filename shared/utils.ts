@@ -1,5 +1,7 @@
 function toCamelCase(str: string): string {
-  return str.replace(/[\s-_]+(.)?/g, (_, chr) => (chr ? chr.toUpperCase() : '')).replace(/^\w/, (match) => match.toLowerCase())
+  return str
+    .replace(/[\s-_]+(.)?/g, (_, chr) => (chr ? chr.toUpperCase() : ''))
+    .replace(/^\w/, (match) => match.toLowerCase())
 }
 
 /**
@@ -49,4 +51,33 @@ class EntityName {
   }
 }
 
-export { EntityName, intersection, slugify, strippedString, toCamelCase, truncateString }
+class ImageSize {
+  private scale = 1
+  constructor(
+    private originalWidth: number,
+    private originalHeight: number,
+    options?: {
+      scale?: number
+    },
+  ) {
+    if (options?.scale !== undefined) this.scale = options.scale
+  }
+
+  public get w() {
+    return this.originalWidth * this.scale
+  }
+  public get h() {
+    return this.originalHeight * this.scale
+  }
+
+  public width(_scale?: number) {
+    const s = _scale || this.scale
+    return this.originalWidth * s
+  }
+  public height(_scale?: number) {
+    const s = _scale || this.scale
+    return this.originalHeight * s
+  }
+}
+
+export { EntityName, ImageSize, intersection, slugify, strippedString, toCamelCase, truncateString }

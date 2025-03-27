@@ -24,12 +24,12 @@ const SchoolCreateForm = ({ data }: I_Props) => {
     },
   })
 
-  const { setIsInProgress } = useInProgress()
+  const { setInProgressStatus } = useInProgress()
   const navigateToSchoolList = useNavigateToSchoolList()
   const schoolUpdate = useSchoolUpdate()
 
   const onSubmit: SubmitHandler<I_FormFields> = (updatedData) => {
-    setIsInProgress(true)
+    setInProgressStatus(true)
     schoolUpdate(data.id, updatedData)
       .then(() => {
         successToast('Escuela editada correctamente')
@@ -37,7 +37,7 @@ const SchoolCreateForm = ({ data }: I_Props) => {
       })
       .catch(handleServiceError)
       .finally(() => {
-        setIsInProgress(false)
+        setInProgressStatus(false)
       })
   }
   return (
@@ -45,7 +45,13 @@ const SchoolCreateForm = ({ data }: I_Props) => {
       <MagicGrid>
         <Input<I_FormFields> control={control} name="name" rules={{ ...rules.required() }} label="Nombre" />
         <Input<I_FormFields> control={control} type="email" name="contact_email" label="E-Mail" />
-        <Input<I_FormFields> control={control} type="text" name="district" rules={{ ...rules.required() }} label="Distrito" />
+        <Input<I_FormFields>
+          control={control}
+          type="text"
+          name="district"
+          rules={{ ...rules.required() }}
+          label="Distrito"
+        />
       </MagicGrid>
       <Spacer />
 

@@ -26,9 +26,9 @@ export default function StudentsLoginForm() {
   const authorize = useAuthorizeStudent()
   const storeAuthData = useStoreAuthData()
 
-  const { setIsInProgress } = useInProgress()
+  const { setInProgressStatus } = useInProgress()
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
-    setIsInProgress(true)
+    setInProgressStatus(true)
     authorize(data)
       .then((res) => {
         successToast('¡Pudiste ingresar correctamente, bienvenido/a. ¡Suerte en tu Evaluación!')
@@ -37,7 +37,7 @@ export default function StudentsLoginForm() {
       })
       .catch(handleServiceError)
       .finally(() => {
-        setIsInProgress(false)
+        setInProgressStatus(false)
       })
   }
 

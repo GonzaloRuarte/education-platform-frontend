@@ -31,13 +31,13 @@ const MultipleChoiceCreateForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = (
       content: '',
     },
   })
-  const { setIsInProgress } = useInProgress()
+  const { setInProgressStatus } = useInProgress()
 
   const navigateToDetail = useNavigateToQuestionEdit()
   const create = useQuestionMultipleChoiceCreate()
 
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
-    setIsInProgress(true)
+    setInProgressStatus(true)
     create({ ...data, evaluation_id: Number(evaluationId) })
       .then((res) => {
         log.info('Question created succesfully:')
@@ -46,7 +46,7 @@ const MultipleChoiceCreateForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = (
       })
       .catch(handleServiceError)
       .finally(() => {
-        setIsInProgress(false)
+        setInProgressStatus(false)
       })
   }
 

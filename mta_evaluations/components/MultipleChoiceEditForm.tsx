@@ -75,11 +75,11 @@ const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({ 
     },
   })
 
-  const { setIsInProgress } = useInProgress()
+  const { setInProgressStatus } = useInProgress()
   const backToDetail = useNavigateToEvaluationContentEdit()
   const update = useQuestionMultipleChoiceUpdate()
   const onSubmit: SubmitHandler<I_FormFields> = (updatedData) => {
-    setIsInProgress(true)
+    setInProgressStatus(true)
     update(data.id, { ...updatedData })
       .then(() => {
         log.info('Question edited succesfully:')
@@ -88,7 +88,7 @@ const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({ 
       })
       .catch(handleServiceError)
       .finally(() => {
-        setIsInProgress(false)
+        setInProgressStatus(false)
       })
   }
 

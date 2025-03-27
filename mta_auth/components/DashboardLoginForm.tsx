@@ -27,9 +27,9 @@ export default function DashboardLoginForm() {
   const authorize = useAuthorize()
   const storeAuthData = useStoreAuthData()
 
-  const { setIsInProgress } = useInProgress()
+  const { setInProgressStatus } = useInProgress()
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
-    setIsInProgress(true)
+    setInProgressStatus(true)
     authorize(data)
       .then((res) => {
         successToast('¡Sesión iniciada correctamente, bienvenido/a!')
@@ -38,7 +38,7 @@ export default function DashboardLoginForm() {
       })
       .catch(handleServiceError)
       .finally(() => {
-        setIsInProgress(false)
+        setInProgressStatus(false)
       })
   }
 

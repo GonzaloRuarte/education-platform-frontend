@@ -70,13 +70,13 @@ const useAuthResources = (): I_AuthResources => {
   return { accessGroups, accessToken, refreshToken, refresh, handleFatal401Error }
 }
 
-const useLogout = () => {
+const useLogout = (callbackPath: string = pages.D._.login.path) => {
   const router = useRouter()
 
   return () => {
     successToast('Sesión cerrada correctamente. Hasta Pronto!')
     useStore.getState().clearAuthData()
-    router.push(pages.D._.login.path)
+    router.push(callbackPath)
   }
 }
 const useStoreAuthData = () => useStore((state) => state.storeAuthData)
