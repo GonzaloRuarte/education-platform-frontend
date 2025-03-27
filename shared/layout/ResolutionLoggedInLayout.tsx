@@ -2,7 +2,8 @@
 
 import Box from '@mui/material/Box'
 
-import { useResolutionEvaluationToResolve, useResolutionExit } from '@/mta_resolutions/hooks/data'
+import { useResolutionExit } from '@/mta_resolutions/hooks'
+import { useResolutionEvaluationToResolve } from '@/mta_resolutions/hooks/data'
 import Logo from '@/shared/components/Logo'
 import { H4 } from '@/shared/components/Typography'
 import { useTheme } from '@/shared/hooks'

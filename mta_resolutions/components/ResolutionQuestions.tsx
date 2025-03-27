@@ -1,9 +1,6 @@
 import { T_AnswerType, T_QuestionId } from '@/mta_evaluations/types'
-import {
-  useResolutionPagination,
-  useResolutionState,
-  useResolutionStateUpdateAnswer,
-} from '@/mta_resolutions/hooks/data'
+import { useResolutionPagination } from '@/mta_resolutions/hooks'
+import { useResolutionState, useResolutionStateUpdateAnswer } from '@/mta_resolutions/hooks/data'
 import {
   I_ResumeResolutionResponse,
   T_EvaluationToResolve_MultipleChoiceAnswer,
@@ -16,7 +13,7 @@ import Spacer from '@/shared/components/Spacer'
 import { H4 } from '@/shared/components/Typography'
 import Input from '@/shared/forms/Input'
 
-import { Checkbox, FormControl, FormControlLabel, FormGroup, Grid2 as Grid, Radio, RadioGroup } from '@mui/material'
+import { Checkbox, FormControl, FormControlLabel, Grid2 as Grid, Radio } from '@mui/material'
 import { FC, Fragment } from 'react'
 
 const NumericForm: FC<{ data: T_EvaluationToResolve_NumericAnswer; questionId: T_QuestionId }> = ({

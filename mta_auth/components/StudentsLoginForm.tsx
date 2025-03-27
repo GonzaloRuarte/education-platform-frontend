@@ -7,7 +7,7 @@ import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
 import { useInProgress } from '@/shared/hooks'
 
-import { useNavigateToResolutionPage } from '@/mta_resolutions/hooks/navigation'
+import { useNavigateToResolutionPage } from '@/mta_resolutions/hooks'
 import { T_StudentProfilePersonalId } from '@/mta_schools/types'
 import Spacer from '@/shared/components/Spacer'
 import { handleServiceError } from '@/shared/service'

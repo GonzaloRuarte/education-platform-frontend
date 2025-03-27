@@ -1,11 +1,10 @@
-import { useAuthResources, useLogout } from '@/mta_auth/hooks'
+import { useAuthResources } from '@/mta_auth/hooks'
 import { T_AnswerId, T_AnswerType, T_QuestionId } from '@/mta_evaluations/types'
 import {
   I_ResumeResolutionResponse,
   T_ResolutionState_MultipleChoiceAnswerData,
   T_ResolutionState_NumericAnswerData,
 } from '@/mta_resolutions/types'
-import pages from '@/pages'
 import { axiosPost } from '@/shared/data/axios'
 import { actionHook, useInProgress } from '@/shared/hooks'
 import { useStore } from '@/shared/state'
@@ -21,13 +20,13 @@ const _useRequestResume = actionHook<T_EmptyPayload, I_ResumeResolutionResponse>
   useAuthResources,
 )
 
-const _useStoreEvaluationToResolve = () => {
+const useStoreEvaluationToResolve = () => {
   return useStore((state) => state.storeEvaluationToResolve)
 }
 
 const useResolutionResume = () => {
   const requestResume = _useRequestResume()
-  const storeEvaluationToResolve = _useStoreEvaluationToResolve()
+  const storeEvaluationToResolve = useStoreEvaluationToResolve()
   const storeResolutionState = useStore((state) => state.storeResolutionState)
   const { setIsNotInProgress, setIsInProgress } = useInProgress()
   const { errorToast } = useToasts()
@@ -95,29 +94,11 @@ const useResolutionStateUpdateAnswer = () => {
   }
   return { updateMultipleChoice: MultipleChoice, updateNumeric: Numeric }
 }
-const useResolutionPagination = () => {
-  return {
-    currentPage: useStore((state) => state.resolutionCurrentPage),
-    pagesQuantity: useStore((state) => state.evaluationToResolve?.pages_quantity),
-    storeNewPage: useStore((state) => state.storeResolutionCurrentPage),
-  }
-}
-
-const useResolutionExit = () => {
-  const logOut = useLogout(pages.R._.login.path)
-  const storeEvaluationToResolve = _useStoreEvaluationToResolve()
-
-  return () => {
-    logOut()
-    storeEvaluationToResolve(undefined)
-  }
-}
 
 export {
   useResolutionEvaluationToResolve,
-  useResolutionExit,
-  useResolutionPagination,
   useResolutionResume,
   useResolutionState,
   useResolutionStateUpdateAnswer,
+  useStoreEvaluationToResolve,
 }

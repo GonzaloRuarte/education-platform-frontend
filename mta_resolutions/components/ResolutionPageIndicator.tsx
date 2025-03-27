@@ -1,4 +1,4 @@
-import { useResolutionPagination } from '@/mta_resolutions/hooks/data'
+import { useResolutionPagination } from '@/mta_resolutions/hooks'
 import { H2 } from '@/shared/components/Typography'
 
 const ResolutionPageIndicator = () => {
