@@ -38,7 +38,6 @@ const useResolutionResume = () => {
     requestResume({})
       .then((data) => {
         const now = new Date().toISOString()
-        storeEvaluationToResolve(data)
         storeResolutionState(
           data.last_uploaded_state !== null
             ? data.last_uploaded_state
@@ -50,6 +49,7 @@ const useResolutionResume = () => {
                 answers: {},
               },
         )
+        storeEvaluationToResolve(data)
       })
       .catch((err) => {
         errorToast('Hubo un error iniciando la evaluación. ')
