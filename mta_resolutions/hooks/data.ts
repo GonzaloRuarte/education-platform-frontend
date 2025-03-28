@@ -1,6 +1,7 @@
 import { useAuthResources } from '@/mta_auth/hooks'
 import { T_AnswerId, T_AnswerType, T_QuestionId } from '@/mta_evaluations/types'
 import {
+  I_ResolutionState,
   I_ResumeResolutionResponse,
   T_ResolutionState_MultipleChoiceAnswerData,
   T_ResolutionState_NumericAnswerData,
@@ -35,13 +36,19 @@ const useResolutionResume = () => {
     setIsInProgress()
     requestResume({})
       .then((data) => {
+        const now = new Date().toISOString()
         storeEvaluationToResolve(data)
-        storeResolutionState({
-          student_pesonal_id: data.student_personal_id,
-          appointment_id: data.appointment_id,
-          last_login_datetime: new Date().toISOString(),
-          answers: {},
-        })
+        storeResolutionState(
+          data.last_uploaded_state !== null
+            ? data.last_uploaded_state
+            : {
+                student_pesonal_id: data.student_personal_id,
+                appointment_id: data.appointment_id,
+                last_login_datetime: now,
+                last_update_datetime: null,
+                answers: {},
+              },
+        )
       })
       .catch((err) => {
         errorToast('Hubo un error iniciando la evaluación. ')
@@ -53,19 +60,29 @@ const useResolutionResume = () => {
 
 const useResolutionEvaluationToResolve = () => useStore((state) => state.evaluationToResolve)
 const useResolutionState = () => useStore((state) => state.resolutionState)
+const useResolutionLastUploadDatetime = () => useStore((state) => state.lastResolutionStateUpload)
+const useResolutionUpdateLastUploadDatetime = () => {
+  const storeResolutionState = useStore((state) => state.storeLastResolutionStateUpload)
+  return () => {
+    storeResolutionState(new Date().toISOString())
+  }
+}
 const useResolutionStateUpdateAnswer = () => {
   const resolutionState = useResolutionState()
   const storeResolutionState = useStore((state) => state.storeResolutionState)
-  if (resolutionState === undefined) throw new Error('Resolution local state not initialized')
+  if (resolutionState === null) throw new Error('Resolution local state not initialized')
+
   const Numeric = (questionId: T_QuestionId, answerId: T_AnswerId, value: number) => {
+    const now = new Date().toISOString()
     const answerData: T_ResolutionState_NumericAnswerData = {
       id: answerId,
-      last_update_datetime: new Date().toISOString(),
+      last_update_datetime: now,
       resource_type: 'Numeric',
       specific_data: { value },
     }
     storeResolutionState({
       ...resolutionState,
+      last_update_datetime: now,
       answers: {
         ...resolutionState.answers,
         [questionId]: answerData,
@@ -73,14 +90,16 @@ const useResolutionStateUpdateAnswer = () => {
     })
   }
   const MultipleChoice = (questionId: T_QuestionId, answerId: T_AnswerId, choosed_options: Array<string>) => {
+    const now = new Date().toISOString()
     const answerData: T_ResolutionState_MultipleChoiceAnswerData = {
       id: answerId,
-      last_update_datetime: new Date().toISOString(),
+      last_update_datetime: now,
       resource_type: 'MultipleChoice',
       specific_data: { choosed_options },
     }
     storeResolutionState({
       ...resolutionState,
+      last_update_datetime: now,
       answers: {
         ...resolutionState.answers,
         [questionId]: answerData,
@@ -95,10 +114,19 @@ const useResolutionStateUpdateAnswer = () => {
   return { updateMultipleChoice: MultipleChoice, updateNumeric: Numeric }
 }
 
+const useResolutionUploadState = actionHook<I_ResolutionState, T_EmptyPayload>(
+  `${RESOLUTIONS_PATH}/upload-state`,
+  axiosPost,
+  useAuthResources,
+)
+
 export {
   useResolutionEvaluationToResolve,
   useResolutionResume,
   useResolutionState,
   useResolutionStateUpdateAnswer,
+  useResolutionUpdateLastUploadDatetime,
+  useResolutionLastUploadDatetime,
+  useResolutionUploadState,
   useStoreEvaluationToResolve,
 }

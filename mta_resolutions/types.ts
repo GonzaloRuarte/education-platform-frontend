@@ -36,6 +36,7 @@ interface I_ResumeResolutionResponse {
   pages_quantity: number
   appointment_id: T_AppointmentId
   student_personal_id: number
+  last_uploaded_state: null | I_ResolutionState
 }
 
 interface I_ResolutionState_BaseAnswer<T extends T_AnswerType, T_SpecificData> {
@@ -60,6 +61,7 @@ interface I_ResolutionState {
   appointment_id: T_AppointmentId
   student_pesonal_id: number
   last_login_datetime: string
+  last_update_datetime: string | null
   answers: Record<T_QuestionId, T_ResolutionState_NumericAnswerData | T_ResolutionState_MultipleChoiceAnswerData>
 }
 

@@ -20,7 +20,7 @@ const useResolutionExit = () => {
 
   return () => {
     logOut()
-    storeEvaluationToResolve(undefined)
+    storeEvaluationToResolve(null)
   }
 }
 
