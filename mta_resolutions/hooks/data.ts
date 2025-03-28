@@ -43,7 +43,7 @@ const useResolutionResume = () => {
           data.last_uploaded_state !== null
             ? data.last_uploaded_state
             : {
-                student_pesonal_id: data.student_personal_id,
+                student_personal_id: data.student_personal_id,
                 appointment_id: data.appointment_id,
                 last_login_datetime: now,
                 last_update_datetime: null,
@@ -127,8 +127,11 @@ const useResolutionManageUploadState = () => {
   const lastUploadDatetime = useResolutionLastUploadDatetime()
   const updateLastUploadDatetime = useResolutionUpdateLastUploadDatetime()
 
-  const executeUploadingTasks = (resState: I_ResolutionState) => {
-    uploadState(resState).then(updateLastUploadDatetime)
+  const executeUploadingTasks = (_resolutionState: I_ResolutionState) => {
+    console.log(_resolutionState)
+    console.log(JSON.stringify(_resolutionState))
+
+    uploadState(_resolutionState).then(updateLastUploadDatetime)
   }
 
   const manageUpload = () => {

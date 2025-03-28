@@ -59,7 +59,7 @@ type T_ResolutionState_MultipleChoiceAnswerData = I_ResolutionState_BaseAnswer<
 >
 interface I_ResolutionState {
   appointment_id: T_AppointmentId
-  student_pesonal_id: number
+  student_personal_id: number
   last_login_datetime: string
   last_update_datetime: string | null
   answers: Record<T_QuestionId, T_ResolutionState_NumericAnswerData | T_ResolutionState_MultipleChoiceAnswerData>
