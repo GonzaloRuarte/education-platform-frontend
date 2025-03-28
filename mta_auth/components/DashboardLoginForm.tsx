@@ -1,11 +1,11 @@
 'use client'
 
 import { useAuthorize, useStoreAuthData } from '@/mta_auth/hooks'
-import Input from '@/shared/forms/Input'
+import InputControlled from '@/shared/forms/InputControlled'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
 import { rules } from '@/shared/forms/messages'
-import { useInProgress, useNavigateToHome } from '@/shared/hooks'
+import { useInProgress, useNavigateToDashboardHome } from '@/shared/hooks'
 
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
@@ -21,15 +21,15 @@ const defaultValues: I_FormFields = {
   password: '',
 }
 
-export default function LoginForm() {
+export default function DashboardLoginForm() {
   const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
-  const navigateToHome = useNavigateToHome()
+  const navigateToHome = useNavigateToDashboardHome()
   const authorize = useAuthorize()
   const storeAuthData = useStoreAuthData()
 
-  const { setIsInProgress } = useInProgress()
+  const { setInProgressStatus } = useInProgress()
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
-    setIsInProgress(true)
+    setInProgressStatus(true)
     authorize(data)
       .then((res) => {
         successToast('¡Sesión iniciada correctamente, bienvenido/a!')
@@ -38,7 +38,7 @@ export default function LoginForm() {
       })
       .catch(handleServiceError)
       .finally(() => {
-        setIsInProgress(false)
+        setInProgressStatus(false)
       })
   }
 
@@ -46,8 +46,13 @@ export default function LoginForm() {
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
         <MagicGrid>
-          <Input<I_FormFields> control={control} name="username" rules={{ ...rules.required() }} label="Usuario" />
-          <Input<I_FormFields>
+          <InputControlled<I_FormFields>
+            control={control}
+            name="username"
+            rules={{ ...rules.required() }}
+            label="Usuario"
+          />
+          <InputControlled<I_FormFields>
             control={control}
             type="password"
             name="password"

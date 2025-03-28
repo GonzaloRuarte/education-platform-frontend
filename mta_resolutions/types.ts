@@ -1,0 +1,75 @@
+import { T_AnswerId, T_AnswerType, T_EvaluationId, T_QuestionId } from '@/mta_evaluations/types'
+import { T_AppointmentId } from '@/mta_schedule/types'
+
+interface I_EvaluationToResolve_BaseAnswer<T_SpecificData> {
+  id: T_AnswerId
+  resource_type: T_AnswerType
+  specific_data: T_SpecificData
+}
+type T_EvaluationToResolve_NumericAnswer = I_EvaluationToResolve_BaseAnswer<null>
+type T_EvaluationToResolve_MultipleChoiceAnswer = I_EvaluationToResolve_BaseAnswer<{
+  options: Array<{
+    id: number
+    content: string
+    name: string
+  }>
+  is_multiselect: boolean
+}>
+interface I_ResumeResolutionResponse {
+  evaluation_data: {
+    id: T_EvaluationId
+    code: string
+    title: string
+    header: string
+    subject: string
+    pages: Array<
+      Array<{
+        id: T_QuestionId
+        order: number
+        answer: T_EvaluationToResolve_NumericAnswer | T_EvaluationToResolve_MultipleChoiceAnswer
+        content: string
+        is_mandatory: boolean
+        breaks_page_after: boolean
+      }>
+    >
+  }
+  pages_quantity: number
+  appointment_id: T_AppointmentId
+  student_personal_id: number
+  last_uploaded_state: null | I_ResolutionState
+}
+
+interface I_ResolutionState_BaseAnswer<T extends T_AnswerType, T_SpecificData> {
+  id: T_AnswerId
+  last_update_datetime: string
+  resource_type: T
+  specific_data: T_SpecificData
+}
+type T_ResolutionState_NumericAnswerData = I_ResolutionState_BaseAnswer<
+  'Numeric',
+  {
+    value: number
+  }
+>
+type T_ResolutionState_MultipleChoiceAnswerData = I_ResolutionState_BaseAnswer<
+  'MultipleChoice',
+  {
+    choosed_options: Array<string>
+  }
+>
+interface I_ResolutionState {
+  appointment_id: T_AppointmentId
+  student_personal_id: number
+  last_login_datetime: string
+  last_update_datetime: string | null
+  answers: Record<T_QuestionId, T_ResolutionState_NumericAnswerData | T_ResolutionState_MultipleChoiceAnswerData>
+}
+
+export type {
+  I_ResumeResolutionResponse,
+  T_EvaluationToResolve_NumericAnswer,
+  T_EvaluationToResolve_MultipleChoiceAnswer,
+  I_ResolutionState,
+  T_ResolutionState_NumericAnswerData,
+  T_ResolutionState_MultipleChoiceAnswerData,
+}

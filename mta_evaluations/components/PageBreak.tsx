@@ -23,7 +23,7 @@ const PageBreak: FC<{ afterQuestionId: number; reload: T_VoidFn }> = ({ afterQue
           </MagicGrid>
         </Grid>
       </Pastilla>
-      <Spacer space="s" />
+      <Spacer size="s" />
     </>
   )
 }

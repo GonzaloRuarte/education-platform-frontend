@@ -30,11 +30,15 @@ interface I_CreationCommonResponse<T = number> {
 }
 interface I_DeletionCommonResponse {}
 
-type T_ArrayElement<ArrayType extends readonly unknown[]> = ArrayType extends readonly (infer ElementType)[] ? ElementType : never
+type T_ArrayElement<ArrayType extends readonly unknown[]> = ArrayType extends readonly (infer ElementType)[]
+  ? ElementType
+  : never
 
 type T_InProgressHook = () => {
   isInProgress: boolean
-  setIsInProgress: (status: boolean) => void
+  setInProgressStatus: (status: boolean) => void
+  setIsNotInProgress: () => void
+  setIsInProgress: () => void
 }
 type T_EmptyPayload = {}
 

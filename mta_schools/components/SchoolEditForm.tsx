@@ -2,7 +2,7 @@
 
 import { useNavigateToSchoolList, useSchoolUpdate } from '@/mta_schools/hooks'
 import { I_SchoolDetail, I_SchoolUpdateRequestData } from '@/mta_schools/types'
-import Input from '@/shared/forms/Input'
+import InputControlled from '@/shared/forms/InputControlled'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
 import { rules } from '@/shared/forms/messages'
@@ -24,12 +24,12 @@ const SchoolCreateForm = ({ data }: I_Props) => {
     },
   })
 
-  const { setIsInProgress } = useInProgress()
+  const { setInProgressStatus } = useInProgress()
   const navigateToSchoolList = useNavigateToSchoolList()
   const schoolUpdate = useSchoolUpdate()
 
   const onSubmit: SubmitHandler<I_FormFields> = (updatedData) => {
-    setIsInProgress(true)
+    setInProgressStatus(true)
     schoolUpdate(data.id, updatedData)
       .then(() => {
         successToast('Escuela editada correctamente')
@@ -37,15 +37,21 @@ const SchoolCreateForm = ({ data }: I_Props) => {
       })
       .catch(handleServiceError)
       .finally(() => {
-        setIsInProgress(false)
+        setInProgressStatus(false)
       })
   }
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <Input<I_FormFields> control={control} name="name" rules={{ ...rules.required() }} label="Nombre" />
-        <Input<I_FormFields> control={control} type="email" name="contact_email" label="E-Mail" />
-        <Input<I_FormFields> control={control} type="text" name="district" rules={{ ...rules.required() }} label="Distrito" />
+        <InputControlled<I_FormFields> control={control} name="name" rules={{ ...rules.required() }} label="Nombre" />
+        <InputControlled<I_FormFields> control={control} type="email" name="contact_email" label="E-Mail" />
+        <InputControlled<I_FormFields>
+          control={control}
+          type="text"
+          name="district"
+          rules={{ ...rules.required() }}
+          label="Distrito"
+        />
       </MagicGrid>
       <Spacer />
 

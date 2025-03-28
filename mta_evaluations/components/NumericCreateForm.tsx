@@ -6,9 +6,9 @@ import { I_AnswerNumericDetail, I_QuestionCreateNumericRequestData, T_QuestionFo
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
-import Input from '@/shared/forms/Input'
+import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
-import WysiwygEditor from '@/shared/forms/WysiwygEditor'
+import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
 import log from '@/shared/log'
@@ -29,11 +29,11 @@ const NumericCreateForm: T_QuestionForm<I_AnswerNumericDetail> = () => {
     },
   })
 
-  const { setIsInProgress } = useInProgress()
+  const { setInProgressStatus } = useInProgress()
   const backToDetail = useNavigateToEvaluationContentEdit()
   const createNumeric = useQuestionNumericCreate()
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
-    setIsInProgress(true)
+    setInProgressStatus(true)
     const payload = {
       content: data.content,
       value: Number(data.value),
@@ -49,20 +49,20 @@ const NumericCreateForm: T_QuestionForm<I_AnswerNumericDetail> = () => {
       })
       .catch(handleServiceError)
       .finally(() => {
-        setIsInProgress(false)
+        setInProgressStatus(false)
       })
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <WysiwygEditor<I_FormFields>
+        <WysiwygEditorControlled<I_FormFields>
           {...{ control }}
           label={questionLabels.content}
           rules={{ ...rules.required() }}
           name="content"
         />
-        <Input<I_FormFields>
+        <InputControlled<I_FormFields>
           {...{ control }}
           label={numericLabels.value}
           rules={{ ...rules.required() }}

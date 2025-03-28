@@ -19,7 +19,7 @@ interface I_Props<T_FormFields extends FieldValues> extends UseControllerProps<T
   label?: string
 }
 
-export default function WysiwygEditor<T_FormFields extends FieldValues>({
+export default function WysiwygEditorControlled<T_FormFields extends FieldValues>({
   name,
   control,
   defaultValue,

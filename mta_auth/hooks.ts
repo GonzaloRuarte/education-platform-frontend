@@ -3,6 +3,7 @@ import {
   I_AuthData,
   I_AuthorizeRequestData,
   I_AuthorizeResponseData,
+  I_AuthorizeStudentRequestData,
   I_AuthResources,
   T_AllowedAccessGroups,
 } from '@/mta_auth/types'
@@ -69,19 +70,26 @@ const useAuthResources = (): I_AuthResources => {
   return { accessGroups, accessToken, refreshToken, refresh, handleFatal401Error }
 }
 
-const useLogout = () => {
+const useLogout = (callbackPath: string = pages.D._.login.path) => {
   const router = useRouter()
 
   return () => {
     successToast('Sesión cerrada correctamente. Hasta Pronto!')
     useStore.getState().clearAuthData()
-    router.push(pages.D._.login.path)
+    router.push(callbackPath)
   }
 }
 const useStoreAuthData = () => useStore((state) => state.storeAuthData)
 
 const useAuthorize = () => {
   return postService<I_AuthorizeRequestData, I_AuthorizeResponseData>('/token', axiosPost)()
+}
+
+const useAuthorizeStudent = () => {
+  return postService<I_AuthorizeStudentRequestData, I_AuthorizeResponseData>(
+    '/student-profile/authorize-for-resolution',
+    axiosPost,
+  )()
 }
 
 const useNavigateToLogin = navigationHook(pages.D._.login.path)
@@ -96,4 +104,5 @@ export {
   useNavigateToLogin,
   useStoreAuthData,
   useUserAccessGroups,
+  useAuthorizeStudent,
 }

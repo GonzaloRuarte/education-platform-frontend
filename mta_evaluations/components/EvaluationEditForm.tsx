@@ -7,9 +7,9 @@ import { EvaluationStatus, I_EvaluationCreateRequestData, I_EvaluationDetail } f
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
-import Input from '@/shared/forms/Input'
+import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
-import WysiwygEditor from '@/shared/forms/WysiwygEditor'
+import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
 import log from '@/shared/log'
@@ -37,11 +37,11 @@ const EvaluationEditForm = ({ data }: I_Props) => {
     },
   })
 
-  const { setIsInProgress } = useInProgress()
+  const { setInProgressStatus } = useInProgress()
   const navigateToEvaluationList = useNavigateToEvaluationList()
   const evaluationUpdate = useEvaluationUpdate()
   const onSubmit: SubmitHandler<I_FormFields> = (updatedData) => {
-    setIsInProgress(true)
+    setInProgressStatus(true)
     evaluationUpdate(data.id, { ...updatedData, subject_id: updatedData.subject_id as string })
       .then((res) => {
         log.info('New Evaluation added:', res)
@@ -50,16 +50,31 @@ const EvaluationEditForm = ({ data }: I_Props) => {
       })
       .catch(handleServiceError)
       .finally(() => {
-        setIsInProgress(false)
+        setInProgressStatus(false)
       })
   }
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <Input<I_FormFields> {...{ control }} name="title" rules={{ ...rules.required() }} label={evaluationLabels.title} />
-        <Input<I_FormFields> {...{ control }} name="code" rules={{ ...rules.required() }} label={evaluationLabels.code} />
+        <InputControlled<I_FormFields>
+          {...{ control }}
+          name="title"
+          rules={{ ...rules.required() }}
+          label={evaluationLabels.title}
+        />
+        <InputControlled<I_FormFields>
+          {...{ control }}
+          name="code"
+          rules={{ ...rules.required() }}
+          label={evaluationLabels.code}
+        />
         <SubjectOptions {...{ control }} name="subject_id" />
-        <WysiwygEditor {...{ control }} label={evaluationLabels.header} rules={{ ...rules.required() }} name="header" />
+        <WysiwygEditorControlled
+          {...{ control }}
+          label={evaluationLabels.header}
+          rules={{ ...rules.required() }}
+          name="header"
+        />
       </MagicGrid>
       <Spacer />
       <Submit>{sharedLabels.update}</Submit>

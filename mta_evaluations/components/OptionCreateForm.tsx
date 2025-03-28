@@ -6,9 +6,9 @@ import { I_MultipleChoiceOptionCreateRequestData, T_MultiplChoiceId } from '@/mt
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
-import Input from '@/shared/forms/Input'
+import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
-import WysiwygEditor from '@/shared/forms/WysiwygEditor'
+import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { useInProgress } from '@/shared/hooks'
 import log from '@/shared/log'
 import { handleServiceError } from '@/shared/service'
@@ -30,11 +30,11 @@ const OptionCreateForm: FC<{ multipleChoiceId: T_MultiplChoiceId; reload: T_Void
 }) => {
   const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
 
-  const { setIsInProgress } = useInProgress()
+  const { setInProgressStatus } = useInProgress()
 
   const create = useMultipleChoiceOptionCreate()
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
-    setIsInProgress(true)
+    setInProgressStatus(true)
     create({ multiple_choice_id: multipleChoiceId, ...data })
       .then((res) => {
         log.info('New Option added:', res)
@@ -42,20 +42,20 @@ const OptionCreateForm: FC<{ multipleChoiceId: T_MultiplChoiceId; reload: T_Void
       })
       .catch(handleServiceError)
       .finally(() => {
-        setIsInProgress(false)
+        setInProgressStatus(false)
         reload()
       })
   }
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <Input<I_FormFields>
+        <InputControlled<I_FormFields>
           {...{ control }}
           name="name"
           rules={{ ...rules.required() }}
           label={multipleChoiceLabels.option.name}
         />
-        <WysiwygEditor<I_FormFields>
+        <WysiwygEditorControlled<I_FormFields>
           {...{ control }}
           label={multipleChoiceLabels.option.content}
           rules={{ ...rules.required() }}

@@ -12,7 +12,7 @@ import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import { Body1 } from '@/shared/components/Typography'
 import { rules } from '@/shared/forms/messages'
-import WysiwygEditor from '@/shared/forms/WysiwygEditor'
+import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
 import log from '@/shared/log'
@@ -31,13 +31,13 @@ const MultipleChoiceCreateForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = (
       content: '',
     },
   })
-  const { setIsInProgress } = useInProgress()
+  const { setInProgressStatus } = useInProgress()
 
   const navigateToDetail = useNavigateToQuestionEdit()
   const create = useQuestionMultipleChoiceCreate()
 
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
-    setIsInProgress(true)
+    setInProgressStatus(true)
     create({ ...data, evaluation_id: Number(evaluationId) })
       .then((res) => {
         log.info('Question created succesfully:')
@@ -46,14 +46,14 @@ const MultipleChoiceCreateForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = (
       })
       .catch(handleServiceError)
       .finally(() => {
-        setIsInProgress(false)
+        setInProgressStatus(false)
       })
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <WysiwygEditor<I_FormFields>
+        <WysiwygEditorControlled<I_FormFields>
           {...{ control }}
           label={questionLabels.content}
           rules={{ ...rules.required() }}

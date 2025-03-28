@@ -2,7 +2,7 @@ import { useEvaluationSubjects } from '@/mta_evaluations/hooks'
 import { evaluationLabels } from '@/mta_evaluations/labels'
 import Spinner from '@/shared/components/Spinner'
 import { rules } from '@/shared/forms/messages'
-import RadioGroup from '@/shared/forms/RadioGroup'
+import RadioGroupControlled from '@/shared/forms/RadioGroupControlled'
 import { Control, FieldValues, Path } from 'react-hook-form'
 
 interface I_Props<T_FormFields extends FieldValues> {
@@ -16,7 +16,7 @@ function SubjectOptions<T_FormFields extends FieldValues>({ control, name }: I_P
   if (subjects === undefined) return <Spinner />
 
   return (
-    <RadioGroup
+    <RadioGroupControlled
       label={evaluationLabels.subject}
       row
       options={subjects.map((s) => ({ label: s.name, value: s.id }))}

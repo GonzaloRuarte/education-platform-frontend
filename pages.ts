@@ -14,6 +14,20 @@ const questionEditPath = '/dashboard/evaluaciones/{evaluationId:number}/pregunta
 const questionCreateMCPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.MultipleChoice}`
 const questionCreateNumericPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.Numeric}`
 const pages = {
+  R: {
+    path: '/',
+    label: 'Bienvenida',
+    _: {
+      login: {
+        path: '/login',
+        label: 'Login Estudiante',
+      },
+      resolverEvaluacion: {
+        path: '/resolver-evaluacion',
+        label: 'Resolver Evaluación',
+      },
+    },
+  },
   D: {
     path: '/dashboard',
     label: 'Dashboard',
@@ -35,6 +49,12 @@ const pages = {
       turnos: {
         path: '/dashboard/turnos',
         label: 'Turnos',
+        _: {
+          agregar: {
+            path: '/dashboard/turnos/agregar',
+            label: 'Agregar turno',
+          },
+        },
       },
       evaluaciones: {
         path: '/dashboard/evaluaciones',
@@ -88,6 +108,13 @@ const pathWithId = (path: string, id: string | number) => {
   return `${path}/${id}`
 }
 
-export { pages, pathWithId, evaluationsEditContentPath, questionEditPath, questionCreateMCPath, questionCreateNumericPath }
+export {
+  pages,
+  pathWithId,
+  evaluationsEditContentPath,
+  questionEditPath,
+  questionCreateMCPath,
+  questionCreateNumericPath,
+}
 
 export default pages

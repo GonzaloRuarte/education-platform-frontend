@@ -1,7 +1,7 @@
 'use client'
 
 import { useNavigateToSchoolList, useSchoolCreate } from '@/mta_schools/hooks'
-import Input from '@/shared/forms/Input'
+import InputControlled from '@/shared/forms/InputControlled'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
 import { rules } from '@/shared/forms/messages'
@@ -24,11 +24,11 @@ const defaultValues: I_FormFields = {
 const SchoolCreateForm = () => {
   const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
 
-  const { setIsInProgress } = useInProgress()
+  const { setInProgressStatus } = useInProgress()
   const navigateToSchoolList = useNavigateToSchoolList()
   const schoolCreate = useSchoolCreate()
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
-    setIsInProgress(true)
+    setInProgressStatus(true)
     schoolCreate(data)
       .then((res) => {
         log.info('New school added:', res)
@@ -38,15 +38,21 @@ const SchoolCreateForm = () => {
       })
       .catch(handleServiceError)
       .finally(() => {
-        setIsInProgress(false)
+        setInProgressStatus(false)
       })
   }
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <Input<I_FormFields> control={control} name="name" rules={{ ...rules.required() }} label="Nombre" />
-        <Input<I_FormFields> control={control} type="email" name="contact_email" label="E-Mail" />
-        <Input<I_FormFields> control={control} type="text" name="district" rules={{ ...rules.required() }} label="Distrito" />
+        <InputControlled<I_FormFields> control={control} name="name" rules={{ ...rules.required() }} label="Nombre" />
+        <InputControlled<I_FormFields> control={control} type="email" name="contact_email" label="E-Mail" />
+        <InputControlled<I_FormFields>
+          control={control}
+          type="text"
+          name="district"
+          rules={{ ...rules.required() }}
+          label="Distrito"
+        />
       </MagicGrid>
 
       <Submit>Agregar</Submit>
