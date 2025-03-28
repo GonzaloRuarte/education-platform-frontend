@@ -1,6 +1,8 @@
 import { useAuthResources } from '@/mta_auth/hooks'
+import { I_AuthorizeResponseData } from '@/mta_auth/types'
 import { T_AnswerId, T_AnswerType, T_QuestionId } from '@/mta_evaluations/types'
 import {
+  I_AuthorizeStudentRequestData,
   I_ResolutionState,
   I_ResumeResolutionResponse,
   T_ResolutionState_MultipleChoiceAnswerData,
@@ -9,12 +11,20 @@ import {
 import { axiosPost } from '@/shared/data/axios'
 import { actionHook, useInProgress } from '@/shared/hooks'
 import log from '@/shared/log'
+import { postService } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import useToasts from '@/shared/toasts'
 import { T_EmptyPayload } from '@/shared/types'
 
 // Data Service
 const RESOLUTIONS_PATH = '/resolutions'
+
+const useResolutionAuthorizeStudent = () => {
+  return postService<I_AuthorizeStudentRequestData, I_AuthorizeResponseData>(
+    `${RESOLUTIONS_PATH}/authorize`,
+    axiosPost,
+  )()
+}
 
 const _useRequestResume = actionHook<T_EmptyPayload, I_ResumeResolutionResponse>(
   `${RESOLUTIONS_PATH}/resume`,
@@ -23,13 +33,16 @@ const _useRequestResume = actionHook<T_EmptyPayload, I_ResumeResolutionResponse>
 )
 
 const useStoreEvaluationToResolve = () => {
-  return useStore((state) => state.storeEvaluationToResolve)
+  return useStore((state) => state.resolution.storeEvaluationToResolve)
+}
+const useClearEvaluationToResolve = () => {
+  return useStore((state) => state.resolution.clearEvaluationToResolve)
 }
 
 const useResolutionResume = () => {
   const requestResume = _useRequestResume()
   const storeEvaluationToResolve = useStoreEvaluationToResolve()
-  const storeResolutionState = useStore((state) => state.storeResolutionState)
+  const storeResolutionState = useStore((state) => state.resolution.storeState)
   const { setIsNotInProgress, setIsInProgress } = useInProgress()
   const { errorToast } = useToasts()
 
@@ -39,8 +52,8 @@ const useResolutionResume = () => {
       .then((data) => {
         const now = new Date().toISOString()
         storeResolutionState(
-          data.last_uploaded_state !== null
-            ? data.last_uploaded_state
+          data.resolution.last_uploaded_state !== null
+            ? data.resolution.last_uploaded_state
             : {
                 student_personal_id: data.student_personal_id,
                 appointment_id: data.appointment_id,
@@ -49,7 +62,7 @@ const useResolutionResume = () => {
                 answers: {},
               },
         )
-        storeEvaluationToResolve(data)
+        storeEvaluationToResolve(data.evaluation)
       })
       .catch((err) => {
         errorToast('Hubo un error iniciando la evaluación. ')
@@ -59,18 +72,18 @@ const useResolutionResume = () => {
   return { resume }
 }
 
-const useResolutionEvaluationToResolve = () => useStore((state) => state.evaluationToResolve)
-const useResolutionState = () => useStore((state) => state.resolutionState)
-const useResolutionLastUploadDatetime = () => useStore((state) => state.lastResolutionStateUpload)
+const useResolutionEvaluationToResolve = () => useStore((state) => state.resolution.evaluationToResolve)
+const useResolutionState = () => useStore((state) => state.resolution.state)
+const useResolutionLastUploadDatetime = () => useStore((state) => state.resolution.lastUpload)
 const useResolutionUpdateLastUploadDatetime = () => {
-  const storeResolutionState = useStore((state) => state.storeLastResolutionStateUpload)
+  const storeLastUploadxxxx = useStore((state) => state.resolution.storeLastUpload)
   return () => {
-    storeResolutionState(new Date().toISOString())
+    storeLastUploadxxxx(new Date().toISOString())
   }
 }
 const useResolutionStateUpdateAnswer = () => {
   const resolutionState = useResolutionState()
-  const storeResolutionState = useStore((state) => state.storeResolutionState)
+  const storeResolutionState = useStore((state) => state.resolution.storeState)
   if (resolutionState === null) throw new Error('Resolution local state not initialized')
 
   const Numeric = (questionId: T_QuestionId, answerId: T_AnswerId, value: number) => {
@@ -155,4 +168,6 @@ export {
   useResolutionStateUpdateAnswer,
   useResolutionUpdateLastUploadDatetime,
   useStoreEvaluationToResolve,
+  useResolutionAuthorizeStudent,
+  useClearEvaluationToResolve,
 }

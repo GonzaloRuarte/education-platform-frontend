@@ -30,7 +30,7 @@ const Header = () => {
             </Box>
           </Grid>
           <Grid size="grow">
-            <H4 color="white">{evaluationToResolve?.evaluation_data.title}</H4>
+            <H4 color="white">{evaluationToResolve?.title}</H4>
           </Grid>
           <Grid>
             <IconButton style={{ color: 'white' }} onClick={exit}>

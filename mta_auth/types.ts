@@ -19,10 +19,6 @@ interface I_AuthorizeRequestData {
   username: string
   password: string
 }
-interface I_AuthorizeStudentRequestData {
-  personal_id: T_StudentProfilePersonalId
-}
-
 interface I_AuthorizeResponseData {
   access: string
   refresh: string
@@ -35,5 +31,4 @@ export type {
   I_AuthResources,
   I_AuthorizeRequestData,
   I_AuthorizeResponseData,
-  I_AuthorizeStudentRequestData,
 }

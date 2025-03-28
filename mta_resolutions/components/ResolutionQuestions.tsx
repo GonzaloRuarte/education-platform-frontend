@@ -2,7 +2,7 @@ import { T_AnswerType, T_QuestionId } from '@/mta_evaluations/types'
 import { useResolutionPagination } from '@/mta_resolutions/hooks'
 import { useResolutionState, useResolutionStateUpdateAnswer } from '@/mta_resolutions/hooks/data'
 import {
-  I_ResumeResolutionResponse,
+  I_EvaluationToResolve,
   T_EvaluationToResolve_MultipleChoiceAnswer,
   T_EvaluationToResolve_NumericAnswer,
   T_ResolutionState_MultipleChoiceAnswerData,
@@ -110,9 +110,9 @@ const forms: Record<T_AnswerType, FC<any>> = {
   MultipleChoice: MultipleChoiceForm,
   Numeric: NumericForm,
 }
-const ResolutionQuestions: FC<{ evaluationToResolve: I_ResumeResolutionResponse }> = ({ evaluationToResolve }) => {
+const ResolutionQuestions: FC<{ evaluationToResolve: I_EvaluationToResolve }> = ({ evaluationToResolve }) => {
   const { currentPage } = useResolutionPagination()
-  const questions = evaluationToResolve.evaluation_data.pages[currentPage - 1]
+  const questions = evaluationToResolve.pages[currentPage - 1]
 
   return (
     <>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useAuthorizeStudent, useStoreAuthData } from '@/mta_auth/hooks'
+import { useStoreAuthData } from '@/mta_auth/hooks'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
 import InputControlled from '@/shared/forms/InputControlled'
@@ -8,6 +8,7 @@ import { rules } from '@/shared/forms/messages'
 import { useInProgress } from '@/shared/hooks'
 
 import { useNavigateToResolutionPage } from '@/mta_resolutions/hooks'
+import { useResolutionAuthorizeStudent } from '@/mta_resolutions/hooks/data'
 import { T_StudentProfilePersonalId } from '@/mta_schools/types'
 import Spacer from '@/shared/components/Spacer'
 import { handleServiceError } from '@/shared/service'
@@ -19,11 +20,9 @@ interface I_FormFields {
 }
 
 export default function StudentsLoginForm() {
-  const { handleSubmit, control } = useForm<I_FormFields>({
-    defaultValues: { personal_id: 44432525 },
-  })
+  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues: { personal_id: 0 } })
   const navigateToBeginResolution = useNavigateToResolutionPage()
-  const authorize = useAuthorizeStudent()
+  const authorize = useResolutionAuthorizeStudent()
   const storeAuthData = useStoreAuthData()
 
   const { setInProgressStatus } = useInProgress()

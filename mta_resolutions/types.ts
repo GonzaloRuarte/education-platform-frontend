@@ -1,5 +1,10 @@
 import { T_AnswerId, T_AnswerType, T_EvaluationId, T_QuestionId } from '@/mta_evaluations/types'
 import { T_AppointmentId } from '@/mta_schedule/types'
+import { T_StudentProfilePersonalId } from '@/mta_schools/types'
+
+interface I_AuthorizeStudentRequestData {
+  personal_id: T_StudentProfilePersonalId
+}
 
 interface I_EvaluationToResolve_BaseAnswer<T_SpecificData> {
   id: T_AnswerId
@@ -16,27 +21,33 @@ type T_EvaluationToResolve_MultipleChoiceAnswer = I_EvaluationToResolve_BaseAnsw
   is_multiselect: boolean
 }>
 interface I_ResumeResolutionResponse {
-  evaluation_data: {
-    id: T_EvaluationId
-    code: string
-    title: string
-    header: string
-    subject: string
-    pages: Array<
-      Array<{
-        id: T_QuestionId
-        order: number
-        answer: T_EvaluationToResolve_NumericAnswer | T_EvaluationToResolve_MultipleChoiceAnswer
-        content: string
-        is_mandatory: boolean
-        breaks_page_after: boolean
-      }>
-    >
-  }
-  pages_quantity: number
+  evaluation: I_EvaluationToResolve
   appointment_id: T_AppointmentId
   student_personal_id: number
-  last_uploaded_state: null | I_ResolutionState
+  resolution: {
+    last_uploaded_state: null | I_ResolutionState
+    started_at: string
+    max_duration_minutes: number
+  }
+}
+
+interface I_EvaluationToResolve {
+  id: T_EvaluationId
+  code: string
+  title: string
+  header: string
+  subject: string
+  pages: Array<
+    Array<{
+      id: T_QuestionId
+      order: number
+      answer: T_EvaluationToResolve_NumericAnswer | T_EvaluationToResolve_MultipleChoiceAnswer
+      content: string
+      is_mandatory: boolean
+      breaks_page_after: boolean
+    }>
+  >
+  pages_quantity: number
 }
 
 interface I_ResolutionState_BaseAnswer<T extends T_AnswerType, T_SpecificData> {
@@ -65,11 +76,20 @@ interface I_ResolutionState {
   answers: Record<T_QuestionId, T_ResolutionState_NumericAnswerData | T_ResolutionState_MultipleChoiceAnswerData>
 }
 
+interface I_OngoingResolution {
+  state: I_ResolutionState | null
+  started_at: string
+  max_duration_minutes: number
+}
+
 export type {
+  I_AuthorizeStudentRequestData,
   I_ResumeResolutionResponse,
   T_EvaluationToResolve_NumericAnswer,
   T_EvaluationToResolve_MultipleChoiceAnswer,
   I_ResolutionState,
   T_ResolutionState_NumericAnswerData,
   T_ResolutionState_MultipleChoiceAnswerData,
+  I_OngoingResolution,
+  I_EvaluationToResolve,
 }
