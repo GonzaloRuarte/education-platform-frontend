@@ -1,11 +1,12 @@
 'use client'
 
 import { useResolutionResume } from '@/mta_resolutions/hooks/data'
+import debounce from 'debounce'
 import { useEffect } from 'react'
 
 const ResolutionResumingManager = () => {
   const { resume } = useResolutionResume()
-  useEffect(resume, [])
+  useEffect(debounce(resume, 100), [])
 
   return <></>
 }

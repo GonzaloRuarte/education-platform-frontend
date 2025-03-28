@@ -8,6 +8,7 @@ import {
 } from '@/mta_resolutions/types'
 import { axiosPost } from '@/shared/data/axios'
 import { actionHook, useInProgress } from '@/shared/hooks'
+import log from '@/shared/log'
 import { useStore } from '@/shared/state'
 import useToasts from '@/shared/toasts'
 import { T_EmptyPayload } from '@/shared/types'
@@ -114,19 +115,41 @@ const useResolutionStateUpdateAnswer = () => {
   return { updateMultipleChoice: MultipleChoice, updateNumeric: Numeric }
 }
 
-const useResolutionUploadState = actionHook<I_ResolutionState, T_EmptyPayload>(
+const _useResolutionUploadState = actionHook<I_ResolutionState, T_EmptyPayload>(
   `${RESOLUTIONS_PATH}/upload-state`,
   axiosPost,
   useAuthResources,
 )
 
+const useResolutionManageUploadState = () => {
+  const uploadState = _useResolutionUploadState()
+  const resolutionState = useResolutionState()
+  const lastUploadDatetime = useResolutionLastUploadDatetime()
+  const updateLastUploadDatetime = useResolutionUpdateLastUploadDatetime()
+
+  const executeUploadingTasks = (resState: I_ResolutionState) => {
+    uploadState(resState).then(updateLastUploadDatetime)
+  }
+
+  const manageUpload = () => {
+    if (resolutionState === null) return
+    if (resolutionState.last_update_datetime === null) return
+    if (lastUploadDatetime !== null && new Date(resolutionState.last_update_datetime) < new Date(lastUploadDatetime))
+      return
+
+    log.info('Uploading resolution state', new Date().toISOString())
+    executeUploadingTasks(resolutionState)
+  }
+  return manageUpload
+}
+
 export {
   useResolutionEvaluationToResolve,
+  useResolutionLastUploadDatetime,
+  useResolutionManageUploadState,
   useResolutionResume,
   useResolutionState,
   useResolutionStateUpdateAnswer,
   useResolutionUpdateLastUploadDatetime,
-  useResolutionLastUploadDatetime,
-  useResolutionUploadState,
   useStoreEvaluationToResolve,
 }
