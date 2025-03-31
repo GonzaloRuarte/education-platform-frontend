@@ -7,6 +7,6 @@ Frontend layer for the Meta schools evaluation system
 ```bash
 docker compose -f 'docker-compose.pre_staging.yml' up -d --build
 
-docker build --tag meta_frontend_prestaging-app:latest -f Dockerfile .
+docker build --tag meta_frontend_prestaging-app:latest -f Dockerfile.pre_staging .
 docker run --detach 'meta_frontend_prestaging-app:latest'
 ```
