@@ -58,7 +58,7 @@ USER nextjs
 EXPOSE 3000
 ENV NODE_ENV=staging
 ENV PORT=3000
-ENV NEXT_PUBLIC_API_BASE_PATH=http://meta.liaa.dc.uba.ar:8118/api
+ENV NEXT_PUBLIC_API_BASE_PATH=http://api.meta.liaa.dc.uba.ar/api
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=localhost
 
