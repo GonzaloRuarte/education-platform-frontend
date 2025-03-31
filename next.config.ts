@@ -13,16 +13,16 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // async redirects() {
-  //   return [
-  //     Basic redirect
-  //     {
-  //       source: '/',
-  //       destination: '/dashboard/',
-  //       permanent: false,
-  //     },
-  //   ]
-  // },
+  async redirects() {
+    return [
+      // Basic redirect
+      {
+        source: '/',
+        destination: '/login/',
+        permanent: false,
+      },
+    ]
+  },
   output: 'standalone',
 }
 

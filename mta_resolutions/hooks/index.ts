@@ -8,9 +8,9 @@ const useNavigateToResolutionPage = navigationHook(pages.R._.resolverEvaluacion.
 
 const useResolutionPagination = () => {
   return {
-    currentPage: useStore((state) => state.resolution.currentPage),
-    pagesQuantity: useStore((state) => state.resolution.evaluationToResolve?.pages_quantity),
-    storeNewPage: useStore((state) => state.resolution.storeCurrentPage),
+    currentPage: useStore((state) => state.resolution_currentPage),
+    pagesQuantity: useStore((state) => state.resolution_evaluation?.pages_quantity),
+    storeNewPage: useStore((state) => state.resolution_storeCurrentPage),
   }
 }
 

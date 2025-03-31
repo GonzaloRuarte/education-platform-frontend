@@ -15,7 +15,7 @@ const createAuthSlice: StateCreator<I_AuthSlice, [], [], I_AuthSlice> = (set) =>
   refreshToken: undefined,
   accessGroups: undefined,
   storeAuthData: (data) => set(() => data),
-  storeRefreshedToken: (accessToken) => set(() => ({ accessToken: accessToken })),
+  storeRefreshedToken: (accessToken) => set(() => ({ accessToken })),
   clearAuthData: () =>
     set(() => ({
       accessToken: undefined,

@@ -33,36 +33,36 @@ const _useRequestResume = actionHook<T_EmptyPayload, I_ResumeResolutionResponse>
 )
 
 const useStoreEvaluationToResolve = () => {
-  return useStore((state) => state.resolution.storeEvaluationToResolve)
+  return useStore((state) => state.resolution_storeEvaluation)
 }
 const useClearEvaluationToResolve = () => {
-  return useStore((state) => state.resolution.clearEvaluationToResolve)
+  return useStore((state) => state.resolution_clearEvaluation)
 }
 
 const useResolutionResume = () => {
   const requestResume = _useRequestResume()
   const storeEvaluationToResolve = useStoreEvaluationToResolve()
-  const storeResolutionState = useStore((state) => state.resolution.storeState)
+  const storeResolutionState = useStore((state) => state.resolution_storeState)
   const { setIsNotInProgress, setIsInProgress } = useInProgress()
   const { errorToast } = useToasts()
 
   const resume = () => {
     setIsInProgress()
     requestResume({})
-      .then((data) => {
+      .then((res) => {
         const now = new Date().toISOString()
         storeResolutionState(
-          data.resolution.last_uploaded_state !== null
-            ? data.resolution.last_uploaded_state
+          res.resolution.last_uploaded_state !== null
+            ? res.resolution.last_uploaded_state
             : {
-                student_personal_id: data.student_personal_id,
-                appointment_id: data.appointment_id,
+                student_personal_id: res.student_personal_id,
+                appointment_id: res.appointment_id,
                 last_login_datetime: now,
                 last_update_datetime: null,
                 answers: {},
               },
         )
-        storeEvaluationToResolve(data.evaluation)
+        storeEvaluationToResolve(res.evaluation)
       })
       .catch((err) => {
         errorToast('Hubo un error iniciando la evaluación. ')
@@ -72,18 +72,18 @@ const useResolutionResume = () => {
   return { resume }
 }
 
-const useResolutionEvaluationToResolve = () => useStore((state) => state.resolution.evaluationToResolve)
-const useResolutionState = () => useStore((state) => state.resolution.state)
-const useResolutionLastUploadDatetime = () => useStore((state) => state.resolution.lastUpload)
+const useResolutionEvaluationToResolve = () => useStore((state) => state.resolution_evaluation)
+const useResolutionState = () => useStore((state) => state.resolution_state)
+const useResolutionLastUploadDatetime = () => useStore((state) => state.resolution_lastUpload)
 const useResolutionUpdateLastUploadDatetime = () => {
-  const storeLastUploadxxxx = useStore((state) => state.resolution.storeLastUpload)
+  const storeLastUpload = useStore((state) => state.resolution_storeLastUpload)
   return () => {
-    storeLastUploadxxxx(new Date().toISOString())
+    storeLastUpload(new Date().toISOString())
   }
 }
 const useResolutionStateUpdateAnswer = () => {
   const resolutionState = useResolutionState()
-  const storeResolutionState = useStore((state) => state.resolution.storeState)
+  const storeResolutionState = useStore((state) => state.resolution_storeState)
   if (resolutionState === null) throw new Error('Resolution local state not initialized')
 
   const Numeric = (questionId: T_QuestionId, answerId: T_AnswerId, value: number) => {

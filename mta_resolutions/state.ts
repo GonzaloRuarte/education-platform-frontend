@@ -4,57 +4,42 @@ import { I_EvaluationToResolve, I_ResolutionState } from '@/mta_resolutions/type
 import { StateCreator } from 'zustand'
 
 interface I_ResolutionsSlice {
-  resolution: {
-    evaluationToResolve: I_EvaluationToResolve | null
-    storeEvaluationToResolve: (evaluationToResolve: I_EvaluationToResolve) => void
-    clearEvaluationToResolve: () => void
+  resolution_evaluation: I_EvaluationToResolve | null
+  resolution_storeEvaluation: (resolution_evaluation: I_EvaluationToResolve) => void
+  resolution_clearEvaluation: () => void
 
-    currentPage: number
-    storeCurrentPage: (newPage: number) => void
+  resolution_currentPage: number
+  resolution_storeCurrentPage: (resolution_currentPage: number) => void
 
-    state: I_ResolutionState | null
-    storeState: (resolutionState: I_ResolutionState | null) => void
+  resolution_state: I_ResolutionState | null
+  resolution_storeState: (resolutionState: I_ResolutionState | null) => void
 
-    lastUpload: string | null
-    storeLastUpload: (lastUpload: string) => void
+  resolution_lastUpload: string | null
+  resolution_storeLastUpload: (lastUpload: string) => void
 
-    startedAt: string | null
-    maxDurationMinutes: string | null
-    storeMetadata: (args: { startedAt: string; maxDurationMinutes: string }) => void
-  }
+  resolution_startedAt: string | null
+  resolution_maxDurationMinutes: string | null
+  resolution_storeMetadata: (args: { resolution_startedAt: string; resolution_maxDurationMinutes: string }) => void
 }
 
 const createResolutionsSlice: StateCreator<I_ResolutionsSlice, [], [], I_ResolutionsSlice> = (set) => ({
-  resolution: {
-    evaluationToResolve: null,
-    storeEvaluationToResolve: (evaluationToResolve) => {
-      set((state) => ({ ...state, resolution: { ...state.resolution, evaluationToResolve } }))
-    },
-    clearEvaluationToResolve: () => {
-      set((state) => ({ ...state, resolution: { ...state.resolution, evaluationToResolve: null } }))
-    },
+  resolution_evaluation: null,
+  resolution_storeEvaluation: (resolution_evaluation) => set(() => ({ resolution_evaluation })),
+  resolution_clearEvaluation: () => set(() => ({ resolution_evaluation: null })),
 
-    currentPage: 1,
-    storeCurrentPage: (currentPage) => {
-      set((state) => ({ ...state, resolution: { ...state.resolution, currentPage } }))
-    },
+  resolution_currentPage: 1,
+  resolution_storeCurrentPage: (resolution_currentPage) => () => set(() => ({ resolution_currentPage })),
 
-    state: null,
-    storeState: (newState) => {
-      set((state) => ({ ...state, resolution: { ...state.resolution, state: newState } }))
-    },
+  resolution_state: null,
+  resolution_storeState: (resolution_state) => set(() => ({ resolution_state })),
 
-    lastUpload: null,
-    storeLastUpload: (lastUpload) => {
-      set((state) => ({ ...state, resolution: { ...state.resolution, lastUpload } }))
-    },
+  resolution_lastUpload: null,
+  resolution_storeLastUpload: (resolution_lastUpload) => set(() => ({ resolution_lastUpload })),
 
-    startedAt: null,
-    maxDurationMinutes: null,
-    storeMetadata: ({ startedAt, maxDurationMinutes }) => {
-      set((state) => ({ ...state, resolution: { ...state.resolution, startedAt, maxDurationMinutes } }))
-    },
-  },
+  resolution_startedAt: null,
+  resolution_maxDurationMinutes: null,
+  resolution_storeMetadata: (args: { resolution_startedAt: string; resolution_maxDurationMinutes: string }) =>
+    set(() => ({ ...args })),
 })
 
 export { createResolutionsSlice }

@@ -14,19 +14,20 @@ import Spacer from '@/shared/components/Spacer'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import { I_AuthorizeStudentRequestData } from '@/mta_resolutions/types'
 
 interface I_FormFields {
-  personal_id: T_StudentProfilePersonalId
+  personal_id: T_StudentProfilePersonalId | ''
 }
 
 export default function StudentsLoginForm() {
-  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues: { personal_id: 0 } })
+  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues: { personal_id: '' } })
   const navigateToBeginResolution = useNavigateToResolutionPage()
   const authorize = useResolutionAuthorizeStudent()
   const storeAuthData = useStoreAuthData()
 
   const { setInProgressStatus } = useInProgress()
-  const onSubmit: SubmitHandler<I_FormFields> = (data) => {
+  const onSubmit = (data: I_AuthorizeStudentRequestData) => {
     setInProgressStatus(true)
     authorize(data)
       .then((res) => {

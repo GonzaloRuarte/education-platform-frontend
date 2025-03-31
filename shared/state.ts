@@ -5,15 +5,11 @@ import { create, StateCreator } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 
 interface I_CoreSlice {
-  currentPage: string | undefined
-  setCurrentPage: (newPage: string) => void
   isInProgress: boolean
   setIsInProgress: (status: boolean) => void
 }
 
 const createCoreSlice: StateCreator<I_CoreSlice, [], [], I_CoreSlice> = (set) => ({
-  currentPage: undefined,
-  setCurrentPage: (newPage) => set(() => ({ currentPage: newPage })),
   isInProgress: false,
   setIsInProgress: (status) => set(() => ({ isInProgress: status })),
 })
