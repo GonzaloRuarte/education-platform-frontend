@@ -9,12 +9,13 @@ import {
   T_ResolutionState_NumericAnswerData,
 } from '@/mta_resolutions/types'
 import { axiosPost } from '@/shared/data/axios'
-import { actionHook, useInProgress } from '@/shared/hooks'
+import { actionHook, useInProgress, useInterval } from '@/shared/hooks'
 import log from '@/shared/log'
 import { postService } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import useToasts from '@/shared/toasts'
 import { T_EmptyPayload } from '@/shared/types'
+import { useState } from 'react'
 
 // Data Service
 const RESOLUTIONS_PATH = '/resolutions'
@@ -32,39 +33,48 @@ const _useRequestResume = actionHook<T_EmptyPayload, I_ResumeResolutionResponse>
   useAuthResources,
 )
 
-const useStoreEvaluationToResolve = () => {
+const useResolutionStoreEvaluation = () => {
   return useStore((state) => state.resolution_storeEvaluation)
 }
-const useClearEvaluationToResolve = () => {
+const useResolutionClearEvaluation = () => {
   return useStore((state) => state.resolution_clearEvaluation)
+}
+const useResolutionStoreMetadata = () => {
+  return useStore((state) => state.resolution_storeMetadata)
+}
+const useResolutionClearMetadata = () => {
+  return useStore((state) => state.resolution_clearMetadata)
 }
 
 const useResolutionResume = () => {
   const requestResume = _useRequestResume()
-  const storeEvaluationToResolve = useStoreEvaluationToResolve()
+  const storeEvaluationToResolve = useResolutionStoreEvaluation()
   const storeResolutionState = useStore((state) => state.resolution_storeState)
+  const storeMetadata = useResolutionStoreMetadata()
   const { setIsNotInProgress, setIsInProgress } = useInProgress()
   const { errorToast } = useToasts()
 
   const resume = () => {
     setIsInProgress()
     requestResume({})
-      .then((res) => {
-        console.log('resume', res)
-
+      .then((response) => {
         const now = new Date().toISOString()
         storeResolutionState(
-          res.resolution.last_uploaded_state !== null
-            ? res.resolution.last_uploaded_state
+          response.resolution.last_uploaded_state !== null
+            ? response.resolution.last_uploaded_state
             : {
-                student_personal_id: res.student_personal_id,
-                appointment_id: res.appointment_id,
+                student_personal_id: response.student_personal_id,
+                appointment_id: response.appointment_id,
                 last_login_datetime: now,
                 last_update_datetime: null,
                 answers: {},
               },
         )
-        storeEvaluationToResolve(res.evaluation)
+        storeEvaluationToResolve(response.evaluation)
+        storeMetadata({
+          resolution_maxDurationMinutes: response.resolution.max_duration_minutes,
+          resolution_startedAt: response.resolution.started_at,
+        })
       })
       .catch((err) => {
         errorToast('Hubo un error iniciando la evaluación. ')
@@ -167,6 +177,20 @@ const useResolutionManageUploadState = () => {
   }
   return manageUpload
 }
+const useResolutionElapsedTime = () => {
+  const [elapsedSeconds, setElapsedSeconds] = useState(0)
+  const resolutionStartedAt = useStore((state) => state.resolution_startedAt)
+
+  useInterval(() => {
+    if (!resolutionStartedAt) return
+
+    const startTime = new Date(resolutionStartedAt).getTime()
+    const now = Date.now()
+    setElapsedSeconds(Math.floor((now - startTime) / 1000))
+  }, 1000) // Update every second
+
+  return elapsedSeconds
+}
 
 export {
   useResolutionEvaluationToResolve,
@@ -176,9 +200,12 @@ export {
   useResolutionState,
   useResolutionStateUpdateAnswer,
   useResolutionUpdateLastUploadDatetime,
-  useStoreEvaluationToResolve,
+  useResolutionStoreEvaluation,
   useResolutionAuthorizeStudent,
-  useClearEvaluationToResolve,
+  useResolutionClearEvaluation,
   useResolutionClearState,
   useResolutionClearLastUploadDatetime,
+  useResolutionStoreMetadata,
+  useResolutionClearMetadata,
+  useResolutionElapsedTime,
 }

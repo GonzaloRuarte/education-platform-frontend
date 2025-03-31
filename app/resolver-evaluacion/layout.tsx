@@ -1,1 +1,1 @@
-export { default } from '@/shared/layout/ResolutionLoggedInLayout'
+export { default } from '@/mta_resolutions/layout/ResolutionLoggedInLayout'

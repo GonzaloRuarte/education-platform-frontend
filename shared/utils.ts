@@ -25,6 +25,14 @@ const strippedString = (str: string) => str.replace(/(<([^>]+)>)/gi, '')
 
 const intersection = <T>(array1: Array<T>, array2: Array<T>) => array1.filter((value) => array2.includes(value))
 
+const secondsToMMSS = (seconds: number): string => {
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  const paddedMinutes = String(minutes).padStart(2, '0')
+  const paddedSeconds = String(remainingSeconds).padStart(2, '0')
+  return `${paddedMinutes}:${paddedSeconds}`
+}
+
 /**
  * Truncate a string to the first N characters and append '...' if the string is longer than N.
  * @param str - The string to truncate.
@@ -80,4 +88,4 @@ class ImageSize {
   }
 }
 
-export { EntityName, ImageSize, intersection, slugify, strippedString, toCamelCase, truncateString }
+export { EntityName, ImageSize, intersection, slugify, strippedString, toCamelCase, truncateString, secondsToMMSS }

@@ -19,8 +19,9 @@ interface I_ResolutionsSlice {
   resolution_clearLastUpload: () => void
 
   resolution_startedAt: string | null
-  resolution_maxDurationMinutes: string | null
-  resolution_storeMetadata: (args: { resolution_startedAt: string; resolution_maxDurationMinutes: string }) => void
+  resolution_maxDurationMinutes: number | null
+  resolution_storeMetadata: (args: { resolution_startedAt: string; resolution_maxDurationMinutes: number }) => void
+  resolution_clearMetadata: () => void
 }
 
 const createResolutionsSlice: StateCreator<I_ResolutionsSlice, [], [], I_ResolutionsSlice> = (set) => ({
@@ -40,8 +41,9 @@ const createResolutionsSlice: StateCreator<I_ResolutionsSlice, [], [], I_Resolut
 
   resolution_startedAt: null,
   resolution_maxDurationMinutes: null,
-  resolution_storeMetadata: (args: { resolution_startedAt: string; resolution_maxDurationMinutes: string }) =>
+  resolution_storeMetadata: (args: { resolution_startedAt: string; resolution_maxDurationMinutes: number }) =>
     set(() => ({ ...args })),
+  resolution_clearMetadata: () => set(() => ({ resolution_startedAt: null, resolution_maxDurationMinutes: null })),
 })
 
 export { createResolutionsSlice }

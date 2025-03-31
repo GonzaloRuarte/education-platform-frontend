@@ -1,7 +1,8 @@
 import { useLogout } from '@/mta_auth/hooks'
 import {
-  useClearEvaluationToResolve,
+  useResolutionClearEvaluation,
   useResolutionClearLastUploadDatetime,
+  useResolutionClearMetadata,
   useResolutionClearState,
 } from '@/mta_resolutions/hooks/data'
 import pages from '@/pages'
@@ -20,15 +21,17 @@ const useResolutionPagination = () => {
 
 const useResolutionExit = () => {
   const logOut = useLogout(pages.R._.login.path)
-  const clearEvaluation = useClearEvaluationToResolve()
+  const clearEvaluation = useResolutionClearEvaluation()
   const clearState = useResolutionClearState()
   const clearLastUpload = useResolutionClearLastUploadDatetime()
+  const clearMetadata = useResolutionClearMetadata()
 
   return () => {
     logOut()
     clearEvaluation()
     clearState()
     clearLastUpload()
+    clearMetadata()
   }
 }
 
