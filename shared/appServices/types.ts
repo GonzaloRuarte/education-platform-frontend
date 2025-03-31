@@ -1,10 +1,10 @@
 import { T_LogService } from '@/shared/log'
 import { T_VoidFn } from '@/shared/types'
-import { FC } from 'react'
+import { Component, ComponentType, FC } from 'react'
 
 interface IApplicationServiceBaseProps {}
 
-type T_ApplicationService<TOtherProps = object> = FC<IApplicationServiceBaseProps & TOtherProps>
+type T_ApplicationService<TOtherProps = object> = ComponentType<IApplicationServiceBaseProps & TOtherProps>
 
 interface I_ApplicationServiceDependencies {
   stateVersion?: string | undefined

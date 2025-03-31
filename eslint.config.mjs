@@ -54,10 +54,10 @@ const eslintConfig = [
       }],
       'react-hooks/exhaustive-deps': _.OFF,
       '@next/next/no-html-link-for-pages': [_.OFF],
-      'no-relative-import-paths/no-relative-import-paths': [
-        _.ERROR,
-        { 'allowSameFolder': true },
-      ],
+      // 'no-relative-import-paths/no-relative-import-paths': [
+      //   _.ERROR,
+      //   { 'allowSameFolder': true },
+      // ],
       '@typescript-eslint/array-type':  ['error', { 'default': 'generic' }],
       '@typescript-eslint/no-empty-interface': _.OFF,
       '@typescript-eslint/no-namespace': _.OFF,

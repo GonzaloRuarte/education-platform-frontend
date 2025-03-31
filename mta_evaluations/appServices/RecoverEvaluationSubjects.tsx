@@ -6,7 +6,7 @@ import { T_ApplicationService } from '@/shared/appServices/types'
 import log from '@/shared/log'
 import { useEffect } from 'react'
 
-const RecoverEvaluationSubjects: T_ApplicationService<{}> = () => {
+const RecoverEvaluationSubjects: T_ApplicationService = () => {
   const recoverAndStore = useRecoverAndStoreEvaluationSubjects()
   const isAuthorized = useIsAuthorized()
 
