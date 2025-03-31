@@ -16,6 +16,7 @@ interface I_ResolutionsSlice {
 
   resolution_lastUpload: string | null
   resolution_storeLastUpload: (lastUpload: string) => void
+  resolution_clearLastUpload: () => void
 
   resolution_startedAt: string | null
   resolution_maxDurationMinutes: string | null
@@ -27,14 +28,15 @@ const createResolutionsSlice: StateCreator<I_ResolutionsSlice, [], [], I_Resolut
   resolution_storeEvaluation: (resolution_evaluation) => set(() => ({ resolution_evaluation })),
   resolution_clearEvaluation: () => set(() => ({ resolution_evaluation: null })),
 
-  resolution_currentPage: 1,
-  resolution_storeCurrentPage: (resolution_currentPage) => () => set(() => ({ resolution_currentPage })),
+  resolution_currentPage: 2,
+  resolution_storeCurrentPage: (resolution_currentPage) => set(() => ({ resolution_currentPage })),
 
   resolution_state: null,
   resolution_storeState: (resolution_state) => set(() => ({ resolution_state })),
 
   resolution_lastUpload: null,
   resolution_storeLastUpload: (resolution_lastUpload) => set(() => ({ resolution_lastUpload })),
+  resolution_clearLastUpload: () => set(() => ({ resolution_lastUpload: null })),
 
   resolution_startedAt: null,
   resolution_maxDurationMinutes: null,

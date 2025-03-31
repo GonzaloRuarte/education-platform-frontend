@@ -50,6 +50,8 @@ const useResolutionResume = () => {
     setIsInProgress()
     requestResume({})
       .then((res) => {
+        console.log('resume', res)
+
         const now = new Date().toISOString()
         storeResolutionState(
           res.resolution.last_uploaded_state !== null
@@ -74,12 +76,19 @@ const useResolutionResume = () => {
 
 const useResolutionEvaluationToResolve = () => useStore((state) => state.resolution_evaluation)
 const useResolutionState = () => useStore((state) => state.resolution_state)
+const useResolutionClearState = () => {
+  const store = useStore((state) => state.resolution_storeState)
+  return () => store(null)
+}
 const useResolutionLastUploadDatetime = () => useStore((state) => state.resolution_lastUpload)
 const useResolutionUpdateLastUploadDatetime = () => {
   const storeLastUpload = useStore((state) => state.resolution_storeLastUpload)
   return () => {
     storeLastUpload(new Date().toISOString())
   }
+}
+const useResolutionClearLastUploadDatetime = () => {
+  return useStore((state) => state.resolution_clearLastUpload)
 }
 const useResolutionStateUpdateAnswer = () => {
   const resolutionState = useResolutionState()
@@ -170,4 +179,6 @@ export {
   useStoreEvaluationToResolve,
   useResolutionAuthorizeStudent,
   useClearEvaluationToResolve,
+  useResolutionClearState,
+  useResolutionClearLastUploadDatetime,
 }

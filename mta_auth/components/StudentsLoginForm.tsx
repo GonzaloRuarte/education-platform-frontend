@@ -9,19 +9,19 @@ import { useInProgress } from '@/shared/hooks'
 
 import { useNavigateToResolutionPage } from '@/mta_resolutions/hooks'
 import { useResolutionAuthorizeStudent } from '@/mta_resolutions/hooks/data'
+import { I_AuthorizeStudentRequestData } from '@/mta_resolutions/types'
 import { T_StudentProfilePersonalId } from '@/mta_schools/types'
 import Spacer from '@/shared/components/Spacer'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
-import { SubmitHandler, useForm } from 'react-hook-form'
-import { I_AuthorizeStudentRequestData } from '@/mta_resolutions/types'
+import { useForm } from 'react-hook-form'
 
 interface I_FormFields {
   personal_id: T_StudentProfilePersonalId | ''
 }
 
 export default function StudentsLoginForm() {
-  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues: { personal_id: '' } })
+  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues: { personal_id: 35425196 } })
   const navigateToBeginResolution = useNavigateToResolutionPage()
   const authorize = useResolutionAuthorizeStudent()
   const storeAuthData = useStoreAuthData()

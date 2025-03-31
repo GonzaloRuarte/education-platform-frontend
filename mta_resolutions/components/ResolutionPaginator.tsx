@@ -3,7 +3,6 @@ import Pagination from '@mui/material/Pagination'
 
 const ResolutionPaginator = () => {
   const { currentPage, pagesQuantity, storeNewPage } = useResolutionPagination()
-  console.log(typeof storeNewPage)
 
   return <Pagination count={pagesQuantity} variant="outlined" page={currentPage} onChange={(_, p) => storeNewPage(p)} />
 }
