@@ -46,6 +46,11 @@ const _useResolutionUploadState = actionHook<I_ResolutionState, T_EmptyPayload>(
   axiosPost,
   useAuthResources,
 )
+const useResolutionRequestSubmit = actionHook<I_ResolutionState, T_EmptyPayload>(
+  `${RESOLUTIONS_PATH}/submit`,
+  axiosPost,
+  useAuthResources,
+)
 
 // STATE HOOKS - - -
 const useResolutionStoreEvaluation = () => useStore((state) => state.resolution_storeEvaluation)
@@ -187,4 +192,5 @@ export {
   useResolutionStoreEvaluation,
   useResolutionStoreMetadata,
   useResolutionUpdateLastUploadDatetime,
+  useResolutionRequestSubmit,
 }

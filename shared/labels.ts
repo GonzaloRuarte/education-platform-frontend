@@ -3,6 +3,7 @@ const sharedLabels = {
   back: 'Atrás',
   reload: 'Recargar',
   add: 'Agregar',
+  submit: 'Entregar',
   cancel: 'Cancelar',
   delete: 'Eliminar',
   edit: 'Editar',

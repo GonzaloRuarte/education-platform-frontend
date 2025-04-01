@@ -1,3 +1,4 @@
+import { useResolutionManageSubmit } from '@/mta_resolutions/hooks'
 import Button from '@/shared/components/Button'
 import { Body1 } from '@/shared/components/Typography'
 import { useDialog } from '@/shared/dialogs'
@@ -5,8 +6,9 @@ import { sharedLabels } from '@/shared/labels'
 
 const SubmitEvaluationButton = () => {
   const { DialogComponent, componentProps, showDialog, closeDialog } = useDialog()
+  const submit = useResolutionManageSubmit()
 
-  const manageSubmit = () => {
+  const askForSubmit = () => {
     showDialog({
       title: 'Entregar evaluación',
       content: (
@@ -21,12 +23,17 @@ const SubmitEvaluationButton = () => {
           buttonLabel: sharedLabels.cancel,
           onPress: closeDialog,
         },
+        {
+          key: 'submit',
+          buttonLabel: sharedLabels.submit,
+          onPress: submit,
+        },
       ],
     })
   }
   return (
     <>
-      <Button onClick={manageSubmit}>Entregar evaluación</Button>
+      <Button onClick={askForSubmit}>Entregar evaluación</Button>
       <DialogComponent {...componentProps} />
     </>
   )

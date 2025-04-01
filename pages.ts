@@ -26,6 +26,10 @@ const pages = {
         path: '/resolver-evaluacion',
         label: 'Resolver Evaluación',
       },
+      resolucionEntregada: {
+        path: '/evaluacion-entregada',
+        label: 'Evaluación entregada',
+      },
     },
   },
   D: {

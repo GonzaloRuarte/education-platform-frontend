@@ -4,9 +4,12 @@ import {
   useResolutionClearLastUploadDatetime,
   useResolutionClearMetadata,
   useResolutionClearState,
+  useResolutionRequestSubmit,
+  useResolutionState,
 } from '@/mta_resolutions/hooks/data'
 import pages from '@/pages'
-import { navigationHook, useInterval } from '@/shared/hooks'
+import { navigationHook, useInProgress, useInterval } from '@/shared/hooks'
+import { handleServiceError } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import { useState } from 'react'
 
@@ -37,6 +40,7 @@ const useResolutionElapsedTime = () => {
 }
 
 const useNavigateToResolutionPage = navigationHook(pages.R._.resolverEvaluacion.path)
+const useNavigateToResolutionSubmittedPage = navigationHook(pages.R._.resolucionEntregada.path)
 const useResolutionExit = () => {
   const logOut = useLogout(pages.R._.login.path)
   const clearEvaluation = useResolutionClearEvaluation()
@@ -53,4 +57,27 @@ const useResolutionExit = () => {
   }
 }
 
-export { useNavigateToResolutionPage, useResolutionExit, useResolutionPagination, useResolutionElapsedTime }
+const useResolutionManageSubmit = () => {
+  const submit = useResolutionRequestSubmit()
+  const state = useResolutionState()
+  const navigateToResolutionSubmittedPage = useNavigateToResolutionSubmittedPage()
+  const { setIsInProgress, setIsNotInProgress } = useInProgress()
+
+  const manageSubmit = () => {
+    if (state === null) return
+    setIsInProgress()
+    submit(state)
+      .then((res) => navigateToResolutionSubmittedPage())
+      .catch(handleServiceError)
+      .finally(setIsNotInProgress)
+  }
+  return manageSubmit
+}
+
+export {
+  useNavigateToResolutionPage,
+  useResolutionExit,
+  useResolutionPagination,
+  useResolutionElapsedTime,
+  useResolutionManageSubmit,
+}
