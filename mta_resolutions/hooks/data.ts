@@ -1,6 +1,8 @@
+import { ErrorCode } from '@/config'
 import { useAuthResources } from '@/mta_auth/hooks'
 import { I_AuthorizeResponseData } from '@/mta_auth/types'
 import { T_AnswerId, T_AnswerType, T_QuestionId } from '@/mta_evaluations/types'
+import { useResolutionLogout } from '@/mta_resolutions/hooks'
 import {
   I_AuthorizeStudentRequestData,
   I_ResolutionState,
@@ -9,6 +11,7 @@ import {
   T_ResolutionState_NumericAnswerData,
 } from '@/mta_resolutions/types'
 import { axiosPost } from '@/shared/data/axios'
+import ApiError from '@/shared/data/errors'
 import { actionHook, useInProgress } from '@/shared/hooks'
 import log from '@/shared/log'
 import { postService } from '@/shared/service'
@@ -76,7 +79,8 @@ const useResolutionResume = () => {
   const storeResolutionState = useStoreResolutionState()
   const storeMetadata = useResolutionStoreMetadata()
   const { setIsNotInProgress, setIsInProgress } = useInProgress()
-  const { errorToast } = useToasts()
+  const { errorToast, dismissAll } = useToasts()
+  const logout = useResolutionLogout()
 
   const resume = () => {
     setIsInProgress()
@@ -101,6 +105,13 @@ const useResolutionResume = () => {
         })
       })
       .catch((err) => {
+        if (ApiError.errorCode(err) === ErrorCode.RESOLUTION_ALREADY_SUBMITTED) {
+          logout()
+          dismissAll()
+          errorToast(ApiError.message(err))
+          return
+        }
+
         errorToast('Hubo un error iniciando la evaluación. ')
       })
       .finally(setIsNotInProgress)
@@ -186,11 +197,11 @@ export {
   useResolutionEvaluationToResolve,
   useResolutionLastUploadDatetime,
   useResolutionManageUploadState,
+  useResolutionRequestSubmit,
   useResolutionResume,
   useResolutionState,
   useResolutionStateUpdateAnswer,
   useResolutionStoreEvaluation,
   useResolutionStoreMetadata,
   useResolutionUpdateLastUploadDatetime,
-  useResolutionRequestSubmit,
 }

@@ -7,8 +7,9 @@ import {
   useResolutionRequestSubmit,
   useResolutionState,
 } from '@/mta_resolutions/hooks/data'
+import { useNavigateToResolutionSubmittedPage } from '@/mta_resolutions/hooks/navigation'
 import pages from '@/pages'
-import { navigationHook, useInProgress, useInterval } from '@/shared/hooks'
+import { useInProgress, useInterval } from '@/shared/hooks'
 import { handleServiceError } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import { useState } from 'react'
@@ -38,11 +39,10 @@ const useResolutionElapsedTime = () => {
 
   return elapsedSeconds
 }
+const useResolutionLogout = () => useLogout(pages.R._.login.path)
 
-const useNavigateToResolutionPage = navigationHook(pages.R._.resolverEvaluacion.path)
-const useNavigateToResolutionSubmittedPage = navigationHook(pages.R._.resolucionEntregada.path)
 const useResolutionExit = () => {
-  const logOut = useLogout(pages.R._.login.path)
+  const logOut = useResolutionLogout()
   const clearEvaluation = useResolutionClearEvaluation()
   const clearState = useResolutionClearState()
   const clearLastUpload = useResolutionClearLastUploadDatetime()
@@ -75,9 +75,9 @@ const useResolutionManageSubmit = () => {
 }
 
 export {
-  useNavigateToResolutionPage,
-  useResolutionExit,
-  useResolutionPagination,
   useResolutionElapsedTime,
+  useResolutionExit,
   useResolutionManageSubmit,
+  useResolutionPagination,
+  useResolutionLogout,
 }

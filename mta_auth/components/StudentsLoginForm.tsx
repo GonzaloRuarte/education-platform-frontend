@@ -7,7 +7,6 @@ import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
 import { useInProgress } from '@/shared/hooks'
 
-import { useNavigateToResolutionPage } from '@/mta_resolutions/hooks'
 import { useResolutionAuthorizeStudent } from '@/mta_resolutions/hooks/data'
 import { I_AuthorizeStudentRequestData } from '@/mta_resolutions/types'
 import { T_StudentProfilePersonalId } from '@/mta_schools/types'
@@ -15,6 +14,7 @@ import Spacer from '@/shared/components/Spacer'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { useForm } from 'react-hook-form'
+import { useNavigateToResolutionPage } from '@/mta_resolutions/hooks/navigation'
 
 interface I_FormFields {
   personal_id: T_StudentProfilePersonalId | ''

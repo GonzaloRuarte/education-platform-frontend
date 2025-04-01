@@ -12,7 +12,9 @@ interface I_RefreshRequestData {
 interface I_RefreshResponseData {
   access: string
 }
-type T_TokenRefresher = (postMethod: (url: string, data: object) => Promise<{ access: string }>) => (data: I_RefreshRequestData) => Promise<any>
+type T_TokenRefresher = (
+  postMethod: (url: string, data: object) => Promise<{ access: string }>,
+) => (data: I_RefreshRequestData) => Promise<any>
 type T_Fatal401Handler = T_VoidFn
 interface I_RequestSetup {
   accessToken?: string
@@ -22,10 +24,26 @@ interface I_RequestSetup {
   handleFatal401Error?: T_Fatal401Handler
 }
 
-type T_GetMethod = <T_Response>(args: { url: string; requestSetup?: I_RequestSetup; options?: I_FetchOptions }) => Promise<T_Response>
-type T_PostMethod = <T_RequestData, T_Response>(args: { url: string; requestSetup?: I_RequestSetup; data: T_RequestData }) => Promise<T_Response>
-type T_DeleteMethod = <T_Response, T_Data = object>(args: { url: string; requestSetup?: I_RequestSetup; data?: T_Data }) => Promise<T_Response>
-type T_PatchMethod = <T_RequestData, T_Response>(args: { url: string; requestSetup?: I_RequestSetup; data: T_RequestData }) => Promise<T_Response>
+type T_GetMethod = <T_Response>(args: {
+  url: string
+  requestSetup?: I_RequestSetup
+  options?: I_FetchOptions
+}) => Promise<T_Response>
+type T_PostMethod = <T_RequestData, T_Response>(args: {
+  url: string
+  requestSetup?: I_RequestSetup
+  data: T_RequestData
+}) => Promise<T_Response>
+type T_DeleteMethod = <T_Response, T_Data = object>(args: {
+  url: string
+  requestSetup?: I_RequestSetup
+  data?: T_Data
+}) => Promise<T_Response>
+type T_PatchMethod = <T_RequestData, T_Response>(args: {
+  url: string
+  requestSetup?: I_RequestSetup
+  data: T_RequestData
+}) => Promise<T_Response>
 
 type T_HttpMethod = T_GetMethod | T_PostMethod | T_DeleteMethod | T_PatchMethod
 

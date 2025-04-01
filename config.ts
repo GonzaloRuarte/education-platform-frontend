@@ -8,4 +8,8 @@ const DEFAULT_PAGE_SIZE = 10
  */
 const apiUrl = (path: string) => `${process.env.NEXT_PUBLIC_API_BASE_PATH}${path}`
 
-export { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE, apiUrl }
+enum ErrorCode {
+  RESOLUTION_ALREADY_SUBMITTED = 'RESOLUTION_ALREADY_SUBMITTED',
+}
+
+export { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE, apiUrl, ErrorCode }
