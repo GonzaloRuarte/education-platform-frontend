@@ -2,8 +2,8 @@
 
 import Box from '@mui/material/Box'
 
-import { useResolutionExit } from '@/mta_resolutions/hooks'
-import { useResolutionElapsedTime, useResolutionEvaluationToResolve } from '@/mta_resolutions/hooks/data'
+import { useResolutionElapsedTime, useResolutionExit } from '@/mta_resolutions/hooks'
+import { useResolutionEvaluationToResolve } from '@/mta_resolutions/hooks/data'
 import Logo from '@/shared/components/Logo'
 import { H4 } from '@/shared/components/Typography'
 import { useTheme } from '@/shared/hooks'

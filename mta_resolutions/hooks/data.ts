@@ -9,17 +9,19 @@ import {
   T_ResolutionState_NumericAnswerData,
 } from '@/mta_resolutions/types'
 import { axiosPost } from '@/shared/data/axios'
-import { actionHook, useInProgress, useInterval } from '@/shared/hooks'
+import { actionHook, useInProgress } from '@/shared/hooks'
 import log from '@/shared/log'
 import { postService } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import useToasts from '@/shared/toasts'
 import { T_EmptyPayload } from '@/shared/types'
-import { useState } from 'react'
 
 // Data Service
 const RESOLUTIONS_PATH = '/resolutions'
 
+/**
+ * Authorize student to access evaluation zone (login)
+ */
 const useResolutionAuthorizeStudent = () => {
   return postService<I_AuthorizeStudentRequestData, I_AuthorizeResponseData>(
     `${RESOLUTIONS_PATH}/authorize`,
@@ -27,29 +29,46 @@ const useResolutionAuthorizeStudent = () => {
   )()
 }
 
-const _useRequestResume = actionHook<T_EmptyPayload, I_ResumeResolutionResponse>(
+/**
+ * (Private hook) for request a resolution start/resume
+ */
+const _useResolutionRequestResume = actionHook<T_EmptyPayload, I_ResumeResolutionResponse>(
   `${RESOLUTIONS_PATH}/resume`,
   axiosPost,
   useAuthResources,
 )
 
-const useResolutionStoreEvaluation = () => {
-  return useStore((state) => state.resolution_storeEvaluation)
-}
-const useResolutionClearEvaluation = () => {
-  return useStore((state) => state.resolution_clearEvaluation)
-}
-const useResolutionStoreMetadata = () => {
-  return useStore((state) => state.resolution_storeMetadata)
-}
-const useResolutionClearMetadata = () => {
-  return useStore((state) => state.resolution_clearMetadata)
+/**
+ * (Private hook) for upload ongoing resolution state
+ */
+const _useResolutionUploadState = actionHook<I_ResolutionState, T_EmptyPayload>(
+  `${RESOLUTIONS_PATH}/upload-state`,
+  axiosPost,
+  useAuthResources,
+)
+
+// STATE HOOKS - - -
+const useResolutionStoreEvaluation = () => useStore((state) => state.resolution_storeEvaluation)
+const useResolutionClearEvaluation = () => useStore((state) => state.resolution_clearEvaluation)
+const useResolutionStoreMetadata = () => useStore((state) => state.resolution_storeMetadata)
+const useResolutionClearMetadata = () => useStore((state) => state.resolution_clearMetadata)
+const useStoreResolutionState = () => useStore((state) => state.resolution_storeState)
+const useResolutionEvaluationToResolve = () => useStore((state) => state.resolution_evaluation)
+const useResolutionState = () => useStore((state) => state.resolution_state)
+const useResolutionLastUploadDatetime = () => useStore((state) => state.resolution_lastUpload)
+const useResolutionClearLastUploadDatetime = () => useStore((state) => state.resolution_clearLastUpload)
+const useResolutionClearState = () => useStore((state) => state.resolution_clearState)
+const useResolutionUpdateLastUploadDatetime = () => {
+  const storeLastUpload = useStore((state) => state.resolution_storeLastUpload)
+  return () => {
+    storeLastUpload(new Date().toISOString())
+  }
 }
 
 const useResolutionResume = () => {
-  const requestResume = _useRequestResume()
+  const requestResume = _useResolutionRequestResume()
   const storeEvaluationToResolve = useResolutionStoreEvaluation()
-  const storeResolutionState = useStore((state) => state.resolution_storeState)
+  const storeResolutionState = useStoreResolutionState()
   const storeMetadata = useResolutionStoreMetadata()
   const { setIsNotInProgress, setIsInProgress } = useInProgress()
   const { errorToast } = useToasts()
@@ -84,22 +103,6 @@ const useResolutionResume = () => {
   return { resume }
 }
 
-const useResolutionEvaluationToResolve = () => useStore((state) => state.resolution_evaluation)
-const useResolutionState = () => useStore((state) => state.resolution_state)
-const useResolutionClearState = () => {
-  const store = useStore((state) => state.resolution_storeState)
-  return () => store(null)
-}
-const useResolutionLastUploadDatetime = () => useStore((state) => state.resolution_lastUpload)
-const useResolutionUpdateLastUploadDatetime = () => {
-  const storeLastUpload = useStore((state) => state.resolution_storeLastUpload)
-  return () => {
-    storeLastUpload(new Date().toISOString())
-  }
-}
-const useResolutionClearLastUploadDatetime = () => {
-  return useStore((state) => state.resolution_clearLastUpload)
-}
 const useResolutionStateUpdateAnswer = () => {
   const resolutionState = useResolutionState()
   const storeResolutionState = useStore((state) => state.resolution_storeState)
@@ -147,12 +150,6 @@ const useResolutionStateUpdateAnswer = () => {
   return { updateMultipleChoice: MultipleChoice, updateNumeric: Numeric }
 }
 
-const _useResolutionUploadState = actionHook<I_ResolutionState, T_EmptyPayload>(
-  `${RESOLUTIONS_PATH}/upload-state`,
-  axiosPost,
-  useAuthResources,
-)
-
 const useResolutionManageUploadState = () => {
   const uploadState = _useResolutionUploadState()
   const resolutionState = useResolutionState()
@@ -160,9 +157,6 @@ const useResolutionManageUploadState = () => {
   const updateLastUploadDatetime = useResolutionUpdateLastUploadDatetime()
 
   const executeUploadingTasks = (_resolutionState: I_ResolutionState) => {
-    console.log(_resolutionState)
-    console.log(JSON.stringify(_resolutionState))
-
     uploadState(_resolutionState).then(updateLastUploadDatetime)
   }
 
@@ -177,35 +171,20 @@ const useResolutionManageUploadState = () => {
   }
   return manageUpload
 }
-const useResolutionElapsedTime = () => {
-  const [elapsedSeconds, setElapsedSeconds] = useState(0)
-  const resolutionStartedAt = useStore((state) => state.resolution_startedAt)
-
-  useInterval(() => {
-    if (!resolutionStartedAt) return
-
-    const startTime = new Date(resolutionStartedAt).getTime()
-    const now = Date.now()
-    setElapsedSeconds(Math.floor((now - startTime) / 1000))
-  }, 1000) // Update every second
-
-  return elapsedSeconds
-}
 
 export {
+  useResolutionAuthorizeStudent,
+  useResolutionClearEvaluation,
+  useResolutionClearLastUploadDatetime,
+  useResolutionClearMetadata,
+  useResolutionClearState,
   useResolutionEvaluationToResolve,
   useResolutionLastUploadDatetime,
   useResolutionManageUploadState,
   useResolutionResume,
   useResolutionState,
   useResolutionStateUpdateAnswer,
-  useResolutionUpdateLastUploadDatetime,
   useResolutionStoreEvaluation,
-  useResolutionAuthorizeStudent,
-  useResolutionClearEvaluation,
-  useResolutionClearState,
-  useResolutionClearLastUploadDatetime,
   useResolutionStoreMetadata,
-  useResolutionClearMetadata,
-  useResolutionElapsedTime,
+  useResolutionUpdateLastUploadDatetime,
 }

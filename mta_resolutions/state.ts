@@ -13,6 +13,7 @@ interface I_ResolutionsSlice {
 
   resolution_state: I_ResolutionState | null
   resolution_storeState: (resolutionState: I_ResolutionState | null) => void
+  resolution_clearState: () => void
 
   resolution_lastUpload: string | null
   resolution_storeLastUpload: (lastUpload: string) => void
@@ -34,6 +35,7 @@ const createResolutionsSlice: StateCreator<I_ResolutionsSlice, [], [], I_Resolut
 
   resolution_state: null,
   resolution_storeState: (resolution_state) => set(() => ({ resolution_state })),
+  resolution_clearState: () => set(() => ({ resolution_state: null })),
 
   resolution_lastUpload: null,
   resolution_storeLastUpload: (resolution_lastUpload) => set(() => ({ resolution_lastUpload })),
