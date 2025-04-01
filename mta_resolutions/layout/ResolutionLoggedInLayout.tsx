@@ -60,7 +60,7 @@ const Header = () => {
 }
 const Main: T_FCwChildren = ({ children }) => {
   return (
-    <Container style={{ background: 'green', flex: 1 }}>
+    <Container style={{ flex: 1 }}>
       <Box justifyContent={'flex-start'}>{children}</Box>
     </Container>
   )
