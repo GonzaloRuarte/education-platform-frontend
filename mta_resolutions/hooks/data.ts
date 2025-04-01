@@ -18,6 +18,7 @@ import { postService } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import useToasts from '@/shared/toasts'
 import { T_EmptyPayload } from '@/shared/types'
+import { useCallback } from 'react'
 
 // Data Service
 const RESOLUTIONS_PATH = '/resolutions'
@@ -188,6 +189,41 @@ const useResolutionManageUploadState = () => {
   return manageUpload
 }
 
+const useResolutionDownloadState = () => {
+  const resolutionState = useResolutionState()
+
+  const downloadResolutionState = useCallback(() => {
+    if (!resolutionState) {
+      log.error('Resolution state is not available')
+      return
+    }
+
+    // Convert the resolution state to a JSON string
+    const jsonString = JSON.stringify(resolutionState, null, 2)
+
+    // Create a Blob with the JSON data
+    const blob = new Blob([jsonString], { type: 'application/json' })
+
+    // Create a URL for the Blob
+    const url = URL.createObjectURL(blob)
+
+    // Create a temporary anchor element to trigger the download
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `MetaResolucion--turno_${resolutionState.appointment_id}-estudiante_${resolutionState.student_personal_id}-${new Date().toISOString()}.json`
+
+    // Append the link to the document, trigger the download, and remove the link
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    // Revoke the Blob URL to free up memory
+    URL.revokeObjectURL(url)
+  }, [resolutionState])
+
+  return { downloadResolutionState }
+}
+
 export {
   useResolutionAuthorizeStudent,
   useResolutionClearEvaluation,
@@ -204,4 +240,5 @@ export {
   useResolutionStoreEvaluation,
   useResolutionStoreMetadata,
   useResolutionUpdateLastUploadDatetime,
+  useResolutionDownloadState,
 }

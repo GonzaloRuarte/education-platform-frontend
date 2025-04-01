@@ -59,7 +59,11 @@ const Header = () => {
   )
 }
 const Main: T_FCwChildren = ({ children }) => {
-  return <Container>{children}</Container>
+  return (
+    <Container style={{ background: 'green', flex: 1 }}>
+      <Box justifyContent={'flex-start'}>{children}</Box>
+    </Container>
+  )
 }
 
 const australLogoSize = new ImageSize(412, 72, { scale: 0.5 })
@@ -82,25 +86,10 @@ const ResolutionLoggedInLayout: T_FCwChildren = ({ children }) => {
   return (
     <Box height={'100%'} minHeight={'100vh'} justifyContent={'space-between'} flexDirection={'column'} display={'flex'}>
       <Header />
-      <Box>
+      <Box display={'flex'} flexDirection={'column'} flex={1}>
         <Main>{children}</Main>
         <Footer />
       </Box>
-      {/* <Box sx={{ display: 'flex', width: '100vw', height: '100vh', overflowX: 'hidden' }}>
-      <Box sx={{ flex: 1 }}>
-        <Drawer />
-      </Box>
-      <Box sx={{ flex: 5, position: 'relative' }}>
-        <Box sx={{ mt: 2, mr: 5 }}>
-          <AppBar />
-        </Box>
-
-        <Box sx={{ position: 'relative', height: '90vh', overflowY: 'auto' }}>
-          <Spacer />
-          {children}
-        </Box>
-      </Box>
-    </Box> */}
     </Box>
   )
 }

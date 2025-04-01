@@ -1,5 +1,6 @@
 import { useLogout } from '@/mta_auth/hooks'
 import {
+  useResolutionDownloadState,
   useResolutionClearEvaluation,
   useResolutionClearLastUploadDatetime,
   useResolutionClearMetadata,
@@ -61,11 +62,13 @@ const useResolutionManageSubmit = () => {
   const submit = useResolutionRequestSubmit()
   const state = useResolutionState()
   const navigateToResolutionSubmittedPage = useNavigateToResolutionSubmittedPage()
+  const { downloadResolutionState } = useResolutionDownloadState()
   const { setIsInProgress, setIsNotInProgress } = useInProgress()
 
   const manageSubmit = () => {
     if (state === null) return
     setIsInProgress()
+    downloadResolutionState()
     submit(state)
       .then((res) => navigateToResolutionSubmittedPage())
       .catch(handleServiceError)
