@@ -1,7 +1,12 @@
 'use client'
 
 import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
-import { useEvaluationCreate, useEvaluationUpdate, useNavigateToEvaluationList } from '@/mta_evaluations/hooks'
+import {
+  useEvaluationCreate,
+  useEvaluationUpdate,
+  useNavigateToEvaluationContentEdit,
+  useNavigateToEvaluationList,
+} from '@/mta_evaluations/hooks'
 import { evaluationLabels } from '@/mta_evaluations/labels'
 import { EvaluationStatus, I_EvaluationCreateRequestData, I_EvaluationDetail } from '@/mta_evaluations/types'
 import { cleanPinnedText } from '@/mta_evaluations/utils'
@@ -28,6 +33,7 @@ interface I_Props {
 
 const EvaluationEditForm = ({ data }: I_Props) => {
   const { title, code, header, status, subject_id, pinned_text } = data
+  const navigateToEvaluationContentEdit = useNavigateToEvaluationContentEdit()
 
   const { handleSubmit, control } = useForm<I_FormFields>({
     defaultValues: {
@@ -41,7 +47,6 @@ const EvaluationEditForm = ({ data }: I_Props) => {
   })
 
   const { setInProgressStatus } = useInProgress()
-  const navigateToEvaluationList = useNavigateToEvaluationList()
   const evaluationUpdate = useEvaluationUpdate()
   const onSubmit: SubmitHandler<I_FormFields> = ({ pinned_text, ...updatedData }) => {
     setInProgressStatus(true)
@@ -53,7 +58,7 @@ const EvaluationEditForm = ({ data }: I_Props) => {
       .then((res) => {
         log.info('New Evaluation added:', res)
         successToast('Evaluación editada correctamente')
-        navigateToEvaluationList()
+        navigateToEvaluationContentEdit({ evaluationId: data.id })
       })
       .catch(handleServiceError)
       .finally(() => {
