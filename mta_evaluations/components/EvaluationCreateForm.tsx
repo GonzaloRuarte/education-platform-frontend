@@ -4,6 +4,7 @@ import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
 import { useEvaluationCreate, useNavigateToEvaluationContentEdit } from '@/mta_evaluations/hooks'
 import { evaluationLabels } from '@/mta_evaluations/labels'
 import { EvaluationStatus, I_EvaluationCreateRequestData } from '@/mta_evaluations/types'
+import { cleanPinnedText } from '@/mta_evaluations/utils'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
@@ -34,9 +35,9 @@ const EvaluationCreateForm = () => {
   const { setInProgressStatus } = useInProgress()
   const navigateToEvaluationContentEdit = useNavigateToEvaluationContentEdit()
   const evaluationCreate = useEvaluationCreate()
-  const onSubmit: SubmitHandler<I_FormFields> = (data) => {
+  const onSubmit: SubmitHandler<I_FormFields> = ({ pinned_text, ...data }) => {
     setInProgressStatus(true)
-    evaluationCreate({ ...data, subject_id: data.subject_id as string })
+    evaluationCreate({ ...data, pinned_text: cleanPinnedText(pinned_text), subject_id: data.subject_id as string })
       .then((res) => {
         log.info('New Evaluation added:', res)
         successToast('Evaluación agregada correctamente')

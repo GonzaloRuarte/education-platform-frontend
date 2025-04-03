@@ -4,6 +4,7 @@ import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
 import { useEvaluationCreate, useEvaluationUpdate, useNavigateToEvaluationList } from '@/mta_evaluations/hooks'
 import { evaluationLabels } from '@/mta_evaluations/labels'
 import { EvaluationStatus, I_EvaluationCreateRequestData, I_EvaluationDetail } from '@/mta_evaluations/types'
+import { cleanPinnedText } from '@/mta_evaluations/utils'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
@@ -24,6 +25,7 @@ interface I_FormFields extends Omit<I_EvaluationCreateRequestData, 'subject_id'>
 interface I_Props {
   data: I_EvaluationDetail
 }
+
 const EvaluationEditForm = ({ data }: I_Props) => {
   const { title, code, header, status, subject_id, pinned_text } = data
 
@@ -41,9 +43,13 @@ const EvaluationEditForm = ({ data }: I_Props) => {
   const { setInProgressStatus } = useInProgress()
   const navigateToEvaluationList = useNavigateToEvaluationList()
   const evaluationUpdate = useEvaluationUpdate()
-  const onSubmit: SubmitHandler<I_FormFields> = (updatedData) => {
+  const onSubmit: SubmitHandler<I_FormFields> = ({ pinned_text, ...updatedData }) => {
     setInProgressStatus(true)
-    evaluationUpdate(data.id, { ...updatedData, subject_id: updatedData.subject_id as string })
+    evaluationUpdate(data.id, {
+      ...updatedData,
+      pinned_text: cleanPinnedText(pinned_text),
+      subject_id: updatedData.subject_id as string,
+    })
       .then((res) => {
         log.info('New Evaluation added:', res)
         successToast('Evaluación editada correctamente')
@@ -76,7 +82,7 @@ const EvaluationEditForm = ({ data }: I_Props) => {
           rules={{ ...rules.required() }}
           name="header"
         />
-        <WysiwygEditorControlled {...{ control }} label={evaluationLabels.header} name="pinned_text" />
+        <WysiwygEditorControlled {...{ control }} label={evaluationLabels.pinnedText} name="pinned_text" />
       </MagicGrid>
       <Spacer />
       <Submit>{sharedLabels.update}</Submit>
