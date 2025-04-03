@@ -5,6 +5,16 @@ function toCamelCase(str: string): string {
 }
 
 /**
+ * Truncates a string to the first N characters and append '(...)' if the string is longer than N.
+ */
+const truncateWithEllipsis = (str: string, maxLength: number = 200): string => {
+  if (str.length <= maxLength) {
+    return str
+  }
+  return str.slice(0, maxLength) + ' (...)'
+}
+
+/**
  * Slugifies the input string
  */
 const slugify = (text: string) => {
@@ -88,4 +98,14 @@ class ImageSize {
   }
 }
 
-export { EntityName, ImageSize, intersection, slugify, strippedString, toCamelCase, truncateString, secondsToMMSS }
+export {
+  EntityName,
+  ImageSize,
+  intersection,
+  slugify,
+  strippedString,
+  toCamelCase,
+  truncateString,
+  secondsToMMSS,
+  truncateWithEllipsis,
+}
