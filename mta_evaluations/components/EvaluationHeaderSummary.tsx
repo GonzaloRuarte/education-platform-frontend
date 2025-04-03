@@ -16,6 +16,7 @@ const EvaluationHeaderSummary: FC<{ data: I_EvaluationDetail }> = ({ data }) => 
         <Body1>{data.subject_id}</Body1>
         <Spacer size="s" />
         <>{parse(data.header)}</>
+        <>{data.pinned_text !== null && parse(data.pinned_text)}</>
         <Spacer />
         <Button onClick={() => navigateToEvaluationDetail(data.id)}>Editar encabezado</Button>
       </Paper>

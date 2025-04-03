@@ -5,6 +5,7 @@ const evaluationLabels = {
   title: 'Título',
   code: 'Código',
   header: 'Encabezado',
+  pinnedText: 'Texto Fijado',
   questions_per_page: 'Preguntas por página',
   status: 'Estado',
   statuses: {

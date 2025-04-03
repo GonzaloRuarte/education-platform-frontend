@@ -36,6 +36,7 @@ interface I_EvaluationToResolve {
   code: string
   title: string
   header: string
+  pinned_text: string | null
   subject: string
   pages: Array<
     Array<{

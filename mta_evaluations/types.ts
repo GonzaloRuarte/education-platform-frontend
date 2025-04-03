@@ -80,6 +80,7 @@ interface I_EvaluationDetail {
   title: string
   code: string
   header: string
+  pinned_text: string | null
   status: T_EvaluationStatusCode
   subject: string
   created_by: number
@@ -98,6 +99,7 @@ interface I_EvaluationCreateRequestData {
   code: string
   subject_id: T_EvaluationSubjectId
   header: string
+  pinned_text: string | null
   status: T_EvaluationStatusCode
 }
 

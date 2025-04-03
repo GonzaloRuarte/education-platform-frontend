@@ -25,7 +25,7 @@ interface I_Props {
   data: I_EvaluationDetail
 }
 const EvaluationEditForm = ({ data }: I_Props) => {
-  const { title, code, header, status, subject_id } = data
+  const { title, code, header, status, subject_id, pinned_text } = data
 
   const { handleSubmit, control } = useForm<I_FormFields>({
     defaultValues: {
@@ -34,6 +34,7 @@ const EvaluationEditForm = ({ data }: I_Props) => {
       header,
       status,
       subject_id,
+      pinned_text,
     },
   })
 
@@ -75,6 +76,7 @@ const EvaluationEditForm = ({ data }: I_Props) => {
           rules={{ ...rules.required() }}
           name="header"
         />
+        <WysiwygEditorControlled {...{ control }} label={evaluationLabels.header} name="pinned_text" />
       </MagicGrid>
       <Spacer />
       <Submit>{sharedLabels.update}</Submit>

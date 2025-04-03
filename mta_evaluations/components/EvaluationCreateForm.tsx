@@ -1,11 +1,7 @@
 'use client'
 
 import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
-import {
-  useEvaluationCreate,
-  useNavigateToEvaluationContentEdit,
-  useNavigateToEvaluationList,
-} from '@/mta_evaluations/hooks'
+import { useEvaluationCreate, useNavigateToEvaluationContentEdit } from '@/mta_evaluations/hooks'
 import { evaluationLabels } from '@/mta_evaluations/labels'
 import { EvaluationStatus, I_EvaluationCreateRequestData } from '@/mta_evaluations/types'
 import MagicGrid from '@/shared/components/MagicGrid'
@@ -28,6 +24,7 @@ const defaultValues: I_FormFields = {
   title: '',
   code: '',
   header: '',
+  pinned_text: null,
   status: EvaluationStatus.Draft,
   subject_id: null,
 }
@@ -71,6 +68,11 @@ const EvaluationCreateForm = () => {
           label={evaluationLabels.header}
           rules={{ ...rules.required() }}
           name="header"
+        />
+        <WysiwygEditorControlled<I_FormFields>
+          {...{ control }}
+          label={evaluationLabels.pinnedText}
+          name="pinned_text"
         />
       </MagicGrid>
       <Spacer />
