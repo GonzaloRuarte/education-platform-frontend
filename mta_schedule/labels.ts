@@ -7,4 +7,9 @@ const appointmentStatusCodeToLabels: Record<T_AppointmentStatus, string> = {
   R: 'Rechazado',
 }
 
-export { appointmentStatusCodeToLabels }
+const appointmentLabels = {
+  begins_at: 'Desde',
+  quantity: 'Cantidad de turnos en ese horario',
+}
+
+export { appointmentStatusCodeToLabels, appointmentLabels }

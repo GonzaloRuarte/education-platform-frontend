@@ -36,11 +36,17 @@ interface I_AppointmentListItem {
 }
 type T_AppointmentList = I_PaginatedResponse<I_AppointmentListItem>
 
+interface I_AppointmentCreateRequestData {
+  date: string
+  begins_at: string
+  quantity: number
+}
+
 export type {
   T_AppointmentId,
   T_AppointmentStatus,
   I_AppointmentListItem,
   T_AppointmentList,
-  I_AppointmentCreateRequestData,
   I_AppointmentDetail,
+  I_AppointmentCreateRequestData,
 }
