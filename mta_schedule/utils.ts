@@ -1,3 +1,5 @@
+import dayjs, { Dayjs } from 'dayjs'
+
 const hoursOptions = (args: { startHour: number; endHour: number; stepMinutes: number }) => {
   const options: Array<{ value: string; label: string }> = []
   for (let hour = args.startHour; hour <= args.endHour; hour++) {
@@ -9,4 +11,10 @@ const hoursOptions = (args: { startHour: number; endHour: number; stepMinutes: n
   return options
 }
 
-export default hoursOptions
+const combinedDateAndTime = (args: { date: Dayjs; time: string }) =>
+  dayjs(args.date.format('YYYY-MM-DD'))
+    .hour(parseInt(args.time.split(':')[0]))
+    .minute(parseInt(args.time.split(':')[1]))
+    .toISOString()
+
+export { hoursOptions, combinedDateAndTime }

@@ -4,7 +4,7 @@ import { I_PaginatedResponse } from '@/shared/data/types'
 
 type T_AppointmentId = number
 type T_AppointmentStatus = 'F' | 'P' | 'A' | 'R'
-interface I_AppointmentCreateRequestData {}
+
 interface I_AppointmentDetail {
   begins_at: string
   ends_at: string
@@ -37,7 +37,6 @@ interface I_AppointmentListItem {
 type T_AppointmentList = I_PaginatedResponse<I_AppointmentListItem>
 
 interface I_AppointmentCreateRequestData {
-  date: string
   begins_at: string
   quantity: number
 }
