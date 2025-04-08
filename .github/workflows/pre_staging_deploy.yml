@@ -39,6 +39,8 @@ jobs:
           # Build and restart Docker containers
           docker stop meta_frontend_prestaging-app-1
           docker remove meta_frontend_prestaging-app-1
+          docker rmi meta_frontend_prestaging-app
+
           docker build -t meta_frontend_prestaging-app:latest -f Dockerfile.pre_staging .
           docker run --name meta_frontend_prestaging-app-1 -p 3000:3000 --detach meta_frontend_prestaging-app:latest
 
