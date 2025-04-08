@@ -1,0 +1,45 @@
+name: Pre-Staging Auto Deploy
+
+on:
+  push:
+    branches:
+      - pre-staging # Trigger when changes are pushed to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up SSH
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.PRE_RELEASE__SSH_KEY }}
+
+      # Step 3: Deploy to Pre-Staging Server
+      - name: Deploy to Pre-Staging Server
+        run: |
+          ssh -p 2222 -o StrictHostKeyChecking=no nminian@tju.exp.dc.uba.ar << 'EOF'
+
+          # Check Github access
+          ssh -T git@github.com
+
+          # Navigate to the project directory
+          cd /mnt/discoHomeViejo/home/nminian/meta-frontend
+          pwd
+
+          # Pull the latest changes
+          git checkout pre-staging
+          git pull
+
+          # Build and restart Docker containers
+          docker stop meta_frontend_prestaging-app-1
+          docker remove meta_frontend_prestaging-app-1
+          docker build -t meta_frontend_prestaging-app:latest -f Dockerfile.pre_staging .
+          docker run --name meta_frontend_prestaging-app-1 -p 3000:3000 --detach meta_frontend_prestaging-app:latest
+
+          EOF
