@@ -1,14 +1,14 @@
 import { Box, FormHelperText } from '@mui/material'
 import { StaticDatePicker } from '@mui/x-date-pickers'
 import { DateCalendarProps } from '@mui/x-date-pickers/DateCalendar'
-import dayjs from 'dayjs'
+import { Dayjs } from 'dayjs'
 import { Controller, FieldValues, useController, UseControllerProps } from 'react-hook-form'
 
 type T_OmittedFields = 'value' | 'onChange' | 'onBlur' | 'name' | 'ref' | 'defaultValue'
 
 interface I_Props<T_FormFields extends FieldValues>
   extends UseControllerProps<T_FormFields>,
-    Omit<DateCalendarProps<Date>, T_OmittedFields> {}
+    Omit<DateCalendarProps<Dayjs>, T_OmittedFields> {}
 
 export default function DateCalendarController<T_FormFields extends FieldValues>({
   name,
