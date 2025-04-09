@@ -1,4 +1,5 @@
 import DashboardLoginForm from '@/mta_auth/components/DashboardLoginForm'
+import { withoutAuth } from '@/mta_auth/hocs/withAuth'
 import Spacer from '@/shared/components/Spacer'
 import { H1, H3 } from '@/shared/components/Typography'
 import Box from '@mui/material/Box'
@@ -20,4 +21,4 @@ const DashboardLogin = () => {
   )
 }
 
-export default DashboardLogin
+export default withoutAuth(DashboardLogin)
