@@ -18,8 +18,6 @@ export default function DateCalendarController<T_FormFields extends FieldValues>
   control,
   ...props
 }: I_Props<T_FormFields>) {
-  const { field, fieldState } = useController({ name, rules, shouldUnregister, defaultValue, control })
-
   return (
     <Box>
       <Controller
@@ -31,7 +29,12 @@ export default function DateCalendarController<T_FormFields extends FieldValues>
 
           return (
             <>
-              <StaticDatePicker value={field.value || null} onChange={field.onChange} />
+              <StaticDatePicker
+                value={field.value || null}
+                onChange={field.onChange}
+                disablePast
+                slots={{ actionBar: () => <></> }}
+              />
               {hasError && <FormHelperText error>{fieldState.error?.message}</FormHelperText>}
             </>
           )

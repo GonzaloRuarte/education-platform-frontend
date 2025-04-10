@@ -63,8 +63,8 @@ const AppointmentCreateForm = () => {
             />
             <Spacer />
             <Body1>
-              Los turnos tienen un rango de 2 horas cada uno. Al seleccionar el horario de inicio del turno el mismo se
-              confirmará con el horario de finalización.{' '}
+              Los turnos tienen un rango de 2 horas y media cada uno. Al seleccionar el horario de inicio del turno el
+              mismo se confirmará con el horario de finalización.{' '}
             </Body1>
             <Spacer size="m" />
             <H4>{appointmentLabels.quantity}</H4>
