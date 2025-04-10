@@ -1,4 +1,6 @@
+import { I_UseConfirm } from '@/shared/confirm'
 import { I_FetchOptions } from '@/shared/data/types'
+import { EntityName } from '@/shared/utils'
 
 type T_VoidFn = () => void
 
@@ -16,7 +18,13 @@ type T_ActionServiceHook<T_RequestData, T_Response> = () => (data: T_RequestData
 type T_UpdateServiceHook<T_Id, T_RequestData, T_Response> = () => (id: T_Id, data: T_RequestData) => Promise<T_Response>
 type T_DetailServiceHookV2<T_Id, T_Response> = (id: T_Id) => I_FetchingHookResources<T_Response>
 type T_DeletionServiceHook<T_Id, T_Response> = () => (id: T_Id) => Promise<T_Response>
-type T_BatchDeletionServiceHook<T_Id, T_Response> = () => (ids: Array<T_Id>) => Promise<T_Response>
+// type T_BatchDeletionServiceHook<T_Id, T_Response> = () => (ids: Array<T_Id>) => Promise<T_Response>
+type T_BatchDeletionServiceHook<T_Id> = (d: {
+  entityName: EntityName
+  showConfirm: I_UseConfirm['showConfirm']
+  reload: T_VoidFn
+}) => (ids: Array<T_Id>) => void
+
 type T_BatchDeletionCommonRequestData<T_Id = number> = { ids: Array<T_Id> }
 type T_NavigateToListHook = () => T_VoidFn
 interface I_ApiError {

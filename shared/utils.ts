@@ -55,6 +55,17 @@ const truncateString = (str: string, maxLength: number): string => {
   }
   return str.slice(0, maxLength) + '...'
 }
+/**
+ * Converts a string to sentence case and ensures it ends with a period.
+ * @param str - The input string.
+ * @returns The string with the first letter capitalized and ending with a period.
+ */
+const sentence = (str: string): string => {
+  if (!str) return ''
+  const trimmedStr = str.trim()
+  const capitalized = trimmedStr.charAt(0).toUpperCase() + trimmedStr.slice(1)
+  return capitalized.endsWith('.') ? capitalized : `${capitalized}.`
+}
 
 type T_Gender = 'M' | 'F' | 'X'
 class EntityName {
@@ -66,6 +77,17 @@ class EntityName {
     this.singular = args.singular
     this.plural = args.plural
     this.gender = args.gender
+  }
+
+  public genderedString(args: { m: string; f: string }) {
+    return this.gender === 'F' ? args.f : args.m
+  }
+
+  /**
+   * Shortcut for genderedString
+   */
+  public gs(args: { m: string; f: string }) {
+    return this.genderedString(args)
   }
 }
 
@@ -108,4 +130,5 @@ export {
   truncateString,
   secondsToMMSS,
   truncateWithEllipsis,
+  sentence,
 }

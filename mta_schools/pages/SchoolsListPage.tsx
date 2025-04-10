@@ -2,7 +2,12 @@
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { SCHOOL_NAME } from '@/mta_schools/constants'
-import { useNavigateToSchoolCreate, useNavigateToSchoolDetail, useSchoolBatchDelete, useSchoolList } from '@/mta_schools/hooks'
+import {
+  useNavigateToSchoolCreate,
+  useNavigateToSchoolDetail,
+  useSchoolBatchDelete,
+  useSchoolList,
+} from '@/mta_schools/hooks'
 import ListPage from '@/shared/pages/ListPage'
 import { Chip } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
@@ -32,7 +37,7 @@ const columns: Array<GridColDef> = [
 const SchoolsListPage = () => {
   const navigateToSchoolDetail = useNavigateToSchoolDetail()
   const navigateToSchoolCreate = useNavigateToSchoolCreate()
-  const schoolBatchDelete = useSchoolBatchDelete()
+
   return (
     <ListPage
       columns={columns}
@@ -40,7 +45,7 @@ const SchoolsListPage = () => {
       entityName={SCHOOL_NAME}
       onRowClick={ListPage.mapNavToOnRowClick(navigateToSchoolDetail)}
       onCreate={navigateToSchoolCreate}
-      onBatchDelete={schoolBatchDelete}
+      useBatchDelete={useSchoolBatchDelete}
     />
   )
 }
