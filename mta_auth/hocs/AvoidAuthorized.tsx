@@ -4,19 +4,19 @@ import { useIsAuthorized } from '@/mta_auth/hooks'
 import { useNavigateToDashboardHome } from '@/shared/hooks'
 import { useEffect } from 'react'
 
-const AvoidAuth = () => {
+const AvoidAuthorized = () => {
   const navigateToDashboardHome = useNavigateToDashboardHome()
   const isAuthorized = useIsAuthorized()
 
-  const avoidAuth = () => {
+  const avoidAuthoruzed = () => {
     if (isAuthorized) {
       navigateToDashboardHome()
       return
     }
   }
 
-  useEffect(avoidAuth, [isAuthorized])
+  useEffect(avoidAuthoruzed, [isAuthorized])
   return <></>
 }
 
-export default AvoidAuth
+export default AvoidAuthorized
