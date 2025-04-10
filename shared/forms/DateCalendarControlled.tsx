@@ -1,22 +1,38 @@
 import { Box, FormHelperText } from '@mui/material'
-import { StaticDatePicker } from '@mui/x-date-pickers'
+import { PickersDay, PickersDayProps, StaticDatePicker } from '@mui/x-date-pickers'
 import { DateCalendarProps } from '@mui/x-date-pickers/DateCalendar'
 import { Dayjs } from 'dayjs'
-import { Controller, FieldValues, useController, UseControllerProps } from 'react-hook-form'
+import { Controller, FieldValues, UseControllerProps } from 'react-hook-form'
 
 type T_OmittedFields = 'value' | 'onChange' | 'onBlur' | 'name' | 'ref' | 'defaultValue'
-
+type T_AvailableDays = Record<number, boolean>
 interface I_Props<T_FormFields extends FieldValues>
   extends UseControllerProps<T_FormFields>,
-    Omit<DateCalendarProps<Dayjs>, T_OmittedFields> {}
+    Omit<DateCalendarProps<Dayjs>, T_OmittedFields> {
+  availableDays?: T_AvailableDays
+}
+
+const dayComponent = (availableDays: T_AvailableDays) => {
+  console.log({ availableDays })
+
+  const Day = ({ ...props }: PickersDayProps<Dayjs>) => {
+    const isDisabled = props.disabled || props.day.date() in availableDays ? !availableDays[props.day.date()] : true
+    return (
+      <PickersDay
+        style={{ border: !isDisabled && !props.selected ? 'solid 1px rgb(118, 176, 127)' : undefined }}
+        {...props}
+        disabled={isDisabled}
+      />
+    )
+  }
+  return Day
+}
 
 export default function DateCalendarController<T_FormFields extends FieldValues>({
   name,
   rules,
-  shouldUnregister,
-  defaultValue,
   control,
-  ...props
+  availableDays,
 }: I_Props<T_FormFields>) {
   return (
     <Box>
@@ -33,7 +49,10 @@ export default function DateCalendarController<T_FormFields extends FieldValues>
                 value={field.value || null}
                 onChange={field.onChange}
                 disablePast
-                slots={{ actionBar: () => <></> }}
+                slots={{
+                  actionBar: () => <></>,
+                  day: availableDays !== undefined ? dayComponent(availableDays) : undefined,
+                }}
               />
               {hasError && <FormHelperText error>{fieldState.error?.message}</FormHelperText>}
             </>

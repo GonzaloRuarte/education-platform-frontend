@@ -58,6 +58,10 @@ const pages = {
             path: '/dashboard/turnos/agregar',
             label: 'Agregar turno',
           },
+          solicitar: {
+            path: '/dashboard/turnos/solicitar',
+            label: 'Solicitar turno',
+          },
         },
       },
       evaluaciones: {
