@@ -2,23 +2,19 @@
 
 import { T_EvaluationSubjectId } from '@/mta_evaluations/types'
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
-import { useAppointmentCreate, useAppointmentFreeListByMonth, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
-import { appointmentLabels } from '@/mta_schedule/labels'
+import { useAppointmentFreeListByMonth, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
 import { T_AppointmentId, T_AppointmentsAvailableList } from '@/mta_schedule/types'
-import { availableDays, combinedDateAndTime, hoursOptions } from '@/mta_schedule/utils'
+import { availableDays, hoursOptions } from '@/mta_schedule/utils'
+import { SelectSchoolControlled } from '@/mta_schools/components/SelectSchool'
 import { SchoolGrade } from '@/mta_schools/constants'
 import { T_SchoolId } from '@/mta_schools/types'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
-import { Body1, H4 } from '@/shared/components/Typography'
 import DateCalendarControlled from '@/shared/forms/DateCalendarControlled'
-import IntegerInputControlled from '@/shared/forms/IntegerInputControlled'
 import { rules } from '@/shared/forms/messages'
 import OptionToggleControlled from '@/shared/forms/OptionToggleControlled'
-import SelectControlled from '@/shared/forms/SelectControlled'
 import { useInProgress } from '@/shared/hooks'
-import { handleServiceError } from '@/shared/service'
 import { FormLabel, Grid2 } from '@mui/material'
 import dayjs, { Dayjs } from 'dayjs'
 import { useState } from 'react'
@@ -115,6 +111,9 @@ const AppointmentCreateForm = () => {
               control={control}
             />
             <Spacer />
+          </Grid2>
+          <Grid2 size={12}>
+            <SelectSchoolControlled control={control} name="school_id" />
           </Grid2>
         </Grid2>
         <Spacer />

@@ -1,12 +1,13 @@
-import { Box, FormHelperText, ToggleButton, ToggleButtonGroup, ToggleButtonGroupProps } from '@mui/material'
+import { useTheme } from '@/shared/hooks'
+import { Box, Button, ButtonGroup, FormHelperText } from '@mui/material'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 
 type T_OmittedFields = 'value' | 'onChange' | 'onBlur' | 'name' | 'ref' | 'defaultValue'
 
-interface I_Props<T_FormFields extends FieldValues>
-  extends UseControllerProps<T_FormFields>,
-    Omit<ToggleButtonGroupProps, T_OmittedFields> {
+interface I_Props<T_FormFields extends FieldValues> extends UseControllerProps<T_FormFields> {
   options: Array<{ value: string | number; label: string }>
+  exclusive?: boolean // Ensures only one option can be selected
+  orientation?: 'horizontal' | 'vertical'
 }
 
 export default function OptionToggleControlled<T_FormFields extends FieldValues>({
@@ -16,26 +17,47 @@ export default function OptionToggleControlled<T_FormFields extends FieldValues>
   defaultValue,
   control,
   options,
-  ...props
+  orientation,
+  exclusive = true,
 }: I_Props<T_FormFields>) {
+  const t = useTheme()
   const { field, fieldState } = useController({ name, rules, shouldUnregister, defaultValue, control })
   const hasError = fieldState.error !== undefined
 
+  const handleChange = (value: string | number) => {
+    if (exclusive) {
+      field.onChange(value) // Update the form state with the selected value
+    } else {
+      const currentValue = field.value
+      const newValue = currentValue.includes(value)
+        ? currentValue.filter((v: string | number) => v !== value) // Remove if already selected
+        : [...currentValue, value] // Add if not selected
+      field.onChange(newValue)
+    }
+  }
+
   return (
     <Box>
-      <ToggleButtonGroup
-        {...field}
-        {...props}
-        value={field.value || ''}
-        exclusive // Ensures only one option can be selected
-        onChange={(_, value) => field.onChange(value)} // Update the form state
-      >
+      <ButtonGroup orientation={orientation} sx={{ display: 'flex', gap: 2 }}>
         {options.map((option) => (
-          <ToggleButton key={option.value} value={option.value}>
+          <Button
+            key={option.value}
+            variant={
+              exclusive
+                ? field.value === option.value
+                  ? 'contained'
+                  : 'outlined'
+                : field.value?.includes(option.value)
+                  ? 'contained'
+                  : 'outlined'
+            }
+            onClick={() => handleChange(option.value)}
+            // sx={{ borderBottomColor: `${t.palette.secondary.main} !important` }}
+          >
             {option.label}
-          </ToggleButton>
+          </Button>
         ))}
-      </ToggleButtonGroup>
+      </ButtonGroup>
       {hasError && <FormHelperText error>{fieldState.error?.message}</FormHelperText>}
     </Box>
   )

@@ -13,6 +13,7 @@ import { ToastContainer } from 'react-toastify'
 import RecoverEvaluationSubjects from '@/mta_evaluations/appServices/RecoverEvaluationSubjects'
 import LoadFormulasResources from '@/shared/formulas/appServices/LoadFormulasResources'
 import LocalizationProvider from '@/shared/datetime/LocalizationProvider'
+import { MAIN_BG_COLOR } from '@/config'
 
 const monstserrat = Montserrat({
   weight: ['300', '400', '500', '700'],
@@ -34,7 +35,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={monstserrat.variable} style={{ background: '#f1f1f1 !important' }}>
+      <body className={monstserrat.variable} style={{ background: `${MAIN_BG_COLOR} !important` }}>
         <AppRouterCacheProvider>
           <CssBaseline>
             <ThemeProvider theme={theme}>

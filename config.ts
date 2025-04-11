@@ -13,5 +13,6 @@ enum ErrorCode {
 }
 
 const LIGHT_BG_COLOR = '#C3D9FF'
+const MAIN_BG_COLOR = '#f1f1f1'
 
-export { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE, apiUrl, ErrorCode, LIGHT_BG_COLOR }
+export { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE, apiUrl, ErrorCode, LIGHT_BG_COLOR, MAIN_BG_COLOR }
