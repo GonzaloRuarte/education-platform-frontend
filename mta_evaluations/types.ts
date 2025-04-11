@@ -1,3 +1,4 @@
+import { SchoolGrade } from '@/mta_schools/constants'
 import { I_PaginatedResponse } from '@/shared/data/types'
 import { T_VoidFn } from '@/shared/types'
 import { FC } from 'react'
@@ -75,6 +76,7 @@ interface I_EvaluationDetail {
   id: T_EvaluationId
   questions: Array<I_QuestionDetail>
   subject_id: T_EvaluationSubjectId
+  grade: SchoolGrade
   created_at: string
   updated_at: string
   title: string
@@ -98,6 +100,7 @@ interface I_EvaluationCreateRequestData {
   title: string
   code: string
   subject_id: T_EvaluationSubjectId
+  grade: SchoolGrade
   header: string
   pinned_text: string | null
   status: T_EvaluationStatusCode

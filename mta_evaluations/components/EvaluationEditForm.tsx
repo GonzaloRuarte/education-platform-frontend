@@ -10,6 +10,7 @@ import {
 import { evaluationLabels } from '@/mta_evaluations/labels'
 import { EvaluationStatus, I_EvaluationCreateRequestData, I_EvaluationDetail } from '@/mta_evaluations/types'
 import { cleanPinnedText } from '@/mta_evaluations/utils'
+import { SchoolGradeSelectControlled } from '@/mta_schools/components/SchoolGradeSelect'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
@@ -32,7 +33,7 @@ interface I_Props {
 }
 
 const EvaluationEditForm = ({ data }: I_Props) => {
-  const { title, code, header, status, subject_id, pinned_text } = data
+  const { title, code, header, status, subject_id, pinned_text, grade } = data
   const navigateToEvaluationContentEdit = useNavigateToEvaluationContentEdit()
 
   const { handleSubmit, control } = useForm<I_FormFields>({
@@ -43,6 +44,7 @@ const EvaluationEditForm = ({ data }: I_Props) => {
       status,
       subject_id,
       pinned_text,
+      grade,
     },
   })
 
@@ -87,6 +89,7 @@ const EvaluationEditForm = ({ data }: I_Props) => {
           rules={{ ...rules.required() }}
           name="header"
         />
+        <SchoolGradeSelectControlled control={control} name="grade" rules={{ ...rules.required() }} />
         <WysiwygEditorControlled {...{ control }} label={evaluationLabels.pinnedText} name="pinned_text" />
       </MagicGrid>
       <Spacer />
