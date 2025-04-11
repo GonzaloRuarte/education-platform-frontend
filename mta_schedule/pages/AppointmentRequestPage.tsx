@@ -3,7 +3,11 @@
 import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
 import { T_EvaluationSubjectId } from '@/mta_evaluations/types'
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
-import { useAppointmentFreeListByMonth, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
+import {
+  useAppointmentFreeListByMonth,
+  useAppointmentRequest,
+  useNavigateToAppointmentList,
+} from '@/mta_schedule/hooks'
 import { I_AppointmentAvailable, T_AppointmentId, T_AppointmentsAvailableList } from '@/mta_schedule/types'
 import { availableDays } from '@/mta_schedule/utils'
 import { SchoolGradeSelectControlled } from '@/mta_schools/components/SchoolGradeSelect'
@@ -28,6 +32,7 @@ import { SubmitHandler, useForm } from 'react-hook-form'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import Chip from '@/shared/components/Chip'
 import { LIGHT_BG_COLOR } from '@/config'
+import { handleServiceError } from '@/shared/service'
 require('dayjs/locale/es')
 
 interface I_FormFields {
@@ -52,9 +57,18 @@ const distinctAvailableAppointments = (appointments: T_AppointmentsAvailableList
 }
 
 const AppointmentCreateForm = () => {
+  const { setIsInProgress, setIsNotInProgress } = useInProgress()
+  const backToList = useNavigateToAppointmentList()
   const [refDate, setRefDate] = useState(dayjs())
   const [selectedAppointmentData, setSelectedAppointmentData] = useState<I_AppointmentAvailable | null>(null)
   const [appointmentOptions, setAppointmentOptions] = useState<Array<{ value: T_AppointmentId; label: string }>>([])
+  const requestAppointment = useAppointmentRequest()
+
+  const { data: appointmentFreeListByMonth } = useAppointmentFreeListByMonth({
+    year: refDate.year(),
+    month: refDate.month() + 1,
+  })
+
   const { handleSubmit, control, getValues, watch } = useForm<I_FormFields>({
     defaultValues: {
       appointment_id: undefined,
@@ -65,12 +79,6 @@ const AppointmentCreateForm = () => {
     },
   })
   const appointment_id = watch('appointment_id')
-  // const date = watch('date')
-
-  const { data: appointmentFreeListByMonth } = useAppointmentFreeListByMonth({
-    year: refDate.year(),
-    month: refDate.month() + 1,
-  })
 
   const handleDateChange = () => {
     if (appointmentFreeListByMonth === undefined) return
@@ -88,19 +96,8 @@ const AppointmentCreateForm = () => {
 
   const onSubmit: SubmitHandler<I_FormFields> = ({ date, ...data }) => {
     const payload = { ...data }
-    console.log({ payload })
-
-    // setIsInProgress()
-    // const payload = {
-    //   begins_at: combinedDateAndTime({ date: data.date, time: data.beginning_hour }),
-    //   quantity: data.quantity,
-    // }
-    // create(payload)
-    //   .then((res) => {
-    //     backToList()
-    //   })
-    //   .catch(handleServiceError)
-    //   .finally(setIsNotInProgress)
+    setIsInProgress()
+    requestAppointment(payload).then(backToList).catch(handleServiceError).finally(setIsNotInProgress)
   }
 
   useEffect(() => {

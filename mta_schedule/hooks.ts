@@ -2,6 +2,7 @@ import { useAuthResources } from '@/mta_auth/hooks'
 import {
   I_AppointmentCreateRequestData,
   I_AppointmentDetail,
+  I_AppointmentRequest_RequestData,
   I_AppointmentsByMonthResponseData,
   T_AppointmentId,
   T_AppointmentList,
@@ -47,6 +48,11 @@ const useAppointmentFreeListByMonth = getHook<I_AppointmentsByMonthResponseData,
   axiosGet,
   useAuthResources,
 )
+const useAppointmentRequest = actionHook<I_AppointmentRequest_RequestData, I_CreationCommonResponse>(
+  `${APPOINTMENTS_PATH}/request`,
+  axiosPost,
+  useAuthResources,
+)
 //   { year: number; month: number }, // Request payload (query parameters)
 //   Record<string, Array<I_AppointmentDetail>> // Response type
 // >(`${APPOINTMENTS_PATH}/free-appointments-by-month`, axiosGet, useAuthResources)
@@ -67,4 +73,5 @@ export {
   useNavigateToAppointmentDetail,
   useNavigateToAppointmentList,
   useAppointmentFreeListByMonth,
+  useAppointmentRequest,
 }
