@@ -1,9 +1,9 @@
 'use client'
 
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
-import { useAppointmentCreate, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
+import { useAppointmentCreate, useAppointmentFreeListByMonth, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
 import { appointmentLabels } from '@/mta_schedule/labels'
-import { combinedDateAndTime, hoursOptions } from '@/mta_schedule/utils'
+import { availableDays, combinedDateAndTime, hoursOptions } from '@/mta_schedule/utils'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
@@ -37,6 +37,9 @@ const AppointmentCreateForm = () => {
   const create = useAppointmentCreate()
   const backToList = useNavigateToAppointmentList()
   const { setIsInProgress, setIsNotInProgress } = useInProgress()
+
+  const { data: appointmentFreeListByMonth, reload } = useAppointmentFreeListByMonth({ year: 2025, month: 4 })
+
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
     setIsInProgress()
     const payload = {
@@ -57,12 +60,14 @@ const AppointmentCreateForm = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid2 container spacing={3}>
           <Grid2 size={4}>
-            <DateCalendarController
-              control={control}
-              name="date"
-              rules={{ ...rules.required() }}
-              availableDays={{ 20: true, 22: true, 29: true }}
-            />
+            {appointmentFreeListByMonth !== undefined && (
+              <DateCalendarController
+                control={control}
+                name="date"
+                rules={{ ...rules.required() }}
+                availableDays={availableDays(appointmentFreeListByMonth)}
+              />
+            )}
           </Grid2>
           <Grid2 size={4}>
             <SelectControlled

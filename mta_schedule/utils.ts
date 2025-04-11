@@ -1,3 +1,4 @@
+import { I_AppointmentsByMonthResponseData } from '@/mta_schedule/types'
 import dayjs, { Dayjs } from 'dayjs'
 
 const hoursOptions = (args: { startHour: number; endHour: number; stepMinutes: number }) => {
@@ -17,4 +18,20 @@ const combinedDateAndTime = (args: { date: Dayjs; time: string }) =>
     .minute(parseInt(args.time.split(':')[1]))
     .toISOString()
 
-export { hoursOptions, combinedDateAndTime }
+/**
+ * Converts I_AppointmentsByMonthResponseData into a key-value object
+ * where keys are appointment IDs and values are always true.
+ * @param data - The input data of type I_AppointmentsByMonthResponseData.
+ * @returns An object with appointment IDs as keys and true as values.
+ */
+const availableDays = (data: I_AppointmentsByMonthResponseData): Record<number, true> => {
+  const result: Record<number, true> = {}
+
+  Object.keys(data).forEach((key) => {
+    result[key] = true
+  })
+
+  return result
+}
+
+export { hoursOptions, combinedDateAndTime, availableDays }

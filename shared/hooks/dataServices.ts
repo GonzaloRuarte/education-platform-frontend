@@ -59,6 +59,46 @@ const listHook = <T_Response>(path: string, getMethod: T_GetMethod, useAuthResou
   return useList
 }
 
+const getHook = <T_Response, T_QueryParams = {}>(
+  path: string,
+  getMethod: T_GetMethod,
+  useAuthResources: () => I_AuthResources,
+) => {
+  const useGet = (
+    queryParams?: T_QueryParams, // Optional query parameters
+    options?: I_FetchOptions, // Optional fetch options
+    useInProgress: T_InProgressHook = useInProgressLocal,
+  ) => {
+    const [data, setData] = useState<undefined | T_Response>(undefined)
+    const { isInProgress, setInProgressStatus } = useInProgress()
+
+    // Build the full path with query parameters
+    const queryString = queryParams
+      ? '?' +
+        Object.entries(queryParams)
+          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value as string | number | boolean)}`)
+          .join('&')
+      : ''
+    const fullPath = `${path}${queryString}`
+
+    const fetcher = listService<T_Response>(fullPath, getMethod)(useAuthResources(), options)
+
+    const reload = useCallback(() => {
+      setInProgressStatus(true)
+      fetcher()
+        .then((res) => setData(res))
+        .finally(() => {
+          setInProgressStatus(false)
+        })
+    }, [fullPath, options?.page, options?.page_size])
+
+    useEffect(debounce(reload), [fullPath, options?.page, options?.page_size])
+
+    return { data, reload, isLoading: isInProgress }
+  }
+  return useGet
+}
+
 const creationHook = <T_RequestData, T_Response>(
   path: string,
   postMethod: T_PostMethod,
@@ -158,4 +198,4 @@ const updateHook = <T_Id, T_RequestData, T_Response = {}>(
   return useUpdate
 }
 
-export { batchDeletionHook, creationHook, deletionHook, detailHook, listHook, updateHook, actionHook }
+export { batchDeletionHook, creationHook, deletionHook, detailHook, listHook, updateHook, actionHook, getHook }

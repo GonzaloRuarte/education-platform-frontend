@@ -13,8 +13,6 @@ interface I_Props<T_FormFields extends FieldValues>
 }
 
 const dayComponent = (availableDays: T_AvailableDays) => {
-  console.log({ availableDays })
-
   const Day = ({ ...props }: PickersDayProps<Dayjs>) => {
     const isDisabled = props.disabled || props.day.date() in availableDays ? !availableDays[props.day.date()] : true
     return (

@@ -41,6 +41,16 @@ interface I_AppointmentCreateRequestData {
   quantity: number
 }
 
+interface I_AppointmentsByMonthResponseData
+  extends Record<
+    T_AppointmentId,
+    Array<{
+      id: number
+      begins_at: string
+      status: string
+    }>
+  > {}
+
 export type {
   T_AppointmentId,
   T_AppointmentStatus,
@@ -48,4 +58,5 @@ export type {
   T_AppointmentList,
   I_AppointmentDetail,
   I_AppointmentCreateRequestData,
+  I_AppointmentsByMonthResponseData,
 }
