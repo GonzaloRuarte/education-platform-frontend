@@ -1,5 +1,12 @@
+import { T_VoidFn } from '@/shared/types'
 import { Box, FormHelperText } from '@mui/material'
-import { PickersDay, PickersDayProps, StaticDatePicker } from '@mui/x-date-pickers'
+import {
+  DateValidationError,
+  PickerChangeHandlerContext,
+  PickersDay,
+  PickersDayProps,
+  StaticDatePicker,
+} from '@mui/x-date-pickers'
 import { DateCalendarProps } from '@mui/x-date-pickers/DateCalendar'
 import { Dayjs } from 'dayjs'
 import { Controller, FieldValues, UseControllerProps } from 'react-hook-form'
@@ -10,6 +17,7 @@ interface I_Props<T_FormFields extends FieldValues>
   extends UseControllerProps<T_FormFields>,
     Omit<DateCalendarProps<Dayjs>, T_OmittedFields> {
   availableDays?: T_AvailableDays
+  onChangeCallback?: (...args: any) => void
 }
 
 const dayComponent = (availableDays: T_AvailableDays) => {
@@ -26,11 +34,13 @@ const dayComponent = (availableDays: T_AvailableDays) => {
   return Day
 }
 
-export default function DateCalendarController<T_FormFields extends FieldValues>({
+export default function DateCalendarControlled<T_FormFields extends FieldValues>({
   name,
   rules,
   control,
   availableDays,
+  onChangeCallback,
+  ...props
 }: I_Props<T_FormFields>) {
   return (
     <Box>
@@ -44,8 +54,14 @@ export default function DateCalendarController<T_FormFields extends FieldValues>
           return (
             <>
               <StaticDatePicker
+                {...props}
                 value={field.value || null}
-                onChange={field.onChange}
+                onChange={(value: Dayjs | null, context: PickerChangeHandlerContext<DateValidationError>) => {
+                  field.onChange(value, context)
+                  if (onChangeCallback !== undefined) {
+                    onChangeCallback(value, context)
+                  }
+                }}
                 disablePast
                 slots={{
                   actionBar: () => <></>,
