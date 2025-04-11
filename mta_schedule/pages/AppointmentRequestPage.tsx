@@ -1,17 +1,21 @@
 'use client'
 
+import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
 import { T_EvaluationSubjectId } from '@/mta_evaluations/types'
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
 import { useAppointmentFreeListByMonth, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
 import { T_AppointmentId, T_AppointmentsAvailableList } from '@/mta_schedule/types'
 import { availableDays, hoursOptions } from '@/mta_schedule/utils'
+import { SchoolGradeSelectControlled } from '@/mta_schools/components/SchoolGradeSelect'
 import { SelectSchoolControlled } from '@/mta_schools/components/SelectSchool'
 import { SchoolGrade } from '@/mta_schools/constants'
 import { T_SchoolId } from '@/mta_schools/types'
+import MagicGrid from '@/shared/components/MagicGrid'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import DateCalendarControlled from '@/shared/forms/DateCalendarControlled'
+import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
 import OptionToggleControlled from '@/shared/forms/OptionToggleControlled'
 import { useInProgress } from '@/shared/hooks'
@@ -24,7 +28,7 @@ interface I_FormFields {
   appointment_id: T_AppointmentId
   school_id: T_SchoolId
   pin: number
-  evaluation_subject_id: T_EvaluationSubjectId
+  evaluation_subject_id: T_EvaluationSubjectId | null
   grade: SchoolGrade
   date: Dayjs
 }
@@ -48,7 +52,7 @@ const AppointmentCreateForm = () => {
   const { handleSubmit, control, getValues } = useForm<I_FormFields>({
     defaultValues: {
       appointment_id: undefined,
-      evaluation_subject_id: undefined,
+      evaluation_subject_id: null,
       grade: undefined,
       pin: undefined,
       school_id: undefined,
@@ -98,7 +102,7 @@ const AppointmentCreateForm = () => {
               />
             )}
           </Grid2>
-          <Grid2 size={6}>
+          <Grid2 size={4}>
             <FormLabel>Turnos disponibles para la fecha seleccionada:</FormLabel>
             <Spacer />
             <OptionToggleControlled
@@ -112,8 +116,13 @@ const AppointmentCreateForm = () => {
             />
             <Spacer />
           </Grid2>
-          <Grid2 size={12}>
-            <SelectSchoolControlled control={control} name="school_id" />
+          <Grid2 size={8}>
+            <MagicGrid>
+              <SelectSchoolControlled control={control} name="school_id" />
+              <InputControlled control={control} name="pin" type="number" label="Pin" />
+              <SubjectOptions control={control} name="evaluation_subject_id" />
+              <SchoolGradeSelectControlled control={control} name="grade" />
+            </MagicGrid>
           </Grid2>
         </Grid2>
         <Spacer />
