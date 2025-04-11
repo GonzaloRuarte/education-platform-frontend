@@ -83,14 +83,14 @@ const getHook = <T_Response, T_QueryParams = {}>(
 
     const fetcher = listService<T_Response>(fullPath, getMethod)(useAuthResources(), options)
 
-    const reload = useCallback(() => {
+    const reload = () => {
       setInProgressStatus(true)
       fetcher()
         .then((res) => setData(res))
         .finally(() => {
           setInProgressStatus(false)
         })
-    }, [fullPath, options?.page, options?.page_size])
+    }
 
     useEffect(debounce(reload), [fullPath, options?.page, options?.page_size])
 

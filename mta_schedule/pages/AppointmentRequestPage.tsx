@@ -4,8 +4,8 @@ import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
 import { T_EvaluationSubjectId } from '@/mta_evaluations/types'
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
 import { useAppointmentFreeListByMonth, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
-import { T_AppointmentId, T_AppointmentsAvailableList } from '@/mta_schedule/types'
-import { availableDays, hoursOptions } from '@/mta_schedule/utils'
+import { I_AppointmentAvailable, T_AppointmentId, T_AppointmentsAvailableList } from '@/mta_schedule/types'
+import { availableDays } from '@/mta_schedule/utils'
 import { SchoolGradeSelectControlled } from '@/mta_schools/components/SchoolGradeSelect'
 import { SelectSchoolControlled } from '@/mta_schools/components/SelectSchool'
 import { SchoolGrade } from '@/mta_schools/constants'
@@ -14,15 +14,21 @@ import MagicGrid from '@/shared/components/MagicGrid'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
+import { Body1, H3, H4 } from '@/shared/components/Typography'
 import DateCalendarControlled from '@/shared/forms/DateCalendarControlled'
 import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
 import OptionToggleControlled from '@/shared/forms/OptionToggleControlled'
 import { useInProgress } from '@/shared/hooks'
-import { FormLabel, Grid2 } from '@mui/material'
+import { randomInt, sentence } from '@/shared/utils'
+import { Box, FormLabel, Grid2 } from '@mui/material'
 import dayjs, { Dayjs } from 'dayjs'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import { withAuth } from '@/mta_auth/hocs/withAuth'
+import Chip from '@/shared/components/Chip'
+import { LIGHT_BG_COLOR } from '@/config'
+require('dayjs/locale/es')
 
 interface I_FormFields {
   appointment_id: T_AppointmentId
@@ -33,8 +39,6 @@ interface I_FormFields {
   date: Dayjs
 }
 
-const options = hoursOptions({ startHour: 9, endHour: 17, stepMinutes: 30 })
-
 const distinctAvailableAppointments = (appointments: T_AppointmentsAvailableList) => {
   const disctint: Record<string, T_AppointmentsAvailableList> = {}
   appointments.forEach((a) => {
@@ -43,35 +47,49 @@ const distinctAvailableAppointments = (appointments: T_AppointmentsAvailableList
     }
     disctint[a.begins_at].push(a)
   })
-  return Object.entries(disctint)
+
+  return disctint
 }
 
 const AppointmentCreateForm = () => {
   const [refDate, setRefDate] = useState(dayjs())
-  const [appointmentOptions, setAppointmentOption] = useState<T_AppointmentsAvailableList>([])
-  const { handleSubmit, control, getValues } = useForm<I_FormFields>({
+  const [selectedAppointmentData, setSelectedAppointmentData] = useState<I_AppointmentAvailable | null>(null)
+  const [appointmentOptions, setAppointmentOptions] = useState<Array<{ value: T_AppointmentId; label: string }>>([])
+  const { handleSubmit, control, getValues, watch } = useForm<I_FormFields>({
     defaultValues: {
       appointment_id: undefined,
       evaluation_subject_id: null,
       grade: undefined,
-      pin: undefined,
+      pin: randomInt(1000, 9999),
       school_id: undefined,
     },
   })
-  const backToList = useNavigateToAppointmentList()
-  const { setIsInProgress, setIsNotInProgress } = useInProgress()
+  const appointment_id = watch('appointment_id')
+  // const date = watch('date')
 
-  const { data: appointmentFreeListByMonth, reload } = useAppointmentFreeListByMonth({
+  const { data: appointmentFreeListByMonth } = useAppointmentFreeListByMonth({
     year: refDate.year(),
     month: refDate.month() + 1,
   })
-  const updateAppointmentsList = () => {
+
+  const handleDateChange = () => {
     if (appointmentFreeListByMonth === undefined) return
 
-    setAppointmentOption(appointmentFreeListByMonth[getValues().date.date()])
+    const choosenDate = getValues().date.date()
+    const availableOptions = appointmentFreeListByMonth[choosenDate]
+
+    setAppointmentOptions(
+      Object.entries(distinctAvailableAppointments(availableOptions)).map(([datetime, availbleAppointments]) => ({
+        value: availbleAppointments[0].id,
+        label: `${dayjs(datetime).format('HH:mm')} hs (${availbleAppointments.length} turnos disponibles)`,
+      })),
+    )
   }
 
-  const onSubmit: SubmitHandler<I_FormFields> = (data) => {
+  const onSubmit: SubmitHandler<I_FormFields> = ({ date, ...data }) => {
+    const payload = { ...data }
+    console.log({ payload })
+
     // setIsInProgress()
     // const payload = {
     //   begins_at: combinedDateAndTime({ date: data.date, time: data.beginning_hour }),
@@ -84,6 +102,14 @@ const AppointmentCreateForm = () => {
     //   .catch(handleServiceError)
     //   .finally(setIsNotInProgress)
   }
+
+  useEffect(() => {
+    if (appointmentFreeListByMonth === undefined) return
+    const choosenDate = getValues('date').date()
+    setSelectedAppointmentData(
+      appointmentFreeListByMonth[choosenDate].find((appointment) => appointment.id === appointment_id) || null,
+    )
+  }, [appointment_id])
   return (
     <Page>
       <Page.Title>Solicitar {APPOINTMENT_NAME.singular}</Page.Title>
@@ -94,7 +120,7 @@ const AppointmentCreateForm = () => {
               <DateCalendarControlled
                 onMonthChange={(newDate) => setRefDate(newDate)}
                 onYearChange={(newDate) => setRefDate(newDate)}
-                onChangeCallback={updateAppointmentsList}
+                onChangeCallback={handleDateChange}
                 control={control}
                 name="date"
                 rules={{ ...rules.required() }}
@@ -102,26 +128,36 @@ const AppointmentCreateForm = () => {
               />
             )}
           </Grid2>
-          <Grid2 size={4}>
+          <Grid2 size={8}>
+            {selectedAppointmentData !== null && (
+              <>
+                <Box bgcolor={LIGHT_BG_COLOR} borderRadius={2} padding={2}>
+                  <MagicGrid spacing={1}>
+                    <H4>Turno Seleccionado</H4>
+                    <Body1>{sentence(dayjs(selectedAppointmentData?.begins_at).locale('es').format('LLLL'))}</Body1>
+                    <Chip size="small" label={`ID: ${selectedAppointmentData.id}`} />
+                  </MagicGrid>
+                </Box>
+                <Spacer />
+              </>
+            )}
             <FormLabel>Turnos disponibles para la fecha seleccionada:</FormLabel>
             <Spacer />
             <OptionToggleControlled
               orientation="vertical"
-              options={distinctAvailableAppointments(appointmentOptions).map(([datetime, availbleAppointments]) => ({
-                value: availbleAppointments[0].id,
-                label: `${dayjs(datetime).format('HH:mm')} hs (${availbleAppointments.length} turnos disponibles)`,
-              }))}
+              rules={{ ...rules.required() }}
+              options={[...appointmentOptions]}
               name="appointment_id"
               control={control}
             />
-            <Spacer />
           </Grid2>
-          <Grid2 size={8}>
+
+          <Grid2 size={12}>
             <MagicGrid>
-              <SelectSchoolControlled control={control} name="school_id" />
-              <InputControlled control={control} name="pin" type="number" label="Pin" />
+              <SelectSchoolControlled control={control} name="school_id" rules={{ ...rules.required() }} />
+              <InputControlled control={control} name="pin" type="number" label="Pin" rules={{ ...rules.required() }} />
               <SubjectOptions control={control} name="evaluation_subject_id" />
-              <SchoolGradeSelectControlled control={control} name="grade" />
+              <SchoolGradeSelectControlled control={control} name="grade" rules={{ ...rules.required() }} />
             </MagicGrid>
           </Grid2>
         </Grid2>
@@ -133,4 +169,4 @@ const AppointmentCreateForm = () => {
   )
 }
 
-export default AppointmentCreateForm
+export default withAuth(AppointmentCreateForm, ['admin', 'school_staff'])

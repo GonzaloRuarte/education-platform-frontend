@@ -1,8 +1,8 @@
+'use client'
+
 import { useTheme } from '@/shared/hooks'
 import { Box, Button, ButtonGroup, FormHelperText } from '@mui/material'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
-
-type T_OmittedFields = 'value' | 'onChange' | 'onBlur' | 'name' | 'ref' | 'defaultValue'
 
 interface I_Props<T_FormFields extends FieldValues> extends UseControllerProps<T_FormFields> {
   options: Array<{ value: string | number; label: string }>
@@ -25,38 +25,32 @@ export default function OptionToggleControlled<T_FormFields extends FieldValues>
   const hasError = fieldState.error !== undefined
 
   const handleChange = (value: string | number) => {
-    if (exclusive) {
-      field.onChange(value) // Update the form state with the selected value
-    } else {
-      const currentValue = field.value
-      const newValue = currentValue.includes(value)
-        ? currentValue.filter((v: string | number) => v !== value) // Remove if already selected
-        : [...currentValue, value] // Add if not selected
-      field.onChange(newValue)
-    }
+    field.onChange(value)
   }
 
   return (
     <Box>
       <ButtonGroup orientation={orientation} sx={{ display: 'flex', gap: 2 }}>
-        {options.map((option) => (
-          <Button
-            key={option.value}
-            variant={
-              exclusive
-                ? field.value === option.value
-                  ? 'contained'
-                  : 'outlined'
-                : field.value?.includes(option.value)
-                  ? 'contained'
-                  : 'outlined'
-            }
-            onClick={() => handleChange(option.value)}
-            // sx={{ borderBottomColor: `${t.palette.secondary.main} !important` }}
-          >
-            {option.label}
-          </Button>
-        ))}
+        {options.map((option) => {
+          return (
+            <Button
+              key={option.value}
+              variant={
+                exclusive
+                  ? field.value === option.value
+                    ? 'contained'
+                    : 'outlined'
+                  : field.value?.includes(option.value)
+                    ? 'contained'
+                    : 'outlined'
+              }
+              onClick={() => handleChange(option.value)}
+              // sx={{ borderBottomColor: `${t.palette.secondary.main} !important` }}
+            >
+              {option.label}
+            </Button>
+          )
+        })}
       </ButtonGroup>
       {hasError && <FormHelperText error>{fieldState.error?.message}</FormHelperText>}
     </Box>

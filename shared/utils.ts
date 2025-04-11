@@ -5,6 +5,17 @@ function toCamelCase(str: string): string {
 }
 
 /**
+ * Generates a random integer between min and max (inclusive).
+ * @param {number} min - The minimum value.
+ * @param {number} max - The maximum value.
+ * @returns {number} A random integer between min and max.
+ */
+const randomInt = (min: number, max: number): number => {
+  if (min > max) throw new Error('min should be less than or equal to max')
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+/**
  * Truncates a string to the first N characters and append '(...)' if the string is longer than N.
  */
 const truncateWithEllipsis = (str: string, maxLength: number = 200): string => {
@@ -131,4 +142,5 @@ export {
   secondsToMMSS,
   truncateWithEllipsis,
   sentence,
+  randomInt,
 }
