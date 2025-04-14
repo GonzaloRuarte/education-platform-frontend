@@ -1,8 +1,16 @@
 import { useAuthResources } from '@/mta_auth/hooks'
-import { I_EvaluationCreateRequestData, I_EvaluationDetail, T_EvaluationId, T_EvaluationList, T_EvaluationSubjectList } from '@/mta_evaluations/types'
+import {
+  I_EvaluationCreateRequestData,
+  I_EvaluationDetail,
+  I_EvaluationSetStatusRequestData,
+  T_EvaluationId,
+  T_EvaluationList,
+  T_EvaluationSubjectList,
+} from '@/mta_evaluations/types'
 import pages, { evaluationsEditContentPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
 import {
+  actionHook,
   batchDeletionHook,
   creationHook,
   deletionHook,
@@ -15,16 +23,29 @@ import {
 } from '@/shared/hooks'
 import { listService } from '@/shared/service'
 import { useStore } from '@/shared/state'
-import { I_CreationCommonResponse } from '@/shared/types'
+import { I_CreationCommonResponse, T_EmptyPayload } from '@/shared/types'
 
 // Data Service
 const EVALUATIONS_PATH = '/evaluations'
 const useEvaluationList = listHook<T_EvaluationList>(EVALUATIONS_PATH, axiosGet, useAuthResources)
-const useEvaluationCreate = creationHook<I_EvaluationCreateRequestData, I_CreationCommonResponse>(EVALUATIONS_PATH, axiosPost, useAuthResources)
-const useEvaluationUpdate = updateHook<T_EvaluationId, I_EvaluationCreateRequestData, I_CreationCommonResponse>(EVALUATIONS_PATH, axiosPatch, useAuthResources)
+const useEvaluationCreate = creationHook<I_EvaluationCreateRequestData, I_CreationCommonResponse>(
+  EVALUATIONS_PATH,
+  axiosPost,
+  useAuthResources,
+)
+const useEvaluationUpdate = updateHook<T_EvaluationId, I_EvaluationCreateRequestData, I_CreationCommonResponse>(
+  EVALUATIONS_PATH,
+  axiosPatch,
+  useAuthResources,
+)
 const useEvaluationDelete = deletionHook<T_EvaluationId>(EVALUATIONS_PATH, axiosDelete, useAuthResources)
 const useEvaluationBatchDelete = batchDeletionHook<T_EvaluationId>(EVALUATIONS_PATH, axiosDelete, useAuthResources)
 const useEvaluationDetail = detailHook<T_EvaluationId, I_EvaluationDetail>(EVALUATIONS_PATH, axiosGet, useAuthResources)
+const useEvaluationSetStatus = actionHook<I_EvaluationSetStatusRequestData, T_EmptyPayload>(
+  `${EVALUATIONS_PATH}/set-status`,
+  axiosPost,
+  useAuthResources,
+)
 const useEvaluationSubjects = () => useStore((state) => state.subjects)
 const useRecoverAndStoreEvaluationSubjects = () => {
   const recover = listService<T_EvaluationSubjectList>('/evaluation-subjects', axiosGet)(useAuthResources())
@@ -55,4 +76,5 @@ export {
   useNavigateToEvaluationDetail,
   useNavigateToEvaluationList,
   useRecoverAndStoreEvaluationSubjects,
+  useEvaluationSetStatus,
 }

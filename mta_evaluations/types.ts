@@ -156,6 +156,11 @@ type T_QuestionForm<T_Data extends T_AnswerPolymorphicDetail> = FC<{
   reload: T_VoidFn
 }>
 
+interface I_EvaluationSetStatusRequestData {
+  id: T_EvaluationId
+  new_status: T_EvaluationStatusCode
+}
+
 export type {
   T_EvaluationId,
   T_QuestionId,
@@ -188,5 +193,6 @@ export type {
   T_QuestionForm,
   T_AnswerPolymorphicDetail,
   I_QuestionCreateResponseData,
+  I_EvaluationSetStatusRequestData,
 }
 export { EvaluationStatus }
