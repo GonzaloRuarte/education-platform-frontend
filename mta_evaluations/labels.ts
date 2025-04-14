@@ -11,6 +11,8 @@ const evaluationLabels = {
   statuses: {
     published: 'Publicada',
     draft: 'Borrador',
+    change: 'Modificar estado de evaluación',
+    areYouSure: '¿Estás seguro/a que querés modificar el estado de la evaluación?',
   },
   subject: 'Materia',
   create: 'Crear',
