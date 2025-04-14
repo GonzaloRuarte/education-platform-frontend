@@ -142,9 +142,13 @@ const batchDeletionHook = <T_Id, T_Response = I_DeletionCommonResponse>(
     const authResources = useAuthResources()
 
     return (ids: Array<T_Id>) => {
+      const isJustOne = ids.length === 1
       const batchDeleteRaw = batchDeletionService<T_Id, T_Response>(entityPath, deleteMethod)(authResources)
+      const title = isJustOne
+        ? `Eliminar ${d.entityName.singular} con ID# ${ids}.`
+        : `Eliminar ${d.entityName.plural} con IDs# ${ids.join(', ')}.`
 
-      d.showConfirm(`Eliminar ${d.entityName.plural} ${ids}`, '¿Estás seguro/a que querés proceder?').then(() => {
+      d.showConfirm(title, '¿Estás seguro/a que querés proceder?').then(() => {
         batchDeleteRaw(ids)
           .then(() => {
             successToast(
