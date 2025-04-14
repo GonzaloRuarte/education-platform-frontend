@@ -1,6 +1,7 @@
 'use client'
 
 import { LIGHT_BG_COLOR } from '@/config'
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import ResolutionHeader from '@/mta_resolutions/components/ResolutionHeader'
 import ResolutionPageIndicator from '@/mta_resolutions/components/ResolutionPageIndicator'
 import ResolutionPaginator from '@/mta_resolutions/components/ResolutionPaginator'
@@ -80,4 +81,4 @@ const ResolveEvaluationPage = () => {
   )
 }
 
-export default ResolveEvaluationPage
+export default withAuth(ResolveEvaluationPage, ['admin', 'student'])

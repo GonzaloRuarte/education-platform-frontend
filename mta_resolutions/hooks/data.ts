@@ -2,7 +2,7 @@ import { ErrorCode } from '@/config'
 import { useAuthResources } from '@/mta_auth/hooks'
 import { I_AuthorizeResponseData } from '@/mta_auth/types'
 import { T_AnswerId, T_AnswerType, T_QuestionId } from '@/mta_evaluations/types'
-import { useResolutionLogout } from '@/mta_resolutions/hooks'
+import { useResolutionLogout, useResolutionPagination } from '@/mta_resolutions/hooks'
 import {
   I_AuthorizeStudentRequestData,
   I_ResolutionState,
@@ -10,6 +10,8 @@ import {
   T_ResolutionState_MultipleChoiceAnswerData,
   T_ResolutionState_NumericAnswerData,
 } from '@/mta_resolutions/types'
+import { T_AppointmentId } from '@/mta_schedule/types'
+import { T_StudentProfilePersonalId } from '@/mta_schools/types'
 import { axiosPost } from '@/shared/data/axios'
 import ApiError from '@/shared/data/errors'
 import { actionHook, useInProgress } from '@/shared/hooks'
@@ -73,12 +75,22 @@ const useResolutionUpdateLastUploadDatetime = () => {
     storeLastUpload(new Date().toISOString())
   }
 }
-
+const initialState = (personal_id: T_StudentProfilePersonalId, appointment_id: T_AppointmentId) => {
+  const now = new Date().toISOString()
+  return {
+    student_personal_id: personal_id,
+    appointment_id: appointment_id,
+    last_login_datetime: now,
+    last_update_datetime: null,
+    answers: {},
+  }
+}
 const useResolutionResume = () => {
   const requestResume = _useResolutionRequestResume()
   const storeEvaluationToResolve = useResolutionStoreEvaluation()
   const storeResolutionState = useStoreResolutionState()
   const storeMetadata = useResolutionStoreMetadata()
+  const { storeNewPage } = useResolutionPagination()
   const { setIsNotInProgress, setIsInProgress } = useInProgress()
   const { errorToast, dismissAll } = useToasts()
   const logout = useResolutionLogout()
@@ -87,23 +99,22 @@ const useResolutionResume = () => {
     setIsInProgress()
     requestResume({})
       .then((response) => {
-        const now = new Date().toISOString()
+        const alreadyHasAnUploadedState = response.resolution.last_uploaded_state !== null
+
         storeResolutionState(
-          response.resolution.last_uploaded_state !== null
+          alreadyHasAnUploadedState
             ? response.resolution.last_uploaded_state
-            : {
-                student_personal_id: response.student_personal_id,
-                appointment_id: response.appointment_id,
-                last_login_datetime: now,
-                last_update_datetime: null,
-                answers: {},
-              },
+            : initialState(response.student_personal_id, response.appointment_id),
         )
+
         storeEvaluationToResolve(response.evaluation)
+
         storeMetadata({
           resolution_maxDurationMinutes: response.resolution.max_duration_minutes,
           resolution_startedAt: response.resolution.started_at,
         })
+
+        storeNewPage(1)
       })
       .catch((err) => {
         if (ApiError.errorCode(err) === ErrorCode.RESOLUTION_ALREADY_SUBMITTED) {
