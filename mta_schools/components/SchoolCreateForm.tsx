@@ -10,6 +10,7 @@ import log from '@/shared/log'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import Spacer from '@/shared/components/Spacer'
 
 interface I_FormFields {
   name: string
@@ -54,6 +55,7 @@ const SchoolCreateForm = () => {
           label="Distrito"
         />
       </MagicGrid>
+      <Spacer />
 
       <Submit>Agregar</Submit>
     </form>
