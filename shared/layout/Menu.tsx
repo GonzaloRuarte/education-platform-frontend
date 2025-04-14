@@ -22,7 +22,16 @@ const Menu = () => {
             </MenuBlock>
           }
         />
-        <MenuItem Icon={CalendarMonthIcon} label={P.D._.turnos.label} href={P.D._.turnos.path} />
+        <MenuItem
+          Icon={CalendarMonthIcon}
+          label={P.D._.turnos.label}
+          href={P.D._.turnos.path}
+          subMenu={
+            <MenuBlock isSubMenu>
+              <MenuItem label={P.D._.turnos._.solicitar.label} href={P.D._.turnos._.solicitar.path} />
+            </MenuBlock>
+          }
+        />
         <MenuItem Icon={FactCheckIcon} label={P.D._.evaluaciones.label} href={P.D._.evaluaciones.path} />
         <MenuItem Icon={PersonIcon} label={P.D._.estudiantes.label} href={P.D._.estudiantes.path} />
         <MenuItem Icon={BadgeIcon} label={P.D._.roles.label} href={P.D._.roles.path} />

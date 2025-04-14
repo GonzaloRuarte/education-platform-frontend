@@ -1,4 +1,5 @@
 import { I_AuthResources } from '@/mta_auth/types'
+import { I_UseConfirm } from '@/shared/confirm'
 import {
   I_FetchOptions,
   T_DeleteMethod,
@@ -16,6 +17,7 @@ import {
   postService,
   updateService,
 } from '@/shared/service'
+import { successToast } from '@/shared/toasts'
 import {
   I_DeletionCommonResponse,
   T_ActionServiceHook,
@@ -26,7 +28,9 @@ import {
   T_InProgressHook,
   T_ListServiceHookV2,
   T_UpdateServiceHook,
+  T_VoidFn,
 } from '@/shared/types'
+import { EntityName, sentence } from '@/shared/utils'
 import debounce from 'debounce'
 
 import { useCallback, useEffect, useState } from 'react'
@@ -53,6 +57,46 @@ const listHook = <T_Response>(path: string, getMethod: T_GetMethod, useAuthResou
     return { data, reload, isLoading: isInProgress }
   }
   return useList
+}
+
+const getHook = <T_Response, T_QueryParams = {}>(
+  path: string,
+  getMethod: T_GetMethod,
+  useAuthResources: () => I_AuthResources,
+) => {
+  const useGet = (
+    queryParams?: T_QueryParams, // Optional query parameters
+    options?: I_FetchOptions, // Optional fetch options
+    useInProgress: T_InProgressHook = useInProgressLocal,
+  ) => {
+    const [data, setData] = useState<undefined | T_Response>(undefined)
+    const { isInProgress, setInProgressStatus } = useInProgress()
+
+    // Build the full path with query parameters
+    const queryString = queryParams
+      ? '?' +
+        Object.entries(queryParams)
+          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value as string | number | boolean)}`)
+          .join('&')
+      : ''
+    const fullPath = `${path}${queryString}`
+
+    const fetcher = listService<T_Response>(fullPath, getMethod)(useAuthResources(), options)
+
+    const reload = () => {
+      setInProgressStatus(true)
+      fetcher()
+        .then((res) => setData(res))
+        .finally(() => {
+          setInProgressStatus(false)
+        })
+    }
+
+    useEffect(debounce(reload), [fullPath, options?.page, options?.page_size])
+
+    return { data, reload, isLoading: isInProgress }
+  }
+  return useGet
 }
 
 const creationHook = <T_RequestData, T_Response>(
@@ -89,8 +133,29 @@ const batchDeletionHook = <T_Id, T_Response = I_DeletionCommonResponse>(
   entityPath: string,
   deleteMethod: T_DeleteMethod,
   useAuthResources: () => I_AuthResources,
-): T_BatchDeletionServiceHook<T_Id, T_Response> => {
-  return () => batchDeletionService<T_Id, T_Response>(entityPath, deleteMethod)(useAuthResources())
+): T_BatchDeletionServiceHook<T_Id> => {
+  const useBatchDelete = (d: {
+    entityName: EntityName
+    showConfirm: I_UseConfirm['showConfirm']
+    reload: T_VoidFn
+  }) => {
+    const authResources = useAuthResources()
+
+    return (ids: Array<T_Id>) => {
+      const batchDeleteRaw = batchDeletionService<T_Id, T_Response>(entityPath, deleteMethod)(authResources)
+
+      d.showConfirm(`Eliminar ${d.entityName.plural} ${ids}`, '¿Estás seguro/a que querés proceder?').then(() => {
+        batchDeleteRaw(ids)
+          .then(() => {
+            successToast(
+              sentence(`${d.entityName.plural} ${d.entityName.gs({ m: 'eliminados', f: 'eliminadas' })} correctamente`),
+            )
+          })
+          .finally(d.reload)
+      })
+    }
+  }
+  return useBatchDelete
 }
 
 const detailHook = <T_Id, T_Response>(
@@ -133,4 +198,4 @@ const updateHook = <T_Id, T_RequestData, T_Response = {}>(
   return useUpdate
 }
 
-export { batchDeletionHook, creationHook, deletionHook, detailHook, listHook, updateHook, actionHook }
+export { batchDeletionHook, creationHook, deletionHook, detailHook, listHook, updateHook, actionHook, getHook }

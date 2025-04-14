@@ -1,4 +1,5 @@
 import DashboardLoginForm from '@/mta_auth/components/DashboardLoginForm'
+import { avoidAuthorized } from '@/mta_auth/hocs/avoidAuthoirzed'
 import Spacer from '@/shared/components/Spacer'
 import { H1, H3 } from '@/shared/components/Typography'
 import Box from '@mui/material/Box'
@@ -20,4 +21,4 @@ const DashboardLogin = () => {
   )
 }
 
-export default DashboardLogin
+export default avoidAuthorized(DashboardLogin)

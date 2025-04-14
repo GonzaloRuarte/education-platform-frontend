@@ -3,6 +3,7 @@
 import { createTheme } from '@mui/material/styles'
 import { red } from '@mui/material/colors'
 import { esES } from '@mui/material/locale'
+import { MAIN_BG_COLOR } from '@/config'
 
 // Create a theme instance.
 const colorsTheme = createTheme({
@@ -68,6 +69,24 @@ const theme = createTheme(
             subtitle2: 'h2',
             body1: 'p',
             body2: 'p',
+          },
+        },
+      },
+      MuiButtonGroup: {
+        styleOverrides: {
+          firstButton: {
+            borderBottomColor: colorsTheme.palette.secondary.light,
+          },
+          middleButton: {
+            borderBottomColor: colorsTheme.palette.secondary.light,
+          },
+        },
+      },
+      MuiInputLabel: {
+        styleOverrides: {
+          root: {
+            background: MAIN_BG_COLOR,
+            padding: '0 5px',
           },
         },
       },
