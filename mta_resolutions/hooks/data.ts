@@ -65,6 +65,7 @@ const useResolutionStoreMetadata = () => useStore((state) => state.resolution_st
 const useResolutionClearMetadata = () => useStore((state) => state.resolution_clearMetadata)
 const useStoreResolutionState = () => useStore((state) => state.resolution_storeState)
 const useResolutionEvaluationToResolve = () => useStore((state) => state.resolution_evaluation)
+const useResolutionMaxDurationMinutes = () => useStore((state) => state.resolution_maxDurationMinutes)
 const useResolutionState = () => useStore((state) => state.resolution_state)
 const useResolutionLastUploadDatetime = () => useStore((state) => state.resolution_lastUpload)
 const useResolutionClearLastUploadDatetime = () => useStore((state) => state.resolution_clearLastUpload)
@@ -252,4 +253,5 @@ export {
   useResolutionStoreMetadata,
   useResolutionUpdateLastUploadDatetime,
   useResolutionDownloadState,
+  useResolutionMaxDurationMinutes,
 }
