@@ -1,4 +1,5 @@
 import Button from '@/shared/components/Button'
+import Spacer from '@/shared/components/Spacer'
 import { Body1, H3 } from '@/shared/components/Typography'
 import { I_DialogProps } from '@/shared/dialogs/types'
 import { Dialog as MUI_Dialog } from '@mui/material'
@@ -8,10 +9,16 @@ import DialogTitle from '@mui/material/DialogTitle'
 
 const Dialog = ({ title, content, actions, isVisible, onClose }: I_DialogProps) => {
   return (
-    <MUI_Dialog open={isVisible} onClose={onClose} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
+    <MUI_Dialog
+      open={isVisible}
+      onClose={onClose}
+      aria-labelledby="alert-dialog-title"
+      aria-describedby="alert-dialog-description"
+    >
       <DialogTitle component={'div'}>
         <H3>{title}</H3>
       </DialogTitle>
+      <Spacer size="xs" />
       <DialogContent>{content}</DialogContent>
       <DialogActions>
         {actions.map((action) => {
