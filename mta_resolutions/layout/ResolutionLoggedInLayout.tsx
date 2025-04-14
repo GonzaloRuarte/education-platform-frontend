@@ -27,7 +27,7 @@ const Header = () => {
 
   const maxDurationOverflow = Math.round(elapsedTimeSeconds - maxDurationMinutes * 60)
   const timeLeft = Math.max(Math.round(maxDurationMinutes * 60 - elapsedTimeSeconds), 0)
-  const maxDurationReached = maxDurationOverflow > 0
+  const maxDurationReached = maxDurationOverflow >= 0
   const showMaxDurationWarning = 0 < timeLeft && timeLeft < 15 * 60
 
   return (
