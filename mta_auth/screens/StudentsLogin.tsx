@@ -1,10 +1,18 @@
+'use client'
+
 import StudentsLoginForm from '@/mta_auth/components/StudentsLoginForm'
+import { useResolutionPagination } from '@/mta_resolutions/hooks'
 import Spacer from '@/shared/components/Spacer'
 import { H1, H3 } from '@/shared/components/Typography'
 import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
+import { useEffect } from 'react'
 
 const StudentsLogin = () => {
+  const { storeNewPage } = useResolutionPagination()
+  useEffect(() => {
+    storeNewPage(1)
+  }, [])
   return (
     <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
       <Box width="30vw">
