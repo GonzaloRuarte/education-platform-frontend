@@ -104,9 +104,9 @@ const pages = {
         path: '/dashboard/comisiones',
         label: 'Comisiones',
       },
-      roles: {
-        path: '/dashboard/roles',
-        label: 'Roles',
+      usuarios: {
+        path: '/dashboard/usuarios',
+        label: 'Usuarios',
       },
     },
   },
