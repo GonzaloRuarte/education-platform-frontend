@@ -43,7 +43,7 @@ const columns: Array<GridColDef> = [
 const AppointmentListPage = () => {
   const navToDetail = useNavigateToAppointmentDetail()
   const navToCreate = useNavigateToAppointmentCreate()
-  const batchDelete = useAppointmentBatchDelete()
+
   return (
     <ListPage
       columns={columns}
@@ -51,7 +51,7 @@ const AppointmentListPage = () => {
       entityName={APPOINTMENT_NAME}
       onRowClick={ListPage.mapNavToOnRowClick(navToDetail)}
       onCreate={navToCreate}
-      onBatchDelete={batchDelete}
+      useBatchDelete={useAppointmentBatchDelete}
     />
   )
 }

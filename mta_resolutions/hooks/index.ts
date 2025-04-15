@@ -26,7 +26,7 @@ const useResolutionPagination = () => {
   }
 }
 
-const useResolutionElapsedTime = () => {
+const useResolutionElapsedTimeSeconds = () => {
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const resolutionStartedAt = useStore((state) => state.resolution_startedAt)
 
@@ -78,7 +78,7 @@ const useResolutionManageSubmit = () => {
 }
 
 export {
-  useResolutionElapsedTime,
+  useResolutionElapsedTimeSeconds,
   useResolutionExit,
   useResolutionManageSubmit,
   useResolutionPagination,

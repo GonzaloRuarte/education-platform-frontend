@@ -1,13 +1,21 @@
 'use client'
 
+import { T_LoginZone } from '../types'
 import { useHasPermissions, useIsAuthorized, useNavigateToLogin } from '@/mta_auth/hooks'
 import { T_AllowedAccessGroups } from '@/mta_auth/types'
+import pages from '@/pages'
 import { useNavigateToDashboardHome } from '@/shared/hooks'
 import { warningToast } from '@/shared/toasts'
 import { useEffect } from 'react'
 
-const RequireAuth = ({ allowedAccessGroups }: { allowedAccessGroups: T_AllowedAccessGroups }) => {
-  const navigateToLogin = useNavigateToLogin()
+const RequireAuth = ({
+  allowedAccessGroups,
+  logoutDestination,
+}: {
+  allowedAccessGroups: T_AllowedAccessGroups
+  logoutDestination: T_LoginZone
+}) => {
+  const navigateToLogin = useNavigateToLogin(logoutDestination)
   const navigateToHome = useNavigateToDashboardHome()
   const isAuthorized = useIsAuthorized()
 

@@ -1,5 +1,5 @@
 import Input from '@/shared/forms/Input'
-import TextField, { TextFieldProps } from '@mui/material/TextField'
+import { TextFieldProps } from '@mui/material/TextField'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 
 type T_OmittedFields =

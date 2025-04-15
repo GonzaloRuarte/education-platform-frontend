@@ -5,6 +5,8 @@ import { useEvaluationCreate, useNavigateToEvaluationContentEdit } from '@/mta_e
 import { evaluationLabels } from '@/mta_evaluations/labels'
 import { EvaluationStatus, I_EvaluationCreateRequestData } from '@/mta_evaluations/types'
 import { cleanPinnedText } from '@/mta_evaluations/utils'
+import { SchoolGradeSelectControlled } from '@/mta_schools/components/SchoolGradeSelect'
+import { SchoolGrade } from '@/mta_schools/constants'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
@@ -17,8 +19,9 @@ import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
-interface I_FormFields extends Omit<I_EvaluationCreateRequestData, 'subject_id'> {
+interface I_FormFields extends Omit<I_EvaluationCreateRequestData, 'subject_id' | 'grade'> {
   subject_id: I_EvaluationCreateRequestData['subject_id'] | null
+  grade: I_EvaluationCreateRequestData['grade'] | null
 }
 
 const defaultValues: I_FormFields = {
@@ -28,25 +31,29 @@ const defaultValues: I_FormFields = {
   pinned_text: null,
   status: EvaluationStatus.Draft,
   subject_id: null,
+  grade: null,
 }
 const EvaluationCreateForm = () => {
   const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
 
-  const { setInProgressStatus } = useInProgress()
+  const { setIsInProgress, setIsNotInProgress } = useInProgress()
   const navigateToEvaluationContentEdit = useNavigateToEvaluationContentEdit()
   const evaluationCreate = useEvaluationCreate()
   const onSubmit: SubmitHandler<I_FormFields> = ({ pinned_text, ...data }) => {
-    setInProgressStatus(true)
-    evaluationCreate({ ...data, pinned_text: cleanPinnedText(pinned_text), subject_id: data.subject_id as string })
+    setIsInProgress()
+    evaluationCreate({
+      ...data,
+      pinned_text: cleanPinnedText(pinned_text),
+      subject_id: data.subject_id as string,
+      grade: data.grade as SchoolGrade,
+    })
       .then((res) => {
         log.info('New Evaluation added:', res)
         successToast('Evaluación agregada correctamente')
         navigateToEvaluationContentEdit({ evaluationId: res.id })
       })
       .catch(handleServiceError)
-      .finally(() => {
-        setInProgressStatus(false)
-      })
+      .finally(setIsNotInProgress)
   }
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -57,19 +64,21 @@ const EvaluationCreateForm = () => {
           rules={{ ...rules.required() }}
           label={evaluationLabels.title}
         />
+        <SchoolGradeSelectControlled control={control} name="grade" rules={{ ...rules.required() }} />
+        <SubjectOptions<I_FormFields> {...{ control }} name="subject_id" />
         <InputControlled<I_FormFields>
           {...{ control }}
           name="code"
           rules={{ ...rules.required() }}
           label={evaluationLabels.code}
         />
-        <SubjectOptions<I_FormFields> {...{ control }} name="subject_id" />
         <WysiwygEditorControlled<I_FormFields>
           {...{ control }}
           label={evaluationLabels.header}
           rules={{ ...rules.required() }}
           name="header"
         />
+
         <WysiwygEditorControlled<I_FormFields>
           {...{ control }}
           label={evaluationLabels.pinnedText}

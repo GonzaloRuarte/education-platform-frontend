@@ -1,4 +1,5 @@
-import { T_EvaluationId } from '@/mta_evaluations/types'
+import { T_EvaluationId, T_EvaluationSubjectId } from '@/mta_evaluations/types'
+import { SchoolGrade } from '@/mta_schools/constants'
 import { T_SchoolId, T_StudentProfileId, T_StudentProfilePersonalId } from '@/mta_schools/types'
 import { I_PaginatedResponse } from '@/shared/data/types'
 
@@ -41,6 +42,21 @@ interface I_AppointmentCreateRequestData {
   quantity: number
 }
 
+interface I_AppointmentAvailable {
+  id: number
+  begins_at: string
+  status: string
+}
+type T_AppointmentsAvailableList = Array<I_AppointmentAvailable>
+interface I_AppointmentsByMonthResponseData extends Record<T_AppointmentId, T_AppointmentsAvailableList> {}
+interface I_AppointmentRequest_RequestData {
+  appointment_id: T_AppointmentId
+  school_id: T_SchoolId
+  pin: number
+  evaluation_subject_id: T_EvaluationSubjectId | null
+  grade: SchoolGrade
+}
+
 export type {
   T_AppointmentId,
   T_AppointmentStatus,
@@ -48,4 +64,8 @@ export type {
   T_AppointmentList,
   I_AppointmentDetail,
   I_AppointmentCreateRequestData,
+  I_AppointmentsByMonthResponseData,
+  I_AppointmentAvailable,
+  T_AppointmentsAvailableList,
+  I_AppointmentRequest_RequestData,
 }

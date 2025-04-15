@@ -5,6 +5,17 @@ function toCamelCase(str: string): string {
 }
 
 /**
+ * Generates a random integer between min and max (inclusive).
+ * @param {number} min - The minimum value.
+ * @param {number} max - The maximum value.
+ * @returns {number} A random integer between min and max.
+ */
+const randomInt = (min: number, max: number): number => {
+  if (min > max) throw new Error('min should be less than or equal to max')
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+/**
  * Truncates a string to the first N characters and append '(...)' if the string is longer than N.
  */
 const truncateWithEllipsis = (str: string, maxLength: number = 200): string => {
@@ -42,6 +53,17 @@ const secondsToMMSS = (seconds: number): string => {
   const paddedSeconds = String(remainingSeconds).padStart(2, '0')
   return `${paddedMinutes}:${paddedSeconds}`
 }
+const secondsToHHMMSS = (seconds: number): string => {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = seconds % 60
+
+  const paddedHours = String(hours).padStart(2, '0')
+  const paddedMinutes = String(minutes).padStart(2, '0')
+  const paddedSeconds = String(remainingSeconds).padStart(2, '0')
+
+  return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`
+}
 
 /**
  * Truncate a string to the first N characters and append '...' if the string is longer than N.
@@ -55,6 +77,17 @@ const truncateString = (str: string, maxLength: number): string => {
   }
   return str.slice(0, maxLength) + '...'
 }
+/**
+ * Converts a string to sentence case and ensures it ends with a period.
+ * @param str - The input string.
+ * @returns The string with the first letter capitalized and ending with a period.
+ */
+const sentence = (str: string): string => {
+  if (!str) return ''
+  const trimmedStr = str.trim()
+  const capitalized = trimmedStr.charAt(0).toUpperCase() + trimmedStr.slice(1)
+  return capitalized.endsWith('.') ? capitalized : `${capitalized}.`
+}
 
 type T_Gender = 'M' | 'F' | 'X'
 class EntityName {
@@ -66,6 +99,17 @@ class EntityName {
     this.singular = args.singular
     this.plural = args.plural
     this.gender = args.gender
+  }
+
+  public genderedString(args: { m: string; f: string }) {
+    return this.gender === 'F' ? args.f : args.m
+  }
+
+  /**
+   * Shortcut for genderedString
+   */
+  public gs(args: { m: string; f: string }) {
+    return this.genderedString(args)
   }
 }
 
@@ -108,4 +152,7 @@ export {
   truncateString,
   secondsToMMSS,
   truncateWithEllipsis,
+  sentence,
+  randomInt,
+  secondsToHHMMSS,
 }

@@ -9,7 +9,6 @@ import {
 import pages from '@/pages'
 import { axiosPost } from '@/shared/data/axios'
 import { T_TokenRefresher } from '@/shared/data/types'
-import { navigationHook } from '@/shared/hooks'
 import log from '@/shared/log'
 import { postService } from '@/shared/service'
 import { useStore } from '@/shared/state'
@@ -84,8 +83,7 @@ const useAuthorize = () => {
   return postService<I_AuthorizeRequestData, I_AuthorizeResponseData>('/token', axiosPost)()
 }
 
-const useNavigateToLogin = navigationHook(pages.D._.login.path)
-
+export { useNavigateToLogin } from './navigation'
 export {
   useAuthData,
   useAuthorize,
@@ -93,7 +91,6 @@ export {
   useHasPermissions,
   useIsAuthorized,
   useLogout,
-  useNavigateToLogin,
   useStoreAuthData,
   useUserAccessGroups,
 }

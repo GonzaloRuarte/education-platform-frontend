@@ -1,9 +1,10 @@
 'use client'
 
-import { LIGHT_BG_COLOR } from '@/config'
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import ResolutionHeader from '@/mta_resolutions/components/ResolutionHeader'
 import ResolutionPageIndicator from '@/mta_resolutions/components/ResolutionPageIndicator'
 import ResolutionPaginator from '@/mta_resolutions/components/ResolutionPaginator'
+import ResolutionPinnedText from '@/mta_resolutions/components/ResolutionPinnedText'
 import ResolutionQuestions from '@/mta_resolutions/components/ResolutionQuestions'
 import ResolutionReviewDisclaimer from '@/mta_resolutions/components/ResolutionReviewDisclaimer'
 import { useResolutionPagination } from '@/mta_resolutions/hooks'
@@ -14,8 +15,7 @@ import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import Spinner from '@/shared/components/Spinner'
 import { HorizontalRule } from '@mui/icons-material'
-import { Box, Grid2 } from '@mui/material'
-import parse from 'html-react-parser'
+import { Box } from '@mui/material'
 const ResolveEvaluationPage = () => {
   const evaluationToResolve = useResolutionEvaluationToResolve()
   const { currentPage } = useResolutionPagination()
@@ -53,24 +53,7 @@ const ResolveEvaluationPage = () => {
                   <ResolutionPaginator />
                   <Spacer size="xl" />
                 </Box>
-                {hasPinnedText && (
-                  <Box
-                    style={{
-                      transform: 'translateY(-50%)',
-                      width: '40%',
-                      right: 20,
-                      top: '50%',
-                      position: 'fixed',
-                      height: '70%',
-                      borderRadius: 20,
-                      padding: '10px 30px',
-                      overflowY: 'auto',
-                    }}
-                    bgcolor={LIGHT_BG_COLOR}
-                  >
-                    {parse(evaluationToResolve.pinned_text as string)}
-                  </Box>
-                )}
+                {hasPinnedText && <ResolutionPinnedText pinnedText={evaluationToResolve.pinned_text as string} />}
               </Box>
             </>
           )}
@@ -80,4 +63,4 @@ const ResolveEvaluationPage = () => {
   )
 }
 
-export default ResolveEvaluationPage
+export default withAuth(ResolveEvaluationPage, ['admin', 'student'])

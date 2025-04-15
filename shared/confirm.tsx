@@ -62,7 +62,9 @@ const useConfirm = (): I_UseConfirm => {
   }, [])
 
   const ConfirmDialogComponent: React.FC = useCallback(
-    () => <ConfirmDialog open={open} title={title} content={content} onConfirm={handleConfirm} onCancel={handleCancel} />,
+    () => (
+      <ConfirmDialog open={open} title={title} content={content} onConfirm={handleConfirm} onCancel={handleCancel} />
+    ),
     [open, title, content, handleConfirm, handleCancel],
   )
 
@@ -70,3 +72,4 @@ const useConfirm = (): I_UseConfirm => {
 }
 
 export { useConfirm }
+export type { I_UseConfirm }

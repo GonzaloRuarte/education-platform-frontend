@@ -2,13 +2,13 @@
 
 import Box from '@mui/material/Box'
 
-import { useResolutionElapsedTime, useResolutionExit } from '@/mta_resolutions/hooks'
-import { useResolutionEvaluationToResolve } from '@/mta_resolutions/hooks/data'
+import { useResolutionElapsedTimeSeconds, useResolutionExit } from '@/mta_resolutions/hooks'
+import { useResolutionEvaluationToResolve, useResolutionMaxDurationMinutes } from '@/mta_resolutions/hooks/data'
 import Logo from '@/shared/components/Logo'
 import { H4 } from '@/shared/components/Typography'
 import { useTheme } from '@/shared/hooks'
 import { T_FCwChildren } from '@/shared/types'
-import { ImageSize, secondsToMMSS } from '@/shared/utils'
+import { ImageSize, secondsToHHMMSS, secondsToMMSS } from '@/shared/utils'
 import ExitToAppIcon from '@mui/icons-material/ExitToApp'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid2'
@@ -22,40 +22,59 @@ const Header = () => {
   const t = useTheme()
   const exit = useResolutionExit()
   const evaluationToResolve = useResolutionEvaluationToResolve()
-  const elapsedTime = useResolutionElapsedTime()
+  const elapsedTimeSeconds = useResolutionElapsedTimeSeconds()
+  const maxDurationMinutes = useResolutionMaxDurationMinutes() as number
+
+  const maxDurationOverflow = Math.round(elapsedTimeSeconds - maxDurationMinutes * 60)
+  const timeLeft = Math.max(Math.round(maxDurationMinutes * 60 - elapsedTimeSeconds), 0)
+  const maxDurationReached = maxDurationOverflow >= 0
+  const showMaxDurationWarning = 0 < timeLeft && timeLeft < 15 * 60
+
   return (
-    <header style={{ background: t.palette.primary.dark, paddingTop: 30, paddingBottom: 30 }}>
-      <Container>
-        <Grid container alignItems="center" spacing={3}>
-          <Grid>
-            <Box style={{}}>
-              <Logo variant="white" width={logoSize.w} height={logoSize.h} />
-            </Box>
-          </Grid>
-          <Grid size="grow">
-            <H4 color="white">{evaluationToResolve?.title}</H4>
-          </Grid>
-          <Grid
-            container
-            alignItems="center"
-            bgcolor={t.palette.grey[400]}
-            borderRadius={10}
-            paddingLeft={1}
-            paddingRight={2}
-          >
+    <>
+      <header style={{ background: t.palette.primary.dark, paddingTop: 30, paddingBottom: 30 }}>
+        <Container>
+          <Grid container alignItems="center" spacing={3}>
             <Grid>
-              <Chip label="Dev" />
+              <Box style={{}}>
+                <Logo variant="white" width={logoSize.w} height={logoSize.h} />
+              </Box>
             </Grid>
-            <Grid>{secondsToMMSS(elapsedTime)}</Grid>
-            <Grid>
-              <IconButton onClick={exit}>
-                <ExitToAppIcon />
-              </IconButton>
+            <Grid size="grow">
+              <H4 color="white">{evaluationToResolve?.title}</H4>
+            </Grid>
+            <Grid
+              container
+              alignItems="center"
+              bgcolor={t.palette.grey[400]}
+              borderRadius={10}
+              paddingLeft={1}
+              paddingRight={2}
+            >
+              <Grid>
+                <Chip label="Dev" />
+              </Grid>
+              <Grid>{secondsToMMSS(elapsedTimeSeconds)}</Grid>
+              <Grid>
+                <IconButton onClick={exit}>
+                  <ExitToAppIcon />
+                </IconButton>
+              </Grid>
             </Grid>
           </Grid>
-        </Grid>
-      </Container>
-    </header>
+        </Container>
+      </header>
+      {showMaxDurationWarning && (
+        <section style={{ background: '#fdffd0', padding: 10 }}>
+          <Container>Quedan {secondsToHHMMSS(Math.abs(timeLeft))}</Container>
+        </section>
+      )}
+      {maxDurationReached && (
+        <section style={{ background: '#ffd0d0', padding: 10 }}>
+          <Container>Has superado el tiempo máximo de evaluación por {secondsToHHMMSS(maxDurationOverflow)}</Container>
+        </section>
+      )}
+    </>
   )
 }
 const Main: T_FCwChildren = ({ children }) => {

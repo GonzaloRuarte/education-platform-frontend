@@ -58,6 +58,10 @@ const pages = {
             path: '/dashboard/turnos/agregar',
             label: 'Agregar turno',
           },
+          solicitar: {
+            path: '/dashboard/turnos/solicitar',
+            label: 'Solicitar turno',
+          },
         },
       },
       evaluaciones: {
@@ -100,9 +104,9 @@ const pages = {
         path: '/dashboard/comisiones',
         label: 'Comisiones',
       },
-      roles: {
-        path: '/dashboard/roles',
-        label: 'Roles',
+      usuarios: {
+        path: '/dashboard/usuarios',
+        label: 'Usuarios',
       },
     },
   },

@@ -17,6 +17,10 @@ interface I_SchoolListItem {
   contact_email: string
 }
 type T_SchoolsList = I_PaginatedResponse<I_SchoolListItem>
+type T_SchoolNames = Array<{
+  id: T_SchoolId
+  name: string
+}>
 
 interface I_SchoolCreateRequestData {
   name: string
@@ -62,4 +66,5 @@ export type {
   T_StudentProfileList,
   I_SchoolCreateRequestData,
   I_SchoolUpdateRequestData,
+  T_SchoolNames,
 }

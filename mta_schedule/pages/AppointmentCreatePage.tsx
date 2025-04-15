@@ -1,5 +1,6 @@
 'use client'
 
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import AppointmentCreateForm from '@/mta_schedule/components/AppointmentCreateForm'
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
 import { useNavigateToAppointmentList } from '@/mta_schedule/hooks'
@@ -16,4 +17,4 @@ const AppointmentCreatePage = () => {
   )
 }
 
-export default AppointmentCreatePage
+export default withAuth(AppointmentCreatePage, ['admin'])

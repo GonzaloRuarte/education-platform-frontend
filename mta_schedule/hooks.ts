@@ -2,16 +2,20 @@ import { useAuthResources } from '@/mta_auth/hooks'
 import {
   I_AppointmentCreateRequestData,
   I_AppointmentDetail,
+  I_AppointmentRequest_RequestData,
+  I_AppointmentsByMonthResponseData,
   T_AppointmentId,
   T_AppointmentList,
 } from '@/mta_schedule/types'
 import pages from '@/pages'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
 import {
+  actionHook,
   batchDeletionHook,
   creationHook,
   deletionHook,
   detailHook,
+  getHook,
   listHook,
   navigationHook,
   navigationWithIdHook,
@@ -39,6 +43,19 @@ const useAppointmentDetail = detailHook<T_AppointmentId, I_AppointmentDetail>(
   axiosGet,
   useAuthResources,
 )
+const useAppointmentFreeListByMonth = getHook<I_AppointmentsByMonthResponseData, { year: number; month: number }>(
+  `${APPOINTMENTS_PATH}/free-appointments-by-month`,
+  axiosGet,
+  useAuthResources,
+)
+const useAppointmentRequest = actionHook<I_AppointmentRequest_RequestData, I_CreationCommonResponse>(
+  `${APPOINTMENTS_PATH}/request`,
+  axiosPost,
+  useAuthResources,
+)
+//   { year: number; month: number }, // Request payload (query parameters)
+//   Record<string, Array<I_AppointmentDetail>> // Response type
+// >(`${APPOINTMENTS_PATH}/free-appointments-by-month`, axiosGet, useAuthResources)
 
 // Navigation
 const useNavigateToAppointmentList = navigationHook(pages.D._.turnos.path)
@@ -55,4 +72,6 @@ export {
   useNavigateToAppointmentCreate,
   useNavigateToAppointmentDetail,
   useNavigateToAppointmentList,
+  useAppointmentFreeListByMonth,
+  useAppointmentRequest,
 }

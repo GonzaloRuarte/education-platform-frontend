@@ -32,3 +32,4 @@ export type {
   I_AuthorizeRequestData,
   I_AuthorizeResponseData,
 }
+export type T_LoginZone = 'dashboard' | 'resolutions'

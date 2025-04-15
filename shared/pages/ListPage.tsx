@@ -3,7 +3,7 @@ import Button from '@/shared/components/Button'
 import Page from '@/shared/components/Page'
 import Table from '@/shared/components/Table'
 import { I_PaginatedResponse } from '@/shared/data/types'
-import { T_ListServiceHookV2, T_VoidFn } from '@/shared/types'
+import { T_BatchDeletionServiceHook, T_ListServiceHookV2, T_VoidFn } from '@/shared/types'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ReplayIcon from '@mui/icons-material/Replay'
@@ -11,40 +11,53 @@ import { GridColDef, GridPaginationModel, GridRowParams, GridRowSelectionModel }
 
 import { useConfirm } from '@/shared/confirm'
 import { successToast } from '@/shared/toasts'
-import { EntityName } from '@/shared/utils'
-import { ComponentProps, useState } from 'react'
+import { EntityName, sentence } from '@/shared/utils'
+import { ComponentProps, FC, useState } from 'react'
 
-interface I_Props<T_Response> {
+interface I_Props<T_Id, T_Response> {
   columns: Array<GridColDef>
   useList: T_ListServiceHookV2<T_Response>
   entityName: EntityName
   onRowClick?: ComponentProps<typeof Table>['onRowClick']
   onCreate?: T_VoidFn
-  onBatchDelete?: (ids: Array<number | string>) => Promise<any>
+  useBatchDelete?: T_BatchDeletionServiceHook<T_Id>
 }
-function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>) {
-  const { ConfirmDialogComponent, showConfirm } = useConfirm()
 
+function BatchDeleteAction<T_Id>(p: {
+  useBatchDelete: T_BatchDeletionServiceHook<T_Id>
+  entityName: EntityName
+  reload: T_VoidFn
+  rowSelectionModel: GridRowSelectionModel
+}) {
+  const { ConfirmDialogComponent, showConfirm } = useConfirm()
+  const { entityName, reload, useBatchDelete, rowSelectionModel } = p
+  const showDelete = rowSelectionModel.length > 0
+  const batchDelete = useBatchDelete({ entityName: entityName, reload, showConfirm })
+
+  const handleBatchDelete = () => {
+    const ids = rowSelectionModel as Array<T_Id>
+    batchDelete(ids)
+  }
+
+  if (!showDelete) return <></>
+
+  return (
+    <>
+      <Button onClick={handleBatchDelete} startIcon={<DeleteIcon />}>
+        Eliminar
+      </Button>
+      <ConfirmDialogComponent />
+    </>
+  )
+}
+function ListPage<T_Id, T_Response extends I_PaginatedResponse>(p: I_Props<T_Id, T_Response>) {
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     pageSize: DEFAULT_PAGE_SIZE,
     page: 0,
   })
   const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>([])
-  const showDelete = rowSelectionModel.length > 0
+
   const { data, isLoading, reload } = p.useList({ page: paginationModel.page + 1, page_size: paginationModel.pageSize })
-
-  const handleBatchDelete = () => {
-    const ids = rowSelectionModel as Array<number>
-
-    showConfirm(`Eliminar ${p.entityName.plural} ${ids}`, '¿Estás seguro/a que querés proceder?').then(() => {
-      if (p.onBatchDelete === undefined) return
-      p.onBatchDelete(ids)
-        .then(() => {
-          successToast('Escuelas eliminadas correctamente.')
-        })
-        .finally(reload)
-    })
-  }
 
   return (
     <>
@@ -59,10 +72,12 @@ function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>
               Agregar
             </Button>
           )}
-          {showDelete && (
-            <Button onClick={handleBatchDelete} startIcon={<DeleteIcon />}>
-              Eliminar
-            </Button>
+          {p.useBatchDelete !== undefined && (
+            <BatchDeleteAction
+              {...{ reload, rowSelectionModel }}
+              entityName={p.entityName}
+              useBatchDelete={p.useBatchDelete}
+            />
           )}
         </Page.Toolbar>
         <Page.Content>
@@ -81,7 +96,6 @@ function ListPage<T_Response extends I_PaginatedResponse>(p: I_Props<T_Response>
           />
         </Page.Content>
       </Page>
-      <ConfirmDialogComponent />
     </>
   )
 }

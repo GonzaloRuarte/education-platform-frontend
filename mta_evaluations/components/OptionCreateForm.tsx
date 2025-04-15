@@ -1,12 +1,13 @@
 'use client'
 
-import { useMultipleChoiceOptionCreate, useNavigateToEvaluationContentEdit } from '@/mta_evaluations/hooks'
+import { useMultipleChoiceOptionCreate } from '@/mta_evaluations/hooks'
 import { multipleChoiceLabels } from '@/mta_evaluations/labels'
 import { I_MultipleChoiceOptionCreateRequestData, T_MultiplChoiceId } from '@/mta_evaluations/types'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import InputControlled from '@/shared/forms/InputControlled'
+import { LetterSelectControlled } from '@/shared/forms/LetterSelect'
 import { rules } from '@/shared/forms/messages'
 import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { useInProgress } from '@/shared/hooks'
@@ -49,12 +50,7 @@ const OptionCreateForm: FC<{ multipleChoiceId: T_MultiplChoiceId; reload: T_Void
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <InputControlled<I_FormFields>
-          {...{ control }}
-          name="name"
-          rules={{ ...rules.required() }}
-          label={multipleChoiceLabels.option.name}
-        />
+        <LetterSelectControlled control={control} name="name" rules={{ ...rules.required() }} />
         <WysiwygEditorControlled<I_FormFields>
           {...{ control }}
           label={multipleChoiceLabels.option.content}

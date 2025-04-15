@@ -1,25 +1,47 @@
+import { T_VoidFn } from '@/shared/types'
 import { Box, FormHelperText } from '@mui/material'
-import { StaticDatePicker } from '@mui/x-date-pickers'
+import {
+  DateValidationError,
+  PickerChangeHandlerContext,
+  PickersDay,
+  PickersDayProps,
+  StaticDatePicker,
+} from '@mui/x-date-pickers'
 import { DateCalendarProps } from '@mui/x-date-pickers/DateCalendar'
 import { Dayjs } from 'dayjs'
-import { Controller, FieldValues, useController, UseControllerProps } from 'react-hook-form'
+import { Controller, FieldValues, UseControllerProps } from 'react-hook-form'
 
 type T_OmittedFields = 'value' | 'onChange' | 'onBlur' | 'name' | 'ref' | 'defaultValue'
-
+type T_AvailableDays = Record<number, boolean>
 interface I_Props<T_FormFields extends FieldValues>
   extends UseControllerProps<T_FormFields>,
-    Omit<DateCalendarProps<Dayjs>, T_OmittedFields> {}
+    Omit<DateCalendarProps<Dayjs>, T_OmittedFields> {
+  availableDays?: T_AvailableDays
+  onChangeCallback?: (...args: any) => void
+}
 
-export default function DateCalendarController<T_FormFields extends FieldValues>({
+const dayComponent = (availableDays: T_AvailableDays) => {
+  const Day = ({ ...props }: PickersDayProps<Dayjs>) => {
+    const isDisabled = props.disabled || props.day.date() in availableDays ? !availableDays[props.day.date()] : true
+    return (
+      <PickersDay
+        style={{ border: !isDisabled && !props.selected ? 'solid 1px rgb(118, 176, 127)' : undefined }}
+        {...props}
+        disabled={isDisabled}
+      />
+    )
+  }
+  return Day
+}
+
+export default function DateCalendarControlled<T_FormFields extends FieldValues>({
   name,
   rules,
-  shouldUnregister,
-  defaultValue,
   control,
+  availableDays,
+  onChangeCallback,
   ...props
 }: I_Props<T_FormFields>) {
-  const { field, fieldState } = useController({ name, rules, shouldUnregister, defaultValue, control })
-
   return (
     <Box>
       <Controller
@@ -31,7 +53,21 @@ export default function DateCalendarController<T_FormFields extends FieldValues>
 
           return (
             <>
-              <StaticDatePicker value={field.value || null} onChange={field.onChange} />
+              <StaticDatePicker
+                {...props}
+                value={field.value || null}
+                onChange={(value: Dayjs | null, context: PickerChangeHandlerContext<DateValidationError>) => {
+                  field.onChange(value, context)
+                  if (onChangeCallback !== undefined) {
+                    onChangeCallback(value, context)
+                  }
+                }}
+                disablePast
+                slots={{
+                  actionBar: () => <></>,
+                  day: availableDays !== undefined ? dayComponent(availableDays) : undefined,
+                }}
+              />
               {hasError && <FormHelperText error>{fieldState.error?.message}</FormHelperText>}
             </>
           )

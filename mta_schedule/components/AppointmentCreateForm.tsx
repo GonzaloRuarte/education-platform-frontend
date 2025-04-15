@@ -4,7 +4,7 @@ import { combinedDateAndTime, hoursOptions } from '@/mta_schedule/utils'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import { Body1, H4 } from '@/shared/components/Typography'
-import DateCalendarController from '@/shared/forms/DateCalendarControlled'
+import DateCalendarControlled from '@/shared/forms/DateCalendarControlled'
 import IntegerInputControlled from '@/shared/forms/IntegerInputControlled'
 import { rules } from '@/shared/forms/messages'
 import SelectControlled from '@/shared/forms/SelectControlled'
@@ -52,7 +52,7 @@ const AppointmentCreateForm = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid2 container spacing={3}>
           <Grid2 size={4}>
-            <DateCalendarController control={control} name="date" rules={{ ...rules.required() }} />
+            <DateCalendarControlled control={control} name="date" rules={{ ...rules.required() }} />
           </Grid2>
           <Grid2 size={4}>
             <SelectControlled
@@ -63,8 +63,8 @@ const AppointmentCreateForm = () => {
             />
             <Spacer />
             <Body1>
-              Los turnos tienen un rango de 2 horas cada uno. Al seleccionar el horario de inicio del turno el mismo se
-              confirmará con el horario de finalización.{' '}
+              Los turnos tienen un rango de 2 horas y media cada uno. Al seleccionar el horario de inicio del turno el
+              mismo se confirmará con el horario de finalización.{' '}
             </Body1>
             <Spacer size="m" />
             <H4>{appointmentLabels.quantity}</H4>
