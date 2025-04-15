@@ -34,7 +34,7 @@ const Menu = () => {
         />
         <MenuItem Icon={FactCheckIcon} label={P.D._.evaluaciones.label} href={P.D._.evaluaciones.path} />
         <MenuItem Icon={PersonIcon} label={P.D._.estudiantes.label} href={P.D._.estudiantes.path} />
-        <MenuItem Icon={BadgeIcon} label={P.D._.roles.label} href={P.D._.roles.path} />
+        <MenuItem Icon={BadgeIcon} label={P.D._.usuarios.label} href={P.D._.usuarios.path} />
       </MenuBlock>
 
       <MenuDivider />
