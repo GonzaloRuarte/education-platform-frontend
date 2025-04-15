@@ -1,5 +1,3 @@
-'use client'
-
 import { T_AnswerType, T_QuestionId } from '@/mta_evaluations/types'
 import { useResolutionPagination } from '@/mta_resolutions/hooks'
 import { useResolutionState, useResolutionStateUpdateAnswer } from '@/mta_resolutions/hooks/data'
@@ -119,7 +117,7 @@ const ResolutionQuestions: FC<{ evaluationToResolve: I_EvaluationToResolve }> = 
   // console.log({ currentPage })
 
   const questions = evaluationToResolve.pages[currentPage - 1]
-  console.log('questions >>>>>>>>>>>>', questions)
+  // console.log('questions >>>>>>>>>>>>', questions)
   return (
     <>
       {questions.map((question) => {

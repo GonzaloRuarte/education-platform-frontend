@@ -16,6 +16,7 @@ import Spacer from '@/shared/components/Spacer'
 import Spinner from '@/shared/components/Spinner'
 import { HorizontalRule } from '@mui/icons-material'
 import { Box } from '@mui/material'
+
 const ResolveEvaluationPage = () => {
   const evaluationToResolve = useResolutionEvaluationToResolve()
   const { currentPage } = useResolutionPagination()
