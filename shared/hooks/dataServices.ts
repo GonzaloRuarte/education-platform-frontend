@@ -50,7 +50,7 @@ const listHook = <T_Response>(path: string, getMethod: T_GetMethod, useAuthResou
         .finally(() => {
           setInProgressStatus(false)
         })
-    }, [options?.page, options?.page_size])
+    }, [options?.page, options?.page_size, options?.filters])
 
     useEffect(debounce(reload), [path, options?.page, options?.page_size])
 

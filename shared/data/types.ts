@@ -1,8 +1,8 @@
 import { T_VoidFn } from '@/shared/types'
 
 interface I_FetchOptions {
-  page: number
-  page_size: number
+  page?: number
+  page_size?: number
   filters?: Record<string, any>
 }
 
