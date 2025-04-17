@@ -7,7 +7,7 @@ import {
   T_AppointmentId,
   T_AppointmentList,
 } from '@/mta_schedule/types'
-import pages from '@/pages'
+import pages, { appointmentsProcessPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
 import {
   actionHook,
@@ -15,6 +15,7 @@ import {
   creationHook,
   deletionHook,
   detailHook,
+  dynamicNavigationHook,
   getHook,
   listHook,
   navigationHook,
@@ -59,7 +60,7 @@ const useAppointmentRequest = actionHook<I_AppointmentRequest_RequestData, I_Cre
 
 // Navigation
 const useNavigateToAppointmentList = navigationHook(pages.D._.turnos.path)
-const useNavigateToAppointmentDetail = navigationWithIdHook(pages.D._.turnos.path)
+const useNavigateToAppointmentProcess = dynamicNavigationHook(appointmentsProcessPath)
 const useNavigateToAppointmentCreate = navigationHook(pages.D._.turnos._.agregar.path)
 
 export {
@@ -70,7 +71,7 @@ export {
   useAppointmentList,
   useAppointmentUpdate,
   useNavigateToAppointmentCreate,
-  useNavigateToAppointmentDetail,
+  useNavigateToAppointmentProcess,
   useNavigateToAppointmentList,
   useAppointmentFreeListByMonth,
   useAppointmentRequest,

@@ -13,6 +13,7 @@ const evaluationsEditContentPath = '/dashboard/evaluaciones/{evaluationId:number
 const questionEditPath = '/dashboard/evaluaciones/{evaluationId:number}/pregunta/{questionId:number}'
 const questionCreateMCPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.MultipleChoice}`
 const questionCreateNumericPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.Numeric}`
+const appointmentsProcessPath = '/dashboard/turnos/{appointmentId:number}/procesar'
 const pages = {
   R: {
     path: '/',
@@ -61,6 +62,10 @@ const pages = {
           solicitar: {
             path: '/dashboard/turnos/solicitar',
             label: 'Solicitar turno',
+          },
+          procesar: {
+            path: appointmentsProcessPath,
+            label: 'Procesar Turno',
           },
         },
       },
@@ -123,6 +128,7 @@ export {
   questionEditPath,
   questionCreateMCPath,
   questionCreateNumericPath,
+  appointmentsProcessPath,
 }
 
 export default pages

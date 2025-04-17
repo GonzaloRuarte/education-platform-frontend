@@ -7,12 +7,14 @@ import {
   useAppointmentBatchDelete,
   useAppointmentList,
   useNavigateToAppointmentCreate,
-  useNavigateToAppointmentDetail,
+  useNavigateToAppointmentProcess,
 } from '@/mta_schedule/hooks'
+import Button from '@/shared/components/Button'
 import ListPage from '@/shared/pages/ListPage'
-import { GridColDef } from '@mui/x-data-grid'
+import RuleIcon from '@mui/icons-material/Rule'
+import { GridColDef, GridRowParams } from '@mui/x-data-grid'
 
-const columns: Array<GridColDef> = [
+const columns = (navToProcess: (args: Record<'appointmentId', string | number>) => void): Array<GridColDef> => [
   { field: 'id', headerName: '#' },
   {
     field: 'begins_at',
@@ -38,18 +40,28 @@ const columns: Array<GridColDef> = [
     flex: 2,
     renderCell: ({ value }) => <>{value !== null ? value.name : '-'}</>,
   },
+  {
+    field: 'actions',
+    type: 'actions',
+    flex: 1,
+    headerName: 'Acciones',
+    getActions: (params: GridRowParams) => [
+      <Button size="small" startIcon={<RuleIcon />} onClick={() => navToProcess({ appointmentId: params.id })}>
+        Procesar
+      </Button>,
+    ],
+  },
 ]
 
 const AppointmentListPage = () => {
-  const navToDetail = useNavigateToAppointmentDetail()
+  const navToProcess = useNavigateToAppointmentProcess()
   const navToCreate = useNavigateToAppointmentCreate()
 
   return (
     <ListPage
-      columns={columns}
+      columns={columns(navToProcess)}
       useList={useAppointmentList}
       entityName={APPOINTMENT_NAME}
-      onRowClick={ListPage.mapNavToOnRowClick(navToDetail)}
       onCreate={navToCreate}
       useBatchDelete={useAppointmentBatchDelete}
     />
@@ -57,6 +69,6 @@ const AppointmentListPage = () => {
 }
 
 export default withAuth(AppointmentListPage, {
-  allowedAccessGroups: ['admin', 'school_staff'],
+  allowedAccessGroups: ['admin'],
   logoutDestination: 'dashboard',
 })
