@@ -56,4 +56,7 @@ const AppointmentListPage = () => {
   )
 }
 
-export default withAuth(AppointmentListPage, ['admin', 'school_staff'])
+export default withAuth(AppointmentListPage, {
+  allowedAccessGroups: ['admin', 'school_staff'],
+  logoutDestination: 'dashboard',
+})

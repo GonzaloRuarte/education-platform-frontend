@@ -1,3 +1,4 @@
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import { Body1, H3 } from '@/shared/components/Typography'
@@ -15,4 +16,7 @@ const ResolutionSubmittedPage = () => {
   )
 }
 
-export default ResolutionSubmittedPage
+export default withAuth(ResolutionSubmittedPage, {
+  allowedAccessGroups: ['admin', 'student'],
+  logoutDestination: 'resolutions',
+})

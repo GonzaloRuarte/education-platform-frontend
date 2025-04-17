@@ -56,7 +56,7 @@ const distinctAvailableAppointments = (appointments: T_AppointmentsAvailableList
   return disctint
 }
 
-const AppointmentRequestPage = () => {
+const AppointmentProcessPage = () => {
   const { setIsInProgress, setIsNotInProgress } = useInProgress()
   const backToList = useNavigateToAppointmentList()
   const [refDate, setRefDate] = useState(dayjs())
@@ -166,7 +166,7 @@ const AppointmentRequestPage = () => {
   )
 }
 
-export default withAuth(AppointmentRequestPage, {
+export default withAuth(AppointmentProcessPage, {
   allowedAccessGroups: ['admin', 'school_staff'],
   logoutDestination: 'dashboard',
 })

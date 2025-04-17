@@ -17,4 +17,7 @@ const AppointmentCreatePage = () => {
   )
 }
 
-export default withAuth(AppointmentCreatePage, ['admin'])
+export default withAuth(AppointmentCreatePage, {
+  allowedAccessGroups: ['admin'],
+  logoutDestination: 'dashboard',
+})
