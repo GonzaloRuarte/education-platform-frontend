@@ -9,12 +9,15 @@ import {
   useNavigateToAppointmentCreate,
   useNavigateToAppointmentProcess,
 } from '@/mta_schedule/hooks'
+import { I_AppointmentListItem, T_AppointmentList } from '@/mta_schedule/types'
 import Button from '@/shared/components/Button'
 import ListPage from '@/shared/pages/ListPage'
 import RuleIcon from '@mui/icons-material/Rule'
 import { GridColDef, GridRowParams } from '@mui/x-data-grid'
 
-const columns = (navToProcess: (args: Record<'appointmentId', string | number>) => void): Array<GridColDef> => [
+const columns = (
+  navToProcess: (args: Record<'appointmentId', string | number>) => void,
+): Array<GridColDef<I_AppointmentListItem>> => [
   { field: 'id', headerName: '#' },
   {
     field: 'begins_at',
@@ -45,11 +48,18 @@ const columns = (navToProcess: (args: Record<'appointmentId', string | number>) 
     type: 'actions',
     flex: 1,
     headerName: 'Acciones',
-    getActions: (params: GridRowParams) => [
-      <Button size="small" startIcon={<RuleIcon />} onClick={() => navToProcess({ appointmentId: params.id })}>
-        Procesar
-      </Button>,
-    ],
+    getActions: (params) => {
+      const actions: Array<any> = []
+
+      if (params.row.status === 'P') {
+        actions.push(
+          <Button size="small" startIcon={<RuleIcon />} onClick={() => navToProcess({ appointmentId: params.id })}>
+            Procesar
+          </Button>,
+        )
+      }
+      return actions
+    },
   },
 ]
 

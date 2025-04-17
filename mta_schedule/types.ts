@@ -24,6 +24,12 @@ interface I_AppointmentDetail {
     personal_id: T_StudentProfilePersonalId
     cohort: string
   }>
+  requested_evaluation_subject: {
+    id: string
+    name: string
+    prefix: string
+  }
+  requested_evaluation_grade: SchoolGrade
 }
 interface I_AppointmentListItem {
   id: T_AppointmentId

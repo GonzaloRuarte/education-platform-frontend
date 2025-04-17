@@ -19,7 +19,6 @@ import {
   getHook,
   listHook,
   navigationHook,
-  navigationWithIdHook,
   updateHook,
 } from '@/shared/hooks'
 import { I_CreationCommonResponse } from '@/shared/types'
@@ -68,11 +67,11 @@ export {
   useAppointmentCreate,
   useAppointmentDelete,
   useAppointmentDetail,
+  useAppointmentFreeListByMonth,
   useAppointmentList,
+  useAppointmentRequest,
   useAppointmentUpdate,
   useNavigateToAppointmentCreate,
-  useNavigateToAppointmentProcess,
   useNavigateToAppointmentList,
-  useAppointmentFreeListByMonth,
-  useAppointmentRequest,
+  useNavigateToAppointmentProcess,
 }
