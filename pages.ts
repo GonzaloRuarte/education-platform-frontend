@@ -14,6 +14,7 @@ const questionEditPath = '/dashboard/evaluaciones/{evaluationId:number}/pregunta
 const questionCreateMCPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.MultipleChoice}`
 const questionCreateNumericPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.Numeric}`
 const appointmentsProcessPath = '/dashboard/turnos/{appointmentId:number}/procesar'
+const appointmentsEditStudentsPath = '/dashboard/turnos/{appointmentId:number}/editar-estudiantes'
 const pages = {
   R: {
     path: '/',
@@ -66,6 +67,10 @@ const pages = {
           procesar: {
             path: appointmentsProcessPath,
             label: 'Procesar Turno',
+          },
+          editarEstudiantes: {
+            path: appointmentsEditStudentsPath,
+            label: 'Editar estudiantes',
           },
         },
       },
@@ -129,6 +134,7 @@ export {
   questionCreateMCPath,
   questionCreateNumericPath,
   appointmentsProcessPath,
+  appointmentsEditStudentsPath,
 }
 
 export default pages

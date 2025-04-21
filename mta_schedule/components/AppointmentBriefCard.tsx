@@ -1,9 +1,11 @@
 import { LIGHT_BG_COLOR } from '@/config'
-import { T_AppointmentId } from '@/mta_schedule/types'
+import { I_AppointmentEvaluationBrief, T_AppointmentId } from '@/mta_schedule/types'
 import { SchoolGrade } from '@/mta_schools/constants'
 import { gradeLabel, schoolLabels } from '@/mta_schools/labels'
+import Bold from '@/shared/components/Bold'
 import Chip from '@/shared/components/Chip'
 import MagicGrid from '@/shared/components/MagicGrid'
+import Spacer from '@/shared/components/Spacer'
 import { Body1, H4 } from '@/shared/components/Typography'
 import { sentence } from '@/shared/utils'
 import TodayIcon from '@mui/icons-material/Today'
@@ -15,10 +17,11 @@ interface I_Props {
   begins_at: string
   subject?: string
   grade?: SchoolGrade
+  evaluation?: I_AppointmentEvaluationBrief
   appointmentId: T_AppointmentId
 }
 
-const AppointmentBriefCard = ({ appointmentId, title, begins_at, subject, grade }: I_Props) => {
+const AppointmentBriefCard = ({ appointmentId, title, begins_at, subject, grade, evaluation }: I_Props) => {
   return (
     <Box bgcolor={LIGHT_BG_COLOR} borderRadius={2} padding={2}>
       <TodayIcon />
@@ -32,6 +35,19 @@ const AppointmentBriefCard = ({ appointmentId, title, begins_at, subject, grade 
           {subject && <Chip size="small" label={subject} color="info" />}
           {grade && <Chip size="small" label={gradeLabel(grade)} color="success" />}
         </MagicGrid>
+        <Box>
+          {evaluation && (
+            <>
+              <Spacer />
+              <Body1>
+                Evaluación asignada:{' '}
+                <Bold>
+                  {evaluation.title} ({evaluation.code})
+                </Bold>
+              </Body1>
+            </>
+          )}
+        </Box>
       </MagicGrid>
     </Box>
   )

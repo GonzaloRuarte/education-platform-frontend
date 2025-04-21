@@ -29,7 +29,7 @@ interface I_FormFields {
   evaluation: { id: string; title: string } | null
 }
 
-const AppointmentProcessPage = () => {
+const AppointmentEditStudentsPage = () => {
   const { appointmentId } = useParams()
   const { data, reload } = useAppointmentDetail(Number(appointmentId))
   const approveAppointment = useAppointmentApprove()
@@ -75,7 +75,7 @@ const AppointmentProcessPage = () => {
 
   return (
     <Page>
-      <Page.Title>Procesar {APPOINTMENT_NAME.singular}</Page.Title>
+      <Page.Title>{APPOINTMENT_NAME.singular.toUpperCase()}: Editar estudiantes</Page.Title>
       <Page.BasicToolbar entityName={APPOINTMENT_NAME} id={Number(appointmentId)} onExit={navToList} reload={reload} />
 
       {data === undefined ? (
@@ -92,6 +92,7 @@ const AppointmentProcessPage = () => {
                 title={data.school.name}
                 subject={data.requested_evaluation_subject.name}
                 grade={data.requested_evaluation_grade}
+                evaluation={data.evaluation_brief !== null ? data.evaluation_brief : undefined}
               />
               <Spacer />
               <Body1>Tomando como base los requerimientos del turno, asigne la evaluación correspondiente:</Body1>
@@ -119,7 +120,7 @@ const AppointmentProcessPage = () => {
   )
 }
 
-export default withAuth(AppointmentProcessPage, {
+export default withAuth(AppointmentEditStudentsPage, {
   allowedAccessGroups: ['admin', 'school_staff'],
   logoutDestination: 'dashboard',
 })

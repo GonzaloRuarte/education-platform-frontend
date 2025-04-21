@@ -7,30 +7,41 @@ import {
   useAppointmentBatchDelete,
   useAppointmentList,
   useNavigateToAppointmentCreate,
+  useNavigateToAppointmentEditStudents,
   useNavigateToAppointmentProcess,
 } from '@/mta_schedule/hooks'
-import { I_AppointmentListItem, T_AppointmentList } from '@/mta_schedule/types'
+import { I_AppointmentListItem } from '@/mta_schedule/types'
 import Button from '@/shared/components/Button'
 import ListPage from '@/shared/pages/ListPage'
 import RuleIcon from '@mui/icons-material/Rule'
-import { GridColDef, GridRowParams } from '@mui/x-data-grid'
+import SchoolIcon from '@mui/icons-material/School'
+import { GridColDef } from '@mui/x-data-grid'
+import dayjs from 'dayjs'
 
-const columns = (
-  navToProcess: (args: Record<'appointmentId', string | number>) => void,
-): Array<GridColDef<I_AppointmentListItem>> => [
+const columns = (a: {
+  navToProcess: (args: Record<'appointmentId', string | number>) => void
+  navToEditStudents: (args: Record<'appointmentId', string | number>) => void
+}): Array<GridColDef<I_AppointmentListItem>> => [
   { field: 'id', headerName: '#' },
   {
-    field: 'begins_at',
-    headerName: 'Inicio',
+    field: 'begins_at_date',
+
+    headerName: 'Fecha',
     flex: 1,
-    renderCell: ({ value }) => <>{new Date(value).toLocaleString()}</>,
+    renderCell: ({ row }) => <>{dayjs(row.begins_at).format('DD/MM/YYYY')}</>,
   },
   {
-    field: 'ends_at',
-    headerName: 'Finalización',
+    field: 'begins_at_time',
+    headerName: 'Hora',
     flex: 1,
-    renderCell: ({ value }) => <>{new Date(value).toLocaleString()}</>,
+    renderCell: ({ row }) => <>{dayjs(row.begins_at).format('HH:mm')}</>,
   },
+  // {
+  //   field: 'ends_at',
+  //   headerName: 'Finalización',
+  //   flex: 1,
+  //   renderCell: ({ value }) => <>{new Date(value).toLocaleString()}</>,
+  // },
   {
     field: 'status',
     headerName: 'Estado',
@@ -46,15 +57,26 @@ const columns = (
   {
     field: 'actions',
     type: 'actions',
-    flex: 1,
+    flex: 1.5,
     headerName: 'Acciones',
     getActions: (params) => {
       const actions: Array<any> = []
 
       if (params.row.status === 'P') {
         actions.push(
-          <Button size="small" startIcon={<RuleIcon />} onClick={() => navToProcess({ appointmentId: params.id })}>
+          <Button size="small" startIcon={<RuleIcon />} onClick={() => a.navToProcess({ appointmentId: params.id })}>
             Procesar
+          </Button>,
+        )
+      }
+      if (params.row.status === 'A') {
+        actions.push(
+          <Button
+            size="small"
+            startIcon={<SchoolIcon />}
+            onClick={() => a.navToEditStudents({ appointmentId: params.id })}
+          >
+            {params.row.student_count === 0 ? 'Agregar' : 'Editar'} estudiantes
           </Button>,
         )
       }
@@ -65,11 +87,12 @@ const columns = (
 
 const AppointmentListPage = () => {
   const navToProcess = useNavigateToAppointmentProcess()
+  const navToEditStudents = useNavigateToAppointmentEditStudents()
   const navToCreate = useNavigateToAppointmentCreate()
 
   return (
     <ListPage
-      columns={columns(navToProcess)}
+      columns={columns({ navToProcess, navToEditStudents })}
       useList={useAppointmentList}
       entityName={APPOINTMENT_NAME}
       onCreate={navToCreate}
