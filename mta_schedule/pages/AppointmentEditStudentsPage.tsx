@@ -1,8 +1,8 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
-import { EvaluationSelectControlled } from '@/mta_evaluations/components/EvaluationSelect'
 import AppointmentBriefCard from '@/mta_schedule/components/AppointmentBriefCard'
+import StudentsProfileSelector from '@/mta_schedule/components/StudentsProfileSelector'
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
 import {
   useAppointmentApprove,
@@ -14,12 +14,12 @@ import MagicGrid from '@/shared/components/MagicGrid'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import Spinner from '@/shared/components/Spinner'
-import { Body1, H4 } from '@/shared/components/Typography'
+import { Body1 } from '@/shared/components/Typography'
 import { useConfirm } from '@/shared/confirm'
 import { useInProgress } from '@/shared/hooks'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
-import { Button, Grid2 } from '@mui/material'
+import { Button } from '@mui/material'
 import { useParams } from 'next/navigation'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
@@ -32,6 +32,7 @@ interface I_FormFields {
 const AppointmentEditStudentsPage = () => {
   const { appointmentId } = useParams()
   const { data, reload } = useAppointmentDetail(Number(appointmentId))
+
   const approveAppointment = useAppointmentApprove()
   const rejectAppointment = useAppointmentReject()
   const navToList = useNavigateToAppointmentList()
@@ -94,17 +95,8 @@ const AppointmentEditStudentsPage = () => {
               />
               <Spacer />
               <Body1>Tomando como base los requerimientos del turno, asigne la evaluación correspondiente:</Body1>
-              <Grid2 container spacing={2}>
-                <Grid2 size={7}></Grid2>
-                <Grid2 size={5}></Grid2>
-              </Grid2>
               <form onSubmit={handleSubmit(onApprove)}>
-                <EvaluationSelectControlled
-                  name="evaluation"
-                  control={control}
-                  label="Evaluación"
-                  rules={{ required: 'Debe seleccionar una evaluación' }}
-                />
+                <StudentsProfileSelector schoolId={data.school.id} /> 
                 <Spacer />
                 <Button type="submit" variant="contained" color="primary">
                   Aprobar Turno

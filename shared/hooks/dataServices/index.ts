@@ -24,9 +24,9 @@ import {
   T_BatchDeletionServiceHook,
   T_CreateServiceHook,
   T_DeletionServiceHook,
-  T_DetailServiceHookV2,
+  T_DetailServiceHook,
   T_InProgressHook,
-  T_ListServiceHookV2,
+  T_ListServiceHook,
   T_UpdateServiceHook,
   T_VoidFn,
 } from '@/shared/types'
@@ -36,7 +36,7 @@ import debounce from 'debounce'
 import { useCallback, useEffect, useState } from 'react'
 
 const listHook = <T_Response>(path: string, getMethod: T_GetMethod, useAuthResources: () => I_AuthResources) => {
-  const useList: T_ListServiceHookV2<T_Response> = (
+  const useList: T_ListServiceHook<T_Response> = (
     options?: I_FetchOptions,
     useInProgress: T_InProgressHook = useInProgressLocal,
   ) => {
@@ -167,7 +167,7 @@ const detailHook = <T_Id, T_Response>(
   getMethod: T_GetMethod,
   useAuthResources: () => I_AuthResources,
 ) => {
-  const useDetail: T_DetailServiceHookV2<T_Id, T_Response> = (
+  const useDetail: T_DetailServiceHook<T_Id, T_Response> = (
     id: T_Id,
     options?: I_FetchOptions,
     useInProgress: T_InProgressHook = useInProgressLocal,

@@ -1,8 +1,10 @@
 import { T_VoidFn } from '@/shared/types'
 
-interface I_FetchOptions {
+interface I_FetchPaginationOptions {
   page?: number
   page_size?: number
+}
+interface I_FetchOptions extends I_FetchPaginationOptions {
   filters?: Record<string, any>
 }
 
@@ -62,6 +64,7 @@ type T_401Handler = <T_Fetcher extends T_BaseFetcher>(fetcher: T_Fetcher) => T_F
 
 export type {
   I_FetchOptions,
+  I_FetchPaginationOptions,
   I_RequestSetup,
   T_GetMethod,
   I_PaginatedResponse,

@@ -1,6 +1,6 @@
 // Tables
 const PAGE_SIZE_OPTIONS = [10, 25, 100]
-const DEFAULT_PAGE_SIZE = 10
+const DEFAULT_PAGE_SIZE = 25
 /**
  * Returns full api urls
  * @param path REQUIRES leading slash
