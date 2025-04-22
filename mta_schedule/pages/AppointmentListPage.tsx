@@ -27,13 +27,13 @@ const columns = (a: {
     field: 'begins_at_date',
 
     headerName: 'Fecha',
-    flex: 1,
+    // flex: 1,
     renderCell: ({ row }) => <>{dayjs(row.begins_at).format('DD/MM/YYYY')}</>,
   },
   {
     field: 'begins_at_time',
-    headerName: 'Hora',
-    flex: 1,
+    headerName: 'Hora Inicio',
+    // flex: 1,
     renderCell: ({ row }) => <>{dayjs(row.begins_at).format('HH:mm')}</>,
   },
   // {

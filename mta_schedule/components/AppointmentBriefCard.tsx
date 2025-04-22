@@ -40,7 +40,8 @@ const AppointmentBriefCard = ({ appointmentId, title, begins_at, subject, grade,
             <>
               <Spacer />
               <Body1>
-                Evaluación asignada:{' '}
+                Evaluación asignada:
+                <br />
                 <Bold>
                   {evaluation.title} ({evaluation.code})
                 </Bold>

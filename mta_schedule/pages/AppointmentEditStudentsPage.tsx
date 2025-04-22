@@ -19,7 +19,7 @@ import { useConfirm } from '@/shared/confirm'
 import { useInProgress } from '@/shared/hooks'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
-import { Button } from '@mui/material'
+import { Button, Grid2 } from '@mui/material'
 import { useParams } from 'next/navigation'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
@@ -84,8 +84,6 @@ const AppointmentEditStudentsPage = () => {
         <>
           <Page.Content>
             <MagicGrid>
-              <H4>Requerimientos del turno</H4>
-
               <AppointmentBriefCard
                 appointmentId={Number(appointmentId)}
                 begins_at={data.begins_at}
@@ -96,6 +94,10 @@ const AppointmentEditStudentsPage = () => {
               />
               <Spacer />
               <Body1>Tomando como base los requerimientos del turno, asigne la evaluación correspondiente:</Body1>
+              <Grid2 container spacing={2}>
+                <Grid2 size={7}></Grid2>
+                <Grid2 size={5}></Grid2>
+              </Grid2>
               <form onSubmit={handleSubmit(onApprove)}>
                 <EvaluationSelectControlled
                   name="evaluation"
