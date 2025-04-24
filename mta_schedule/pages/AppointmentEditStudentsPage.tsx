@@ -94,9 +94,8 @@ const AppointmentEditStudentsPage = () => {
                 evaluation={data.evaluation_brief !== null ? data.evaluation_brief : undefined}
               />
               <Spacer />
-              <Body1>Tomando como base los requerimientos del turno, asigne la evaluación correspondiente:</Body1>
               <form onSubmit={handleSubmit(onApprove)}>
-                <StudentsProfileSelector schoolId={data.school.id} /> 
+                <StudentsProfileSelector schoolId={data.school.id} />
                 <Spacer />
                 <Button type="submit" variant="contained" color="primary">
                   Aprobar Turno

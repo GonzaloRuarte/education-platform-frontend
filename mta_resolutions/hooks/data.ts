@@ -21,6 +21,7 @@ import { useStore } from '@/shared/state'
 import useToasts from '@/shared/toasts'
 import { T_EmptyPayload } from '@/shared/types'
 import { useCallback } from 'react'
+import { useDebouncedCallback } from 'use-debounce'
 
 // Data Service
 const RESOLUTIONS_PATH = '/resolutions'
@@ -96,7 +97,7 @@ const useResolutionResume = () => {
   const { errorToast, dismissAll } = useToasts()
   const logout = useResolutionLogout()
 
-  const resume = () => {
+  const resume = useDebouncedCallback(() => {
     setIsInProgress()
     requestResume({})
       .then((response) => {
@@ -128,7 +129,7 @@ const useResolutionResume = () => {
         errorToast('Hubo un error iniciando la evaluación. ')
       })
       .finally(setIsNotInProgress)
-  }
+  }, 100)
   return { resume }
 }
 

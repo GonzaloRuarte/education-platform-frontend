@@ -2,8 +2,10 @@ import { I_AuthResources } from '@/mta_auth/types'
 import { I_FetchOptions, T_GetMethod } from '@/shared/data/types'
 import { useInProgressLocal } from '@/shared/hooks/utils'
 import { listService } from '@/shared/service'
-import { I_FetchingHookResources, T_InProgressHook } from '@/shared/types'
-import debounce from 'debounce'
+import { I_FetchingHookResources, T_InProgressHook, T_VoidFn } from '@/shared/types'
+import { randomInt } from '@/shared/utils'
+import debounce, { DebouncedFunction } from 'debounce'
+import { useDebouncedCallback } from 'use-debounce'
 
 import { useCallback, useEffect, useState } from 'react'
 
@@ -29,7 +31,7 @@ const listHookV3 = <T_Path extends string, T_Response>(
     useInProgress: T_InProgressHook = useInProgressLocal,
   ) => {
     const [data, setData] = useState<undefined | T_Response>(undefined)
-    const { isInProgress, setInProgressStatus } = useInProgress()
+    const { isInProgress, setIsInProgress, setIsNotInProgress } = useInProgress()
 
     // Resolve the dynamic path with pathParams
     const resolvedPath = pathParams ? path.replace(/{(\w+):\w+}/g, (_, key) => pathParams[key]?.toString() || '') : path
@@ -46,16 +48,21 @@ const listHookV3 = <T_Path extends string, T_Response>(
 
     const fetcher = listService<T_Response>(fullPath, getMethod)(useAuthResources(), options)
 
-    const reload = useCallback(() => {
-      setInProgressStatus(true)
-      fetcher()
-        .then((res) => setData(res))
-        .finally(() => {
-          setInProgressStatus(false)
-        })
-    }, [fullPath, options?.page, options?.page_size])
+    const reload = useDebouncedCallback(
+      useCallback(() => {
+        setIsInProgress()
+        fetcher()
+          .then((res) => setData(res))
+          .finally(setIsNotInProgress)
+      }, [fullPath, options?.page, options?.page_size]),
+      250,
+    )
 
-    useEffect(debounce(reload), [fullPath, options?.page, options?.page_size])
+    useEffect(() => {
+      setIsInProgress()
+      reload.cancel()
+      reload()
+    }, [fullPath, options?.page, options?.page_size])
 
     return { data, reload, isLoading: isInProgress }
   }
