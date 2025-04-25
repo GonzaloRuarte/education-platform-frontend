@@ -15,6 +15,7 @@ import Button from '@/shared/components/Button'
 import ListPage from '@/shared/pages/ListPage'
 import RuleIcon from '@mui/icons-material/Rule'
 import SchoolIcon from '@mui/icons-material/School'
+import { grey, yellow } from '@mui/material/colors'
 import { GridColDef } from '@mui/x-data-grid'
 import dayjs from 'dayjs'
 
@@ -64,19 +65,26 @@ const columns = (a: {
 
       if (params.row.status === 'P') {
         actions.push(
-          <Button size="small" startIcon={<RuleIcon />} onClick={() => a.navToProcess({ appointmentId: params.id })}>
+          <Button
+            bgcolor="purple"
+            size="small"
+            startIcon={<RuleIcon />}
+            onClick={() => a.navToProcess({ appointmentId: params.id })}
+          >
             Procesar
           </Button>,
         )
       }
       if (params.row.status === 'A') {
+        const hasToAdd = params.row.student_count === 0
         actions.push(
           <Button
             size="small"
+            bgcolor={hasToAdd ? 'yellow' : undefined}
             startIcon={<SchoolIcon />}
             onClick={() => a.navToEditStudents({ appointmentId: params.id })}
           >
-            {params.row.student_count === 0 ? 'Agregar' : 'Editar'} estudiantes
+            {hasToAdd ? 'Agregar' : 'Editar'} estudiantes
           </Button>,
         )
       }

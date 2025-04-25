@@ -1,6 +1,7 @@
 // Tables
-const PAGE_SIZE_OPTIONS = [10, 25, 100]
-const DEFAULT_PAGE_SIZE = 25
+type T_PageSizeOptions = 10 | 25 | 50 | 100
+const PAGE_SIZE_OPTIONS: Array<T_PageSizeOptions> = [10, 25, 50, 100]
+const DEFAULT_PAGE_SIZE: T_PageSizeOptions = 10
 /**
  * Returns full api urls
  * @param path REQUIRES leading slash

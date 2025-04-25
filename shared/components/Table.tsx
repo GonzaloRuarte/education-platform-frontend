@@ -1,4 +1,4 @@
-import { DEFAULT_PAGE_SIZE } from '@/config'
+import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '@/config'
 import { alpha, styled } from '@mui/material'
 import {
   DataGrid,
@@ -67,7 +67,7 @@ function Table({ isLoading = false, data, count, ...props }: I_Props) {
       sx={{ background: 'white', borderRadius: 3 }}
       rows={data}
       getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd')}
-      pageSizeOptions={[10, 25, 100]}
+      pageSizeOptions={PAGE_SIZE_OPTIONS}
       paginationMode="server"
       loading={isLoading}
       rowCount={count || 0}
