@@ -1,6 +1,10 @@
+import { BackButton, ReloadButton } from '@/shared/components/buttons'
+import DeleteInstanceButton from '@/shared/components/DeleteInstanceButton'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Section from '@/shared/components/Section'
 import Spacer from '@/shared/components/Spacer'
+import { T_DeletionServiceHook, T_VoidFn } from '@/shared/types'
+import { EntityName } from '@/shared/utils'
 import { Grid2 } from '@mui/material'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -50,5 +54,25 @@ Page.Toolbar = ({ children, right = undefined }: I_ToolbarProps) => (
     <Spacer size="m" />
   </Box>
 )
+
+function BasicToolbar<T_Id extends number | string, T_Response>(p: {
+  id: T_Id
+  onExit: T_VoidFn
+  reload: T_VoidFn
+  useDelete?: T_DeletionServiceHook<T_Id, T_Response>
+  entityName: EntityName
+}) {
+  return (
+    <Page.Toolbar>
+      <BackButton onClick={p.onExit} />
+      <ReloadButton onClick={p.reload} />
+      {p.useDelete !== undefined && (
+        <DeleteInstanceButton<T_Id> callback={p.onExit} entityName={p.entityName} useDelete={p.useDelete} id={p.id} />
+      )}
+    </Page.Toolbar>
+  )
+}
+
+Page.BasicToolbar = BasicToolbar
 
 export default Page

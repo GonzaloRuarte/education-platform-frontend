@@ -20,9 +20,9 @@ const AppBar = () => {
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <MagicGrid itemSize="auto">
-            <Button LinkComponent={Link} href="gui-showcase" variant="text">
+            {/* <Button LinkComponent={Link} href="gui-showcase" variant="text">
               Showcase
-            </Button>
+            </Button> */}
             <LogoutButton />
             <Avatar alt="Admin">A</Avatar>
           </MagicGrid>

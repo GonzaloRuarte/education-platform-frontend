@@ -64,4 +64,7 @@ const ResolveEvaluationPage = () => {
   )
 }
 
-export default withAuth(ResolveEvaluationPage, ['admin', 'student'])
+export default withAuth(ResolveEvaluationPage, {
+  allowedAccessGroups: ['admin', 'student'],
+  logoutDestination: 'resolutions',
+})

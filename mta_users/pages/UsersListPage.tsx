@@ -30,4 +30,7 @@ const UsersListPage = () => {
   )
 }
 
-export default withAuth(UsersListPage, ['admin', 'school_staff'])
+export default withAuth(UsersListPage, {
+  allowedAccessGroups: ['admin', 'school_staff'],
+  logoutDestination: 'dashboard',
+})

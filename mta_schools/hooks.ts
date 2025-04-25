@@ -22,8 +22,11 @@ import {
 
 import pages from '@/pages'
 import { I_CreationCommonResponse } from '@/shared/types'
+import { listHookV3 } from '@/shared/hooks/dataServices/listHook.v3'
 
 const SCHOOLS_PATH = '/schools'
+const STUDENT_PROFILE_PATH = '/student-profile'
+const STUDENTS_BY_SCHOOL_PATH = '/student-profile/list-by-school/{schoolId:string}'
 
 const useSchoolList = listHook<T_SchoolsList>(SCHOOLS_PATH, axiosGet, useAuthResources)
 const useSchoolAllNames = listHook<T_SchoolNames>(`${SCHOOLS_PATH}/all-names`, axiosGet, useAuthResources)
@@ -42,7 +45,12 @@ const useSchoolUpdate = updateHook<T_SchoolId, I_SchoolUpdateRequestData, I_Scho
   useAuthResources,
 )
 
-const useStudentProfileList = listHook<T_StudentProfileList>('/student-profile', axiosGet, useAuthResources)
+const useStudentProfileList = listHook<T_StudentProfileList>(STUDENT_PROFILE_PATH, axiosGet, useAuthResources)
+const useStudentProfileListBySchool = listHookV3<typeof STUDENTS_BY_SCHOOL_PATH, T_StudentProfileList>(
+  STUDENTS_BY_SCHOOL_PATH,
+  axiosGet,
+  useAuthResources,
+)
 
 const useNavigateToSchoolList = navigationHook(pages.D._.escuelas.path)
 const useNavigateToSchoolDetail = navigationWithIdHook(pages.D._.escuelas.path)
@@ -60,4 +68,5 @@ export {
   useSchoolUpdate,
   useStudentProfileList,
   useSchoolAllNames,
+  useStudentProfileListBySchool,
 }

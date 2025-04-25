@@ -1,22 +1,21 @@
-import { DEFAULT_PAGE_SIZE } from '@/config'
 import Button from '@/shared/components/Button'
 import Page from '@/shared/components/Page'
 import Table from '@/shared/components/Table'
 import { I_PaginatedResponse } from '@/shared/data/types'
-import { T_BatchDeletionServiceHook, T_ListServiceHookV2, T_VoidFn } from '@/shared/types'
+import { T_BatchDeletionServiceHook, T_ListServiceHook, T_VoidFn } from '@/shared/types'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ReplayIcon from '@mui/icons-material/Replay'
-import { GridColDef, GridPaginationModel, GridRowParams, GridRowSelectionModel } from '@mui/x-data-grid'
+import { GridColDef, GridRowParams, GridRowSelectionModel } from '@mui/x-data-grid'
 
 import { useConfirm } from '@/shared/confirm'
-import { successToast } from '@/shared/toasts'
-import { EntityName, sentence } from '@/shared/utils'
-import { ComponentProps, FC, useState } from 'react'
+import { paginationModelAsFetchPaginationOptions } from '@/shared/pages/utils'
+import { EntityName } from '@/shared/utils'
+import { ComponentProps } from 'react'
 
 interface I_Props<T_Id, T_Response> {
   columns: Array<GridColDef>
-  useList: T_ListServiceHookV2<T_Response>
+  useList: T_ListServiceHook<T_Response>
   entityName: EntityName
   onRowClick?: ComponentProps<typeof Table>['onRowClick']
   onCreate?: T_VoidFn
@@ -51,13 +50,10 @@ function BatchDeleteAction<T_Id>(p: {
   )
 }
 function ListPage<T_Id, T_Response extends I_PaginatedResponse>(p: I_Props<T_Id, T_Response>) {
-  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
-    pageSize: DEFAULT_PAGE_SIZE,
-    page: 0,
-  })
-  const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>([])
+  const { paginationModel, setPaginationModel } = Table.usePaginationModel()
+  const { rowSelectionModel, setRowSelectionModel } = Table.useRowSelectionModel()
 
-  const { data, isLoading, reload } = p.useList({ page: paginationModel.page + 1, page_size: paginationModel.pageSize })
+  const { data, isLoading, reload } = p.useList(paginationModelAsFetchPaginationOptions(paginationModel))
 
   return (
     <>
@@ -99,17 +95,6 @@ function ListPage<T_Id, T_Response extends I_PaginatedResponse>(p: I_Props<T_Id,
     </>
   )
 }
-
-// const CustomToolbar = ({ rowSelectionModel }: GridToolbarProps & { rowSelectionModel: GridRowSelectionModel }) => {
-//   return (
-//     <GridToolbarContainer>
-//       {/*
-//       <GridToolbarDensitySelector /> */}
-//       {/* <Box sx={{ flexGrow: 1 }} /> */}
-//       {/* <GridToolbarExport /> */}
-//     </GridToolbarContainer>
-//   )
-// }
 
 ListPage.mapNavToOnRowClick = (nav: (id: number | string) => void) => (params: GridRowParams<any>) => nav(params.id)
 

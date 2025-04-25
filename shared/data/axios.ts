@@ -34,7 +34,11 @@ const with401Handling: T_401Handler = <T_Fetcher extends T_BaseFetcher>(fetcher:
   return ((args) =>
     fetcher(args).catch((error: ApiError<AxiosError>) => {
       if (error instanceof ApiError) {
-        if (args.requestSetup?.refresh !== undefined && args.requestSetup.refreshToken !== undefined && error.status === 401) {
+        if (
+          args.requestSetup?.refresh !== undefined &&
+          args.requestSetup.refreshToken !== undefined &&
+          error.status === 401
+        ) {
           return args.requestSetup
             .refresh(axiosRefreshPostMethod)({
               refresh: args.requestSetup.refreshToken,
@@ -56,22 +60,30 @@ const with401Handling: T_401Handler = <T_Fetcher extends T_BaseFetcher>(fetcher:
     })) as T_Fetcher
 }
 
-const axiosGet = with401Handling(async <T_Response>(args: { url: string; requestSetup?: I_RequestSetup; options: I_FetchOptions }) => {
-  return axios
-    .get<T_Response>(args.url, {
-      params: args.options,
-      headers: {
-        ..._axiosBaseHeaders(args.requestSetup),
-      },
-    })
-    .then((response) => {
-      return response.data
-    })
-    .catch(_handledAxiosError)
-})
+const axiosGet = with401Handling(
+  async <T_Response>(args: { url: string; requestSetup?: I_RequestSetup; options: I_FetchOptions }) => {
+    const { page, page_size } = args.options || {}
+    return axios
+      .get<T_Response>(args.url, {
+        params: { page, page_size, ...(args.options?.filters !== undefined ? args.options.filters : {}) },
+        headers: {
+          ..._axiosBaseHeaders(args.requestSetup),
+        },
+      })
+      .then((response) => {
+        return response.data
+      })
+      .catch(_handledAxiosError)
+  },
+)
 
 const axiosPost = with401Handling(
-  async <T_RequestData, T_Response>(args: { url: string; requestSetup?: I_RequestSetup; options: I_FetchOptions; data: T_RequestData }) => {
+  async <T_RequestData, T_Response>(args: {
+    url: string
+    requestSetup?: I_RequestSetup
+    options: I_FetchOptions
+    data: T_RequestData
+  }) => {
     return axios
       .post<T_Response>(args.url, args.data, {
         headers: {
@@ -86,7 +98,12 @@ const axiosPost = with401Handling(
 )
 
 const axiosPatch = with401Handling(
-  async <T_RequestData, T_Response>(args: { url: string; requestSetup?: I_RequestSetup; options: I_FetchOptions; data: T_RequestData }) => {
+  async <T_RequestData, T_Response>(args: {
+    url: string
+    requestSetup?: I_RequestSetup
+    options: I_FetchOptions
+    data: T_RequestData
+  }) => {
     return axios
       .patch<T_Response>(args.url, args.data, {
         headers: {

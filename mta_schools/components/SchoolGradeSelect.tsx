@@ -1,5 +1,5 @@
 import { SchoolGrade } from '@/mta_schools/constants'
-import { schoolLabels } from '@/mta_schools/labels'
+import { gradeLabel, schoolLabels } from '@/mta_schools/labels'
 import { FormControl, FormHelperText, InputLabel, MenuItem, Select } from '@mui/material'
 import React from 'react'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
@@ -18,7 +18,7 @@ export const SchoolGradeSelect: React.FC<{
       <Select value={value || ''} onChange={(e) => onChange(e.target.value)}>
         {Object.entries(SchoolGrade).map(([key, grade]) => (
           <MenuItem key={key} value={grade}>
-            {schoolLabels.grade} {grade}º
+            {gradeLabel(grade)}
           </MenuItem>
         ))}
       </Select>

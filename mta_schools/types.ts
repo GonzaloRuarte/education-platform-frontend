@@ -43,10 +43,7 @@ interface I_SchoolUpdateRequestData {
 
 interface I_StudentProfileListItem {
   id: T_StudentProfileId
-  cohort: {
-    id: number
-    name: string
-  }
+  cohort: string
   created_at: string
   updated_at: string
   school: string

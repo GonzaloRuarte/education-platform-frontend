@@ -29,6 +29,7 @@ const dynamicNavigationHook = <T extends string>(path: T) => {
 
     return (args: Record<T_ExtractPathParams<T>, string | number>) => {
       const resolvedPath = path.replace(/{(\w+):\w+}/g, (_, key) => args[key].toString())
+
       router.push(resolvedPath)
     }
   }

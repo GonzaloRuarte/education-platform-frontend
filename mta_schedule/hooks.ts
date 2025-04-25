@@ -1,13 +1,15 @@
 import { useAuthResources } from '@/mta_auth/hooks'
 import {
+  I_AppointmentApprove_RequestData,
   I_AppointmentCreateRequestData,
   I_AppointmentDetail,
+  I_AppointmentReject_RequestData,
   I_AppointmentRequest_RequestData,
   I_AppointmentsByMonthResponseData,
   T_AppointmentId,
   T_AppointmentList,
 } from '@/mta_schedule/types'
-import pages from '@/pages'
+import pages, { appointmentsProcessPath, appointmentsEditStudentsPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
 import {
   actionHook,
@@ -15,10 +17,10 @@ import {
   creationHook,
   deletionHook,
   detailHook,
+  dynamicNavigationHook,
   getHook,
   listHook,
   navigationHook,
-  navigationWithIdHook,
   updateHook,
 } from '@/shared/hooks'
 import { I_CreationCommonResponse } from '@/shared/types'
@@ -48,18 +50,26 @@ const useAppointmentFreeListByMonth = getHook<I_AppointmentsByMonthResponseData,
   axiosGet,
   useAuthResources,
 )
-const useAppointmentRequest = actionHook<I_AppointmentRequest_RequestData, I_CreationCommonResponse>(
+const useAppointmentRequest = actionHook<I_AppointmentRequest_RequestData, I_AppointmentDetail>(
   `${APPOINTMENTS_PATH}/request`,
   axiosPost,
   useAuthResources,
 )
-//   { year: number; month: number }, // Request payload (query parameters)
-//   Record<string, Array<I_AppointmentDetail>> // Response type
-// >(`${APPOINTMENTS_PATH}/free-appointments-by-month`, axiosGet, useAuthResources)
+const useAppointmentApprove = actionHook<I_AppointmentApprove_RequestData, I_AppointmentDetail>(
+  `${APPOINTMENTS_PATH}/approve`,
+  axiosPost,
+  useAuthResources,
+)
+const useAppointmentReject = actionHook<I_AppointmentReject_RequestData, I_AppointmentDetail>(
+  `${APPOINTMENTS_PATH}/reject`,
+  axiosPost,
+  useAuthResources,
+)
 
 // Navigation
 const useNavigateToAppointmentList = navigationHook(pages.D._.turnos.path)
-const useNavigateToAppointmentDetail = navigationWithIdHook(pages.D._.turnos.path)
+const useNavigateToAppointmentProcess = dynamicNavigationHook(appointmentsProcessPath)
+const useNavigateToAppointmentEditStudents = dynamicNavigationHook(appointmentsEditStudentsPath)
 const useNavigateToAppointmentCreate = navigationHook(pages.D._.turnos._.agregar.path)
 
 export {
@@ -67,11 +77,14 @@ export {
   useAppointmentCreate,
   useAppointmentDelete,
   useAppointmentDetail,
+  useAppointmentFreeListByMonth,
   useAppointmentList,
+  useAppointmentRequest,
   useAppointmentUpdate,
   useNavigateToAppointmentCreate,
-  useNavigateToAppointmentDetail,
   useNavigateToAppointmentList,
-  useAppointmentFreeListByMonth,
-  useAppointmentRequest,
+  useNavigateToAppointmentProcess,
+  useAppointmentApprove,
+  useAppointmentReject,
+  useNavigateToAppointmentEditStudents,
 }

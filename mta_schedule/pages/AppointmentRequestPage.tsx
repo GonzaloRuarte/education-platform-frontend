@@ -33,6 +33,9 @@ import { withAuth } from '@/mta_auth/hocs/withAuth'
 import Chip from '@/shared/components/Chip'
 import { LIGHT_BG_COLOR } from '@/config'
 import { handleServiceError } from '@/shared/service'
+import TodayIcon from '@mui/icons-material/Today'
+import AppointmentBriefCard from '@/mta_schedule/components/AppointmentBriefCard'
+
 require('dayjs/locale/es')
 
 interface I_FormFields {
@@ -56,7 +59,7 @@ const distinctAvailableAppointments = (appointments: T_AppointmentsAvailableList
   return disctint
 }
 
-const AppointmentCreateForm = () => {
+const AppointmentRequestPage = () => {
   const { setIsInProgress, setIsNotInProgress } = useInProgress()
   const backToList = useNavigateToAppointmentList()
   const [refDate, setRefDate] = useState(dayjs())
@@ -110,60 +113,69 @@ const AppointmentCreateForm = () => {
   return (
     <Page>
       <Page.Title>Solicitar {APPOINTMENT_NAME.singular}</Page.Title>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <Grid2 container spacing={3}>
-          <Grid2 size={4}>
-            {appointmentFreeListByMonth !== undefined && (
-              <DateCalendarControlled
-                onMonthChange={(newDate) => setRefDate(newDate)}
-                onYearChange={(newDate) => setRefDate(newDate)}
-                onChangeCallback={handleDateChange}
-                control={control}
-                name="date"
+      <Page.Content>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Grid2 container spacing={3}>
+            <Grid2 size={4}>
+              {appointmentFreeListByMonth !== undefined && (
+                <DateCalendarControlled
+                  onMonthChange={(newDate) => setRefDate(newDate)}
+                  onYearChange={(newDate) => setRefDate(newDate)}
+                  onChangeCallback={handleDateChange}
+                  control={control}
+                  name="date"
+                  rules={{ ...rules.required() }}
+                  availableDays={availableDays(appointmentFreeListByMonth)}
+                />
+              )}
+            </Grid2>
+            <Grid2 size={8}>
+              {selectedAppointmentData !== null && (
+                <>
+                  <AppointmentBriefCard
+                    title="Turno Seleccionado"
+                    appointmentId={selectedAppointmentData.id}
+                    begins_at={selectedAppointmentData.begins_at}
+                  />
+                  <Spacer />
+                </>
+              )}
+              <FormLabel>Turnos disponibles para la fecha seleccionada:</FormLabel>
+              <Spacer />
+              <OptionToggleControlled
+                orientation="vertical"
                 rules={{ ...rules.required() }}
-                availableDays={availableDays(appointmentFreeListByMonth)}
+                options={[...appointmentOptions]}
+                name="appointment_id"
+                control={control}
               />
-            )}
-          </Grid2>
-          <Grid2 size={8}>
-            {selectedAppointmentData !== null && (
-              <>
-                <Box bgcolor={LIGHT_BG_COLOR} borderRadius={2} padding={2}>
-                  <MagicGrid spacing={1}>
-                    <H4>Turno Seleccionado</H4>
-                    <Body1>{sentence(dayjs(selectedAppointmentData?.begins_at).locale('es').format('LLLL'))}</Body1>
-                    <Chip size="small" label={`ID: ${selectedAppointmentData.id}`} />
-                  </MagicGrid>
-                </Box>
-                <Spacer />
-              </>
-            )}
-            <FormLabel>Turnos disponibles para la fecha seleccionada:</FormLabel>
-            <Spacer />
-            <OptionToggleControlled
-              orientation="vertical"
-              rules={{ ...rules.required() }}
-              options={[...appointmentOptions]}
-              name="appointment_id"
-              control={control}
-            />
-          </Grid2>
+            </Grid2>
 
-          <Grid2 size={12}>
-            <MagicGrid>
-              <SelectSchoolControlled control={control} name="school_id" rules={{ ...rules.required() }} />
-              <InputControlled control={control} name="pin" type="number" label="Pin" rules={{ ...rules.required() }} />
-              <SubjectOptions control={control} name="evaluation_subject_id" />
-              <SchoolGradeSelectControlled control={control} name="grade" rules={{ ...rules.required() }} />
-            </MagicGrid>
+            <Grid2 size={12}>
+              <MagicGrid>
+                <SelectSchoolControlled control={control} name="school_id" rules={{ ...rules.required() }} />
+                <InputControlled
+                  control={control}
+                  name="pin"
+                  type="number"
+                  label="Pin"
+                  rules={{ ...rules.required() }}
+                />
+                <SubjectOptions control={control} name="evaluation_subject_id" />
+                <SchoolGradeSelectControlled control={control} name="grade" rules={{ ...rules.required() }} />
+              </MagicGrid>
+            </Grid2>
           </Grid2>
-        </Grid2>
-        <Spacer />
+          <Spacer />
 
-        <Submit>Agregar</Submit>
-      </form>
+          <Submit>Agregar</Submit>
+        </form>
+      </Page.Content>
     </Page>
   )
 }
 
-export default withAuth(AppointmentCreateForm, ['admin', 'school_staff'])
+export default withAuth(AppointmentRequestPage, {
+  allowedAccessGroups: ['admin', 'school_staff'],
+  logoutDestination: 'dashboard',
+})

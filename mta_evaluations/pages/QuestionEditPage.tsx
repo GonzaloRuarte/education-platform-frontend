@@ -18,4 +18,7 @@ const QuestionEditPage = () => (
   />
 )
 
-export default withAuth(QuestionEditPage, ['admin', 'evaluator'])
+export default withAuth(QuestionEditPage, {
+  allowedAccessGroups: ['admin', 'evaluator'],
+  logoutDestination: 'dashboard',
+})

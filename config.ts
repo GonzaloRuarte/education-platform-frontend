@@ -1,6 +1,7 @@
 // Tables
-const PAGE_SIZE_OPTIONS = [10, 25, 100]
-const DEFAULT_PAGE_SIZE = 10
+type T_PageSizeOptions = 10 | 25 | 50 | 100
+const PAGE_SIZE_OPTIONS: Array<T_PageSizeOptions> = [10, 25, 50, 100]
+const DEFAULT_PAGE_SIZE: T_PageSizeOptions = 10
 /**
  * Returns full api urls
  * @param path REQUIRES leading slash
@@ -10,6 +11,7 @@ const apiUrl = (path: string) => `${process.env.NEXT_PUBLIC_API_BASE_PATH}${path
 
 enum ErrorCode {
   RESOLUTION_ALREADY_SUBMITTED = 'RESOLUTION_ALREADY_SUBMITTED',
+  SCHOOL_RESTRICTED_DATA = 'SCHOOL_RESTRICTED_DATA',
 }
 
 const LIGHT_BG_COLOR = '#C3D9FF'
