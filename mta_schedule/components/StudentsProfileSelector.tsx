@@ -17,30 +17,29 @@ import Input from '@/shared/forms/Input'
 import { paginationModelAsFetchPaginationOptions } from '@/shared/pages/utils'
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
-import { Box, Grid2, IconButton } from '@mui/material'
+import { Box, FormHelperText, Grid2, IconButton } from '@mui/material'
+import { grey, red } from '@mui/material/colors'
 import { GridColDef, GridToolbarContainer } from '@mui/x-data-grid'
-import { Dispatch, FC, SetStateAction, useEffect, useMemo, useState } from 'react'
-import selStd from './selectedStudents.json'
-import { LIGHT_BG_COLOR } from '@/config'
-import { grey } from '@mui/material/colors'
+import React, { Dispatch, SetStateAction, useMemo, useState } from 'react'
 
 type T_AddedStudents = Record<T_StudentProfileId, { personal_id: T_StudentProfilePersonalId; cohort: string }>
+type T_OnAddedStudentsChange = (newAddedStudents: T_AddedStudents) => void
 
 const handleRemoveStudent = (
   studentId: T_StudentProfileId,
-  setAddedStudents: Dispatch<SetStateAction<T_AddedStudents>>,
+  addedStudents: T_AddedStudents,
+  onAddedStudentsChange: T_OnAddedStudentsChange,
 ) => {
-  setAddedStudents((currentList) => {
-    const newList = { ...currentList }
-    delete newList[studentId]
-    return newList
-  })
+  const newAddedStudents = { ...addedStudents }
+  delete newAddedStudents[studentId]
+  onAddedStudentsChange(newAddedStudents)
 }
 
 const columns = (
   addedStudents: T_AddedStudents,
-  setAddedStudents: Dispatch<SetStateAction<T_AddedStudents>>,
+  onAddedStudentsChange: T_OnAddedStudentsChange,
 ): Array<GridColDef<I_StudentProfileListItem>> => [
+  { field: 'id', headerName: 'ID' },
   { field: 'personal_id', headerName: 'DNI', flex: 1 },
   { field: 'cohort', headerName: 'División', flex: 1 },
   {
@@ -51,15 +50,21 @@ const columns = (
     getActions: (params) => {
       const alreadyIncluded = params.row.id in addedStudents
       const handleInclude = () => {
-        setAddedStudents((currentList) => ({
-          ...currentList,
+        onAddedStudentsChange({
+          ...addedStudents,
           [params.row.id]: { personal_id: params.row.personal_id, cohort: params.row.cohort },
-        }))
+        })
       }
 
       const actions = [
         <IconButton
-          onClick={alreadyIncluded ? () => handleRemoveStudent(params.row.id, setAddedStudents) : handleInclude}
+          onClick={
+            alreadyIncluded
+              ? () => {
+                  handleRemoveStudent(Number(params.row.id), addedStudents, onAddedStudentsChange)
+                }
+              : handleInclude
+          }
         >
           {alreadyIncluded ? <RemoveIcon /> : <AddIcon />}
         </IconButton>,
@@ -69,19 +74,30 @@ const columns = (
     },
   },
 ]
+const useAddedStudents = (initialValue: T_AddedStudents = {}) => {
+  const [addedStudents, setAddedStudents] = useState<T_AddedStudents>(initialValue)
+  return { addedStudents, setAddedStudents }
+}
 
-const StudentsProfileSelector: FC<{ schoolId: T_SchoolId }> = ({ schoolId }) => {
+interface I_Props {
+  schoolId: T_SchoolId
+  addedStudents: T_AddedStudents
+  onAddedStudentsChange: (newState: T_AddedStudents) => void
+
+  hasError?: boolean
+  helperText?: string | React.JSX.Element
+}
+const StudentsProfileSelector = ({ schoolId, addedStudents, onAddedStudentsChange, hasError, helperText }: I_Props) => {
   const [searchCriteria, setSearchCriteria] = useState<string>('')
   const [addedStudentsFilterCriteria, setAddedStudentsFilterCriteria] = useState<string>('')
   const { paginationModel, setPaginationModel } = Table.usePaginationModel({ page: 0, pageSize: 10 })
   const { rowSelectionModel, setRowSelectionModel } = Table.useRowSelectionModel()
-  const [addedStudents, setAddedStudents] = useState<T_AddedStudents>({})
+
   const addedStudentsEntries = Object.entries(addedStudents)
   const filteredAddedStudents = addedStudentsEntries.filter(
     ([_, { personal_id, cohort }]) =>
       String(personal_id).includes(addedStudentsFilterCriteria) || cohort.includes(addedStudentsFilterCriteria),
   )
-  console.log(JSON.stringify(addedStudents))
 
   const hasSelection = rowSelectionModel.length > 0
 
@@ -97,7 +113,6 @@ const StudentsProfileSelector: FC<{ schoolId: T_SchoolId }> = ({ schoolId }) => 
     students.results.forEach((student) => {
       _studentsAsObject[student.id] = { personal_id: student.personal_id, cohort: student.cohort }
     })
-    console.log({ _studentsAsObject })
 
     return _studentsAsObject
   }, [students])
@@ -107,12 +122,9 @@ const StudentsProfileSelector: FC<{ schoolId: T_SchoolId }> = ({ schoolId }) => 
     const newStudents = {}
     rowSelectionModel.forEach((i) => (newStudents[i] = studentsAsObject[i]))
 
-    setAddedStudents((prevValue) => ({ ...prevValue, ...newStudents }))
+    onAddedStudentsChange({ ...addedStudents, ...newStudents })
     setRowSelectionModel([])
   }
-  useEffect(() => {
-    setAddedStudents(selStd as unknown as T_AddedStudents)
-  }, [])
   return (
     <>
       <Grid2 container spacing={5}>
@@ -129,7 +141,7 @@ const StudentsProfileSelector: FC<{ schoolId: T_SchoolId }> = ({ schoolId }) => 
           <Box>
             <Table
               checkboxSelection
-              columns={columns(addedStudents, setAddedStudents)}
+              columns={columns(addedStudents, onAddedStudentsChange)}
               data={students?.results}
               paginationModel={paginationModel}
               onPaginationModelChange={setPaginationModel}
@@ -153,8 +165,14 @@ const StudentsProfileSelector: FC<{ schoolId: T_SchoolId }> = ({ schoolId }) => 
           </Box>
         </Grid2>
         <Grid2 size={5}>
-          <Box bgcolor={grey[300]} p={4} borderRadius={2}>
+          <Box
+            bgcolor={hasError ? red[50] : grey[300]}
+            p={4}
+            borderRadius={2}
+            border={hasError ? '1px solid red' : undefined}
+          >
             <H4>Estudiantes agregados</H4>
+            {helperText !== undefined && <FormHelperText error={hasError}>{helperText}</FormHelperText>}
             <Spacer />
             <Input
               label="Buscar"
@@ -176,7 +194,7 @@ const StudentsProfileSelector: FC<{ schoolId: T_SchoolId }> = ({ schoolId }) => 
                   <Chip
                     key={personal_id}
                     label={`${personal_id} (${cohort})`}
-                    onDelete={() => handleRemoveStudent(Number(studentId), setAddedStudents)}
+                    onDelete={() => handleRemoveStudent(Number(studentId), addedStudents, onAddedStudentsChange)}
                   />
                 )
               })}
@@ -188,4 +206,6 @@ const StudentsProfileSelector: FC<{ schoolId: T_SchoolId }> = ({ schoolId }) => 
   )
 }
 
+StudentsProfileSelector.useAddedStudents = useAddedStudents
 export default StudentsProfileSelector
+export type { T_AddedStudents }

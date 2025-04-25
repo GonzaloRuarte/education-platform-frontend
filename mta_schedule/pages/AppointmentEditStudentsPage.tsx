@@ -1,78 +1,20 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
-import AppointmentBriefCard from '@/mta_schedule/components/AppointmentBriefCard'
-import StudentsProfileSelector from '@/mta_schedule/components/StudentsProfileSelector'
+import AppointmentsEditStudentsForm from '@/mta_schedule/components/AppointmentsEditStudentsForm'
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
-import {
-  useAppointmentApprove,
-  useAppointmentDetail,
-  useAppointmentReject,
-  useNavigateToAppointmentList,
-} from '@/mta_schedule/hooks'
-import MagicGrid from '@/shared/components/MagicGrid'
+import { useAppointmentDetail, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
 import Page from '@/shared/components/Page'
-import Spacer from '@/shared/components/Spacer'
 import Spinner from '@/shared/components/Spinner'
-import { Body1 } from '@/shared/components/Typography'
-import { useConfirm } from '@/shared/confirm'
-import { useInProgress } from '@/shared/hooks'
-import { handleServiceError } from '@/shared/service'
-import { successToast } from '@/shared/toasts'
-import { Button } from '@mui/material'
 import { useParams } from 'next/navigation'
-import { SubmitHandler, useForm } from 'react-hook-form'
 
 require('dayjs/locale/es')
-
-interface I_FormFields {
-  evaluation: { id: string; title: string } | null
-}
 
 const AppointmentEditStudentsPage = () => {
   const { appointmentId } = useParams()
   const { data, reload } = useAppointmentDetail(Number(appointmentId))
 
-  const approveAppointment = useAppointmentApprove()
-  const rejectAppointment = useAppointmentReject()
   const navToList = useNavigateToAppointmentList()
-  const { setIsInProgress, setIsNotInProgress } = useInProgress()
-  const { ConfirmDialogComponent, showConfirm } = useConfirm()
-
-  const { control, handleSubmit } = useForm<I_FormFields>({
-    defaultValues: {
-      evaluation: null,
-    },
-  })
-
-  const onApprove: SubmitHandler<I_FormFields> = (formData) => {
-    showConfirm('Aprobar turno', '¿Estás seguro/a que querés APROBAR este turno?').then(() => {
-      setIsInProgress()
-      approveAppointment({
-        appointment_id: Number(appointmentId),
-        evaluation_id: Number(formData.evaluation?.id),
-      })
-        .then(() => {
-          successToast('Turno aprobado correctamente')
-          navToList()
-        })
-        .catch(handleServiceError)
-        .finally(setIsNotInProgress)
-    })
-  }
-
-  const onReject = () => {
-    showConfirm('Rechazar turno', '¿Estás seguro/a que querés RECHAZAR este turno?').then(() => {
-      setIsInProgress()
-      rejectAppointment({ appointment_id: Number(appointmentId) })
-        .then(() => {
-          successToast('Turno rechazado correctamente')
-          navToList()
-        })
-        .catch(handleServiceError)
-        .finally(setIsNotInProgress)
-    })
-  }
 
   return (
     <Page>
@@ -84,31 +26,10 @@ const AppointmentEditStudentsPage = () => {
       ) : (
         <>
           <Page.Content>
-            <MagicGrid>
-              <AppointmentBriefCard
-                appointmentId={Number(appointmentId)}
-                begins_at={data.begins_at}
-                title={data.school.name}
-                subject={data.requested_evaluation_subject.name}
-                grade={data.requested_evaluation_grade}
-                evaluation={data.evaluation_brief !== null ? data.evaluation_brief : undefined}
-              />
-              <Spacer />
-              <form onSubmit={handleSubmit(onApprove)}>
-                <StudentsProfileSelector schoolId={data.school.id} />
-                <Spacer />
-                <Button type="submit" variant="contained" color="primary">
-                  Aprobar Turno
-                </Button>
-                <Button type="button" variant="contained" color="error" onClick={onReject} sx={{ ml: 2 }}>
-                  Rechazar Turno
-                </Button>
-              </form>
-            </MagicGrid>
+            <AppointmentsEditStudentsForm data={data} />
           </Page.Content>
         </>
       )}
-      <ConfirmDialogComponent />
     </Page>
   )
 }

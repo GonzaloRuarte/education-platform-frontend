@@ -7,6 +7,7 @@ type T_AppointmentId = number
 type T_AppointmentStatus = 'F' | 'P' | 'A' | 'R'
 
 interface I_AppointmentDetail {
+  id: T_AppointmentId
   begins_at: string
   ends_at: string
   school: {
