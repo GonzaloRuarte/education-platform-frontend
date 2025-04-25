@@ -110,6 +110,6 @@ const AppointmentListPage = () => {
 }
 
 export default withAuth(AppointmentListPage, {
-  allowedAccessGroups: ['admin'],
+  allowedUserProfiles: ['admin'],
   logoutDestination: 'dashboard',
 })

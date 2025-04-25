@@ -23,6 +23,6 @@ const StudentProfileListPage = () => (
 )
 
 export default withAuth(StudentProfileListPage, {
-  allowedAccessGroups: ['admin', 'school_staff'],
+  allowedUserProfiles: ['admin', 'school_staff'],
   logoutDestination: 'dashboard',
 })

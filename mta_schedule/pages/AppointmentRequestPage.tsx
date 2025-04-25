@@ -176,6 +176,6 @@ const AppointmentRequestPage = () => {
 }
 
 export default withAuth(AppointmentRequestPage, {
-  allowedAccessGroups: ['admin', 'school_staff'],
+  allowedUserProfiles: ['admin', 'school_staff'],
   logoutDestination: 'dashboard',
 })

@@ -6,6 +6,6 @@ const Welcome = () => {
 }
 
 export default withAuth(Welcome, {
-  allowedAccessGroups: ['admin', 'evaluator', 'school_staff'],
+  allowedUserProfiles: ['admin', 'evaluator', 'school_staff'],
   logoutDestination: 'dashboard',
 })

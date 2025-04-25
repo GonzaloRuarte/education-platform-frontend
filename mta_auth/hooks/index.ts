@@ -1,11 +1,6 @@
 import { apiUrl } from '@/config'
-import {
-  I_AuthData,
-  I_AuthorizeRequestData,
-  I_AuthorizeResponseData,
-  I_AuthResources,
-  T_AllowedAccessGroups,
-} from '@/mta_auth/types'
+import { I_AuthData, I_AuthorizeRequestData, I_AuthorizeResponseData, I_AuthResources } from '@/mta_auth/types'
+import { T_AllowedUserProfiles } from '@/mta_users/types'
 import pages from '@/pages'
 import { axiosPost } from '@/shared/data/axios'
 import { T_TokenRefresher } from '@/shared/data/types'
@@ -33,7 +28,7 @@ const useIsAuthorized = () => {
 
 const useUserAccessGroups = () => useStore.getState().accessGroups
 
-const useHasPermissions = (requiredAccesses: T_AllowedAccessGroups): boolean => {
+const useHasPermissions = (requiredAccesses: T_AllowedUserProfiles): boolean => {
   const userAccessGroups = useUserAccessGroups()
 
   if (userAccessGroups === undefined) return false
