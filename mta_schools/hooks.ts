@@ -1,5 +1,6 @@
 import { useAuthResources } from '@/mta_auth/hooks'
 import {
+  I_CohortsDistinctBySchool,
   I_SchoolCreateRequestData,
   I_SchoolDetail,
   I_SchoolUpdateRequestData,
@@ -11,6 +12,7 @@ import {
 } from '@/mta_schools/types'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
 import {
+  actionHook,
   batchDeletionHook,
   creationHook,
   deletionHook,
@@ -22,12 +24,14 @@ import {
 } from '@/shared/hooks'
 
 import pages from '@/pages'
-import { I_CreationCommonResponse } from '@/shared/types'
-import { listHookV3 } from '@/shared/hooks/dataServices/listHook.v3'
+import { I_CreationCommonResponse, T_EmptyPayload } from '@/shared/types'
+import { actionHookV3, listHookV3 } from '@/shared/hooks/dataServices/v3'
 
 const SCHOOLS_PATH = '/schools'
 const STUDENT_PROFILE_PATH = '/student-profile'
 const STUDENTS_BY_SCHOOL_PATH = '/student-profile/list-by-school/{schoolId:string}'
+
+const COHORTS_BY_SCHOOL_PATH = '/cohorts/distinct-by-school/{schoolId:string}'
 
 const useSchoolList = listHook<T_SchoolsList>(SCHOOLS_PATH, axiosGet, useAuthResources)
 const useSchoolAllNames = listHook<T_SchoolNames>(`${SCHOOLS_PATH}/all-names`, axiosGet, useAuthResources)
@@ -58,6 +62,12 @@ const useStudentProfileCreate = creationHook<I_StudentProfileCreateRequestData, 
   useAuthResources,
 )
 
+const useCohortsDistinctBySchool = actionHookV3<
+  typeof COHORTS_BY_SCHOOL_PATH,
+  T_EmptyPayload,
+  I_CohortsDistinctBySchool
+>(COHORTS_BY_SCHOOL_PATH, axiosGet, useAuthResources)
+
 const useNavigateToSchoolList = navigationHook(pages.D._.escuelas.path)
 const useNavigateToSchoolDetail = navigationWithIdHook(pages.D._.escuelas.path)
 const useNavigateToSchoolCreate = navigationHook(pages.D._.escuelas._.agregar.path)
@@ -83,4 +93,5 @@ export {
   useSchoolAllNames,
   useStudentProfileListBySchool,
   useStudentProfileCreate,
+  useCohortsDistinctBySchool,
 }
