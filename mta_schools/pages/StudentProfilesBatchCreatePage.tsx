@@ -1,0 +1,115 @@
+'use client'
+
+import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
+import { STUDENT_PROFILE_NAME } from '@/mta_schools/constants'
+import { useNavigateToStudentProfileList } from '@/mta_schools/hooks'
+import Button from '@/shared/components/Button'
+import { BackButton } from '@/shared/components/buttons'
+import Page from '@/shared/components/Page'
+import Pastilla from '@/shared/components/Pastilla'
+import Spacer from '@/shared/components/Spacer'
+import Submit from '@/shared/components/Submit'
+import { Body1, H4 } from '@/shared/components/Typography'
+import { errorToast } from '@/shared/toasts'
+import { TextField } from '@mui/material'
+import Grid from '@mui/material/Grid2'
+import Link from 'next/link'
+import { SubmitHandler, useForm } from 'react-hook-form'
+
+interface I_FormFields {
+  school_id: number
+  file: FileList
+}
+
+const StudentProfilesBatchCreatePage = () => {
+  const backToList = useNavigateToStudentProfileList()
+
+  const {
+    control,
+    handleSubmit,
+    register,
+    formState: { errors },
+  } = useForm<I_FormFields>()
+
+  const onSubmit: SubmitHandler<I_FormFields> = (data) => {
+    if (!data.file || data.file.length === 0) {
+      errorToast('Debe seleccionar un archivo.')
+      return
+    }
+
+    const payload = {
+      school_id: data.school_id,
+      file: data.file[0], // Only the first file is sent
+    }
+    console.log(payload)
+
+    // uploadStudentProfiles(payload)
+    //   .then(() => {
+    //     alert('Archivo subido exitosamente.')
+    //     backToList()
+    //   })
+    //   .catch((error) => {
+    //     console.error('Error al subir el archivo:', error)
+    //     alert('Hubo un error al subir el archivo.')
+    //   })
+  }
+
+  return (
+    <Page>
+      <Page.Title>Agregar {STUDENT_PROFILE_NAME.singular}</Page.Title>
+      <Page.Toolbar>
+        <BackButton onClick={backToList} />
+      </Page.Toolbar>
+      <Page.Content>
+        <Grid container spacing={12}>
+          <Grid size={7}>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <Grid container spacing={3}>
+                <Grid size={12}>
+                  <SchoolSelectControlled
+                    control={control}
+                    name="school_id"
+                    rules={{ required: 'Debe seleccionar una escuela' }}
+                    label="Escuela"
+                  />
+                  {errors.school_id && <p style={{ color: 'red' }}>{errors.school_id.message}</p>}
+                </Grid>
+                <Grid size={12}>
+                  <TextField
+                    type="file"
+                    slotProps={{
+                      htmlInput: {
+                        accept:
+                          '.csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel',
+                      },
+                    }}
+                    {...register('file', { required: 'Debe seleccionar un archivo' })}
+                    fullWidth
+                  />
+                  {errors.file && <p style={{ color: 'red' }}>{errors.file.message}</p>}
+                </Grid>
+              </Grid>
+              <Spacer />
+              <Submit>Crear estudiantes</Submit>
+            </form>
+          </Grid>
+          <Grid size={5}>
+            <Pastilla variant="light_blue" padding={'2em'}>
+              <H4>Archivo base</H4>
+              <Spacer />
+              <Body1>
+                Podés descargar este archivo base, el cual te servirá como plantilla para cargar nuevos alumnos.
+              </Body1>
+              <Spacer />
+              <Button LinkComponent={Link} href="/Meta--PlanillaBaseAlumnos.xlsx">
+                Descargar
+              </Button>
+            </Pastilla>
+          </Grid>
+        </Grid>
+      </Page.Content>
+    </Page>
+  )
+}
+
+export default StudentProfilesBatchCreatePage

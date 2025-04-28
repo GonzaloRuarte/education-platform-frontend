@@ -114,6 +114,10 @@ const pages = {
             path: '/dashboard/estudiantes/agregar',
             label: 'Agregar estudiante',
           },
+          cargaMasiva: {
+            path: '/dashboard/estudiantes/carga-masiva',
+            label: 'Carga masiva de estudiantes',
+          },
         },
       },
       comisiones: {
