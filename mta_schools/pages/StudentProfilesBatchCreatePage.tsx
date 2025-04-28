@@ -14,6 +14,7 @@ import { useInProgress } from '@/shared/hooks'
 import log from '@/shared/log'
 import { handleServiceError } from '@/shared/service'
 import { errorToast, successToast } from '@/shared/toasts'
+import { sentence } from '@/shared/utils'
 import { TextField } from '@mui/material'
 import Grid from '@mui/material/Grid2'
 import Link from 'next/link'
@@ -53,7 +54,7 @@ const StudentProfilesBatchCreatePage = () => {
       .then((res) => {
         log.info('Students created succesfully:', res)
 
-        successToast(`${STUDENT_PROFILE_NAME.plural} creados correctamente`)
+        successToast(sentence(`${STUDENT_PROFILE_NAME.plural} creados correctamente`))
         backToList()
       })
       .catch(handleServiceError)

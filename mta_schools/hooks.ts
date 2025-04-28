@@ -86,6 +86,7 @@ const useNavigateToSchoolCreate = navigationHook(pages.D._.escuelas._.agregar.pa
 const useNavigateToStudentProfileList = navigationHook(pages.D._.estudiantes.path)
 
 const useNavigateToStudentProfileCreate = navigationHook(pages.D._.estudiantes._.agregar.path)
+const useNavigateToStudentProfileBatchCreate = navigationHook(pages.D._.estudiantes._.cargaMasiva.path)
 const useNavigateToStudentProfileDetail = navigationWithIdHook(pages.D._.estudiantes.path)
 
 export {
@@ -107,4 +108,5 @@ export {
   useStudentProfileCreate,
   useCohortsDistinctBySchool,
   useStudentProfileBatchCreate,
+  useNavigateToStudentProfileBatchCreate,
 }
