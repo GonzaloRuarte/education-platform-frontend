@@ -109,6 +109,12 @@ const pages = {
       estudiantes: {
         path: '/dashboard/estudiantes',
         label: 'Estudiantes',
+        _: {
+          agregar: {
+            path: '/dashboard/estudiantes/agregar',
+            label: 'Agregar estudiante',
+          },
+        },
       },
       comisiones: {
         path: '/dashboard/comisiones',

@@ -53,7 +53,7 @@ const UsersListPage = () => {
       columns={columns}
       useList={useUserList}
       entityName={USER_NAME}
-      onRowClick={ListPage.mapNavToOnRowClick(navigateToSchoolDetail)}
+      // onRowClick={ListPage.mapNavToOnRowClick(navigateToSchoolDetail)}
       onCreate={navigateToSchoolCreate}
       useBatchDelete={useSchoolBatchDelete}
     />

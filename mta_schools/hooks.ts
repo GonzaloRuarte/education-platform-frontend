@@ -3,6 +3,7 @@ import {
   I_SchoolCreateRequestData,
   I_SchoolDetail,
   I_SchoolUpdateRequestData,
+  I_StudentProfileCreateRequestData,
   T_SchoolId,
   T_SchoolNames,
   T_SchoolsList,
@@ -51,15 +52,27 @@ const useStudentProfileListBySchool = listHookV3<typeof STUDENTS_BY_SCHOOL_PATH,
   axiosGet,
   useAuthResources,
 )
+const useStudentProfileCreate = creationHook<I_StudentProfileCreateRequestData, I_CreationCommonResponse>(
+  STUDENT_PROFILE_PATH,
+  axiosPost,
+  useAuthResources,
+)
 
 const useNavigateToSchoolList = navigationHook(pages.D._.escuelas.path)
 const useNavigateToSchoolDetail = navigationWithIdHook(pages.D._.escuelas.path)
 const useNavigateToSchoolCreate = navigationHook(pages.D._.escuelas._.agregar.path)
+const useNavigateToStudentProfileList = navigationHook(pages.D._.estudiantes.path)
+
+const useNavigateToStudentProfileCreate = navigationHook(pages.D._.estudiantes._.agregar.path)
+const useNavigateToStudentProfileDetail = navigationWithIdHook(pages.D._.estudiantes.path)
 
 export {
   useNavigateToSchoolCreate,
   useNavigateToSchoolDetail,
   useNavigateToSchoolList,
+  useNavigateToStudentProfileList,
+  useNavigateToStudentProfileCreate,
+  useNavigateToStudentProfileDetail,
   useSchoolBatchDelete,
   useSchoolCreate,
   useSchoolDelete,
@@ -69,4 +82,5 @@ export {
   useStudentProfileList,
   useSchoolAllNames,
   useStudentProfileListBySchool,
+  useStudentProfileCreate,
 }

@@ -27,6 +27,11 @@ interface I_SchoolCreateRequestData {
   district: string
   contact_email: string
 }
+interface I_StudentProfileCreateRequestData {
+  cohort: string
+  personal_id: number
+  school_id: T_SchoolId
+}
 
 interface I_SchoolDetail {
   id: number
@@ -64,4 +69,5 @@ export type {
   I_SchoolCreateRequestData,
   I_SchoolUpdateRequestData,
   T_SchoolNames,
+  I_StudentProfileCreateRequestData,
 }
