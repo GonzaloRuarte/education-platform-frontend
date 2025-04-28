@@ -120,6 +120,6 @@ const AppointmentProcessPage = () => {
 }
 
 export default withAuth(AppointmentProcessPage, {
-  allowedAccessGroups: ['admin', 'school_staff'],
+  allowedUserProfiles: ['admin', 'school_staff'],
   logoutDestination: 'dashboard',
 })

@@ -96,6 +96,6 @@ const EvaluationContentEditPage = () => {
 }
 
 export default withAuth(EvaluationContentEditPage, {
-  allowedAccessGroups: ['admin', 'evaluator'],
+  allowedUserProfiles: ['admin', 'evaluator'],
   logoutDestination: 'dashboard',
 })

@@ -2,7 +2,13 @@
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { STUDENT_PROFILE_NAME } from '@/mta_schools/constants'
-import { useStudentProfileList } from '@/mta_schools/hooks'
+import {
+  useNavigateToStudentProfileBatchCreate,
+  useNavigateToStudentProfileCreate,
+  useNavigateToStudentProfileDetail,
+  useStudentProfileList,
+} from '@/mta_schools/hooks'
+import Button from '@/shared/components/Button'
 import ListPage from '@/shared/pages/ListPage'
 import { GridColDef } from '@mui/x-data-grid'
 
@@ -18,11 +24,28 @@ const columns: Array<GridColDef> = [
   { field: 'cohort', headerName: 'División', flex: 2 },
 ]
 
-const StudentProfileListPage = () => (
-  <ListPage columns={columns} useList={useStudentProfileList} entityName={STUDENT_PROFILE_NAME} />
-)
+const StudentProfileListPage = () => {
+  const navigateToDetail = useNavigateToStudentProfileDetail()
+  const navigateToCreate = useNavigateToStudentProfileCreate()
+  const navigateToBatchCreate = useNavigateToStudentProfileBatchCreate()
+
+  return (
+    <ListPage
+      columns={columns}
+      useList={useStudentProfileList}
+      entityName={STUDENT_PROFILE_NAME}
+      onCreate={navigateToCreate}
+      onRowClick={ListPage.mapNavToOnRowClick(navigateToDetail)}
+      customButtons={
+        <>
+          <Button onClick={navigateToBatchCreate}>Carga masiva</Button>
+        </>
+      }
+    />
+  )
+}
 
 export default withAuth(StudentProfileListPage, {
-  allowedAccessGroups: ['admin', 'school_staff'],
+  allowedUserProfiles: ['admin', 'school_staff'],
   logoutDestination: 'dashboard',
 })

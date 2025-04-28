@@ -17,6 +17,6 @@ const ResolutionSubmittedPage = () => {
 }
 
 export default withAuth(ResolutionSubmittedPage, {
-  allowedAccessGroups: ['admin', 'student'],
+  allowedUserProfiles: ['admin', 'student'],
   logoutDestination: 'resolutions',
 })

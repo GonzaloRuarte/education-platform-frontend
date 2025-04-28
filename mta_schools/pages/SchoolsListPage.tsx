@@ -8,6 +8,7 @@ import {
   useSchoolBatchDelete,
   useSchoolList,
 } from '@/mta_schools/hooks'
+import Button from '@/shared/components/Button'
 import ListPage from '@/shared/pages/ListPage'
 import { Chip } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
@@ -51,6 +52,6 @@ const SchoolsListPage = () => {
 }
 
 export default withAuth(SchoolsListPage, {
-  allowedAccessGroups: ['admin', 'school_staff'],
+  allowedUserProfiles: ['admin', 'school_staff'],
   logoutDestination: 'dashboard',
 })

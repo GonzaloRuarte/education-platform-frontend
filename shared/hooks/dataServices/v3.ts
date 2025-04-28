@@ -1,10 +1,8 @@
 import { I_AuthResources } from '@/mta_auth/types'
-import { I_FetchOptions, T_GetMethod } from '@/shared/data/types'
+import { I_FetchOptions, I_RequestSetup, T_GetMethod, T_HttpMethod } from '@/shared/data/types'
 import { useInProgressLocal } from '@/shared/hooks/utils'
-import { listService } from '@/shared/service'
-import { I_FetchingHookResources, T_InProgressHook, T_VoidFn } from '@/shared/types'
-import { randomInt } from '@/shared/utils'
-import debounce, { DebouncedFunction } from 'debounce'
+import { httpService, listService } from '@/shared/service'
+import { I_FetchingHookResources, T_InProgressHook } from '@/shared/types'
 import { useDebouncedCallback } from 'use-debounce'
 
 import { useCallback, useEffect, useState } from 'react'
@@ -69,4 +67,51 @@ const listHookV3 = <T_Path extends string, T_Response>(
   return useList
 }
 
-export { listHookV3 }
+type T_ActionServiceHookV3<T_RequestData, T_Response, T_PathParams> = (
+  pathParams?: T_PathParams,
+  useInProgress?: T_InProgressHook,
+) => I_FetchingHookResources<T_Response>
+
+const actionHookV3 = <T_Path extends string, T_RequestData, T_Response>(
+  path: T_Path,
+  httpMethod: T_HttpMethod,
+  useRequestSetup: () => I_RequestSetup,
+) => {
+  const useAction: T_ActionServiceHookV3<T_RequestData, T_Response, T_PathParams<T_Path>> = (
+    pathParams?: T_PathParams<T_Path>,
+    useInProgress: T_InProgressHook = useInProgressLocal,
+  ) => {
+    const [data, setData] = useState<undefined | T_Response>(undefined)
+    const { isInProgress, setIsInProgress, setIsNotInProgress } = useInProgress()
+    // Resolve the dynamic path with pathParams
+    const resolvedPath = pathParams ? path.replace(/{(\w+):\w+}/g, (_, key) => pathParams[key]?.toString() || '') : path
+
+    // Return the service function with the resolved path
+    // return (data: T_RequestData) =>
+    //   httpService<T_RequestData, T_Response>(resolvedPath, httpMethod)(useAuthResources())(data)
+
+    const fetcher = httpService<T_RequestData, T_Response>(resolvedPath, httpMethod)(useRequestSetup())
+
+    const reload = useDebouncedCallback(
+      useCallback(() => {
+        setIsInProgress()
+        fetcher()
+          .then((res) => setData(res))
+          .finally(setIsNotInProgress)
+      }, [resolvedPath]),
+      250,
+    )
+
+    useEffect(() => {
+      setIsInProgress()
+      reload.cancel()
+      reload()
+    }, [resolvedPath])
+
+    return { data, reload, isLoading: isInProgress }
+  }
+
+  return useAction
+}
+
+export { actionHookV3, listHookV3 }

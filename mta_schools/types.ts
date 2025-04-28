@@ -27,6 +27,12 @@ interface I_SchoolCreateRequestData {
   district: string
   contact_email: string
 }
+interface I_StudentProfileCreateRequestData {
+  cohort: string
+  personal_id: number
+  school_id: T_SchoolId
+}
+type T_StudentProfileBatchCreateRequestData = FormData
 
 interface I_SchoolDetail {
   id: number
@@ -52,6 +58,11 @@ interface I_StudentProfileListItem {
 
 type T_StudentProfileList = I_PaginatedResponse<I_StudentProfileListItem>
 
+interface I_CohortsDistinctBySchool {
+  school_id: T_SchoolId
+  cohorts: Array<string>
+}
+
 export type {
   T_SchoolId,
   T_StudentProfileId,
@@ -64,4 +75,7 @@ export type {
   I_SchoolCreateRequestData,
   I_SchoolUpdateRequestData,
   T_SchoolNames,
+  I_StudentProfileCreateRequestData,
+  I_CohortsDistinctBySchool,
+  T_StudentProfileBatchCreateRequestData,
 }

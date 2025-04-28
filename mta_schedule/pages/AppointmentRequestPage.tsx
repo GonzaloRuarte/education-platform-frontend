@@ -11,7 +11,7 @@ import {
 import { I_AppointmentAvailable, T_AppointmentId, T_AppointmentsAvailableList } from '@/mta_schedule/types'
 import { availableDays } from '@/mta_schedule/utils'
 import { SchoolGradeSelectControlled } from '@/mta_schools/components/SchoolGradeSelect'
-import { SelectSchoolControlled } from '@/mta_schools/components/SelectSchool'
+import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
 import { SchoolGrade } from '@/mta_schools/constants'
 import { T_SchoolId } from '@/mta_schools/types'
 import MagicGrid from '@/shared/components/MagicGrid'
@@ -153,7 +153,7 @@ const AppointmentRequestPage = () => {
 
             <Grid2 size={12}>
               <MagicGrid>
-                <SelectSchoolControlled control={control} name="school_id" rules={{ ...rules.required() }} />
+                <SchoolSelectControlled control={control} name="school_id" rules={{ ...rules.required() }} />
                 <InputControlled
                   control={control}
                   name="pin"
@@ -176,6 +176,6 @@ const AppointmentRequestPage = () => {
 }
 
 export default withAuth(AppointmentRequestPage, {
-  allowedAccessGroups: ['admin', 'school_staff'],
+  allowedUserProfiles: ['admin', 'school_staff'],
   logoutDestination: 'dashboard',
 })

@@ -19,6 +19,6 @@ const QuestionEditPage = () => (
 )
 
 export default withAuth(QuestionEditPage, {
-  allowedAccessGroups: ['admin', 'evaluator'],
+  allowedUserProfiles: ['admin', 'evaluator'],
   logoutDestination: 'dashboard',
 })

@@ -109,6 +109,16 @@ const pages = {
       estudiantes: {
         path: '/dashboard/estudiantes',
         label: 'Estudiantes',
+        _: {
+          agregar: {
+            path: '/dashboard/estudiantes/agregar',
+            label: 'Agregar estudiante',
+          },
+          cargaMasiva: {
+            path: '/dashboard/estudiantes/carga-masiva',
+            label: 'Carga masiva de estudiantes',
+          },
+        },
       },
       comisiones: {
         path: '/dashboard/comisiones',
@@ -117,6 +127,20 @@ const pages = {
       usuarios: {
         path: '/dashboard/usuarios',
         label: 'Usuarios',
+        _: {
+          staffEscuela: {
+            path: '/dashboard/usuarios/staff-escuela',
+            label: 'Staff Escuela',
+          },
+          itemista: {
+            path: '/dashboard/usuarios/itemistas',
+            label: 'Itemistas',
+          },
+          admins: {
+            path: '/dashboard/usuarios/administradores',
+            label: 'Administradores',
+          },
+        },
       },
     },
   },

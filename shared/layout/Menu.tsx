@@ -33,7 +33,16 @@ const Menu = () => {
           }
         />
         <MenuItem Icon={FactCheckIcon} label={P.D._.evaluaciones.label} href={P.D._.evaluaciones.path} />
-        <MenuItem Icon={PersonIcon} label={P.D._.estudiantes.label} href={P.D._.estudiantes.path} />
+        <MenuItem
+          Icon={PersonIcon}
+          label={P.D._.estudiantes.label}
+          href={P.D._.estudiantes.path}
+          subMenu={
+            <MenuBlock isSubMenu>
+              <MenuItem label={P.D._.estudiantes._.cargaMasiva.label} href={P.D._.estudiantes._.cargaMasiva.path} />
+            </MenuBlock>
+          }
+        />
         <MenuItem Icon={BadgeIcon} label={P.D._.usuarios.label} href={P.D._.usuarios.path} />
       </MenuBlock>
 

@@ -2,6 +2,7 @@ import { I_AuthResources } from '@/mta_auth/types'
 import { I_UseConfirm } from '@/shared/confirm'
 import {
   I_FetchOptions,
+  I_RequestSetup,
   T_DeleteMethod,
   T_GetMethod,
   T_HttpMethod,
@@ -35,18 +36,23 @@ import debounce from 'debounce'
 
 import { useCallback, useEffect, useState } from 'react'
 
-const listHook = <T_Response>(path: string, getMethod: T_GetMethod, useAuthResources: () => I_AuthResources) => {
+const listHook = <T_Response>(
+  path: string,
+  getMethod: T_GetMethod,
+  useRequestSetup: () => I_RequestSetup,
+  config?: { dataPostProcessor?: any },
+) => {
   const useList: T_ListServiceHook<T_Response> = (
     options?: I_FetchOptions,
     useInProgress: T_InProgressHook = useInProgressLocal,
   ) => {
     const [data, setData] = useState<undefined | T_Response>(undefined)
     const { isInProgress, setInProgressStatus } = useInProgress()
-    const fetcher = listService<T_Response>(path, getMethod)(useAuthResources(), options)
+    const fetcher = listService<T_Response>(path, getMethod)(useRequestSetup(), options)
     const reload = useCallback(() => {
       setInProgressStatus(true)
       fetcher()
-        .then((res) => setData(res))
+        .then((res) => setData(config?.dataPostProcessor !== undefined ? config.dataPostProcessor(res) : res))
         .finally(() => {
           setInProgressStatus(false)
         })
@@ -62,7 +68,7 @@ const listHook = <T_Response>(path: string, getMethod: T_GetMethod, useAuthResou
 const getHook = <T_Response, T_QueryParams = {}>(
   path: string,
   getMethod: T_GetMethod,
-  useAuthResources: () => I_AuthResources,
+  useRequestSetup: () => I_RequestSetup,
 ) => {
   const useGet = (
     queryParams?: T_QueryParams, // Optional query parameters
@@ -81,7 +87,7 @@ const getHook = <T_Response, T_QueryParams = {}>(
       : ''
     const fullPath = `${path}${queryString}`
 
-    const fetcher = listService<T_Response>(fullPath, getMethod)(useAuthResources(), options)
+    const fetcher = listService<T_Response>(fullPath, getMethod)(useRequestSetup(), options)
 
     const reload = () => {
       setInProgressStatus(true)
@@ -102,10 +108,10 @@ const getHook = <T_Response, T_QueryParams = {}>(
 const creationHook = <T_RequestData, T_Response>(
   path: string,
   postMethod: T_PostMethod,
-  useAuthResources: () => I_AuthResources,
+  useRequestSetup: () => I_RequestSetup,
 ) => {
   const useCreate: T_CreateServiceHook<T_RequestData, T_Response> = () => {
-    return postService<T_RequestData, T_Response>(path, postMethod)(useAuthResources())
+    return postService<T_RequestData, T_Response>(path, postMethod)(useRequestSetup())
   }
   return useCreate
 }
@@ -113,10 +119,10 @@ const creationHook = <T_RequestData, T_Response>(
 const actionHook = <T_RequestData, T_Response>(
   path: string,
   httpMethod: T_HttpMethod,
-  useAuthResources: () => I_AuthResources,
+  useRequestSetup: () => I_RequestSetup,
 ) => {
   const useAction: T_ActionServiceHook<T_RequestData, T_Response> = () => {
-    return postService<T_RequestData, T_Response>(path, httpMethod)(useAuthResources())
+    return postService<T_RequestData, T_Response>(path, httpMethod)(useRequestSetup())
   }
   return useAction
 }
@@ -124,22 +130,22 @@ const actionHook = <T_RequestData, T_Response>(
 const deletionHook = <T_Id, T_Response = I_DeletionCommonResponse>(
   path: string,
   deleteMethod: T_DeleteMethod,
-  useAuthResources: () => I_AuthResources,
+  useRequestSetup: () => I_RequestSetup,
 ): T_DeletionServiceHook<T_Id, T_Response> => {
-  return () => deletionService<T_Id, T_Response>(path, deleteMethod)(useAuthResources())
+  return () => deletionService<T_Id, T_Response>(path, deleteMethod)(useRequestSetup())
 }
 
 const batchDeletionHook = <T_Id, T_Response = I_DeletionCommonResponse>(
   entityPath: string,
   deleteMethod: T_DeleteMethod,
-  useAuthResources: () => I_AuthResources,
+  useRequestSetup: () => I_RequestSetup,
 ): T_BatchDeletionServiceHook<T_Id> => {
   const useBatchDelete = (d: {
     entityName: EntityName
     showConfirm: I_UseConfirm['showConfirm']
     reload: T_VoidFn
   }) => {
-    const authResources = useAuthResources()
+    const authResources = useRequestSetup()
 
     return (ids: Array<T_Id>) => {
       const isJustOne = ids.length === 1
@@ -162,11 +168,7 @@ const batchDeletionHook = <T_Id, T_Response = I_DeletionCommonResponse>(
   return useBatchDelete
 }
 
-const detailHook = <T_Id, T_Response>(
-  path: string,
-  getMethod: T_GetMethod,
-  useAuthResources: () => I_AuthResources,
-) => {
+const detailHook = <T_Id, T_Response>(path: string, getMethod: T_GetMethod, useRequestSetup: () => I_RequestSetup) => {
   const useDetail: T_DetailServiceHook<T_Id, T_Response> = (
     id: T_Id,
     options?: I_FetchOptions,
@@ -174,7 +176,7 @@ const detailHook = <T_Id, T_Response>(
   ) => {
     const [data, setData] = useState<undefined | T_Response>(undefined)
     const { isInProgress, setInProgressStatus } = useInProgress()
-    const fetcher = detailService<T_Id, T_Response>(path, getMethod)(id, useAuthResources(), options)
+    const fetcher = detailService<T_Id, T_Response>(path, getMethod)(id, useRequestSetup(), options)
     const reload = () => {
       setInProgressStatus(true)
       fetcher()
@@ -193,11 +195,11 @@ const detailHook = <T_Id, T_Response>(
 const updateHook = <T_Id, T_RequestData, T_Response = {}>(
   entityPath: string,
   patchMethod: T_PatchMethod,
-  useAuthResources: () => I_AuthResources,
+  useRequestSetup: () => I_RequestSetup,
   options?: { pathSuffix?: string },
 ) => {
   const useUpdate: T_UpdateServiceHook<T_Id, T_RequestData, T_Response> = () => {
-    return updateService<T_Id, T_RequestData, T_Response>(entityPath, patchMethod, options)(useAuthResources())
+    return updateService<T_Id, T_RequestData, T_Response>(entityPath, patchMethod, options)(useRequestSetup())
   }
   return useUpdate
 }

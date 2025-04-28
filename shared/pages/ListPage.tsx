@@ -20,6 +20,7 @@ interface I_Props<T_Id, T_Response> {
   onRowClick?: ComponentProps<typeof Table>['onRowClick']
   onCreate?: T_VoidFn
   useBatchDelete?: T_BatchDeletionServiceHook<T_Id>
+  customButtons?: React.ReactNode
 }
 
 function BatchDeleteAction<T_Id>(p: {
@@ -75,6 +76,7 @@ function ListPage<T_Id, T_Response extends I_PaginatedResponse>(p: I_Props<T_Id,
               useBatchDelete={p.useBatchDelete}
             />
           )}
+          {p.customButtons}
         </Page.Toolbar>
         <Page.Content>
           <Table

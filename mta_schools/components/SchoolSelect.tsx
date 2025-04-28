@@ -5,7 +5,7 @@ import { schoolLabels } from '@/mta_schools/labels'
 import { Body1 } from '@/shared/components/Typography'
 
 // SelectSchool Component
-export const SelectSchool: React.FC<{
+export const SchoolSelect: React.FC<{
   value: string | number | undefined
   onChange: (value: string | number) => void
   label?: string
@@ -32,7 +32,7 @@ export const SelectSchool: React.FC<{
 }
 
 // SelectSchoolControlled Component
-export const SelectSchoolControlled = <T_FormFields extends FieldValues>({
+export const SchoolSelectControlled = <T_FormFields extends FieldValues>({
   name,
   rules,
   shouldUnregister,
@@ -44,7 +44,7 @@ export const SelectSchoolControlled = <T_FormFields extends FieldValues>({
   const hasError = fieldState.error !== undefined
 
   return (
-    <SelectSchool
+    <SchoolSelect
       value={field.value}
       onChange={field.onChange}
       label={label}
