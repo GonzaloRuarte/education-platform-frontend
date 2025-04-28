@@ -43,12 +43,13 @@ const StudentProfilesBatchCreatePage = () => {
       return
     }
 
-    const payload = {
-      school_id: data.school_id,
-      file: data.file[0], // Only the first file is sent
-    }
+    const formData = new FormData()
+    formData.append('school_id', String(data.school_id)) // Convertir school_id a string
+    formData.append('file', data.file[0]) // Solo se envía el primer archivo
+    console.log('formData')
+
     setIsInProgress()
-    batchCreate(payload)
+    batchCreate(formData)
       .then((res) => {
         log.info('Students created succesfully:', res)
 

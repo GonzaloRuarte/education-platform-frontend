@@ -8,7 +8,7 @@ const _authHeader = (accessToken: string) => ({
 })
 
 const _axiosBaseHeaders = (requestSetup?: I_RequestSetup) => ({
-  'Content-Type': 'application/json',
+  'Content-Type': requestSetup?.['Content-Type'] !== undefined ? requestSetup?.['Content-Type'] : 'application/json',
   ...(requestSetup?.accessToken && _authHeader(requestSetup.accessToken)),
 })
 

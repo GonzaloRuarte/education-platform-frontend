@@ -1,5 +1,5 @@
 import { I_AuthResources } from '@/mta_auth/types'
-import { I_FetchOptions, T_GetMethod, T_HttpMethod } from '@/shared/data/types'
+import { I_FetchOptions, I_RequestSetup, T_GetMethod, T_HttpMethod } from '@/shared/data/types'
 import { useInProgressLocal } from '@/shared/hooks/utils'
 import { httpService, listService } from '@/shared/service'
 import { I_FetchingHookResources, T_InProgressHook } from '@/shared/types'
@@ -75,7 +75,7 @@ type T_ActionServiceHookV3<T_RequestData, T_Response, T_PathParams> = (
 const actionHookV3 = <T_Path extends string, T_RequestData, T_Response>(
   path: T_Path,
   httpMethod: T_HttpMethod,
-  useAuthResources: () => I_AuthResources,
+  useRequestSetup: () => I_RequestSetup,
 ) => {
   const useAction: T_ActionServiceHookV3<T_RequestData, T_Response, T_PathParams<T_Path>> = (
     pathParams?: T_PathParams<T_Path>,
@@ -90,7 +90,7 @@ const actionHookV3 = <T_Path extends string, T_RequestData, T_Response>(
     // return (data: T_RequestData) =>
     //   httpService<T_RequestData, T_Response>(resolvedPath, httpMethod)(useAuthResources())(data)
 
-    const fetcher = httpService<T_RequestData, T_Response>(resolvedPath, httpMethod)(useAuthResources())
+    const fetcher = httpService<T_RequestData, T_Response>(resolvedPath, httpMethod)(useRequestSetup())
 
     const reload = useDebouncedCallback(
       useCallback(() => {

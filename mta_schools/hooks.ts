@@ -4,7 +4,7 @@ import {
   I_SchoolCreateRequestData,
   I_SchoolDetail,
   I_SchoolUpdateRequestData,
-  I_StudentProfileBatchCreateRequestData,
+  T_StudentProfileBatchCreateRequestData,
   I_StudentProfileCreateRequestData,
   T_SchoolId,
   T_SchoolNames,
@@ -27,6 +27,7 @@ import {
 import pages from '@/pages'
 import { I_CreationCommonResponse, T_EmptyPayload } from '@/shared/types'
 import { actionHookV3, listHookV3 } from '@/shared/hooks/dataServices/v3'
+import { I_RequestSetup } from '@/shared/data/types'
 
 const SCHOOLS_PATH = '/schools'
 const STUDENT_PROFILE_PATH = '/student-profile'
@@ -62,10 +63,15 @@ const useStudentProfileCreate = creationHook<I_StudentProfileCreateRequestData, 
   axiosPost,
   useAuthResources,
 )
-const useStudentProfileBatchCreate = creationHook<I_StudentProfileBatchCreateRequestData, I_CreationCommonResponse>(
+
+const _useRequestSetup = (): I_RequestSetup => {
+  const authResources = useAuthResources()
+  return { ...authResources, 'Content-Type': 'multipart/form-data' }
+}
+const useStudentProfileBatchCreate = creationHook<T_StudentProfileBatchCreateRequestData, I_CreationCommonResponse>(
   `${STUDENT_PROFILE_PATH}/batch-create`,
   axiosPost,
-  useAuthResources,
+  _useRequestSetup,
 )
 
 const useCohortsDistinctBySchool = actionHookV3<
