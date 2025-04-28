@@ -32,6 +32,10 @@ interface I_StudentProfileCreateRequestData {
   personal_id: number
   school_id: T_SchoolId
 }
+interface I_StudentProfileBatchCreateRequestData {
+  school_id: T_SchoolId
+  file: File
+}
 
 interface I_SchoolDetail {
   id: number
@@ -76,4 +80,5 @@ export type {
   T_SchoolNames,
   I_StudentProfileCreateRequestData,
   I_CohortsDistinctBySchool,
+  I_StudentProfileBatchCreateRequestData,
 }

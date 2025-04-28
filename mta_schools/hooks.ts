@@ -4,6 +4,7 @@ import {
   I_SchoolCreateRequestData,
   I_SchoolDetail,
   I_SchoolUpdateRequestData,
+  I_StudentProfileBatchCreateRequestData,
   I_StudentProfileCreateRequestData,
   T_SchoolId,
   T_SchoolNames,
@@ -61,6 +62,11 @@ const useStudentProfileCreate = creationHook<I_StudentProfileCreateRequestData, 
   axiosPost,
   useAuthResources,
 )
+const useStudentProfileBatchCreate = creationHook<I_StudentProfileBatchCreateRequestData, I_CreationCommonResponse>(
+  `${STUDENT_PROFILE_PATH}/batch-create`,
+  axiosPost,
+  useAuthResources,
+)
 
 const useCohortsDistinctBySchool = actionHookV3<
   typeof COHORTS_BY_SCHOOL_PATH,
@@ -94,4 +100,5 @@ export {
   useStudentProfileListBySchool,
   useStudentProfileCreate,
   useCohortsDistinctBySchool,
+  useStudentProfileBatchCreate,
 }

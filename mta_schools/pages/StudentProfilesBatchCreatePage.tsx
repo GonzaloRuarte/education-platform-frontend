@@ -2,7 +2,7 @@
 
 import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
 import { STUDENT_PROFILE_NAME } from '@/mta_schools/constants'
-import { useNavigateToStudentProfileList } from '@/mta_schools/hooks'
+import { useNavigateToStudentProfileList, useStudentProfileBatchCreate } from '@/mta_schools/hooks'
 import Button from '@/shared/components/Button'
 import { BackButton } from '@/shared/components/buttons'
 import Page from '@/shared/components/Page'
@@ -10,7 +10,10 @@ import Pastilla from '@/shared/components/Pastilla'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import { Body1, H4 } from '@/shared/components/Typography'
-import { errorToast } from '@/shared/toasts'
+import { useInProgress } from '@/shared/hooks'
+import log from '@/shared/log'
+import { handleServiceError } from '@/shared/service'
+import { errorToast, successToast } from '@/shared/toasts'
 import { TextField } from '@mui/material'
 import Grid from '@mui/material/Grid2'
 import Link from 'next/link'
@@ -23,6 +26,7 @@ interface I_FormFields {
 
 const StudentProfilesBatchCreatePage = () => {
   const backToList = useNavigateToStudentProfileList()
+  const { setIsInProgress, setIsNotInProgress } = useInProgress()
 
   const {
     control,
@@ -30,6 +34,8 @@ const StudentProfilesBatchCreatePage = () => {
     register,
     formState: { errors },
   } = useForm<I_FormFields>()
+
+  const batchCreate = useStudentProfileBatchCreate()
 
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
     if (!data.file || data.file.length === 0) {
@@ -41,17 +47,18 @@ const StudentProfilesBatchCreatePage = () => {
       school_id: data.school_id,
       file: data.file[0], // Only the first file is sent
     }
-    console.log(payload)
+    setIsInProgress()
+    batchCreate(payload)
+      .then((res) => {
+        log.info('Students created succesfully:', res)
 
-    // uploadStudentProfiles(payload)
-    //   .then(() => {
-    //     alert('Archivo subido exitosamente.')
-    //     backToList()
-    //   })
-    //   .catch((error) => {
-    //     console.error('Error al subir el archivo:', error)
-    //     alert('Hubo un error al subir el archivo.')
-    //   })
+        successToast(`${STUDENT_PROFILE_NAME.plural} creados correctamente`)
+        backToList()
+      })
+      .catch(handleServiceError)
+      .finally(() => {
+        setIsNotInProgress()
+      })
   }
 
   return (
@@ -63,7 +70,7 @@ const StudentProfilesBatchCreatePage = () => {
       <Page.Content>
         <Grid container spacing={12}>
           <Grid size={7}>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form onSubmit={handleSubmit(onSubmit)} encType="multipart/form-data">
               <Grid container spacing={3}>
                 <Grid size={12}>
                   <SchoolSelectControlled
