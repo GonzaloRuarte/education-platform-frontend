@@ -35,7 +35,12 @@ import debounce from 'debounce'
 
 import { useCallback, useEffect, useState } from 'react'
 
-const listHook = <T_Response>(path: string, getMethod: T_GetMethod, useAuthResources: () => I_AuthResources) => {
+const listHook = <T_Response>(
+  path: string,
+  getMethod: T_GetMethod,
+  useAuthResources: () => I_AuthResources,
+  config?: { dataPostProcessor?: any },
+) => {
   const useList: T_ListServiceHook<T_Response> = (
     options?: I_FetchOptions,
     useInProgress: T_InProgressHook = useInProgressLocal,
@@ -46,7 +51,7 @@ const listHook = <T_Response>(path: string, getMethod: T_GetMethod, useAuthResou
     const reload = useCallback(() => {
       setInProgressStatus(true)
       fetcher()
-        .then((res) => setData(res))
+        .then((res) => setData(config?.dataPostProcessor !== undefined ? config.dataPostProcessor(res) : res))
         .finally(() => {
           setInProgressStatus(false)
         })

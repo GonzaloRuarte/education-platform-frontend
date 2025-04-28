@@ -5,14 +5,12 @@ import { useNavigateToSchoolCreate, useNavigateToSchoolDetail, useSchoolBatchDel
 import UserProfileChip from '@/mta_users/components/UserProfileChip'
 import { USER_NAME } from '@/mta_users/constants'
 import { useUserList } from '@/mta_users/hooks'
-import { I_UserListItem } from '@/mta_users/types'
-import Chip from '@/shared/components/Chip'
-import MagicGrid from '@/shared/components/MagicGrid'
+import { I_UserListItemWithProfiles } from '@/mta_users/types'
 import ListPage from '@/shared/pages/ListPage'
 import { Box } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 
-const columns: Array<GridColDef<I_UserListItem>> = [
+const columns: Array<GridColDef<I_UserListItemWithProfiles>> = [
   { field: 'id', headerName: '#' },
   { field: 'username', headerName: 'Nombre de usuario', flex: 1 },
   { field: 'email', headerName: 'E-Mail', flex: 1 },
