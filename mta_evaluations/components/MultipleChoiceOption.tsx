@@ -3,9 +3,11 @@
 import { useMultipleChoiceOptionDelete, useMultipleChoiceOptionEditIsTrue } from '@/mta_evaluations/hooks'
 import { I_AnswerMultipleChoiceDetail, T_MultiplChoiceOptionId } from '@/mta_evaluations/types'
 import Chip from '@/shared/components/Chip'
+import HTMLParser from '@/shared/components/HTMLParser'
 import { T_ArrayElement, T_VoidFn } from '@/shared/types'
+import { HorizontalRule } from '@mui/icons-material'
 import DeleteIcon from '@mui/icons-material/Delete'
-import { Checkbox, IconButton } from '@mui/material'
+import { Box, Checkbox, IconButton } from '@mui/material'
 import { green } from '@mui/material/colors'
 import Grid from '@mui/material/Grid2'
 import parse from 'html-react-parser'
@@ -30,7 +32,7 @@ const MultipleChoiceOption: FC<{
   }
 
   return (
-    <div suppressContentEditableWarning={true}>
+    <Box suppressContentEditableWarning={true} sx={{ borderBottom: '1px solid #DDD' }} p="8px 0">
       <Grid
         spacing={1}
         key={id}
@@ -47,7 +49,9 @@ const MultipleChoiceOption: FC<{
         <Grid size="auto">
           <Chip label={name} />
         </Grid>
-        <Grid size="grow">{parse(content)}</Grid>
+        <Grid size="grow">
+          <HTMLParser htmlContent={content} />
+        </Grid>
         {is_true && (
           <Grid paddingRight={2} sx={{ fontWeight: 'bold', color: 'green' }}>
             Respuesta Correcta
@@ -63,7 +67,7 @@ const MultipleChoiceOption: FC<{
           </Grid>
         )}
       </Grid>
-    </div>
+    </Box>
   )
 }
 export default MultipleChoiceOption

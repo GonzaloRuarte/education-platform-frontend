@@ -2,11 +2,11 @@ import { useNavigateToEvaluationDetail } from '@/mta_evaluations/hooks'
 import { evaluationLabels } from '@/mta_evaluations/labels'
 import { I_EvaluationDetail } from '@/mta_evaluations/types'
 import Button from '@/shared/components/Button'
+import HTMLParser from '@/shared/components/HTMLParser'
 import Spacer from '@/shared/components/Spacer'
 import { Body1, H3 } from '@/shared/components/Typography'
 import { strippedString, truncateWithEllipsis } from '@/shared/utils'
 import { Grid2, Paper } from '@mui/material'
-import parse from 'html-react-parser'
 import { FC } from 'react'
 
 const EvaluationHeaderSummary: FC<{ data: I_EvaluationDetail }> = ({ data }) => {
@@ -24,7 +24,7 @@ const EvaluationHeaderSummary: FC<{ data: I_EvaluationDetail }> = ({ data }) => 
             </Body1>
           </Grid2>
           <Grid2 size={'grow'}>
-            <>{parse(data.header)}</>
+            <HTMLParser htmlContent={data.header} />
           </Grid2>
         </Grid2>
         {data.pinned_text !== null && (

@@ -8,9 +8,9 @@ import {
   useQuestionMoveForward,
 } from '@/mta_evaluations/hooks'
 import {
-  I_EvaluationDetail,
   I_AnswerMultipleChoiceDetail,
   I_AnswerNumericDetail,
+  I_EvaluationDetail,
   T_AnswerType,
   T_EvaluationId,
   T_QuestionId,
@@ -19,6 +19,7 @@ import Bold from '@/shared/components/Bold'
 import Button from '@/shared/components/Button'
 import Chip from '@/shared/components/Chip'
 import DeleteInstanceButton from '@/shared/components/DeleteInstanceButton'
+import HTMLParser from '@/shared/components/HTMLParser'
 import MagicGrid from '@/shared/components/MagicGrid'
 import { Body1, Body2 } from '@/shared/components/Typography'
 import { sharedLabels } from '@/shared/labels'
@@ -29,7 +30,6 @@ import EditIcon from '@mui/icons-material/Edit'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import UploadIcon from '@mui/icons-material/Upload'
 import { Accordion, AccordionDetails, AccordionSummary, Box, Grid2 as Grid } from '@mui/material'
-import parse from 'html-react-parser'
 import React, { FC } from 'react'
 
 const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId; reload: T_VoidFn }> = ({
@@ -134,7 +134,9 @@ const QuestionAccordion: FC<{
 
       <AccordionDetails>
         <MagicGrid>
-          <Box>{parse(question.content)}</Box>
+          <Box>
+            <HTMLParser htmlContent={question.content} />
+          </Box>
           <AnswerComponent data={question.answer} />
           <Toolbar evaluationId={evaluationId} questionId={question.id} reload={reload} />
         </MagicGrid>

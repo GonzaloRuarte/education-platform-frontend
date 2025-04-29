@@ -6,6 +6,7 @@ import { H3, H4 } from '@/shared/components/Typography'
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
+import HTMLParser from '@/shared/components/HTMLParser'
 const ResolutionPinnedText = ({ pinnedText }) => {
   const [isOpen, setIsOpen] = useState(false)
   const closedSize = '70px'
@@ -47,7 +48,7 @@ const ResolutionPinnedText = ({ pinnedText }) => {
               }}
               flex={1}
             >
-              {parse(pinnedText)}
+              <HTMLParser htmlContent={pinnedText} />
             </Box>
           </Box>
         )}

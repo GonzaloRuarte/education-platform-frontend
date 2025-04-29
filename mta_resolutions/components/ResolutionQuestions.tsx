@@ -10,10 +10,11 @@ import {
 } from '@/mta_resolutions/types'
 import Chip from '@/shared/components/Chip'
 import Spacer from '@/shared/components/Spacer'
-import { H4 } from '@/shared/components/Typography'
+import { Body1 } from '@/shared/components/Typography'
 import Input from '@/shared/forms/Input'
 
-import { Checkbox, FormControl, FormControlLabel, Grid2 as Grid, Radio } from '@mui/material'
+import HTMLParser from '@/shared/components/HTMLParser'
+import { Box, Checkbox, FormControl, FormControlLabel, Grid2 as Grid, Radio } from '@mui/material'
 import { FC, Fragment } from 'react'
 
 const NumericForm: FC<{ data: T_EvaluationToResolve_NumericAnswer; questionId: T_QuestionId }> = ({
@@ -96,7 +97,9 @@ const MultipleChoiceForm: FC<{ data: T_EvaluationToResolve_MultipleChoiceAnswer;
                   <Grid>
                     <Chip label={option.name} />
                   </Grid>
-                  <Grid>{option.content}</Grid>
+                  <Grid>
+                    <HTMLParser htmlContent={option.content} />
+                  </Grid>
                 </Grid>
               }
             />
@@ -111,23 +114,24 @@ const forms: Record<T_AnswerType, FC<any>> = {
   Numeric: NumericForm,
 }
 const ResolutionQuestions: FC<{ evaluationToResolve: I_EvaluationToResolve }> = ({ evaluationToResolve }) => {
-  // console.log('evaluationToResolve', evaluationToResolve)
-
   const { currentPage } = useResolutionPagination()
-  // console.log({ currentPage })
 
   const questions = evaluationToResolve.pages[currentPage - 1]
-  // console.log('questions >>>>>>>>>>>>', questions)
+
   return (
     <>
       {questions.map((question) => {
         const AnswerForm = forms[question.answer.resource_type]
         return (
           <Fragment key={question.id}>
-            <H4>
-              {question.order + 1}. {question.content}
+            <Body1>
+              Pregunta {question.order + 1}
               {question.is_mandatory && <sup style={{ fontSize: 10 }}> (obligatoria)</sup>}
-            </H4>
+            </Body1>
+            <Box sx={{ fontSize: '1.5em' }}>
+              <HTMLParser htmlContent={question.content} />
+            </Box>
+
             <Spacer size="s" />
             <AnswerForm data={question.answer} questionId={question.id} />
             <Spacer size="xl" />
