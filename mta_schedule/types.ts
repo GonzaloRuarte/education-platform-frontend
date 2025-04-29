@@ -72,6 +72,10 @@ interface I_AppointmentApprove_RequestData {
 interface I_AppointmentReject_RequestData {
   appointment_id: T_AppointmentId
 }
+interface I_AppointmentAddStudents_RequestData {
+  appointment_id: T_AppointmentId
+  student_profile_ids: Array<T_StudentProfileId>
+}
 
 export type {
   I_AppointmentAvailable,
@@ -87,4 +91,5 @@ export type {
   I_AppointmentApprove_RequestData,
   I_AppointmentReject_RequestData,
   I_AppointmentEvaluationBrief,
+  I_AppointmentAddStudents_RequestData,
 }

@@ -3,12 +3,14 @@
 import AppointmentBriefCard from '@/mta_schedule/components/AppointmentBriefCard'
 import { T_AddedStudents } from '@/mta_schedule/components/StudentsProfileSelector'
 import { ControlledStudentsProfileSelector } from '@/mta_schedule/components/StudentsProfileSelectorControlled'
-import { useNavigateToAppointmentList } from '@/mta_schedule/hooks'
+import { useAppointmentAddStudents, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
 import { I_AppointmentDetail } from '@/mta_schedule/types'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import { useConfirm } from '@/shared/confirm'
 import { useInProgress } from '@/shared/hooks'
+import { handleServiceError } from '@/shared/service'
+import { successToast } from '@/shared/toasts'
 import { Button } from '@mui/material'
 import { useForm } from 'react-hook-form'
 
@@ -22,8 +24,9 @@ interface I_Props {
 
 const AppointmentsEditStudentsForm = ({ data }: I_Props) => {
   const navToList = useNavigateToAppointmentList()
-  const { setIsInProgress } = useInProgress()
+  const { setIsInProgress, setIsNotInProgress } = useInProgress()
   const { ConfirmDialogComponent, showConfirm } = useConfirm()
+  const addStudents = useAppointmentAddStudents()
 
   const { control, handleSubmit } = useForm<I_FormFields>({
     defaultValues: {
@@ -32,8 +35,20 @@ const AppointmentsEditStudentsForm = ({ data }: I_Props) => {
       ),
     },
   })
-  const addStudentProfiles = (data: I_FormFields) => {
-    console.log({ data })
+  const addStudentProfiles = (formData: I_FormFields) => {
+    showConfirm('Agregar estudantes', '¿Estás seguro/a que quieres agregar estos/as estudantes?').then(() => {
+      setIsInProgress()
+      addStudents({
+        appointment_id: Number(data.id),
+        student_profile_ids: Object.keys(formData.student_profiles).map((id) => Number(id)),
+      })
+        .then(() => {
+          successToast('Estudiantes agregados correctamente')
+          navToList()
+        })
+        .catch(handleServiceError)
+        .finally(setIsNotInProgress)
+    })
   }
   return (
     <>
@@ -62,7 +77,7 @@ const AppointmentsEditStudentsForm = ({ data }: I_Props) => {
           />
           <Spacer />
           <Button type="submit" variant="contained" color="primary">
-            Aprobar Turno
+            Agregar estudiantes
           </Button>
         </form>
       </MagicGrid>

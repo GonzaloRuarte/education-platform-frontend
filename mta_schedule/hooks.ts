@@ -1,5 +1,6 @@
 import { useAuthResources } from '@/mta_auth/hooks'
 import {
+  I_AppointmentAddStudents_RequestData,
   I_AppointmentApprove_RequestData,
   I_AppointmentCreateRequestData,
   I_AppointmentDetail,
@@ -65,6 +66,11 @@ const useAppointmentReject = actionHook<I_AppointmentReject_RequestData, I_Appoi
   axiosPost,
   useAuthResources,
 )
+const useAppointmentAddStudents = actionHook<I_AppointmentAddStudents_RequestData, I_AppointmentDetail>(
+  `${APPOINTMENTS_PATH}/add-students`,
+  axiosPost,
+  useAuthResources,
+)
 
 // Navigation
 const useNavigateToAppointmentList = navigationHook(pages.D._.turnos.path)
@@ -87,4 +93,5 @@ export {
   useAppointmentApprove,
   useAppointmentReject,
   useNavigateToAppointmentEditStudents,
+  useAppointmentAddStudents,
 }
