@@ -6,6 +6,7 @@ import Chip from '@/shared/components/Chip'
 import { T_ArrayElement, T_VoidFn } from '@/shared/types'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { Checkbox, IconButton } from '@mui/material'
+import { green } from '@mui/material/colors'
 import Grid from '@mui/material/Grid2'
 import parse from 'html-react-parser'
 import { FC } from 'react'
@@ -30,14 +31,28 @@ const MultipleChoiceOption: FC<{
 
   return (
     <div suppressContentEditableWarning={true}>
-      <Grid spacing={1} key={id} component="div" container justifyContent="center" alignItems="center">
+      <Grid
+        spacing={1}
+        key={id}
+        component="div"
+        container
+        justifyContent="center"
+        alignItems="center"
+        bgcolor={is_true ? green[50] : undefined}
+        borderRadius={is_true ? 5 : undefined}
+      >
         <Grid>
-          <Checkbox checked={is_true} onChange={handleChangeIsTrue} />
+          <Checkbox checked={is_true} onChange={handleChangeIsTrue} color="success" />
         </Grid>
         <Grid size="auto">
           <Chip label={name} />
         </Grid>
         <Grid size="grow">{parse(content)}</Grid>
+        {is_true && (
+          <Grid paddingRight={2} sx={{ fontWeight: 'bold', color: 'green' }}>
+            Respuesta Correcta
+          </Grid>
+        )}
         {withDelete && (
           <Grid size={1} container>
             <Grid>

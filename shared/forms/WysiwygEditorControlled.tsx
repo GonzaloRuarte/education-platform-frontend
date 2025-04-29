@@ -1,14 +1,14 @@
 import { FormControl, FormHelperText, FormLabel } from '@mui/material'
-import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 import dynamic from 'next/dynamic'
+import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 
+import { ComponentPropsWithRef } from 'react'
 import 'react-quill-new/dist/quill.snow.css'
-import { ComponentProps } from 'react'
 
 const QuillNoSSRWrapper = dynamic(
   async () => {
     const { default: RQ } = await import('react-quill-new')
-    return ({ ...props }: ComponentProps<typeof RQ>) => <RQ {...props} />
+    return ({ ...props }: ComponentPropsWithRef<typeof RQ>) => <RQ {...props} />
   },
   {
     ssr: false,
