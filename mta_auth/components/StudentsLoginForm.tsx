@@ -22,7 +22,7 @@ interface I_FormFields {
 }
 
 export default function StudentsLoginForm() {
-  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues: { personal_id: 35425196 } })
+  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues: { personal_id: '' } })
   const navigateToBeginResolution = useNavigateToResolutionPage()
   const authorize = useResolutionAuthorizeStudent()
   const storeAuthData = useStoreAuthData()
@@ -33,7 +33,7 @@ export default function StudentsLoginForm() {
     authorize(data)
       .then((res) => {
         successToast('¡Pudiste ingresar correctamente, bienvenido/a. ¡Suerte en tu Evaluación!')
-        storeAuthData({ accessToken: res.access, refreshToken: res.refresh, accessGroups: ['admin'] })
+        storeAuthData({ accessToken: res.access, refreshToken: res.refresh, accessGroups: ['student'] })
         navigateToBeginResolution()
       })
       .catch(handleServiceError)
