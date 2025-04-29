@@ -21,6 +21,8 @@ interface I_ResolutionsSlice {
 
   resolution_startedAt: string | null
   resolution_maxDurationMinutes: number | null
+  resolution_remainingTimeWarningAlreadyDisplayed: boolean
+  resolution_setRemainingTimeWarningAsDisplayed: () => void
   resolution_storeMetadata: (args: { resolution_startedAt: string; resolution_maxDurationMinutes: number }) => void
   resolution_clearMetadata: () => void
 }
@@ -43,6 +45,9 @@ const createResolutionsSlice: StateCreator<I_ResolutionsSlice, [], [], I_Resolut
 
   resolution_startedAt: null,
   resolution_maxDurationMinutes: null,
+  resolution_remainingTimeWarningAlreadyDisplayed: false,
+  resolution_setRemainingTimeWarningAsDisplayed: () =>
+    set(() => ({ resolution_remainingTimeWarningAlreadyDisplayed: true })),
   resolution_storeMetadata: (args: { resolution_startedAt: string; resolution_maxDurationMinutes: number }) =>
     set(() => ({ ...args })),
   resolution_clearMetadata: () => set(() => ({ resolution_startedAt: null, resolution_maxDurationMinutes: null })),

@@ -66,6 +66,11 @@ const useResolutionStoreMetadata = () => useStore((state) => state.resolution_st
 const useResolutionClearMetadata = () => useStore((state) => state.resolution_clearMetadata)
 const useStoreResolutionState = () => useStore((state) => state.resolution_storeState)
 const useResolutionEvaluationToResolve = () => useStore((state) => state.resolution_evaluation)
+const useResolutionRemainingTimeWarningAlreadyDisplayed = () => {
+  const warningAlreadyDisplayed = useStore((state) => state.resolution_remainingTimeWarningAlreadyDisplayed)
+  const setWarningAsAlreadyDisplayed = useStore((state) => state.resolution_setRemainingTimeWarningAsDisplayed)
+  return { warningAlreadyDisplayed, setWarningAsAlreadyDisplayed }
+}
 const useResolutionMaxDurationMinutes = () => useStore((state) => state.resolution_maxDurationMinutes)
 const useResolutionState = () => useStore((state) => state.resolution_state)
 const useResolutionLastUploadDatetime = () => useStore((state) => state.resolution_lastUpload)
@@ -255,4 +260,5 @@ export {
   useResolutionUpdateLastUploadDatetime,
   useResolutionDownloadState,
   useResolutionMaxDurationMinutes,
+  useResolutionRemainingTimeWarningAlreadyDisplayed,
 }

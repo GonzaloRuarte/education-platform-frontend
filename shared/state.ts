@@ -32,7 +32,8 @@ const useStore = create<T_CombinedSlices>()(
       }),
       {
         name: 'meta_system-data',
-        partialize: (state) => excludeForPartialize(state, ['isInProgress', 'subjects']),
+        partialize: (state) =>
+          excludeForPartialize(state, ['isInProgress', 'subjects', 'resolution_remainingTimeWarningAlreadyDisplayed']),
       },
     ),
   ),
