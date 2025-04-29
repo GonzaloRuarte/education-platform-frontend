@@ -16,6 +16,7 @@ import Input from '@/shared/forms/Input'
 import HTMLParser from '@/shared/components/HTMLParser'
 import { Box, Checkbox, FormControl, FormControlLabel, Grid2 as Grid, Radio } from '@mui/material'
 import { FC, Fragment } from 'react'
+import MultipleChoiceOptionContainer from '@/mta_evaluations/components/MultipleChoiceOptionContainer'
 
 const NumericForm: FC<{ data: T_EvaluationToResolve_NumericAnswer; questionId: T_QuestionId }> = ({
   data,
@@ -69,44 +70,46 @@ const MultipleChoiceForm: FC<{ data: T_EvaluationToResolve_MultipleChoiceAnswer;
   }
 
   return (
-    <FormControl>
-      {data.specific_data.options.map((option) => {
-        return (
-          <Fragment key={`answer_${data.id}-option_${option.id}`}>
-            <FormControlLabel
-              value={option.content}
-              control={
-                data.specific_data.is_multiselect ? (
-                  <Checkbox
-                    onChange={(_, checked) => {
-                      handleCbChange(option.name, checked)
-                    }}
-                    checked={specific_data?.choosed_options?.includes(option.name) || false}
-                  />
-                ) : (
-                  <Radio
-                    onChange={(_, checked) => {
-                      handleRadioChange(option.name, checked)
-                    }}
-                    checked={specific_data?.choosed_options?.includes(option.name) || false}
-                  />
-                )
-              }
-              label={
-                <Grid spacing={2} container justifyContent="center" alignItems="center">
-                  <Grid size="auto">
-                    <Chip label={option.name} />
+    <>
+      <FormControl sx={{ width: '100%' }}>
+        {data.specific_data.options.map((option) => {
+          return (
+            <MultipleChoiceOptionContainer key={`answer_${data.id}-option_${option.id}`}>
+              <FormControlLabel
+                value={option.content}
+                control={
+                  data.specific_data.is_multiselect ? (
+                    <Checkbox
+                      onChange={(_, checked) => {
+                        handleCbChange(option.name, checked)
+                      }}
+                      checked={specific_data?.choosed_options?.includes(option.name) || false}
+                    />
+                  ) : (
+                    <Radio
+                      onChange={(_, checked) => {
+                        handleRadioChange(option.name, checked)
+                      }}
+                      checked={specific_data?.choosed_options?.includes(option.name) || false}
+                    />
+                  )
+                }
+                label={
+                  <Grid spacing={2} container justifyContent="center" alignItems="center">
+                    <Grid size="auto">
+                      <Chip label={option.name} />
+                    </Grid>
+                    <Grid size="grow">
+                      <HTMLParser htmlContent={option.content} />
+                    </Grid>
                   </Grid>
-                  <Grid size="grow">
-                    <HTMLParser htmlContent={option.content} />
-                  </Grid>
-                </Grid>
-              }
-            />
-          </Fragment>
-        )
-      })}
-    </FormControl>
+                }
+              />
+            </MultipleChoiceOptionContainer>
+          )
+        })}
+      </FormControl>
+    </>
   )
 }
 const forms: Record<T_AnswerType, FC<any>> = {

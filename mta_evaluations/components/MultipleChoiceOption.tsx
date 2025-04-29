@@ -1,5 +1,6 @@
 'use client'
 
+import MultipleChoiceOptionContainer from '@/mta_evaluations/components/MultipleChoiceOptionContainer'
 import { useMultipleChoiceOptionDelete, useMultipleChoiceOptionEditIsTrue } from '@/mta_evaluations/hooks'
 import { I_AnswerMultipleChoiceDetail, T_MultiplChoiceOptionId } from '@/mta_evaluations/types'
 import Chip from '@/shared/components/Chip'
@@ -32,7 +33,7 @@ const MultipleChoiceOption: FC<{
   }
 
   return (
-    <Box suppressContentEditableWarning={true} sx={{ borderBottom: '1px solid #DDD' }} p="8px 0">
+    <MultipleChoiceOptionContainer>
       <Grid
         spacing={1}
         key={id}
@@ -67,7 +68,7 @@ const MultipleChoiceOption: FC<{
           </Grid>
         )}
       </Grid>
-    </Box>
+    </MultipleChoiceOptionContainer>
   )
 }
 export default MultipleChoiceOption
