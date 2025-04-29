@@ -15,6 +15,7 @@ import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { useForm } from 'react-hook-form'
 import { useNavigateToResolutionPage } from '@/mta_resolutions/hooks/navigation'
+import { IntegerInputControlled } from '@/shared/forms/IntegerInput'
 
 interface I_FormFields {
   personal_id: T_StudentProfilePersonalId | ''
@@ -45,11 +46,10 @@ export default function StudentsLoginForm() {
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
         <MagicGrid>
-          <InputControlled<I_FormFields>
+          <IntegerInputControlled<I_FormFields>
             control={control}
             name="personal_id"
-            type="number"
-            rules={{ ...rules.required() }}
+            rules={{ ...rules.required(), ...rules.pattern(/^[0-9]+$/, 'Solo se permiten números.') }}
             label="DNI"
           />
         </MagicGrid>

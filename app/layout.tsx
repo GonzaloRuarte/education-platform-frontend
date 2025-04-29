@@ -14,6 +14,7 @@ import RecoverEvaluationSubjects from '@/mta_evaluations/appServices/RecoverEval
 import LoadFormulasResources from '@/shared/formulas/appServices/LoadFormulasResources'
 import LocalizationProvider from '@/shared/datetime/LocalizationProvider'
 import { MAIN_BG_COLOR } from '@/config'
+import '@/shared/globals.css'
 
 const monstserrat = Montserrat({
   weight: ['300', '400', '500', '700'],
