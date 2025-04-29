@@ -11,6 +11,11 @@ import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import Spacer from '@/shared/components/Spacer'
+import { H4 } from '@/shared/components/Typography'
+import Chip from '@/shared/components/Chip'
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'
+import Link from 'next/link'
+import pages from '@/pages'
 
 interface I_FormFields extends I_SchoolUpdateRequestData {}
 
@@ -52,6 +57,21 @@ const SchoolCreateForm = ({ data }: I_Props) => {
           rules={{ ...rules.required() }}
           label="Distrito"
         />
+      </MagicGrid>
+      <Spacer />
+      <H4>Staff</H4>
+      <Spacer size="s" />
+      <MagicGrid itemSize="auto">
+        {data.staff.map((member) => {
+          return (
+            <Link
+              key={member.school_staff_id}
+              href={`${pages.D._.usuarios._.staffEscuela.path}/${member.school_staff_id}`}
+            >
+              <Chip icon={<AccountCircleIcon />} label={`${member.full_name} <${member.email}>`} />
+            </Link>
+          )
+        })}
       </MagicGrid>
       <Spacer />
 

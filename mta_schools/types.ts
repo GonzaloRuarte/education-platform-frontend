@@ -3,17 +3,20 @@ import { I_PaginatedResponse } from '@/shared/data/types'
 
 type T_SchoolId = number
 type T_StudentProfileId = number
+type T_SchoolStaffId = number
 type T_StudentProfilePersonalId = number
 
+interface I_SchoolStaffListItem {
+  school_staff_id: T_SchoolStaffId
+  user_id: T_UserId
+  full_name: string
+  email: string
+}
 interface I_SchoolListItem {
   id: T_SchoolId
   name: string
   district: string
-  staff: Array<{
-    user_id: T_UserId
-    full_name: string
-    email: string
-  }>
+  staff: Array<I_SchoolStaffListItem>
   contact_email: string
 }
 type T_SchoolsList = I_PaginatedResponse<I_SchoolListItem>
@@ -39,6 +42,7 @@ interface I_SchoolDetail {
   name: string
   district: string
   contact_email: string
+  staff: Array<I_SchoolStaffListItem>
 }
 
 interface I_SchoolUpdateRequestData {
