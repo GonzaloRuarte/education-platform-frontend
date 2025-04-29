@@ -23,12 +23,6 @@ const Header = () => {
   const exit = useResolutionExit()
   const evaluationToResolve = useResolutionEvaluationToResolve()
   const elapsedTimeSeconds = useResolutionElapsedTimeSeconds()
-  const maxDurationMinutes = useResolutionMaxDurationMinutes() as number
-
-  const maxDurationOverflow = Math.round(elapsedTimeSeconds - maxDurationMinutes * 60)
-  const timeLeft = Math.max(Math.round(maxDurationMinutes * 60 - elapsedTimeSeconds), 0)
-  const maxDurationReached = maxDurationOverflow >= 0
-  const showMaxDurationWarning = 0 < timeLeft && timeLeft < 15 * 60
 
   return (
     <>
@@ -64,16 +58,6 @@ const Header = () => {
           </Grid>
         </Container>
       </header>
-      {showMaxDurationWarning && (
-        <section style={{ background: '#fdffd0', padding: 10 }}>
-          <Container>Quedan {secondsToHHMMSS(Math.abs(timeLeft))}</Container>
-        </section>
-      )}
-      {maxDurationReached && (
-        <section style={{ background: '#ffd0d0', padding: 10 }}>
-          <Container>Has superado el tiempo máximo de evaluación por {secondsToHHMMSS(maxDurationOverflow)}</Container>
-        </section>
-      )}
     </>
   )
 }
