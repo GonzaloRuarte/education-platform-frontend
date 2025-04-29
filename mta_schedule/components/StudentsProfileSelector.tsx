@@ -7,6 +7,7 @@ import {
   T_StudentProfileId,
   T_StudentProfilePersonalId,
 } from '@/mta_schools/types'
+import Button from '@/shared/components/Button'
 import { AddButton } from '@/shared/components/buttons'
 import Chip from '@/shared/components/Chip'
 import MagicGrid from '@/shared/components/MagicGrid'
@@ -15,12 +16,10 @@ import Table from '@/shared/components/Table'
 import { Body1, H4 } from '@/shared/components/Typography'
 import Input from '@/shared/forms/Input'
 import { paginationModelAsFetchPaginationOptions } from '@/shared/pages/utils'
-import AddIcon from '@mui/icons-material/Add'
-import RemoveIcon from '@mui/icons-material/Remove'
-import { Box, FormHelperText, Grid2, IconButton } from '@mui/material'
+import { Box, FormHelperText, Grid2 } from '@mui/material'
 import { grey, red } from '@mui/material/colors'
 import { GridColDef, GridToolbarContainer } from '@mui/x-data-grid'
-import React, { Dispatch, SetStateAction, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
 type T_AddedStudents = Record<T_StudentProfileId, { personal_id: T_StudentProfilePersonalId; cohort: string }>
 type T_OnAddedStudentsChange = (newAddedStudents: T_AddedStudents) => void
@@ -39,7 +38,6 @@ const columns = (
   addedStudents: T_AddedStudents,
   onAddedStudentsChange: T_OnAddedStudentsChange,
 ): Array<GridColDef<I_StudentProfileListItem>> => [
-  { field: 'id', headerName: 'ID' },
   { field: 'personal_id', headerName: 'DNI', flex: 1 },
   { field: 'cohort', headerName: 'División', flex: 1 },
   {
@@ -57,7 +55,9 @@ const columns = (
       }
 
       const actions = [
-        <IconButton
+        <Button
+          variant="text"
+          size="small"
           onClick={
             alreadyIncluded
               ? () => {
@@ -65,9 +65,10 @@ const columns = (
                 }
               : handleInclude
           }
+          // startIcon={alreadyIncluded ? <RemoveIcon /> : <AddIcon />}
         >
-          {alreadyIncluded ? <RemoveIcon /> : <AddIcon />}
-        </IconButton>,
+          {alreadyIncluded ? 'Quitar' : 'Agregar'}
+        </Button>,
       ]
 
       return actions
@@ -128,8 +129,8 @@ const StudentsProfileSelector = ({ schoolId, addedStudents, onAddedStudentsChang
   return (
     <>
       <Grid2 container spacing={5}>
-        <Grid2 size={7}>
-          <H4>Listados de todos los estudiantes</H4>
+        <Grid2 size={6}>
+          <H4>Listados de todos los estudiantes de la escuela</H4>
           <Spacer />
           <Input
             label="Buscar"
@@ -164,14 +165,14 @@ const StudentsProfileSelector = ({ schoolId, addedStudents, onAddedStudentsChang
             />
           </Box>
         </Grid2>
-        <Grid2 size={5}>
+        <Grid2 size={6}>
           <Box
             bgcolor={hasError ? red[50] : grey[300]}
             p={4}
             borderRadius={2}
             border={hasError ? '1px solid red' : undefined}
           >
-            <H4>Estudiantes agregados</H4>
+            <H4>Estudiantes agregados al turno</H4>
             {helperText !== undefined && <FormHelperText error={hasError}>{helperText}</FormHelperText>}
             <Spacer />
             <Input

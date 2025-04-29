@@ -23,7 +23,7 @@ const columns = (a: {
   navToProcess: (args: Record<'appointmentId', string | number>) => void
   navToEditStudents: (args: Record<'appointmentId', string | number>) => void
 }): Array<GridColDef<I_AppointmentListItem>> => [
-  { field: 'id', headerName: '#' },
+  // { field: 'id', headerName: '#' },
   {
     field: 'begins_at_date',
 

@@ -7,10 +7,10 @@ import { useEffect } from 'react'
 const ResolutionRemaingTimeManager = () => {
   const { timeLeft } = useResolutionDurationResources()
   const { setWarningAsAlreadyDisplayed, warningAlreadyDisplayed } = useResolutionRemainingTimeWarningAlreadyDisplayed()
+
   useEffect(() => {
     console.log({ timeLeft, warningAlreadyDisplayed })
     if (warningAlreadyDisplayed) return
-    // if (timeLeft > 5 * 60) return
     if (timeLeft === null) return
     if (timeLeft > RESOLUTIONS__REMAINING_TIME_WARNING_IN_SECONDS) return
 

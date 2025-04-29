@@ -11,7 +11,7 @@ import { useConfirm } from '@/shared/confirm'
 import { useInProgress } from '@/shared/hooks'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
-import { Button } from '@mui/material'
+import { Box, Button } from '@mui/material'
 import { useForm } from 'react-hook-form'
 
 interface I_FormFields {
@@ -76,8 +76,10 @@ const AppointmentsEditStudentsForm = ({ data }: I_Props) => {
             }}
           />
           <Spacer />
+          <Box sx={{ borderBottom: '3px solid #CCC' }} />
+          <Spacer />
           <Button type="submit" variant="contained" color="primary">
-            Agregar estudiantes
+            Guardar
           </Button>
         </form>
       </MagicGrid>
