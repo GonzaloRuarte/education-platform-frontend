@@ -41,7 +41,7 @@ const EvaluationHeaderSummary: FC<{ data: I_EvaluationDetail }> = ({ data }) => 
         )}
 
         <Spacer />
-        <Button onClick={() => navigateToEvaluationDetail(data.id)}>Editar encabezado</Button>
+        <Button onClick={() => navigateToEvaluationDetail(data.id)}>Editar</Button>
       </Paper>
     </>
   )
