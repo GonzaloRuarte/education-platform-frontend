@@ -32,7 +32,7 @@ const ResolveEvaluationPage = () => {
           ) : (
             <>
               <Box position={'relative'}>
-                <Box width={hasPinnedText ? '50%' : '100%'}>
+                <Box width={hasPinnedText ? '70%' : '100%'}>
                   {currentPage === 1 ? (
                     <ResolutionHeader evaluationToResolve={evaluationToResolve} />
                   ) : (

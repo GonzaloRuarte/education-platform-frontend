@@ -13,3 +13,7 @@ input[type='number'] {
 .htmlParsedContent img {
   max-width: 100%;
 }
+
+.ql-snow .ql-tooltip {
+  z-index: 100;
+}

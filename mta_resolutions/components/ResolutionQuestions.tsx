@@ -93,11 +93,11 @@ const MultipleChoiceForm: FC<{ data: T_EvaluationToResolve_MultipleChoiceAnswer;
                 )
               }
               label={
-                <Grid spacing={2} component="div" container justifyContent="center" alignItems="center">
-                  <Grid>
+                <Grid spacing={2} container justifyContent="center" alignItems="center">
+                  <Grid size="auto">
                     <Chip label={option.name} />
                   </Grid>
-                  <Grid>
+                  <Grid size="grow">
                     <HTMLParser htmlContent={option.content} />
                   </Grid>
                 </Grid>
