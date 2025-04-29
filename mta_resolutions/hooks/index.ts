@@ -18,11 +18,23 @@ import { useState } from 'react'
 const useResolutionPagination = () => {
   const currentPage = useStore((state) => state.resolution_currentPage)
   const pagesQuantity = useStore((state) => state.resolution_evaluation?.pages_quantity)
+  const storeNewPage = useStore((state) => state.resolution_storeCurrentPage)
+  const isLastPage = currentPage === pagesQuantity
+  const isFirstPage = currentPage === 1
   return {
     currentPage,
     pagesQuantity,
-    storeNewPage: useStore((state) => state.resolution_storeCurrentPage),
-    isLastPage: currentPage === pagesQuantity,
+    isLastPage,
+    isFirstPage,
+    storeNewPage,
+    goToPreviousPage: () => {
+      if (isFirstPage) return
+      storeNewPage(currentPage - 1)
+    },
+    goToNextPage: () => {
+      if (isLastPage) return
+      storeNewPage(currentPage + 1)
+    },
   }
 }
 

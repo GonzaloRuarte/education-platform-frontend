@@ -39,7 +39,7 @@ const ResolveEvaluationPage = () => {
                     <Spacer size="l" />
                   )}
 
-                  <ResolutionPageIndicator />
+                  {/* <ResolutionPageIndicator /> */}
                   <Spacer size="xl" />
 
                   <ResolutionQuestions evaluationToResolve={evaluationToResolve} />
