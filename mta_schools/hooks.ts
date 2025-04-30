@@ -50,8 +50,8 @@ const useSchoolUpdate = updateHook<T_SchoolId, I_SchoolUpdateRequestData, I_Scho
   useAuthResources,
 )
 
-const STUDENT_PROFILE_PATH = '/student-profile'
-const STUDENTS_BY_SCHOOL_PATH = '/student-profile/list-by-school/{schoolId:string}'
+const STUDENT_PROFILE_PATH = '/student-profiles'
+const STUDENTS_BY_SCHOOL_PATH = '/student-profiles/list-by-school/{schoolId:string}'
 const useStudentProfileList = listHook<T_StudentProfileList>(STUDENT_PROFILE_PATH, axiosGet, useAuthResources)
 const useStudentProfileListBySchool = listHookV3<typeof STUDENTS_BY_SCHOOL_PATH, T_StudentProfileList>(
   STUDENTS_BY_SCHOOL_PATH,
@@ -81,7 +81,7 @@ const useCohortsDistinctBySchool = actionHookV3<
   I_CohortsDistinctBySchool
 >(COHORTS_BY_SCHOOL_PATH, axiosGet, useAuthResources)
 
-const SCHOOL_STAFF_PROFILE = '/school-staff-profile'
+const SCHOOL_STAFF_PROFILE = '/school-staff-profiles'
 const useSchoolStaffProfileList = listHook<T_SchoolStaffProfileList>(SCHOOL_STAFF_PROFILE, axiosGet, useAuthResources)
 const useSchoolStaffProfileBatchDelete = batchDeletionHook<T_SchoolStaffProfileId>(
   SCHOOL_STAFF_PROFILE,
