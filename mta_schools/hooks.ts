@@ -8,6 +8,7 @@ import {
   T_SchoolId,
   T_SchoolNames,
   T_SchoolsList,
+  T_SchoolStaffProfileId,
   T_SchoolStaffProfileList,
   T_StudentProfileBatchCreateRequestData,
   T_StudentProfileList,
@@ -77,8 +78,13 @@ const useCohortsDistinctBySchool = actionHookV3<
   I_CohortsDistinctBySchool
 >(COHORTS_BY_SCHOOL_PATH, axiosGet, useAuthResources)
 
-const SCHOOL_STAFF_PROFILE = '/school-staff-profile/'
+const SCHOOL_STAFF_PROFILE = '/school-staff-profile'
 const useSchoolStaffProfileList = listHook<T_SchoolStaffProfileList>(SCHOOL_STAFF_PROFILE, axiosGet, useAuthResources)
+const useSchoolStaffProfileBatchDelete = batchDeletionHook<T_SchoolStaffProfileId>(
+  SCHOOL_STAFF_PROFILE,
+  axiosDelete,
+  useAuthResources,
+)
 
 // Navigation
 const useNavigateToSchoolList = navigationHook(pages.D._.escuelas.path)
@@ -111,4 +117,5 @@ export {
   useStudentProfileList,
   useStudentProfileListBySchool,
   useSchoolStaffProfileList,
+  useSchoolStaffProfileBatchDelete,
 }

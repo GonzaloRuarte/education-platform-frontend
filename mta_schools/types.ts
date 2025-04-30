@@ -83,6 +83,7 @@ export type {
   T_SchoolId,
   T_StudentProfileId,
   T_StudentProfilePersonalId,
+  T_SchoolStaffProfileId,
   I_SchoolDetail,
   I_SchoolListItem,
   I_StudentProfileListItem,
