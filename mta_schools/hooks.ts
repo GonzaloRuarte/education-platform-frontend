@@ -3,6 +3,7 @@ import {
   I_CohortsDistinctBySchool,
   I_SchoolCreateRequestData,
   I_SchoolDetail,
+  I_SchoolStaffProfileCreateRequestData,
   I_SchoolUpdateRequestData,
   I_StudentProfileCreateRequestData,
   T_SchoolId,
@@ -85,6 +86,11 @@ const useSchoolStaffProfileBatchDelete = batchDeletionHook<T_SchoolStaffProfileI
   axiosDelete,
   useAuthResources,
 )
+const useSchoolStaffProfileCreate = creationHook<I_SchoolStaffProfileCreateRequestData, I_CreationCommonResponse>(
+  SCHOOL_STAFF_PROFILE,
+  axiosPost,
+  useAuthResources,
+)
 
 // Navigation
 const useNavigateToSchoolList = navigationHook(pages.D._.escuelas.path)
@@ -95,6 +101,8 @@ const useNavigateToStudentProfileList = navigationHook(pages.D._.estudiantes.pat
 const useNavigateToStudentProfileCreate = navigationHook(pages.D._.estudiantes._.agregar.path)
 const useNavigateToStudentProfileBatchCreate = navigationHook(pages.D._.estudiantes._.cargaMasiva.path)
 const useNavigateToStudentProfileDetail = navigationWithIdHook(pages.D._.estudiantes.path)
+const useNavigateToSchoolStaffProfileList = navigationHook(pages.D._.usuarios._.staffEscuela.path)
+const useNavigateToSchoolStaffProfileCreate = navigationHook(pages.D._.usuarios._.staffEscuela._.agregar.path)
 
 export {
   useCohortsDistinctBySchool,
@@ -118,4 +126,7 @@ export {
   useStudentProfileListBySchool,
   useSchoolStaffProfileList,
   useSchoolStaffProfileBatchDelete,
+  useSchoolStaffProfileCreate,
+  useNavigateToSchoolStaffProfileList,
+  useNavigateToSchoolStaffProfileCreate,
 }

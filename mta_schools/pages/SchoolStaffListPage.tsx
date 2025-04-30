@@ -1,7 +1,11 @@
 'use client'
 
 import { SCHOOL_STAFF_PROFILE_NAME } from '@/mta_schools/constants'
-import { useSchoolStaffProfileBatchDelete, useSchoolStaffProfileList } from '@/mta_schools/hooks'
+import {
+  useNavigateToSchoolStaffProfileCreate,
+  useSchoolStaffProfileBatchDelete,
+  useSchoolStaffProfileList,
+} from '@/mta_schools/hooks'
 import { I_SchoolStaffProfileListItem } from '@/mta_schools/types'
 import ListPage from '@/shared/pages/ListPage'
 import { GridColDef } from '@mui/x-data-grid'
@@ -16,7 +20,7 @@ const columns: Array<GridColDef<I_SchoolStaffProfileListItem>> = [
 
 const SchoolStaffProfileListPage = () => {
   // const navigateToSchoolDetail = useNavigateToSchoolDetail()
-  // const navigateToSchoolCreate = useNavigateToSchoolCreate()
+  const navToCreate = useNavigateToSchoolStaffProfileCreate()
 
   return (
     <ListPage
@@ -24,7 +28,7 @@ const SchoolStaffProfileListPage = () => {
       useList={useSchoolStaffProfileList}
       entityName={SCHOOL_STAFF_PROFILE_NAME}
       // onRowClick={ListPage.mapNavToOnRowClick(navigateToSchoolDetail)}
-      // onCreate={navigateToSchoolCreate}
+      onCreate={navToCreate}
       useBatchDelete={useSchoolStaffProfileBatchDelete}
     />
   )

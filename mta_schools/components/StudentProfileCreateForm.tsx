@@ -3,11 +3,7 @@
 import { CohortSelectControlled } from '@/mta_schools/components/CohortSelect'
 import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
 import { STUDENT_PROFILE_NAME } from '@/mta_schools/constants'
-import {
-  useCohortsDistinctBySchool,
-  useNavigateToStudentProfileList,
-  useStudentProfileCreate,
-} from '@/mta_schools/hooks'
+import { useNavigateToStudentProfileList, useStudentProfileCreate } from '@/mta_schools/hooks'
 import { T_SchoolId } from '@/mta_schools/types'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'

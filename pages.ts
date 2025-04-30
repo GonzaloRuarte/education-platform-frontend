@@ -131,6 +131,12 @@ const pages = {
           staffEscuela: {
             path: '/dashboard/usuarios/staff-escuela',
             label: 'Staff Escuela',
+            _: {
+              agregar: {
+                path: '/dashboard/usuarios/staff-escuela/agregar',
+                label: 'Agregar estudiante',
+              },
+            },
           },
           itemista: {
             path: '/dashboard/usuarios/itemistas',

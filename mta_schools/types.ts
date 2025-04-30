@@ -71,13 +71,22 @@ interface I_SchoolStaffProfileListItem {
   id: T_SchoolStaffProfileId
   user_id: T_UserId
   username: string
-  first_name: any
-  last_name: any
+  first_name: string | null
+  last_name: string | null
   email: string
   school_id: T_SchoolId
   school_name: string
 }
 type T_SchoolStaffProfileList = I_PaginatedResponse<I_SchoolStaffProfileListItem>
+
+interface I_SchoolStaffProfileCreateRequestData {
+  school_id: T_SchoolId
+  username: string
+  first_name: string
+  last_name: string
+  email: string
+  password: string
+}
 
 export type {
   T_SchoolId,
@@ -97,4 +106,5 @@ export type {
   T_StudentProfileBatchCreateRequestData,
   T_SchoolStaffProfileList,
   I_SchoolStaffProfileListItem,
+  I_SchoolStaffProfileCreateRequestData,
 }
