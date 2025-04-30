@@ -18,7 +18,7 @@ import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axio
 import { useAuthResources } from '@/mta_auth/hooks'
 import { I_CreationCommonResponse } from '@/shared/types'
 
-const EVALUATOR_PROFILE = '/evaluator-profile'
+const EVALUATOR_PROFILE = '/evaluator-profiles'
 
 export const useEvaluatorProfileList = listHook<T_EvaluatorProfileList>(EVALUATOR_PROFILE, axiosGet, useAuthResources)
 
