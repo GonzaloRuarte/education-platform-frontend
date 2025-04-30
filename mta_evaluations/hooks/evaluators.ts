@@ -18,6 +18,8 @@ import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axio
 import { useAuthResources } from '@/mta_auth/hooks'
 import { I_CreationCommonResponse } from '@/shared/types'
 import { useRouter } from 'next/navigation'
+import { navigationHook, navigationWithIdHook } from '@/shared/hooks'
+import pages from '@/pages'
 
 const EVALUATOR_PROFILE = '/evaluator-profiles'
 
@@ -51,20 +53,11 @@ const useEvaluatorProfileDetail = detailHook<T_EvaluatorProfileId, I_EvaluatorPr
 const useEvaluatorProfileDelete = deletionHook<T_EvaluatorProfileId>(EVALUATOR_PROFILE, axiosDelete, useAuthResources)
 
 // Navigation hooks
-const useNavigateToEvaluatorProfileList = () => {
-  const router = useRouter()
-  return () => router.push('/evaluators')
-}
+const useNavigateToEvaluatorProfileList = navigationHook(pages.D._.usuarios._.itemista.path)
 
-const useNavigateToEvaluatorProfileCreate = () => {
-  const router = useRouter()
-  return () => router.push('/evaluators/create')
-}
+const useNavigateToEvaluatorProfileCreate = navigationHook(pages.D._.usuarios._.itemista._.agregar.path)
 
-const useNavigateToEvaluatorProfileDetail = () => {
-  const router = useRouter()
-  return (id: T_EvaluatorProfileId) => router.push(`/evaluators/${id}`)
-}
+const useNavigateToEvaluatorProfileDetail = navigationWithIdHook(pages.D._.usuarios._.itemista.path)
 
 // Export all resources
 export {

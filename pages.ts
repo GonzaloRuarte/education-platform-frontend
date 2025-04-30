@@ -141,6 +141,12 @@ const pages = {
           itemista: {
             path: '/dashboard/usuarios/itemistas',
             label: 'Itemistas',
+            _: {
+              agregar: {
+                path: '/dashboard/usuarios/itemistas/agregar',
+                label: 'Agregar Itemista',
+              },
+            },
           },
           admins: {
             path: '/dashboard/usuarios/administradores',

@@ -1,19 +1,15 @@
 'use client'
 
-import SchoolStaffProfileCreateForm from '@/mta_schools/components/SchoolStaffProfileCreateForm'
-import { SCHOOL_STAFF_PROFILE_NAME, STUDENT_PROFILE_NAME } from '@/mta_schools/constants'
-import { useNavigateToSchoolList, useNavigateToSchoolStaffProfileList } from '@/mta_schools/hooks'
+import EvaluatorProfileCreateForm from '@/mta_evaluations/components/EvaluatorProfileCreateForm'
+import { EVALUATOR_PROFILE_NAME } from '@/mta_evaluations/constants'
+import { useNavigateToEvaluatorProfileList } from '@/mta_evaluations/hooks/evaluators'
 import CreationPage from '@/shared/pages/CreationPage'
 
 const EvaluatorProfileCreatePage = () => {
-  const navToList = useNavigateToSchoolStaffProfileList()
+  const navToList = useNavigateToEvaluatorProfileList()
 
   return (
-    <CreationPage
-      CreationForm={SchoolStaffProfileCreateForm}
-      entityName={SCHOOL_STAFF_PROFILE_NAME}
-      onCancel={navToList}
-    />
+    <CreationPage CreationForm={EvaluatorProfileCreateForm} entityName={EVALUATOR_PROFILE_NAME} onCancel={navToList} />
   )
 }
 

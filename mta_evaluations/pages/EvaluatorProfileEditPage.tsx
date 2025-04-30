@@ -1,24 +1,24 @@
 'use client'
 
-import SchoolStaffProfileUpdateForm from '@/mta_schools/components/SchoolStaffProfileUpdateForm'
-import { SCHOOL_STAFF_PROFILE_NAME } from '@/mta_schools/constants'
+import EvaluatorProfileUpdateForm from '@/mta_evaluations/components/EvaluatorProfileUpdateForm'
+import { EVALUATOR_PROFILE_NAME } from '@/mta_evaluations/constants'
 import {
-  useNavigateToSchoolStaffProfileList,
-  useSchoolStaffProfileDelete,
-  useSchoolStaffProfileDetail,
-} from '@/mta_schools/hooks'
+  useEvaluatorProfileDelete,
+  useEvaluatorProfileDetail,
+  useNavigateToEvaluatorProfileList,
+} from '@/mta_evaluations/hooks/evaluators'
 import EditionPage from '@/shared/pages/EditionPage'
 
 const EvaluatorProfileEditPage = () => {
-  const navToList = useNavigateToSchoolStaffProfileList()
+  const navToList = useNavigateToEvaluatorProfileList()
 
   return (
     <EditionPage
-      EditionForm={SchoolStaffProfileUpdateForm}
-      entityName={SCHOOL_STAFF_PROFILE_NAME}
+      EditionForm={EvaluatorProfileUpdateForm}
+      entityName={EVALUATOR_PROFILE_NAME}
       onExit={navToList}
-      useDetail={useSchoolStaffProfileDetail}
-      useDelete={useSchoolStaffProfileDelete}
+      useDetail={useEvaluatorProfileDetail}
+      useDelete={useEvaluatorProfileDelete}
     />
   )
 }
