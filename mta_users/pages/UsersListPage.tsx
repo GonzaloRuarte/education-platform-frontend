@@ -1,10 +1,9 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
-import { useNavigateToSchoolCreate, useNavigateToSchoolDetail, useSchoolBatchDelete } from '@/mta_schools/hooks'
 import UserProfileChip from '@/mta_users/components/UserProfileChip'
 import { USER_NAME } from '@/mta_users/constants'
-import { useUserList } from '@/mta_users/hooks'
+import { useUserBatchDelete, useUserList } from '@/mta_users/hooks'
 import { I_UserListItemWithProfiles } from '@/mta_users/types'
 import ListPage from '@/shared/pages/ListPage'
 import { Box } from '@mui/material'
@@ -45,19 +44,7 @@ const columns: Array<GridColDef<I_UserListItemWithProfiles>> = [
 ]
 
 const UsersListPage = () => {
-  const navigateToSchoolDetail = useNavigateToSchoolDetail()
-  const navigateToSchoolCreate = useNavigateToSchoolCreate()
-
-  return (
-    <ListPage
-      columns={columns}
-      useList={useUserList}
-      entityName={USER_NAME}
-      // onRowClick={ListPage.mapNavToOnRowClick(navigateToSchoolDetail)}
-      onCreate={navigateToSchoolCreate}
-      useBatchDelete={useSchoolBatchDelete}
-    />
-  )
+  return <ListPage columns={columns} useList={useUserList} entityName={USER_NAME} useBatchDelete={useUserBatchDelete} />
 }
 
 export default withAuth(UsersListPage, {
