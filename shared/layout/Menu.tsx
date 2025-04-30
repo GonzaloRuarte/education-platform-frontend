@@ -43,10 +43,19 @@ const Menu = () => {
             </MenuBlock>
           }
         />
-        <MenuItem Icon={BadgeIcon} label={P.D._.usuarios.label} href={P.D._.usuarios.path} />
+        <MenuItem
+          Icon={BadgeIcon}
+          label={P.D._.usuarios.label}
+          href={P.D._.usuarios.path}
+          subMenu={
+            <MenuBlock isSubMenu>
+              <MenuItem label={P.D._.usuarios._.staffEscuela.label} href={P.D._.usuarios._.staffEscuela.path} />
+            </MenuBlock>
+          }
+        />
       </MenuBlock>
 
-      <MenuDivider />
+      {/* <MenuDivider /> */}
     </>
   )
 }

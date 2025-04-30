@@ -3,11 +3,11 @@ import { I_PaginatedResponse } from '@/shared/data/types'
 
 type T_SchoolId = number
 type T_StudentProfileId = number
-type T_SchoolStaffId = number
+type T_SchoolStaffProfileId = number
 type T_StudentProfilePersonalId = number
 
 interface I_SchoolStaffListItem {
-  school_staff_id: T_SchoolStaffId
+  school_staff_id: T_SchoolStaffProfileId
   user_id: T_UserId
   full_name: string
   email: string
@@ -67,6 +67,18 @@ interface I_CohortsDistinctBySchool {
   cohorts: Array<string>
 }
 
+interface I_SchoolStaffProfileListItem {
+  id: T_SchoolStaffProfileId
+  user_id: T_UserId
+  username: string
+  first_name: any
+  last_name: any
+  email: string
+  school_id: T_SchoolId
+  school_name: string
+}
+type T_SchoolStaffProfileList = I_PaginatedResponse<I_SchoolStaffProfileListItem>
+
 export type {
   T_SchoolId,
   T_StudentProfileId,
@@ -82,4 +94,6 @@ export type {
   I_StudentProfileCreateRequestData,
   I_CohortsDistinctBySchool,
   T_StudentProfileBatchCreateRequestData,
+  T_SchoolStaffProfileList,
+  I_SchoolStaffProfileListItem,
 }

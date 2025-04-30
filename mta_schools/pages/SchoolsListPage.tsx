@@ -8,7 +8,6 @@ import {
   useSchoolBatchDelete,
   useSchoolList,
 } from '@/mta_schools/hooks'
-import Button from '@/shared/components/Button'
 import ListPage from '@/shared/pages/ListPage'
 import { Chip } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'

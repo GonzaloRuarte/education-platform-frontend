@@ -1,1 +1,1 @@
-export { default } from '@/mta_users/pages/SchoolStaffUsersListPage'
+export { default } from '@/mta_schools/pages/SchoolStaffListPage'
