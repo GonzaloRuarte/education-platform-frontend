@@ -4,6 +4,8 @@ import {
   I_SchoolCreateRequestData,
   I_SchoolDetail,
   I_SchoolStaffProfileCreateRequestData,
+  I_SchoolStaffProfileDetail,
+  I_SchoolStaffProfileUpdateRequestData,
   I_SchoolUpdateRequestData,
   I_StudentProfileCreateRequestData,
   T_SchoolId,
@@ -91,6 +93,16 @@ const useSchoolStaffProfileCreate = creationHook<I_SchoolStaffProfileCreateReque
   axiosPost,
   useAuthResources,
 )
+const useSchoolStaffProfileUpdate = updateHook<
+  T_SchoolStaffProfileId,
+  I_SchoolStaffProfileUpdateRequestData,
+  I_CreationCommonResponse
+>(SCHOOL_STAFF_PROFILE, axiosPatch, useAuthResources)
+const useSchoolStaffProfileDetail = detailHook<T_SchoolStaffProfileId, I_SchoolStaffProfileDetail>(
+  SCHOOL_STAFF_PROFILE,
+  axiosGet,
+  useAuthResources,
+)
 
 // Navigation
 const useNavigateToSchoolList = navigationHook(pages.D._.escuelas.path)
@@ -103,6 +115,7 @@ const useNavigateToStudentProfileBatchCreate = navigationHook(pages.D._.estudian
 const useNavigateToStudentProfileDetail = navigationWithIdHook(pages.D._.estudiantes.path)
 const useNavigateToSchoolStaffProfileList = navigationHook(pages.D._.usuarios._.staffEscuela.path)
 const useNavigateToSchoolStaffProfileCreate = navigationHook(pages.D._.usuarios._.staffEscuela._.agregar.path)
+const useNavigateToSchoolStaffProfileDetail = navigationWithIdHook(pages.D._.usuarios._.staffEscuela.path)
 
 export {
   useCohortsDistinctBySchool,
@@ -129,4 +142,7 @@ export {
   useSchoolStaffProfileCreate,
   useNavigateToSchoolStaffProfileList,
   useNavigateToSchoolStaffProfileCreate,
+  useSchoolStaffProfileDetail,
+  useSchoolStaffProfileUpdate,
+  useNavigateToSchoolStaffProfileDetail,
 }

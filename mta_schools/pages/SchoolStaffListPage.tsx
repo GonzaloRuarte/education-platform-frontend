@@ -3,6 +3,7 @@
 import { SCHOOL_STAFF_PROFILE_NAME } from '@/mta_schools/constants'
 import {
   useNavigateToSchoolStaffProfileCreate,
+  useNavigateToSchoolStaffProfileDetail,
   useSchoolStaffProfileBatchDelete,
   useSchoolStaffProfileList,
 } from '@/mta_schools/hooks'
@@ -19,7 +20,7 @@ const columns: Array<GridColDef<I_SchoolStaffProfileListItem>> = [
 ]
 
 const SchoolStaffProfileListPage = () => {
-  // const navigateToSchoolDetail = useNavigateToSchoolDetail()
+  const navToDetail = useNavigateToSchoolStaffProfileDetail()
   const navToCreate = useNavigateToSchoolStaffProfileCreate()
 
   return (
@@ -27,7 +28,7 @@ const SchoolStaffProfileListPage = () => {
       columns={columns}
       useList={useSchoolStaffProfileList}
       entityName={SCHOOL_STAFF_PROFILE_NAME}
-      // onRowClick={ListPage.mapNavToOnRowClick(navigateToSchoolDetail)}
+      onRowClick={ListPage.mapNavToOnRowClick(navToDetail)}
       onCreate={navToCreate}
       useBatchDelete={useSchoolStaffProfileBatchDelete}
     />

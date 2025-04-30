@@ -87,7 +87,24 @@ interface I_SchoolStaffProfileCreateRequestData {
   email: string
   password: string
 }
+interface I_SchoolStaffProfileUpdateRequestData {
+  school_id: T_SchoolId
+  username: string
+  first_name: string
+  last_name: string
+  email: string
+}
 
+interface I_SchoolStaffProfileDetail {
+  id: T_SchoolStaffProfileId
+  user_id: T_UserId
+  username: string
+  first_name: string | null
+  last_name: string | null
+  email: string
+  school_id: T_SchoolId
+  school_name: string
+}
 export type {
   T_SchoolId,
   T_StudentProfileId,
@@ -107,4 +124,6 @@ export type {
   T_SchoolStaffProfileList,
   I_SchoolStaffProfileListItem,
   I_SchoolStaffProfileCreateRequestData,
+  I_SchoolStaffProfileDetail,
+  I_SchoolStaffProfileUpdateRequestData,
 }
