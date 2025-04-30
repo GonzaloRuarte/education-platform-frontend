@@ -15,6 +15,9 @@ const questionCreateMCPath = `/dashboard/evaluaciones/{evaluationId:number}/preg
 const questionCreateNumericPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.Numeric}`
 const appointmentsProcessPath = '/dashboard/turnos/{appointmentId:number}/procesar'
 const appointmentsEditStudentsPath = '/dashboard/turnos/{appointmentId:number}/editar-estudiantes'
+
+const userChangePasswordPath = '/dashboard/usuarios/{userId:number}/cambiar-password'
+
 const pages = {
   R: {
     path: '/',
@@ -128,6 +131,10 @@ const pages = {
         path: '/dashboard/usuarios',
         label: 'Usuarios',
         _: {
+          cambiarPassword: {
+            path: userChangePasswordPath,
+            label: 'Usuarios',
+          },
           staffEscuela: {
             path: '/dashboard/usuarios/staff-escuela',
             label: "Staff's Escuela",
@@ -171,6 +178,7 @@ export {
   questionCreateNumericPath,
   appointmentsProcessPath,
   appointmentsEditStudentsPath,
+  userChangePasswordPath,
 }
 
 export default pages

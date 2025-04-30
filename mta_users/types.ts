@@ -34,6 +34,11 @@ interface I_UserDetail {
   date_joined: string
 }
 
+interface I_UserChangePasswordRequest {
+  old_password: string
+  new_password: string
+}
+
 export type {
   T_UserId,
   T_UserProfiles,
@@ -43,4 +48,5 @@ export type {
   I_UserListItem,
   I_UserDetail,
   I_UserListItemWithProfiles,
+  I_UserChangePasswordRequest,
 }

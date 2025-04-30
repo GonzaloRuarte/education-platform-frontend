@@ -1,30 +1,26 @@
 import { useAuthResources } from '@/mta_auth/hooks'
-import { I_UserDetail, T_UserId, T_UserListWithProfiles } from '@/mta_users/types'
+import { I_UserChangePasswordRequest, I_UserDetail, T_UserId, T_UserListWithProfiles } from '@/mta_users/types'
 import { userListWithProfiles } from '@/mta_users/utils'
-import { axiosDelete, axiosGet } from '@/shared/data/axios'
-import { batchDeletionHook, detailHook, listHook } from '@/shared/hooks'
+import { userChangePasswordPath } from '@/pages'
+import { axiosDelete, axiosGet, axiosPost } from '@/shared/data/axios'
+import { batchDeletionHook, detailHook, dynamicNavigationHook, listHook } from '@/shared/hooks'
+import { actionHookV3 } from '@/shared/hooks/dataServices/v3'
+import { T_EmptyPayload } from '@/shared/types'
 
 const USERS_PATH = '/users'
+const USERS_CHANGE_PASSWORD_PATH = '/users/{id:number}/change-password'
 
-export const useUserList = listHook<T_UserListWithProfiles>(USERS_PATH, axiosGet, useAuthResources, {
+const useUserList = listHook<T_UserListWithProfiles>(USERS_PATH, axiosGet, useAuthResources, {
   dataPostProcessor: userListWithProfiles,
 })
-export const useUserDetail = detailHook<T_UserId, I_UserDetail>(USERS_PATH, axiosGet, useAuthResources)
-export const useUserBatchDelete = batchDeletionHook<T_UserId>(USERS_PATH, axiosDelete, useAuthResources)
+const useUserDetail = detailHook<T_UserId, I_UserDetail>(USERS_PATH, axiosGet, useAuthResources)
+const useUserBatchDelete = batchDeletionHook<T_UserId>(USERS_PATH, axiosDelete, useAuthResources)
+const useUserChangePassword = actionHookV3<
+  typeof USERS_CHANGE_PASSWORD_PATH,
+  I_UserChangePasswordRequest,
+  T_EmptyPayload
+>(USERS_CHANGE_PASSWORD_PATH, axiosPost, useAuthResources)
 
-// // Hook for creating a new user
-// export const useUserCreate = creationHook<I_UserCreateRequestData, I_UserCreateResponse>(
-//   USERS_PATH,
-//   axiosPost,
-//   useAuthResources,
-// )
+const useNavigateToUserChangePassword = dynamicNavigationHook(userChangePasswordPath)
 
-// // Hook for updating an existing user
-// export const useUserUpdate = updateHook<T_UserId, I_UserUpdateRequestData, I_UserUpdateResponse>(
-//   USERS_PATH,
-//   axiosPatch,
-//   useAuthResources,
-// )
-
-// // Hook for deleting a user
-// export const useUserDelete = deletionHook<T_UserId>(USERS_PATH, axiosDelete, useAuthResources)
+export { useUserBatchDelete, useUserDetail, useUserList, useUserChangePassword, useNavigateToUserChangePassword }

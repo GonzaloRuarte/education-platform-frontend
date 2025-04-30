@@ -21,6 +21,7 @@ interface I_Props<T_Id, T_Response> {
   onCreate?: T_VoidFn
   useBatchDelete?: T_BatchDeletionServiceHook<T_Id>
   customButtons?: React.ReactNode
+  singleSelectionButtons?: (id: T_Id) => React.ReactNode
 }
 
 function BatchDeleteAction<T_Id>(p: {
@@ -76,6 +77,9 @@ function ListPage<T_Id, T_Response extends I_PaginatedResponse>(p: I_Props<T_Id,
               useBatchDelete={p.useBatchDelete}
             />
           )}
+          {rowSelectionModel.length === 1 &&
+            p.singleSelectionButtons !== undefined &&
+            p.singleSelectionButtons(rowSelectionModel[0] as T_Id)}
           {p.customButtons}
         </Page.Toolbar>
         <Page.Content>

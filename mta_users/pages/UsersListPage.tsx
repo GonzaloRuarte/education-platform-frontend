@@ -3,12 +3,13 @@
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import UserProfileChip from '@/mta_users/components/UserProfileChip'
 import { USER_NAME } from '@/mta_users/constants'
-import { useUserBatchDelete, useUserList } from '@/mta_users/hooks'
+import { useNavigateToUserChangePassword, useUserBatchDelete, useUserList } from '@/mta_users/hooks'
 import { I_UserListItemWithProfiles } from '@/mta_users/types'
+import Button from '@/shared/components/Button'
 import ListPage from '@/shared/pages/ListPage'
 import { Box } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
-
+import PasswordIcon from '@mui/icons-material/Password'
 const columns: Array<GridColDef<I_UserListItemWithProfiles>> = [
   { field: 'id', headerName: '#' },
   { field: 'username', headerName: 'Nombre de usuario', flex: 1 },
@@ -44,7 +45,22 @@ const columns: Array<GridColDef<I_UserListItemWithProfiles>> = [
 ]
 
 const UsersListPage = () => {
-  return <ListPage columns={columns} useList={useUserList} entityName={USER_NAME} useBatchDelete={useUserBatchDelete} />
+  const navigateToChangePassword = useNavigateToUserChangePassword()
+  return (
+    <ListPage
+      columns={columns}
+      useList={useUserList}
+      entityName={USER_NAME}
+      useBatchDelete={useUserBatchDelete}
+      singleSelectionButtons={(id) => (
+        <>
+          <Button startIcon={<PasswordIcon />} onClick={() => navigateToChangePassword({ userId: id })}>
+            Cambiar Password
+          </Button>
+        </>
+      )}
+    />
+  )
 }
 
 export default withAuth(UsersListPage, {
