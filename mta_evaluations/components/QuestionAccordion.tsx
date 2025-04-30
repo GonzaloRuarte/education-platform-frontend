@@ -120,7 +120,7 @@ const QuestionAccordion: FC<{
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Body1 component="span" sx={{ width: '33%', flexShrink: 0 }}>
           Pregunta #{question.order + 1}{' '}
-          {question.is_mandatory && <Chip variant="outlined" size="small" label="Obligatoria" />}
+          {/* {question.is_mandatory && <Chip variant="outlined" size="small" label="Obligatoria" />} */}
         </Body1>
         {!isExpanded && (
           <>

@@ -1,3 +1,5 @@
+'use client'
+
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'

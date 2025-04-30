@@ -129,7 +129,7 @@ const ResolutionQuestions: FC<{ evaluationToResolve: I_EvaluationToResolve }> = 
           <Fragment key={question.id}>
             <Body1>
               Pregunta {question.order + 1}
-              {question.is_mandatory && <sup style={{ fontSize: 10 }}> (obligatoria)</sup>}
+              {/* {question.is_mandatory && <sup style={{ fontSize: 10 }}> (obligatoria)</sup>} */}
             </Body1>
             <Box sx={{ fontSize: '1.5em' }}>
               <HTMLParser htmlContent={question.content} />
