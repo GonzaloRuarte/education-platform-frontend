@@ -130,7 +130,7 @@ const pages = {
         _: {
           staffEscuela: {
             path: '/dashboard/usuarios/staff-escuela',
-            label: 'Staff Escuela',
+            label: "Staff's Escuela",
             _: {
               agregar: {
                 path: '/dashboard/usuarios/staff-escuela/agregar',

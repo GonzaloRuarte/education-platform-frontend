@@ -50,6 +50,7 @@ const Menu = () => {
           subMenu={
             <MenuBlock isSubMenu>
               <MenuItem label={P.D._.usuarios._.staffEscuela.label} href={P.D._.usuarios._.staffEscuela.path} />
+              <MenuItem label={P.D._.usuarios._.itemista.label} href={P.D._.usuarios._.itemista.path} />
             </MenuBlock>
           }
         />

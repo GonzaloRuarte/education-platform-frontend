@@ -1,4 +1,5 @@
 import { T_UserId } from '@/mta_users/types'
+import { I_PaginatedResponse } from '@/shared/data/types'
 
 type T_EvaluatorProfileId = number
 interface I_EvaluatorProfileListItem {
@@ -9,7 +10,7 @@ interface I_EvaluatorProfileListItem {
   last_name: string | null
   email: string
 }
-type T_EvaluatorProfileList = Array<I_EvaluatorProfileListItem>
+type T_EvaluatorProfileList = I_PaginatedResponse<I_EvaluatorProfileListItem>
 interface I_EvaluatorProfileCreateRequestData {
   username: string
   first_name: string
@@ -34,10 +35,10 @@ interface I_EvaluatorProfileDetail {
 }
 
 export type {
-  T_EvaluatorProfileId,
-  I_EvaluatorProfileListItem,
-  T_EvaluatorProfileList,
   I_EvaluatorProfileCreateRequestData,
-  I_EvaluatorProfileUpdateRequestData,
   I_EvaluatorProfileDetail,
+  I_EvaluatorProfileListItem,
+  I_EvaluatorProfileUpdateRequestData,
+  T_EvaluatorProfileId,
+  T_EvaluatorProfileList,
 }

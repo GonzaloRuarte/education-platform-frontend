@@ -17,37 +17,64 @@ import {
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
 import { useAuthResources } from '@/mta_auth/hooks'
 import { I_CreationCommonResponse } from '@/shared/types'
+import { useRouter } from 'next/navigation'
 
 const EVALUATOR_PROFILE = '/evaluator-profiles'
 
-export const useEvaluatorProfileList = listHook<T_EvaluatorProfileList>(EVALUATOR_PROFILE, axiosGet, useAuthResources)
+// Data hooks
+const useEvaluatorProfileList = listHook<T_EvaluatorProfileList>(EVALUATOR_PROFILE, axiosGet, useAuthResources)
 
-export const useEvaluatorProfileBatchDelete = batchDeletionHook<T_EvaluatorProfileId>(
+const useEvaluatorProfileBatchDelete = batchDeletionHook<T_EvaluatorProfileId>(
   EVALUATOR_PROFILE,
   axiosDelete,
   useAuthResources,
 )
 
-export const useEvaluatorProfileCreate = creationHook<I_EvaluatorProfileCreateRequestData, I_CreationCommonResponse>(
+const useEvaluatorProfileCreate = creationHook<I_EvaluatorProfileCreateRequestData, I_CreationCommonResponse>(
   EVALUATOR_PROFILE,
   axiosPost,
   useAuthResources,
 )
 
-export const useEvaluatorProfileUpdate = updateHook<
+const useEvaluatorProfileUpdate = updateHook<
   T_EvaluatorProfileId,
   I_EvaluatorProfileUpdateRequestData,
   I_CreationCommonResponse
 >(EVALUATOR_PROFILE, axiosPatch, useAuthResources)
 
-export const useEvaluatorProfileDetail = detailHook<T_EvaluatorProfileId, I_EvaluatorProfileDetail>(
+const useEvaluatorProfileDetail = detailHook<T_EvaluatorProfileId, I_EvaluatorProfileDetail>(
   EVALUATOR_PROFILE,
   axiosGet,
   useAuthResources,
 )
 
-export const useEvaluatorProfileDelete = deletionHook<T_EvaluatorProfileId>(
-  EVALUATOR_PROFILE,
-  axiosDelete,
-  useAuthResources,
-)
+const useEvaluatorProfileDelete = deletionHook<T_EvaluatorProfileId>(EVALUATOR_PROFILE, axiosDelete, useAuthResources)
+
+// Navigation hooks
+const useNavigateToEvaluatorProfileList = () => {
+  const router = useRouter()
+  return () => router.push('/evaluators')
+}
+
+const useNavigateToEvaluatorProfileCreate = () => {
+  const router = useRouter()
+  return () => router.push('/evaluators/create')
+}
+
+const useNavigateToEvaluatorProfileDetail = () => {
+  const router = useRouter()
+  return (id: T_EvaluatorProfileId) => router.push(`/evaluators/${id}`)
+}
+
+// Export all resources
+export {
+  useEvaluatorProfileList,
+  useEvaluatorProfileBatchDelete,
+  useEvaluatorProfileCreate,
+  useEvaluatorProfileUpdate,
+  useEvaluatorProfileDetail,
+  useEvaluatorProfileDelete,
+  useNavigateToEvaluatorProfileList,
+  useNavigateToEvaluatorProfileCreate,
+  useNavigateToEvaluatorProfileDetail,
+}
