@@ -103,6 +103,11 @@ const useSchoolStaffProfileDetail = detailHook<T_SchoolStaffProfileId, I_SchoolS
   axiosGet,
   useAuthResources,
 )
+const useSchoolStaffProfileDelete = deletionHook<T_SchoolStaffProfileId>(
+  SCHOOL_STAFF_PROFILE,
+  axiosDelete,
+  useAuthResources,
+)
 
 // Navigation
 const useNavigateToSchoolList = navigationHook(pages.D._.escuelas.path)
@@ -145,4 +150,5 @@ export {
   useSchoolStaffProfileDetail,
   useSchoolStaffProfileUpdate,
   useNavigateToSchoolStaffProfileDetail,
+  useSchoolStaffProfileDelete,
 }

@@ -2,7 +2,11 @@
 
 import SchoolStaffProfileUpdateForm from '@/mta_schools/components/SchoolStaffProfileUpdateForm'
 import { SCHOOL_STAFF_PROFILE_NAME } from '@/mta_schools/constants'
-import { useNavigateToSchoolStaffProfileList, useSchoolStaffProfileDetail } from '@/mta_schools/hooks'
+import {
+  useNavigateToSchoolStaffProfileList,
+  useSchoolStaffProfileDelete,
+  useSchoolStaffProfileDetail,
+} from '@/mta_schools/hooks'
 import EditionPage from '@/shared/pages/EditionPage'
 
 const SchoolStaffProfileEditPage = () => {
@@ -14,6 +18,7 @@ const SchoolStaffProfileEditPage = () => {
       entityName={SCHOOL_STAFF_PROFILE_NAME}
       onExit={navToList}
       useDetail={useSchoolStaffProfileDetail}
+      useDelete={useSchoolStaffProfileDelete}
     />
   )
 }
