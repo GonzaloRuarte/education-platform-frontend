@@ -35,7 +35,7 @@ interface I_UserDetail {
 }
 
 interface I_UserChangePasswordRequest {
-  old_password: string
+  // old_password: string
   new_password: string
 }
 

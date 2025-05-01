@@ -1,14 +1,14 @@
 import { useAuthResources } from '@/mta_auth/hooks'
 import { I_UserChangePasswordRequest, I_UserDetail, T_UserId, T_UserListWithProfiles } from '@/mta_users/types'
 import { userListWithProfiles } from '@/mta_users/utils'
-import { userChangePasswordPath } from '@/pages'
+import pages, { userChangePasswordPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPost } from '@/shared/data/axios'
-import { batchDeletionHook, detailHook, dynamicNavigationHook, listHook } from '@/shared/hooks'
+import { batchDeletionHook, detailHook, dynamicNavigationHook, listHook, navigationHook } from '@/shared/hooks'
 import { actionHookV3 } from '@/shared/hooks/dataServices/v3'
 import { T_EmptyPayload } from '@/shared/types'
 
 const USERS_PATH = '/users'
-const USERS_CHANGE_PASSWORD_PATH = '/users/{id:number}/change-password'
+const USERS_CHANGE_PASSWORD_PATH = '/users/{id:number}/change-password/'
 
 const useUserList = listHook<T_UserListWithProfiles>(USERS_PATH, axiosGet, useAuthResources, {
   dataPostProcessor: userListWithProfiles,
@@ -22,5 +22,13 @@ const useUserChangePassword = actionHookV3<
 >(USERS_CHANGE_PASSWORD_PATH, axiosPost, useAuthResources)
 
 const useNavigateToUserChangePassword = dynamicNavigationHook(userChangePasswordPath)
+const useNavigateToUserList = navigationHook(pages.D._.usuarios.path)
 
-export { useUserBatchDelete, useUserDetail, useUserList, useUserChangePassword, useNavigateToUserChangePassword }
+export {
+  useNavigateToUserChangePassword,
+  useNavigateToUserList,
+  useUserBatchDelete,
+  useUserChangePassword,
+  useUserDetail,
+  useUserList,
+}

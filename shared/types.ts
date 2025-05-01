@@ -6,17 +6,21 @@ type T_VoidFn = () => void
 
 type T_FCwChildren<T_OtherProps = object> = React.FC<{ children: React.ReactNode } & T_OtherProps>
 
-interface I_FetchingHookResources<T_Data> {
+interface I_FetchingDataHookResources<T_Data> {
   data: T_Data | undefined
   reload: T_VoidFn
   isLoading: boolean
 }
+interface I_ActionHookResources<T_RequestData, T_ResponseData> {
+  isInProgress: boolean
+  executeAction: (data: T_RequestData) => Promise<T_ResponseData>
+}
 
-type T_ListServiceHook<T_Response> = (options?: I_FetchOptions) => I_FetchingHookResources<T_Response>
+type T_ListServiceHook<T_Response> = (options?: I_FetchOptions) => I_FetchingDataHookResources<T_Response>
 type T_CreateServiceHook<T_RequestData, T_Response> = () => (data: T_RequestData) => Promise<T_Response>
 type T_ActionServiceHook<T_RequestData, T_Response> = () => (data: T_RequestData) => Promise<T_Response>
 type T_UpdateServiceHook<T_Id, T_RequestData, T_Response> = () => (id: T_Id, data: T_RequestData) => Promise<T_Response>
-type T_DetailServiceHook<T_Id, T_Response> = (id: T_Id) => I_FetchingHookResources<T_Response>
+type T_DetailServiceHook<T_Id, T_Response> = (id: T_Id) => I_FetchingDataHookResources<T_Response>
 type T_DeletionServiceHook<T_Id, T_Response> = () => (id: T_Id) => Promise<T_Response>
 // type T_BatchDeletionServiceHook<T_Id, T_Response> = () => (ids: Array<T_Id>) => Promise<T_Response>
 type T_BatchDeletionServiceHook<T_Id> = (d: {
@@ -68,5 +72,6 @@ export type {
   T_ActionServiceHook,
   T_VoidFn,
   T_EmptyPayload,
-  I_FetchingHookResources,
+  I_FetchingDataHookResources,
+  I_ActionHookResources,
 }

@@ -30,7 +30,7 @@ import {
 
 import pages from '@/pages'
 import { I_RequestSetup } from '@/shared/data/types'
-import { actionHookV3, listHookV3 } from '@/shared/hooks/dataServices/v3'
+import { actionDataHookV3, listHookV3 } from '@/shared/hooks/dataServices/v3'
 import { I_CreationCommonResponse, T_EmptyPayload } from '@/shared/types'
 
 const SCHOOLS_PATH = '/schools'
@@ -75,7 +75,7 @@ const useStudentProfileBatchCreate = creationHook<T_StudentProfileBatchCreateReq
 )
 
 const COHORTS_BY_SCHOOL_PATH = '/cohorts/distinct-by-school/{schoolId:string}'
-const useCohortsDistinctBySchool = actionHookV3<
+const useCohortsDistinctBySchool = actionDataHookV3<
   typeof COHORTS_BY_SCHOOL_PATH,
   T_EmptyPayload,
   I_CohortsDistinctBySchool

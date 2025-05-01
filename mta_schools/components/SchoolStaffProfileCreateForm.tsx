@@ -1,20 +1,16 @@
 'use client'
 
-import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
 import SchoolStaffProfileFormFields from '@/mta_schools/components/SchoolStaffProfileFormFields'
 import { useNavigateToSchoolStaffProfileList, useSchoolStaffProfileCreate } from '@/mta_schools/hooks'
 import { T_SchoolId } from '@/mta_schools/types'
-import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
-import InputControlled from '@/shared/forms/InputControlled'
-import { rules } from '@/shared/forms/messages'
 import { useInProgress } from '@/shared/hooks'
 import log from '@/shared/log'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { sentence } from '@/shared/utils'
-import { SubmitHandler, useForm, useWatch } from 'react-hook-form'
+import { SubmitHandler, useForm } from 'react-hook-form'
 
 interface I_FormFields {
   school_id: T_SchoolId
