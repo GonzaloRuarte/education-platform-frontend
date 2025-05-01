@@ -20,10 +20,11 @@ interface I_SchoolListItem {
   contact_email: string
 }
 type T_SchoolsList = I_PaginatedResponse<I_SchoolListItem>
-type T_SchoolNames = Array<{
+interface I_SchoolName {
   id: T_SchoolId
   name: string
-}>
+}
+type T_SchoolNames = Array<I_SchoolName>
 
 interface I_SchoolCreateRequestData {
   name: string
@@ -107,6 +108,7 @@ interface I_SchoolStaffProfileDetail {
 }
 export type {
   T_SchoolId,
+  I_SchoolName,
   T_StudentProfileId,
   T_StudentProfilePersonalId,
   T_SchoolStaffProfileId,

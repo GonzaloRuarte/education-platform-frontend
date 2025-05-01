@@ -3,6 +3,7 @@ import {
   I_CohortsDistinctBySchool,
   I_SchoolCreateRequestData,
   I_SchoolDetail,
+  I_SchoolName,
   I_SchoolStaffProfileCreateRequestData,
   I_SchoolStaffProfileDetail,
   I_SchoolStaffProfileUpdateRequestData,
@@ -31,7 +32,9 @@ import {
 import pages from '@/pages'
 import { I_RequestSetup } from '@/shared/data/types'
 import { actionDataHookV3, listHookV3 } from '@/shared/hooks/dataServices/v3'
+import { httpService } from '@/shared/service'
 import { I_CreationCommonResponse, T_EmptyPayload } from '@/shared/types'
+import { useEffect, useState } from 'react'
 
 const SCHOOLS_PATH = '/schools'
 const useSchoolList = listHook<T_SchoolsList>(SCHOOLS_PATH, axiosGet, useAuthResources)
@@ -109,6 +112,26 @@ const useSchoolStaffProfileDelete = deletionHook<T_SchoolStaffProfileId>(
   useAuthResources,
 )
 
+const useSchoolStaffProfileOwnSchool = (isSchoolStaff?: boolean) => {
+  const [schoolData, setSchoolData] = useState<I_SchoolName | undefined | false>(undefined)
+  const getSchoolData = httpService<T_EmptyPayload, I_SchoolName>(
+    `${SCHOOL_STAFF_PROFILE}/own-school/`,
+    axiosGet,
+  )(useAuthResources())
+
+  useEffect(() => {
+    if (isSchoolStaff === undefined) return
+
+    if (!isSchoolStaff) {
+      setSchoolData(false)
+      return
+    }
+    getSchoolData().then((res) => setSchoolData(res))
+  }, [isSchoolStaff])
+
+  return { schoolData }
+}
+
 // Navigation
 const useNavigateToSchoolList = navigationHook(pages.D._.escuelas.path)
 const useNavigateToSchoolDetail = navigationWithIdHook(pages.D._.escuelas.path)
@@ -127,6 +150,9 @@ export {
   useNavigateToSchoolCreate,
   useNavigateToSchoolDetail,
   useNavigateToSchoolList,
+  useNavigateToSchoolStaffProfileCreate,
+  useNavigateToSchoolStaffProfileDetail,
+  useNavigateToSchoolStaffProfileList,
   useNavigateToStudentProfileBatchCreate,
   useNavigateToStudentProfileCreate,
   useNavigateToStudentProfileDetail,
@@ -137,18 +163,16 @@ export {
   useSchoolDelete,
   useSchoolDetail,
   useSchoolList,
+  useSchoolStaffProfileBatchDelete,
+  useSchoolStaffProfileCreate,
+  useSchoolStaffProfileDelete,
+  useSchoolStaffProfileDetail,
+  useSchoolStaffProfileList,
+  useSchoolStaffProfileUpdate,
   useSchoolUpdate,
   useStudentProfileBatchCreate,
   useStudentProfileCreate,
   useStudentProfileList,
   useStudentProfileListBySchool,
-  useSchoolStaffProfileList,
-  useSchoolStaffProfileBatchDelete,
-  useSchoolStaffProfileCreate,
-  useNavigateToSchoolStaffProfileList,
-  useNavigateToSchoolStaffProfileCreate,
-  useSchoolStaffProfileDetail,
-  useSchoolStaffProfileUpdate,
-  useNavigateToSchoolStaffProfileDetail,
-  useSchoolStaffProfileDelete,
+  useSchoolStaffProfileOwnSchool,
 }
