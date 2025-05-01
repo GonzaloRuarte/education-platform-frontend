@@ -5,7 +5,7 @@ import pages from '@/pages'
 import { axiosPost } from '@/shared/data/axios'
 import { T_TokenRefresher } from '@/shared/data/types'
 import log from '@/shared/log'
-import { postService } from '@/shared/service'
+import { handleServiceError, postService } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import { errorToast, successToast } from '@/shared/toasts'
 import { intersection } from '@/shared/utils'
@@ -92,10 +92,27 @@ const useAuthorize = () => {
   return postService<I_AuthorizeRequestData, I_AuthorizeResponseData>('/token', axiosPost)()
 }
 
+const useAuthorizeAndStore = () => {
+  const _authorize = useAuthorize()
+  const storeAuthData = useStoreAuthData()
+
+  const authorize = (data: { username: string; password: string }) => {
+    return _authorize(data)
+      .then((res) => {
+        successToast('¡Sesión iniciada correctamente, bienvenido/a!')
+        storeAuthData({ accessToken: res.token.access, refreshToken: res.token.refresh, profiles: res.user.profiles })
+        return res
+      })
+      .catch(handleServiceError)
+  }
+  return { authorize }
+}
+
 export { useNavigateToLogin } from './navigation'
 export {
   useAuthData,
   useAuthorize,
+  useAuthorizeAndStore,
   useAuthResources,
   useHasPermissions,
   useIsAuthorized,

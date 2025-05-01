@@ -1,45 +1,34 @@
 'use client'
 
-import { useAuthorize, useStoreAuthData } from '@/mta_auth/hooks'
-import InputControlled from '@/shared/forms/InputControlled'
+import { useAuthorizeAndStore } from '@/mta_auth/hooks'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
+import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
 import { useInProgress, useNavigateToDashboardHome } from '@/shared/hooks'
 
-import { handleServiceError } from '@/shared/service'
-import { successToast } from '@/shared/toasts'
-import { SubmitHandler, useForm } from 'react-hook-form'
 import Spacer from '@/shared/components/Spacer'
+import { SubmitHandler, useForm } from 'react-hook-form'
 
 interface I_FormFields {
   username: string
   password: string
 }
-const defaultValues: I_FormFields = {
-  username: '',
-  password: '',
-}
 
 export default function DashboardLoginForm() {
-  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
+  const { handleSubmit, control } = useForm<I_FormFields>({
+    defaultValues: {
+      username: '',
+      password: '',
+    },
+  })
   const navigateToHome = useNavigateToDashboardHome()
-  const authorize = useAuthorize()
-  const storeAuthData = useStoreAuthData()
+  const { authorize } = useAuthorizeAndStore()
 
-  const { setInProgressStatus } = useInProgress()
+  const { setIsInProgress, setIsNotInProgress } = useInProgress()
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
-    setInProgressStatus(true)
-    authorize(data)
-      .then((res) => {
-        successToast('¡Sesión iniciada correctamente, bienvenido/a!')
-        storeAuthData({ accessToken: res.token.access, refreshToken: res.token.refresh, profiles: res.user.profiles })
-        navigateToHome()
-      })
-      .catch(handleServiceError)
-      .finally(() => {
-        setInProgressStatus(false)
-      })
+    setIsInProgress()
+    authorize(data).then(navigateToHome).finally(setIsNotInProgress)
   }
 
   return (

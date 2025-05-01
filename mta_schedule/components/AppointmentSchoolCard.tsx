@@ -64,7 +64,7 @@ const AppointmentSchoolCard = ({ data }: I_Props) => {
               )}
             </MagicGrid>
           )}
-          <DeleteButton fullWidth color="error" label="Eliminar turno" variant="outlined" />
+          <DeleteButton fullWidth color="error" label="Eliminar turno" variant="outlined" disabled />
         </MagicGrid>
       </Grid2>
     </Grid2>
