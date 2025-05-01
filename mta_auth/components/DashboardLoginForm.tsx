@@ -33,7 +33,7 @@ export default function DashboardLoginForm() {
     authorize(data)
       .then((res) => {
         successToast('¡Sesión iniciada correctamente, bienvenido/a!')
-        storeAuthData({ accessToken: res.access, refreshToken: res.refresh, accessGroups: ['admin'] })
+        storeAuthData({ accessToken: res.token.access, refreshToken: res.token.refresh, profiles: res.user.profiles })
         navigateToHome()
       })
       .catch(handleServiceError)

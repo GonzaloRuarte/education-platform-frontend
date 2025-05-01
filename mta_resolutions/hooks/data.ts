@@ -1,6 +1,6 @@
 import { ErrorCode } from '@/config'
 import { useAuthResources } from '@/mta_auth/hooks'
-import { I_AuthorizeResponseData } from '@/mta_auth/types'
+import { I_AuthorizeStudentResponseData } from '@/mta_auth/types'
 import { T_AnswerId, T_AnswerType, T_QuestionId } from '@/mta_evaluations/types'
 import { useResolutionLogout, useResolutionPagination } from '@/mta_resolutions/hooks'
 import {
@@ -30,7 +30,7 @@ const RESOLUTIONS_PATH = '/resolutions'
  * Authorize student to access evaluation zone (login)
  */
 const useResolutionAuthorizeStudent = () => {
-  return postService<I_AuthorizeStudentRequestData, I_AuthorizeResponseData>(
+  return postService<I_AuthorizeStudentRequestData, I_AuthorizeStudentResponseData>(
     `${RESOLUTIONS_PATH}/authorize`,
     axiosPost,
   )()
@@ -248,9 +248,12 @@ export {
   useResolutionClearLastUploadDatetime,
   useResolutionClearMetadata,
   useResolutionClearState,
+  useResolutionDownloadState,
   useResolutionEvaluationToResolve,
   useResolutionLastUploadDatetime,
   useResolutionManageUploadState,
+  useResolutionMaxDurationMinutes,
+  useResolutionRemainingTimeWarningAlreadyDisplayed,
   useResolutionRequestSubmit,
   useResolutionResume,
   useResolutionState,
@@ -258,7 +261,4 @@ export {
   useResolutionStoreEvaluation,
   useResolutionStoreMetadata,
   useResolutionUpdateLastUploadDatetime,
-  useResolutionDownloadState,
-  useResolutionMaxDurationMinutes,
-  useResolutionRemainingTimeWarningAlreadyDisplayed,
 }

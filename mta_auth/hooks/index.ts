@@ -15,8 +15,8 @@ import { useEffect, useState } from 'react'
 const useIsAuthorized = () => {
   const [useFastMethod, setUseFastMethod] = useState(true)
 
-  const isAuthorizedWithFastNonReactiveMethod = useStore.getState().accessToken !== undefined
-  const isAuthorizedWithReactiveMethod = useStore((state) => state.accessToken !== undefined)
+  const isAuthorizedWithFastNonReactiveMethod = useStore.getState().auth_accessToken !== undefined
+  const isAuthorizedWithReactiveMethod = useStore((state) => state.auth_accessToken !== undefined)
 
   useEffect(() => {
     const to = setTimeout(() => setUseFastMethod(false), 100)
@@ -26,7 +26,7 @@ const useIsAuthorized = () => {
   return useFastMethod ? isAuthorizedWithFastNonReactiveMethod : isAuthorizedWithReactiveMethod
 }
 
-const useUserAccessGroups = () => useStore.getState().accessGroups
+const useUserAccessGroups = () => useStore.getState().auth_profiles
 
 const useHasPermissions = (requiredAccesses: T_AllowedUserProfiles): boolean => {
   const userAccessGroups = useUserAccessGroups()
@@ -38,14 +38,18 @@ const useHasPermissions = (requiredAccesses: T_AllowedUserProfiles): boolean => 
 }
 
 const useAuthData = (): I_AuthData => {
-  const { accessGroups, accessToken, refreshToken } = useStore.getState()
-  return { accessGroups, accessToken, refreshToken }
+  const { auth_profiles, auth_accessToken, auth_refreshToken } = useStore.getState()
+  return {
+    profiles: auth_profiles,
+    accessToken: auth_accessToken,
+    refreshToken: auth_refreshToken,
+  }
 }
 
 const useAuthResources = (): I_AuthResources => {
-  const { accessGroups, accessToken, refreshToken } = useAuthData()
-  const storeRefreshedToken = useStore((state) => state.storeRefreshedToken)
-  const clearAuthData = useStore((state) => state.clearAuthData)
+  const { profiles, accessToken, refreshToken } = useAuthData()
+  const storeRefreshedToken = useStore((state) => state.auth_storeRefreshedToken)
+  const clearAuthData = useStore((state) => state.auth_clearAuthData)
 
   const refresh: T_TokenRefresher = (postMethod) => async (data) => {
     return postMethod(apiUrl('/token/refresh/'), data).then((res) => {
@@ -60,7 +64,7 @@ const useAuthResources = (): I_AuthResources => {
     errorToast('Error con tus credenciales de acceso. Inicia sesión nuevamente')
   }
 
-  return { accessGroups, accessToken, refreshToken, refresh, handleFatal401Error }
+  return { profiles, accessToken, refreshToken, refresh, handleFatal401Error }
 }
 
 const useLogout = (callbackPath: string = pages.D._.login.path) => {
@@ -68,11 +72,11 @@ const useLogout = (callbackPath: string = pages.D._.login.path) => {
 
   return () => {
     successToast('Sesión cerrada correctamente. Hasta Pronto!')
-    useStore.getState().clearAuthData()
+    useStore.getState().auth_clearAuthData()
     router.push(callbackPath)
   }
 }
-const useStoreAuthData = () => useStore((state) => state.storeAuthData)
+const useStoreAuthData = () => useStore((state) => state.auth_storeAuthData)
 
 const useAuthorize = () => {
   return postService<I_AuthorizeRequestData, I_AuthorizeResponseData>('/token', axiosPost)()

@@ -33,7 +33,7 @@ export default function StudentsLoginForm() {
     authorize(data)
       .then((res) => {
         successToast('¡Pudiste ingresar correctamente, bienvenido/a. ¡Suerte en tu Evaluación!')
-        storeAuthData({ accessToken: res.access, refreshToken: res.refresh, accessGroups: ['student'] })
+        storeAuthData({ accessToken: res.access, refreshToken: res.refresh, profiles: ['student'] })
         navigateToBeginResolution()
       })
       .catch(handleServiceError)
