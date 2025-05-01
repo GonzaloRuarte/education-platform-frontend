@@ -4,24 +4,33 @@ import { useHasPermissions, useIsAuthorized, useNavigateToLogin } from '@/mta_au
 
 import { useNavigateToDashboardHome } from '@/shared/hooks'
 import { warningToast } from '@/shared/toasts'
-import { useEffect } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { T_LoginZone } from '../types'
 import { T_AllowedUserProfiles } from '@/mta_users/types'
+import { useDebouncedCallback } from 'use-debounce'
 
 const RequireAuth = ({
   allowedUserProfiles,
   logoutDestination,
+  children,
 }: {
   allowedUserProfiles: T_AllowedUserProfiles
   logoutDestination: T_LoginZone
+  children: ReactNode
 }) => {
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    // Ensure this runs only on the client
+    setIsClient(true)
+  }, [])
+
   const navigateToLogin = useNavigateToLogin(logoutDestination)
   const navigateToHome = useNavigateToDashboardHome()
   const isAuthorized = useIsAuthorized()
 
   const hasPermissions = useHasPermissions(allowedUserProfiles)
-
-  const requireAuth = () => {
+  const requireAuth = useDebouncedCallback(() => {
     if (!isAuthorized) {
       navigateToLogin()
 
@@ -29,14 +38,15 @@ const RequireAuth = ({
     }
 
     if (!hasPermissions) {
-      warningToast('No tienes permisos suficientes ')
+      warningToast('No tienes permisos suficientes para acceder a esta zona')
       navigateToHome()
       return
     }
-  }
-
+  })
   useEffect(requireAuth, [isAuthorized])
-  return <></>
+
+  if (!isClient || !isAuthorized || !hasPermissions) return <></>
+  return <>{children}</>
 }
 
 export default RequireAuth

@@ -14,8 +14,9 @@ export const withAuth = (
   const WithAuthHOC = (props: ComponentProps<typeof WrappedComponent>) => {
     return (
       <>
-        <RequireAuth allowedUserProfiles={options.allowedUserProfiles} logoutDestination={options.logoutDestination} />
-        <WrappedComponent {...props} />
+        <RequireAuth allowedUserProfiles={options.allowedUserProfiles} logoutDestination={options.logoutDestination}>
+          <WrappedComponent {...props} />
+        </RequireAuth>
       </>
     )
   }
