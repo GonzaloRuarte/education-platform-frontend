@@ -1,5 +1,6 @@
 'use client'
 
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import SchoolStaffProfileUpdateForm from '@/mta_schools/components/SchoolStaffProfileUpdateForm'
 import { SCHOOL_STAFF_PROFILE_NAME } from '@/mta_schools/constants'
 import {
@@ -23,4 +24,7 @@ const SchoolStaffProfileEditPage = () => {
   )
 }
 
-export default SchoolStaffProfileEditPage
+export default withAuth(SchoolStaffProfileEditPage, {
+  allowedUserProfiles: ['admin'],
+  logoutDestination: 'dashboard',
+})

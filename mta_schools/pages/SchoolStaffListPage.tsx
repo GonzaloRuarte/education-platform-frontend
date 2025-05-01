@@ -1,5 +1,6 @@
 'use client'
 
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { SCHOOL_STAFF_PROFILE_NAME } from '@/mta_schools/constants'
 import {
   useNavigateToSchoolStaffProfileCreate,
@@ -35,4 +36,7 @@ const SchoolStaffProfileListPage = () => {
   )
 }
 
-export default SchoolStaffProfileListPage
+export default withAuth(SchoolStaffProfileListPage, {
+  allowedUserProfiles: ['admin'],
+  logoutDestination: 'dashboard',
+})

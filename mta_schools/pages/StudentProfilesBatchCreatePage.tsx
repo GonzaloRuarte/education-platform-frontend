@@ -1,5 +1,6 @@
 'use client'
 
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
 import { STUDENT_PROFILE_NAME } from '@/mta_schools/constants'
 import { useNavigateToStudentProfileList, useStudentProfileBatchCreate } from '@/mta_schools/hooks'
@@ -121,4 +122,7 @@ const StudentProfilesBatchCreatePage = () => {
   )
 }
 
-export default StudentProfilesBatchCreatePage
+export default withAuth(StudentProfilesBatchCreatePage, {
+  allowedUserProfiles: ['admin', 'school_staff'],
+  logoutDestination: 'dashboard',
+})

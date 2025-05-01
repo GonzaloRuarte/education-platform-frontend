@@ -51,6 +51,6 @@ const SchoolsListPage = () => {
 }
 
 export default withAuth(SchoolsListPage, {
-  allowedUserProfiles: ['admin', 'school_staff'],
+  allowedUserProfiles: ['admin'],
   logoutDestination: 'dashboard',
 })
