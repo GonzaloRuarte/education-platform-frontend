@@ -26,15 +26,25 @@ const useIsAuthorized = () => {
   return useFastMethod ? isAuthorizedWithFastNonReactiveMethod : isAuthorizedWithReactiveMethod
 }
 
-const useUserAccessGroups = () => useStore.getState().auth_profiles
+const useUserProfiles = () => useStore.getState().auth_profiles
+const useUserProfilesResources = () => {
+  const profiles = useUserProfiles()
+  return {
+    profiles,
+    isAdmin: profiles?.includes('admin'),
+    isStudent: profiles?.includes('student'),
+    isEvaluator: profiles?.includes('evaluator'),
+    isSchoolStaff: profiles?.includes('school_staff'),
+  }
+}
 
-const useHasPermissions = (requiredAccesses: T_AllowedUserProfiles): boolean => {
-  const userAccessGroups = useUserAccessGroups()
+const useHasPermissions = (requiredProfiles: T_AllowedUserProfiles): boolean => {
+  const userProfiles = useUserProfiles()
 
-  if (userAccessGroups === undefined) return false
-  if (requiredAccesses === undefined || requiredAccesses.length === 0) return true
+  if (userProfiles === undefined) return false
+  if (requiredProfiles === undefined || requiredProfiles.length === 0) return true
 
-  return intersection(requiredAccesses, userAccessGroups).length > 0
+  return intersection(requiredProfiles, userProfiles).length > 0
 }
 
 const useAuthData = (): I_AuthData => {
@@ -91,5 +101,6 @@ export {
   useIsAuthorized,
   useLogout,
   useStoreAuthData,
-  useUserAccessGroups,
+  useUserProfiles,
+  useUserProfilesResources,
 }
