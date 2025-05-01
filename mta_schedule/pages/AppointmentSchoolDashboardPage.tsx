@@ -4,6 +4,8 @@ import { DEFAULT_PAGE_SIZE } from '@/config'
 import AppointmentSchoolCard from '@/mta_schedule/components/AppointmentSchoolCard'
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
 import { useAppointmentListByUserSchool } from '@/mta_schedule/hooks'
+import Button from '@/shared/components/Button'
+import { ReloadButton } from '@/shared/components/buttons'
 import Page from '@/shared/components/Page'
 import Spinner from '@/shared/components/Spinner'
 import { Box, Grid2, Pagination } from '@mui/material'
@@ -19,7 +21,7 @@ const AppointmentSchoolDashboardPage = () => {
   const currentPage = parseInt(searchParams.get('page') || '1', 10)
 
   // Fetch data based on the current page
-  const { data } = useAppointmentListByUserSchool({ page: currentPage, page_size: DEFAULT_PAGE_SIZE })
+  const { data, reload } = useAppointmentListByUserSchool({ page: currentPage, page_size: DEFAULT_PAGE_SIZE })
 
   // Handle page change
   const handlePageChange = (_: React.ChangeEvent<unknown>, newPage: number) => {
@@ -29,6 +31,9 @@ const AppointmentSchoolDashboardPage = () => {
   return (
     <Page>
       <Page.Title>Listado de {APPOINTMENT_NAME.plural}</Page.Title>
+      <Page.Toolbar>
+        <ReloadButton onClick={reload} />
+      </Page.Toolbar>
       {data === undefined ? (
         <Spinner />
       ) : (

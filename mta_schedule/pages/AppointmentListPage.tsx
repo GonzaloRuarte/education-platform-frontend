@@ -10,7 +10,7 @@ import {
   useNavigateToAppointmentEditStudents,
   useNavigateToAppointmentProcess,
 } from '@/mta_schedule/hooks'
-import { I_AppointmentListItem } from '@/mta_schedule/types'
+import { AppointmentStatus, I_AppointmentListItem } from '@/mta_schedule/types'
 import Button from '@/shared/components/Button'
 import ListPage from '@/shared/pages/ListPage'
 import RuleIcon from '@mui/icons-material/Rule'
@@ -53,6 +53,13 @@ const columns = (a: {
     headerName: 'Escuela',
     flex: 2,
     renderCell: ({ value }) => <>{value !== null ? value.name : '-'}</>,
+  },
+
+  {
+    field: 'student_count',
+    headerName: 'C/Estudiantes',
+    renderCell: ({ row }) => <>{row.status === AppointmentStatus.approved ? row.student_count : '-'}</>,
+    flex: 0.7,
   },
   {
     field: 'actions',
