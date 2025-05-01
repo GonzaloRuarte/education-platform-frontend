@@ -6,6 +6,13 @@ import { I_PaginatedResponse } from '@/shared/data/types'
 type T_AppointmentId = number
 type T_AppointmentStatus = 'F' | 'P' | 'A' | 'R'
 
+enum AppointmentStatus {
+  free = 'F',
+  pending = 'P',
+  approved = 'A',
+  rejected = 'R',
+}
+
 interface I_AppointmentDetail {
   id: T_AppointmentId
   begins_at: string
@@ -93,3 +100,4 @@ export type {
   I_AppointmentEvaluationBrief,
   I_AppointmentAddStudents_RequestData,
 }
+export { AppointmentStatus }

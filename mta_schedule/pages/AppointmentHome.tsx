@@ -3,13 +3,13 @@
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { useUserProfilesResources } from '@/mta_auth/hooks'
 import AppointmentListPage from '@/mta_schedule/pages/AppointmentListPage'
-import AppointmentSchoolDashboard from '@/mta_schedule/pages/AppointmentSchoolDashboard'
+import AppointmentSchoolDashboardPage from '@/mta_schedule/pages/AppointmentSchoolDashboardPage'
 import React from 'react'
 
 const AppointmentHome = () => {
   const { isAdmin, isSchoolStaff } = useUserProfilesResources()
   if (isAdmin) return <AppointmentListPage />
-  if (isSchoolStaff) return <AppointmentSchoolDashboard />
+  if (isSchoolStaff) return <AppointmentSchoolDashboardPage />
   return <div>AppointmentHome</div>
 }
 

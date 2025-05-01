@@ -1,7 +1,9 @@
 'use client'
 
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
 import { T_EvaluationSubjectId } from '@/mta_evaluations/types'
+import AppointmentBriefCard from '@/mta_schedule/components/AppointmentBriefCard'
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
 import {
   useAppointmentFreeListByMonth,
@@ -18,25 +20,17 @@ import MagicGrid from '@/shared/components/MagicGrid'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
-import { Body1, H3, H4 } from '@/shared/components/Typography'
 import DateCalendarControlled from '@/shared/forms/DateCalendarControlled'
 import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
 import OptionToggleControlled from '@/shared/forms/OptionToggleControlled'
 import { useInProgress } from '@/shared/hooks'
-import { randomInt, sentence } from '@/shared/utils'
-import { Box, FormLabel, Grid2 } from '@mui/material'
+import { handleServiceError } from '@/shared/service'
+import { randomInt } from '@/shared/utils'
+import { FormLabel, Grid2 } from '@mui/material'
 import dayjs, { Dayjs } from 'dayjs'
 import { useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
-import { withAuth } from '@/mta_auth/hocs/withAuth'
-import Chip from '@/shared/components/Chip'
-import { LIGHT_BG_COLOR } from '@/config'
-import { handleServiceError } from '@/shared/service'
-import TodayIcon from '@mui/icons-material/Today'
-import AppointmentBriefCard from '@/mta_schedule/components/AppointmentBriefCard'
-
-require('dayjs/locale/es')
 
 interface I_FormFields {
   appointment_id: T_AppointmentId

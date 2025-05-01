@@ -1,5 +1,7 @@
 import { I_AppointmentsByMonthResponseData } from '@/mta_schedule/types'
+import { sentence } from '@/shared/utils'
 import dayjs, { Dayjs } from 'dayjs'
+require('dayjs/locale/es')
 
 const hoursOptions = (args: { startHour: number; endHour: number; stepMinutes: number }) => {
   const options: Array<{ value: string; label: string }> = []
@@ -34,4 +36,8 @@ const availableDays = (data: I_AppointmentsByMonthResponseData): Record<number, 
   return result
 }
 
-export { hoursOptions, combinedDateAndTime, availableDays }
+const appointmentFormattedStringDate = (dateString: string): string => {
+  return sentence(dayjs(dateString).locale('es').format('LLLL'))
+}
+
+export { hoursOptions, combinedDateAndTime, availableDays, appointmentFormattedStringDate }

@@ -1,16 +1,15 @@
 import { LIGHT_BG_COLOR } from '@/config'
 import { I_AppointmentEvaluationBrief, T_AppointmentId } from '@/mta_schedule/types'
+import { appointmentFormattedStringDate } from '@/mta_schedule/utils'
 import { SchoolGrade } from '@/mta_schools/constants'
-import { gradeLabel, schoolLabels } from '@/mta_schools/labels'
+import { gradeLabel } from '@/mta_schools/labels'
 import Bold from '@/shared/components/Bold'
 import Chip from '@/shared/components/Chip'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import { Body1, H4 } from '@/shared/components/Typography'
-import { sentence } from '@/shared/utils'
 import TodayIcon from '@mui/icons-material/Today'
 import { Box } from '@mui/material'
-import dayjs from 'dayjs'
 
 interface I_Props {
   title: string
@@ -28,7 +27,7 @@ const AppointmentBriefCard = ({ appointmentId, title, begins_at, subject, grade,
       <MagicGrid spacing={1}>
         <H4>{title}</H4>
         <MagicGrid itemSize="auto">
-          <Body1>{sentence(dayjs(begins_at).locale('es').format('LLLL'))}</Body1>
+          <Body1>{appointmentFormattedStringDate(begins_at)}</Body1>
           <Chip sx={{ opacity: 0.4 }} size="small" label={`ID: ${appointmentId}`} />
         </MagicGrid>
         <MagicGrid itemSize="auto">

@@ -23,8 +23,6 @@ import { Button } from '@mui/material'
 import { useParams } from 'next/navigation'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
-require('dayjs/locale/es')
-
 interface I_FormFields {
   evaluation: { id: string; title: string } | null
 }

@@ -8,8 +8,6 @@ import Page from '@/shared/components/Page'
 import Spinner from '@/shared/components/Spinner'
 import { useParams } from 'next/navigation'
 
-require('dayjs/locale/es')
-
 const AppointmentEditStudentsPage = () => {
   const { appointmentId } = useParams()
   const { data, reload } = useAppointmentDetail(Number(appointmentId))

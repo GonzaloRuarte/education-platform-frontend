@@ -29,6 +29,11 @@ import { I_CreationCommonResponse } from '@/shared/types'
 // Data Service
 const APPOINTMENTS_PATH = '/appointments'
 const useAppointmentList = listHook<T_AppointmentList>(APPOINTMENTS_PATH, axiosGet, useAuthResources)
+const useAppointmentListByUserSchool = listHook<T_AppointmentList>(
+  `${APPOINTMENTS_PATH}/list-by-user-school`,
+  axiosGet,
+  useAuthResources,
+)
 const useAppointmentCreate = creationHook<I_AppointmentCreateRequestData, I_CreationCommonResponse>(
   APPOINTMENTS_PATH,
   axiosPost,
@@ -94,4 +99,5 @@ export {
   useAppointmentReject,
   useNavigateToAppointmentEditStudents,
   useAppointmentAddStudents,
+  useAppointmentListByUserSchool,
 }

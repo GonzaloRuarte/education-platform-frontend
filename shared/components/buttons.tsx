@@ -32,11 +32,13 @@ const CancelButton: React.FC<I_ButtonProps> = ({ ...props }) => (
   </Button>
 )
 
-interface I_DeleteButtonProps extends I_ButtonProps {}
+interface I_DeleteButtonProps extends I_ButtonProps {
+  label?: string
+}
 
-const DeleteButton: React.FC<I_DeleteButtonProps> = ({ ...props }) => (
+const DeleteButton: React.FC<I_DeleteButtonProps> = ({ label, ...props }) => (
   <Button {...props} startIcon={<DeleteIcon />}>
-    {sharedLabels.delete}
+    {label || sharedLabels.delete}
   </Button>
 )
 
