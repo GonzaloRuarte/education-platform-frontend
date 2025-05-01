@@ -72,7 +72,7 @@ const useAppointmentReject = actionHook<I_AppointmentReject_RequestData, I_Appoi
   useAuthResources,
 )
 const useAppointmentAddStudents = actionHook<I_AppointmentAddStudents_RequestData, I_AppointmentDetail>(
-  `${APPOINTMENTS_PATH}/add-students`,
+  `${APPOINTMENTS_PATH}/set-students`,
   axiosPost,
   useAuthResources,
 )
