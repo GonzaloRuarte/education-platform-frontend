@@ -85,6 +85,8 @@ const useLogout = (callbackPath: string = pages.D._.login.path) => {
   const cleanTasks = () => {
     useStore.getState().auth_clearAuthData()
     useStore.getState().resolution_resetState()
+    useStore.getState().school_resetState()
+    useStore.getState().user_resetState()
   }
 
   return () => {

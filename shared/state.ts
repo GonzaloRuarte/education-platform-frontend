@@ -7,13 +7,13 @@ import { create, StateCreator } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 
 interface I_CoreSlice {
-  isInProgress: boolean
-  setIsInProgress: (status: boolean) => void
+  core_isInProgress: boolean
+  core_setIsInProgress: (status: boolean) => void
 }
 
 const createCoreSlice: StateCreator<I_CoreSlice, [], [], I_CoreSlice> = (set) => ({
-  isInProgress: false,
-  setIsInProgress: (status) => set(() => ({ isInProgress: status })),
+  core_isInProgress: false,
+  core_setIsInProgress: (status) => set(() => ({ core_isInProgress: status })),
 })
 
 type T_CombinedSlices = I_AuthSlice &
@@ -42,7 +42,11 @@ const useStore = create<T_CombinedSlices>()(
       {
         name: 'meta_system-data',
         partialize: (state) =>
-          excludeForPartialize(state, ['isInProgress', 'subjects', 'resolution_remainingTimeWarningAlreadyDisplayed']),
+          excludeForPartialize(state, [
+            'core_isInProgress',
+            'evaluations_subjects',
+            'resolution_remainingTimeWarningAlreadyDisplayed',
+          ]),
       },
     ),
   ),

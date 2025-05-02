@@ -15,8 +15,8 @@ const useInProgressLocal: T_InProgressHook = () => {
   }
 }
 const useInProgress: T_InProgressHook = () => {
-  const isInProgress = useStore((state) => state.isInProgress)
-  const setInProgressStatus = useStore((state) => state.setIsInProgress)
+  const isInProgress = useStore((state) => state.core_isInProgress)
+  const setInProgressStatus = useStore((state) => state.core_setIsInProgress)
   return {
     isInProgress,
     setInProgressStatus,
