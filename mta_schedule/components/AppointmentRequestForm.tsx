@@ -17,7 +17,7 @@ import { SchoolGradeSelectControlled } from '@/mta_schools/components/SchoolGrad
 import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
 import { SchoolGrade } from '@/mta_schools/constants'
 import { useSchoolStaffProfileOwnSchool } from '@/mta_schools/hooks'
-import { T_SchoolId } from '@/mta_schools/types'
+import { I_SchoolName, T_SchoolId } from '@/mta_schools/types'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
@@ -56,10 +56,9 @@ const distinctAvailableAppointments = (appointments: T_AppointmentsAvailableList
 }
 
 interface I_Props {
-  schoolId?: T_SchoolId
-  schoolName?: string
+  ownSchoolData: I_SchoolName | null
 }
-const AppointmentRequestForm = ({ schoolId, schoolName }: I_Props) => {
+const AppointmentRequestForm = ({ ownSchoolData }: I_Props) => {
   const { setIsInProgress, setIsNotInProgress } = useInProgress()
   const backToList = useNavigateToAppointmentList()
   const [refDate, setRefDate] = useState(dayjs())
@@ -77,7 +76,7 @@ const AppointmentRequestForm = ({ schoolId, schoolName }: I_Props) => {
       evaluation_subject_id: null,
       grade: undefined,
       pin: randomInt(1000, 9999),
-      school_id: schoolId,
+      school_id: ownSchoolData === null ? undefined : ownSchoolData.id,
     },
   })
   const onSubmit: SubmitHandler<I_FormFields> = ({ date, ...data }) => {
@@ -150,10 +149,14 @@ const AppointmentRequestForm = ({ schoolId, schoolName }: I_Props) => {
 
         <Grid2 size={12}>
           <MagicGrid>
-            {schoolName !== undefined && <H4>{schoolName}</H4>}
-            {schoolId === undefined && (
+            {ownSchoolData === null ? (
               <SchoolSelectControlled control={control} name="school_id" rules={{ ...rules.required() }} />
+            ) : (
+              <>
+                <H4>{ownSchoolData.name}</H4>
+              </>
             )}
+
             <InputControlled control={control} name="pin" type="number" label="Pin" rules={{ ...rules.required() }} />
             <SubjectOptions control={control} name="evaluation_subject_id" />
             <SchoolGradeSelectControlled control={control} name="grade" rules={{ ...rules.required() }} />
