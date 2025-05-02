@@ -26,6 +26,13 @@ interface I_SchoolName {
 }
 type T_SchoolNames = Array<I_SchoolName>
 
+interface I_StudentProfileDetail {
+  id: T_StudentProfileId
+  personal_id: number
+  cohort: string
+  user_id: T_UserId
+  school_id: T_SchoolId
+}
 interface I_SchoolCreateRequestData {
   name: string
   district: string
@@ -128,4 +135,5 @@ export type {
   I_SchoolStaffProfileCreateRequestData,
   I_SchoolStaffProfileDetail,
   I_SchoolStaffProfileUpdateRequestData,
+  I_StudentProfileDetail,
 }

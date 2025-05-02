@@ -9,12 +9,14 @@ import {
   I_SchoolStaffProfileUpdateRequestData,
   I_SchoolUpdateRequestData,
   I_StudentProfileCreateRequestData,
+  I_StudentProfileDetail,
   T_SchoolId,
   T_SchoolNames,
   T_SchoolsList,
   T_SchoolStaffProfileId,
   T_SchoolStaffProfileList,
   T_StudentProfileBatchCreateRequestData,
+  T_StudentProfileId,
   T_StudentProfileList,
 } from '@/mta_schools/types'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
@@ -56,6 +58,12 @@ const useSchoolUpdate = updateHook<T_SchoolId, I_SchoolUpdateRequestData, I_Scho
 
 const STUDENT_PROFILE_PATH = '/student-profiles'
 const STUDENTS_BY_SCHOOL_PATH = '/student-profiles/list-by-school/{schoolId:string}'
+const useStudentProfileDetail = detailHook<T_StudentProfileId, I_StudentProfileDetail>(
+  STUDENT_PROFILE_PATH,
+  axiosGet,
+  useAuthResources,
+)
+
 const useStudentProfileList = listHook<T_StudentProfileList>(STUDENT_PROFILE_PATH, axiosGet, useAuthResources)
 const useStudentProfileListBySchool = listHookV3<typeof STUDENTS_BY_SCHOOL_PATH, T_StudentProfileList>(
   STUDENTS_BY_SCHOOL_PATH,
@@ -67,6 +75,11 @@ const useStudentProfileCreate = creationHook<I_StudentProfileCreateRequestData, 
   axiosPost,
   useAuthResources,
 )
+const useStudentProfileUpdate = updateHook<
+  T_StudentProfileId,
+  I_StudentProfileCreateRequestData,
+  I_CreationCommonResponse
+>(STUDENT_PROFILE_PATH, axiosPatch, useAuthResources)
 
 const _useRequestSetup = (): I_RequestSetup => {
   const authResources = useAuthResources()
@@ -176,4 +189,6 @@ export {
   useStudentProfileList,
   useStudentProfileListBySchool,
   useSchoolStaffProfileOwnSchool,
+  useStudentProfileUpdate,
+  useStudentProfileDetail,
 }

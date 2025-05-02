@@ -4,11 +4,14 @@ import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
 import { STUDENT_PROFILE_NAME } from '@/mta_schools/constants'
 import { useNavigateToStudentProfileList, useStudentProfileBatchCreate } from '@/mta_schools/hooks'
+import { useSchoolOwnSchool } from '@/mta_schools/hooks/state'
+import { I_SchoolName } from '@/mta_schools/types'
 import Button from '@/shared/components/Button'
 import { BackButton } from '@/shared/components/buttons'
 import Page from '@/shared/components/Page'
 import Pastilla from '@/shared/components/Pastilla'
 import Spacer from '@/shared/components/Spacer'
+import Spinner from '@/shared/components/Spinner'
 import Submit from '@/shared/components/Submit'
 import { Body1, H4 } from '@/shared/components/Typography'
 import { useInProgress } from '@/shared/hooks'
@@ -26,7 +29,11 @@ interface I_FormFields {
   file: FileList
 }
 
-const StudentProfilesBatchCreatePage = () => {
+interface I_Props {
+  ownSchoolData: I_SchoolName | null
+}
+
+const StudentProfilesBatchCreatePageContent = ({ ownSchoolData }: I_Props) => {
   const backToList = useNavigateToStudentProfileList()
   const { setIsInProgress, setIsNotInProgress } = useInProgress()
 
@@ -35,7 +42,7 @@ const StudentProfilesBatchCreatePage = () => {
     handleSubmit,
     register,
     formState: { errors },
-  } = useForm<I_FormFields>()
+  } = useForm<I_FormFields>({ defaultValues: { school_id: ownSchoolData !== null ? ownSchoolData.id : undefined } })
 
   const batchCreate = useStudentProfileBatchCreate()
 
@@ -75,15 +82,19 @@ const StudentProfilesBatchCreatePage = () => {
           <Grid size={7}>
             <form onSubmit={handleSubmit(onSubmit)} encType="multipart/form-data">
               <Grid container spacing={3}>
-                <Grid size={12}>
-                  <SchoolSelectControlled
-                    control={control}
-                    name="school_id"
-                    rules={{ required: 'Debe seleccionar una escuela' }}
-                    label="Escuela"
-                  />
-                  {errors.school_id && <p style={{ color: 'red' }}>{errors.school_id.message}</p>}
-                </Grid>
+                {ownSchoolData === null ? (
+                  <Grid size={12}>
+                    <SchoolSelectControlled
+                      control={control}
+                      name="school_id"
+                      rules={{ required: 'Debe seleccionar una escuela' }}
+                      label="Escuela"
+                    />
+                    {errors.school_id && <p style={{ color: 'red' }}>{errors.school_id.message}</p>}
+                  </Grid>
+                ) : (
+                  <H4>{ownSchoolData.name}</H4>
+                )}
                 <Grid size={12}>
                   <TextField
                     type="file"
@@ -121,7 +132,12 @@ const StudentProfilesBatchCreatePage = () => {
     </Page>
   )
 }
+const StudentProfilesBatchCreatePage = () => {
+  const ownSchool = useSchoolOwnSchool()
 
+  if (ownSchool === undefined) return <Spinner />
+  return <StudentProfilesBatchCreatePageContent ownSchoolData={ownSchool} />
+}
 export default withAuth(StudentProfilesBatchCreatePage, {
   allowedUserProfiles: ['admin', 'school_staff'],
   logoutDestination: 'dashboard',
