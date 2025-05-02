@@ -64,7 +64,7 @@ const useResolutionStoreEvaluation = () => useStore((state) => state.resolution_
 const useResolutionClearEvaluation = () => useStore((state) => state.resolution_clearEvaluation)
 const useResolutionStoreMetadata = () => useStore((state) => state.resolution_storeMetadata)
 const useResolutionClearMetadata = () => useStore((state) => state.resolution_clearMetadata)
-const useStoreResolutionState = () => useStore((state) => state.resolution_storeState)
+const useResolutionStoreState = () => useStore((state) => state.resolution_storeState)
 const useResolutionEvaluationToResolve = () => useStore((state) => state.resolution_evaluation)
 const useResolutionRemainingTimeWarningAlreadyDisplayed = () => {
   const warningAlreadyDisplayed = useStore((state) => state.resolution_remainingTimeWarningAlreadyDisplayed)
@@ -95,7 +95,7 @@ const initialState = (personal_id: T_StudentProfilePersonalId, appointment_id: T
 const useResolutionResume = () => {
   const requestResume = _useResolutionRequestResume()
   const storeEvaluationToResolve = useResolutionStoreEvaluation()
-  const storeResolutionState = useStoreResolutionState()
+  const storeResolutionState = useResolutionStoreState()
   const storeMetadata = useResolutionStoreMetadata()
   const { storeNewPage } = useResolutionPagination()
   const { setIsNotInProgress, setIsInProgress } = useInProgress()

@@ -25,8 +25,8 @@ interface I_AuthorizeResponseData {
     username: string
     first_name: string
     last_name: string
-    profiles: Array<T_UserProfiles>
   }
+  profiles: Array<T_UserProfiles>
 }
 
 interface I_AuthorizeStudentResponseData {

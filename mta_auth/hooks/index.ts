@@ -1,5 +1,6 @@
 import { apiUrl } from '@/config'
 import { I_AuthData, I_AuthorizeRequestData, I_AuthorizeResponseData, I_AuthResources } from '@/mta_auth/types'
+import { useUserStoreWhoIAmData } from '@/mta_users/hooks'
 import { T_AllowedUserProfiles } from '@/mta_users/types'
 import pages from '@/pages'
 import { axiosPost } from '@/shared/data/axios'
@@ -86,7 +87,7 @@ const useLogout = (callbackPath: string = pages.D._.login.path) => {
     router.push(callbackPath)
   }
 }
-const useStoreAuthData = () => useStore((state) => state.auth_storeAuthData)
+const useAuthStoreData = () => useStore((state) => state.auth_storeAuthData)
 
 const useAuthorize = () => {
   return postService<I_AuthorizeRequestData, I_AuthorizeResponseData>('/token', axiosPost)()
@@ -94,13 +95,15 @@ const useAuthorize = () => {
 
 const useAuthorizeAndStore = () => {
   const _authorize = useAuthorize()
-  const storeAuthData = useStoreAuthData()
+  const storeAuthData = useAuthStoreData()
+  const storeUserWhoIAmData = useUserStoreWhoIAmData()
 
   const authorize = (data: { username: string; password: string }) => {
     return _authorize(data)
       .then((res) => {
         successToast('¡Sesión iniciada correctamente, bienvenido/a!')
-        storeAuthData({ accessToken: res.token.access, refreshToken: res.token.refresh, profiles: res.user.profiles })
+        storeAuthData({ accessToken: res.token.access, refreshToken: res.token.refresh, profiles: res.profiles })
+        storeUserWhoIAmData({ ...res.user })
         return res
       })
       .catch(handleServiceError)
@@ -109,6 +112,7 @@ const useAuthorizeAndStore = () => {
 }
 
 export { useNavigateToLogin } from './navigation'
+
 export {
   useAuthData,
   useAuthorize,
@@ -117,7 +121,7 @@ export {
   useHasPermissions,
   useIsAuthorized,
   useLogout,
-  useStoreAuthData,
+  useAuthStoreData,
   useUserProfiles,
   useUserProfilesResources,
 }

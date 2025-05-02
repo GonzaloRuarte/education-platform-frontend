@@ -5,6 +5,7 @@ import pages, { userChangePasswordPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPost } from '@/shared/data/axios'
 import { batchDeletionHook, detailHook, dynamicNavigationHook, listHook, navigationHook } from '@/shared/hooks'
 import { actionHookV3 } from '@/shared/hooks/dataServices/v3'
+import { useStore } from '@/shared/state'
 import { T_EmptyPayload } from '@/shared/types'
 
 const USERS_PATH = '/users'
@@ -24,6 +25,8 @@ const useUserChangePassword = actionHookV3<
 const useNavigateToUserChangePassword = dynamicNavigationHook(userChangePasswordPath)
 const useNavigateToUserList = navigationHook(pages.D._.usuarios.path)
 
+const useUserStoreWhoIAmData = () => useStore((state) => state.user_storeWhoIAmData)
+
 export {
   useNavigateToUserChangePassword,
   useNavigateToUserList,
@@ -31,4 +34,5 @@ export {
   useUserChangePassword,
   useUserDetail,
   useUserList,
+  useUserStoreWhoIAmData,
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useStoreAuthData } from '@/mta_auth/hooks'
+import { useAuthStoreData } from '@/mta_auth/hooks'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
 import InputControlled from '@/shared/forms/InputControlled'
@@ -25,7 +25,7 @@ export default function StudentsLoginForm() {
   const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues: { personal_id: '' } })
   const navigateToBeginResolution = useNavigateToResolutionPage()
   const authorize = useResolutionAuthorizeStudent()
-  const storeAuthData = useStoreAuthData()
+  const storeAuthData = useAuthStoreData()
 
   const { setInProgressStatus } = useInProgress()
   const onSubmit = (data: I_AuthorizeStudentRequestData) => {

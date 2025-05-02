@@ -1,8 +1,8 @@
 import RequireAuth from '@/mta_auth/hocs/RequireAuth'
 
+import { T_AllowedUserProfiles } from '@/mta_users/types'
 import { ComponentProps, FC } from 'react'
 import { T_LoginZone } from '../types'
-import { T_AllowedUserProfiles } from '@/mta_users/types'
 
 export const withAuth = (
   WrappedComponent: FC,

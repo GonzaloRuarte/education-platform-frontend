@@ -2,16 +2,38 @@
 
 import { useUserProfiles, useUserProfilesResources } from '@/mta_auth/hooks'
 import P from '@/pages'
+import MagicGrid from '@/shared/components/MagicGrid'
 import MenuBlock from '@/shared/layout/MenuBlock'
 import MenuItem from '@/shared/layout/MenuItem'
+import { range } from '@/shared/utils'
 import BadgeIcon from '@mui/icons-material/Badge'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import FactCheckIcon from '@mui/icons-material/FactCheck'
 import PersonIcon from '@mui/icons-material/Person'
 import SchoolIcon from '@mui/icons-material/School'
+import { ListItem, Skeleton } from '@mui/material'
+import { useIsClient } from '@uidotdev/usehooks'
+
+const SkeletonMenu = () => {
+  return (
+    <MenuBlock>
+      {range(0, 5).map((n) => (
+        <ListItem key={n}>
+          <MagicGrid itemSize="auto">
+            <Skeleton animation="wave" variant="circular" width={30} height={30} />
+            <Skeleton animation="wave" variant="rectangular" width={170} height={20} />
+          </MagicGrid>
+        </ListItem>
+      ))}
+    </MenuBlock>
+  )
+}
 
 const Menu = () => {
   const { isAdmin } = useUserProfilesResources()
+  const isClient = useIsClient()
+
+  if (!isClient) return <SkeletonMenu />
   return (
     <>
       <MenuBlock>

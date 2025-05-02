@@ -39,6 +39,12 @@ interface I_UserChangePasswordRequest {
   new_password: string
 }
 
+interface I_UserWhoIAmData {
+  username: string
+  first_name: string
+  last_name: string
+}
+
 export type {
   T_UserId,
   T_UserProfiles,
@@ -49,4 +55,5 @@ export type {
   I_UserDetail,
   I_UserListItemWithProfiles,
   I_UserChangePasswordRequest,
+  I_UserWhoIAmData,
 }
