@@ -13,7 +13,7 @@ import PersonIcon from '@mui/icons-material/Person'
 import SchoolIcon from '@mui/icons-material/School'
 import { ListItem, Skeleton } from '@mui/material'
 import { useIsClient } from '@uidotdev/usehooks'
-
+import QueryStatsIcon from '@mui/icons-material/QueryStats'
 const SkeletonMenu = () => {
   return (
     <MenuBlock>
@@ -30,7 +30,7 @@ const SkeletonMenu = () => {
 }
 
 const Menu = () => {
-  const { isAdmin } = useUserProfilesResources()
+  const { isAdmin, isSchoolStaff, isEvaluator } = useUserProfilesResources()
   const isClient = useIsClient()
 
   if (!isClient) return <SkeletonMenu />
@@ -42,27 +42,31 @@ const Menu = () => {
             <MenuItem Icon={SchoolIcon} label={P.D._.escuelas.label} href={P.D._.escuelas.path} />
           </>
         )}
-        <MenuItem
-          Icon={CalendarMonthIcon}
-          label={P.D._.turnos.label}
-          href={P.D._.turnos.path}
-          subMenu={
-            <MenuBlock isSubMenu>
-              <MenuItem label={P.D._.turnos._.solicitar.label} href={P.D._.turnos._.solicitar.path} />
-            </MenuBlock>
-          }
-        />
+        {(isSchoolStaff || isAdmin) && (
+          <MenuItem
+            Icon={CalendarMonthIcon}
+            label={P.D._.turnos.label}
+            href={P.D._.turnos.path}
+            subMenu={
+              <MenuBlock isSubMenu>
+                <MenuItem label={P.D._.turnos._.solicitar.label} href={P.D._.turnos._.solicitar.path} />
+              </MenuBlock>
+            }
+          />
+        )}
         <MenuItem Icon={FactCheckIcon} label={P.D._.evaluaciones.label} href={P.D._.evaluaciones.path} />
-        <MenuItem
-          Icon={PersonIcon}
-          label={P.D._.estudiantes.label}
-          href={P.D._.estudiantes.path}
-          subMenu={
-            <MenuBlock isSubMenu>
-              <MenuItem label={P.D._.estudiantes._.cargaMasiva.label} href={P.D._.estudiantes._.cargaMasiva.path} />
-            </MenuBlock>
-          }
-        />
+        {(isSchoolStaff || isAdmin) && (
+          <MenuItem
+            Icon={PersonIcon}
+            label={P.D._.estudiantes.label}
+            href={P.D._.estudiantes.path}
+            subMenu={
+              <MenuBlock isSubMenu>
+                <MenuItem label={P.D._.estudiantes._.cargaMasiva.label} href={P.D._.estudiantes._.cargaMasiva.path} />
+              </MenuBlock>
+            }
+          />
+        )}
         {isAdmin && (
           <MenuItem
             Icon={BadgeIcon}
@@ -76,9 +80,10 @@ const Menu = () => {
             }
           />
         )}
+        {(isSchoolStaff || isAdmin) && (
+          <MenuItem Icon={QueryStatsIcon} label={P.D._.reportes.label} href={P.D._.reportes.path} />
+        )}
       </MenuBlock>
-
-      {/* <MenuDivider /> */}
     </>
   )
 }

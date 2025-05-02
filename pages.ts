@@ -123,6 +123,16 @@ const pages = {
           },
         },
       },
+      reportes: {
+        path: '/dashboard/reportes',
+        label: 'Reportes',
+        _: {
+          agregar: {
+            path: '/dashboard/reportes/agregar',
+            label: 'Agregar estudiante',
+          },
+        },
+      },
       comisiones: {
         path: '/dashboard/comisiones',
         label: 'Comisiones',
