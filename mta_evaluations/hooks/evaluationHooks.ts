@@ -46,10 +46,10 @@ const useEvaluationSetStatus = actionHook<I_EvaluationSetStatusRequestData, T_Em
   axiosPost,
   useAuthResources,
 )
-const useEvaluationSubjects = () => useStore((state) => state.subjects)
+const useEvaluationSubjects = () => useStore((state) => state.evaluations_subjects)
 const useRecoverAndStoreEvaluationSubjects = () => {
   const recover = listService<T_EvaluationSubjectList>('/evaluation-subjects', axiosGet)(useAuthResources())
-  const store = useStore((state) => state.storeSubjects)
+  const store = useStore((state) => state.evaluations_storeSubjects)
   return async () =>
     recover().then((res) => {
       store(res)
