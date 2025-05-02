@@ -4,7 +4,7 @@ import { CohortSelectControlled } from '@/mta_schools/components/CohortSelect'
 import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
 import { STUDENT_PROFILE_NAME } from '@/mta_schools/constants'
 import { useNavigateToStudentProfileList, useStudentProfileCreate } from '@/mta_schools/hooks'
-import { T_SchoolId } from '@/mta_schools/types'
+import { I_SchoolName, T_SchoolId } from '@/mta_schools/types'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
@@ -22,13 +22,15 @@ interface I_FormFields {
   personal_id: string
   school_id: T_SchoolId
 }
-
-const StudentProfileCreateForm = () => {
+interface I_Props {
+  ownSchoolData: I_SchoolName | null
+}
+const StudentProfileCreateForm = ({ ownSchoolData }: I_Props) => {
   const { handleSubmit, control, watch } = useForm<I_FormFields>({
     defaultValues: {
       cohort: '',
       personal_id: '',
-      school_id: undefined,
+      school_id: ownSchoolData !== null ? ownSchoolData.id : undefined,
     },
   })
 
@@ -54,7 +56,9 @@ const StudentProfileCreateForm = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <SchoolSelectControlled control={control} name="school_id" rules={{ ...rules.required() }} label="Escuela" />
+        {ownSchoolData === null && (
+          <SchoolSelectControlled control={control} name="school_id" rules={{ ...rules.required() }} label="Escuela" />
+        )}
         <InputControlled<I_FormFields>
           control={control}
           name="personal_id"
