@@ -26,6 +26,7 @@ const useNavigateToUserChangePassword = dynamicNavigationHook(userChangePassword
 const useNavigateToUserList = navigationHook(pages.D._.usuarios.path)
 
 const useUserStoreWhoIAmData = () => useStore((state) => state.user_storeWhoIAmData)
+const useUserWhoIAmData = () => useStore((state) => state.user_whoIAmData)
 
 export {
   useNavigateToUserChangePassword,
@@ -35,4 +36,5 @@ export {
   useUserDetail,
   useUserList,
   useUserStoreWhoIAmData,
+  useUserWhoIAmData,
 }
