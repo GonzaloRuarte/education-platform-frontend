@@ -1,3 +1,4 @@
+import { I_SchoolName } from '@/mta_schools/types'
 import { T_UserProfiles } from '@/mta_users/types'
 import { T_Fatal401Handler, T_TokenRefresher } from '@/shared/data/types'
 
@@ -27,6 +28,7 @@ interface I_AuthorizeResponseData {
     last_name: string
   }
   profiles: Array<T_UserProfiles>
+  school: null | I_SchoolName
 }
 
 interface I_AuthorizeStudentResponseData {

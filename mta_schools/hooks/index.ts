@@ -35,6 +35,7 @@ import { actionDataHookV3, listHookV3 } from '@/shared/hooks/dataServices/v3'
 import { httpService } from '@/shared/service'
 import { I_CreationCommonResponse, T_EmptyPayload } from '@/shared/types'
 import { useEffect, useState } from 'react'
+import { useStore } from '@/shared/state'
 
 const SCHOOLS_PATH = '/schools'
 const useSchoolList = listHook<T_SchoolsList>(SCHOOLS_PATH, axiosGet, useAuthResources)

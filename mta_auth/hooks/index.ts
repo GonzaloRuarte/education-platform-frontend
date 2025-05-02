@@ -1,5 +1,6 @@
 import { apiUrl } from '@/config'
 import { I_AuthData, I_AuthorizeRequestData, I_AuthorizeResponseData, I_AuthResources } from '@/mta_auth/types'
+import { useSchoolStoreOwnSchool } from '@/mta_schools/hooks/state'
 import { useUserStoreWhoIAmData } from '@/mta_users/hooks'
 import { T_AllowedUserProfiles } from '@/mta_users/types'
 import pages from '@/pages'
@@ -97,6 +98,7 @@ const useAuthorizeAndStore = () => {
   const _authorize = useAuthorize()
   const storeAuthData = useAuthStoreData()
   const storeUserWhoIAmData = useUserStoreWhoIAmData()
+  const storeOwnSchool = useSchoolStoreOwnSchool()
 
   const authorize = (data: { username: string; password: string }) => {
     return _authorize(data)
@@ -104,6 +106,7 @@ const useAuthorizeAndStore = () => {
         successToast('¡Sesión iniciada correctamente, bienvenido/a!')
         storeAuthData({ accessToken: res.token.access, refreshToken: res.token.refresh, profiles: res.profiles })
         storeUserWhoIAmData({ ...res.user })
+        storeOwnSchool(res.school)
         return res
       })
       .catch(handleServiceError)
