@@ -44,7 +44,7 @@ function BatchDeleteAction<T_Id>(p: {
 
   return (
     <>
-      <Button onClick={handleBatchDelete} startIcon={<DeleteIcon />}>
+      <Button onClick={handleBatchDelete} startIcon={<DeleteIcon />} color="error">
         Eliminar
       </Button>
       <ConfirmDialogComponent />

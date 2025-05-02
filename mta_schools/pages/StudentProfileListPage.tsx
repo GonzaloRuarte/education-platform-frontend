@@ -7,6 +7,7 @@ import {
   useNavigateToStudentProfileBatchCreate,
   useNavigateToStudentProfileCreate,
   useNavigateToStudentProfileDetail,
+  useStudentProfileBatchDelete,
   useStudentProfileList,
   useStudentProfileListBySchool,
 } from '@/mta_schools/hooks'
@@ -52,6 +53,7 @@ const StudentProfileListPage = () => {
       entityName={STUDENT_PROFILE_NAME}
       onCreate={navigateToCreate}
       onRowClick={ListPage.mapNavToOnRowClick(navigateToDetail)}
+      useBatchDelete={useStudentProfileBatchDelete}
       customButtons={
         <>
           <Button onClick={navigateToBatchCreate}>Carga masiva</Button>

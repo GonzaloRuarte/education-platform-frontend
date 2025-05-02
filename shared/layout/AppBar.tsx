@@ -1,6 +1,7 @@
 'use client'
 
 import LogoutButton from '@/mta_auth/components/LogoutButton'
+import { useSchoolOwnSchool } from '@/mta_schools/hooks/state'
 import { useUserWhoIAmData } from '@/mta_users/hooks'
 import Bold from '@/shared/components/Bold'
 import MagicGrid from '@/shared/components/MagicGrid'
@@ -13,6 +14,7 @@ import Typography from '@mui/material/Typography'
 
 const AppBar = () => {
   const whoIAm = useUserWhoIAmData()
+  const ownSchool = useSchoolOwnSchool()
   const nameAndSurname = `${whoIAm?.first_name} ${whoIAm?.last_name}`
   return (
     <>
@@ -20,7 +22,8 @@ const AppBar = () => {
         <Toolbar>
           {whoIAm !== undefined && (
             <Typography noWrap>
-              Buenos días, <Bold>{nameAndSurname.length > 3 ? nameAndSurname : whoIAm.username}</Bold>
+              Buenos días, <Bold>{nameAndSurname.length > 3 ? nameAndSurname : whoIAm.username}</Bold>{' '}
+              {ownSchool !== undefined && ownSchool !== null && `(${ownSchool.name})`}
             </Typography>
           )}
           <Box sx={{ flexGrow: 1 }} />

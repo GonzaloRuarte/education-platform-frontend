@@ -81,6 +81,12 @@ const useStudentProfileUpdate = updateHook<
   I_CreationCommonResponse
 >(STUDENT_PROFILE_PATH, axiosPatch, useAuthResources)
 
+const useStudentProfileBatchDelete = batchDeletionHook<T_StudentProfileId>(
+  STUDENT_PROFILE_PATH,
+  axiosDelete,
+  useAuthResources,
+)
+
 const _useRequestSetup = (): I_RequestSetup => {
   const authResources = useAuthResources()
   return { ...authResources, 'Content-Type': 'multipart/form-data' }
@@ -191,4 +197,5 @@ export {
   useSchoolStaffProfileOwnSchool,
   useStudentProfileUpdate,
   useStudentProfileDetail,
+  useStudentProfileBatchDelete,
 }
