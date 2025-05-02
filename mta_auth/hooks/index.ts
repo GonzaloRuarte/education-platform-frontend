@@ -82,9 +82,13 @@ const useAuthResources = (): I_AuthResources => {
 const useLogout = (callbackPath: string = pages.D._.login.path) => {
   const router = useRouter()
 
+  const cleanTasks = () => {
+    useStore.getState().auth_clearAuthData()
+  }
+
   return () => {
     successToast('Sesión cerrada correctamente. Hasta Pronto!')
-    useStore.getState().auth_clearAuthData()
+    cleanTasks()
     router.push(callbackPath)
   }
 }

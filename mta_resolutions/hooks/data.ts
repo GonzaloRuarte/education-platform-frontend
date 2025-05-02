@@ -61,10 +61,9 @@ const useResolutionRequestSubmit = actionHook<I_ResolutionState, T_EmptyPayload>
 
 // STATE HOOKS - - -
 const useResolutionStoreEvaluation = () => useStore((state) => state.resolution_storeEvaluation)
-const useResolutionClearEvaluation = () => useStore((state) => state.resolution_clearEvaluation)
 const useResolutionStoreMetadata = () => useStore((state) => state.resolution_storeMetadata)
-const useResolutionClearMetadata = () => useStore((state) => state.resolution_clearMetadata)
 const useResolutionStoreState = () => useStore((state) => state.resolution_storeState)
+const useResolutionResetState = () => useStore((state) => state.resolution_resetState)
 const useResolutionEvaluationToResolve = () => useStore((state) => state.resolution_evaluation)
 const useResolutionRemainingTimeWarningAlreadyDisplayed = () => {
   const warningAlreadyDisplayed = useStore((state) => state.resolution_remainingTimeWarningAlreadyDisplayed)
@@ -74,8 +73,6 @@ const useResolutionRemainingTimeWarningAlreadyDisplayed = () => {
 const useResolutionMaxDurationMinutes = () => useStore((state) => state.resolution_maxDurationMinutes)
 const useResolutionState = () => useStore((state) => state.resolution_state)
 const useResolutionLastUploadDatetime = () => useStore((state) => state.resolution_lastUpload)
-const useResolutionClearLastUploadDatetime = () => useStore((state) => state.resolution_clearLastUpload)
-const useResolutionClearState = () => useStore((state) => state.resolution_clearState)
 const useResolutionUpdateLastUploadDatetime = () => {
   const storeLastUpload = useStore((state) => state.resolution_storeLastUpload)
   return () => {
@@ -244,10 +241,7 @@ const useResolutionDownloadState = () => {
 
 export {
   useResolutionAuthorizeStudent,
-  useResolutionClearEvaluation,
-  useResolutionClearLastUploadDatetime,
-  useResolutionClearMetadata,
-  useResolutionClearState,
+  useResolutionResetState,
   useResolutionDownloadState,
   useResolutionEvaluationToResolve,
   useResolutionLastUploadDatetime,
