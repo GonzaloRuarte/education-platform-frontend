@@ -22,6 +22,7 @@ import {
   getHook,
   listHook,
   navigationHook,
+  navigationWithIdHook,
   updateHook,
 } from '@/shared/hooks'
 import { I_CreationCommonResponse } from '@/shared/types'
@@ -82,8 +83,10 @@ const useNavigateToAppointmentList = navigationHook(pages.D._.turnos.path)
 const useNavigateToAppointmentProcess = dynamicNavigationHook(appointmentsProcessPath)
 const useNavigateToAppointmentEditStudents = dynamicNavigationHook(appointmentsEditStudentsPath)
 const useNavigateToAppointmentCreate = navigationHook(pages.D._.turnos._.agregar.path)
+const useNavigateToAppointmentDetail = navigationWithIdHook(pages.D._.turnos.path)
 
 export {
+  useNavigateToAppointmentDetail,
   useAppointmentBatchDelete,
   useAppointmentCreate,
   useAppointmentDelete,

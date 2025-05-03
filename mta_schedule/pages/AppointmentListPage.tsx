@@ -7,10 +7,12 @@ import {
   useAppointmentBatchDelete,
   useAppointmentList,
   useNavigateToAppointmentCreate,
+  useNavigateToAppointmentDetail,
   useNavigateToAppointmentEditStudents,
   useNavigateToAppointmentProcess,
 } from '@/mta_schedule/hooks'
 import { AppointmentStatus, I_AppointmentListItem } from '@/mta_schedule/types'
+import { appointmentAlreadyStarted } from '@/mta_schedule/utils'
 import Button from '@/shared/components/Button'
 import ListPage from '@/shared/pages/ListPage'
 import RuleIcon from '@mui/icons-material/Rule'
@@ -22,7 +24,6 @@ const columns = (a: {
   navToProcess: (args: Record<'appointmentId', string | number>) => void
   navToEditStudents: (args: Record<'appointmentId', string | number>) => void
 }): Array<GridColDef<I_AppointmentListItem>> => [
-  // { field: 'id', headerName: '#' },
   {
     field: 'begins_at_date',
 
@@ -36,18 +37,13 @@ const columns = (a: {
     // flex: 1,
     renderCell: ({ row }) => <>{dayjs(row.begins_at).format('HH:mm')}</>,
   },
-  // {
-  //   field: 'ends_at',
-  //   headerName: 'Finalización',
-  //   flex: 1,
-  //   renderCell: ({ value }) => <>{new Date(value).toLocaleString()}</>,
-  // },
   {
     field: 'status',
     headerName: 'Estado',
     flex: 0.7,
     renderCell: ({ value }) => <AppointmentStatusChip status={value} size="small" />,
   },
+
   {
     field: 'school',
     headerName: 'Escuela',
@@ -68,6 +64,14 @@ const columns = (a: {
     headerName: 'Acciones',
     getActions: (params) => {
       const actions: Array<any> = []
+
+      if (params.row.begins_at && appointmentAlreadyStarted(params.row.begins_at)) {
+        return [
+          <Button bgcolor="grey" disabled size="small">
+            Turno pasado
+          </Button>,
+        ]
+      }
 
       if (params.row.status === 'P') {
         actions.push(
@@ -103,6 +107,7 @@ const AppointmentListPage = () => {
   const navToProcess = useNavigateToAppointmentProcess()
   const navToEditStudents = useNavigateToAppointmentEditStudents()
   const navToCreate = useNavigateToAppointmentCreate()
+  const navToDetail = useNavigateToAppointmentDetail()
 
   return (
     <ListPage
@@ -111,6 +116,7 @@ const AppointmentListPage = () => {
       entityName={APPOINTMENT_NAME}
       onCreate={navToCreate}
       useBatchDelete={useAppointmentBatchDelete}
+      onRowClick={ListPage.mapNavToOnRowClick(navToDetail)}
     />
   )
 }

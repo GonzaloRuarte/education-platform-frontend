@@ -40,4 +40,8 @@ const appointmentFormattedStringDate = (dateString: string): string => {
   return sentence(dayjs(dateString).locale('es').format('LLLL'))
 }
 
-export { hoursOptions, combinedDateAndTime, availableDays, appointmentFormattedStringDate }
+const appointmentAlreadyStarted = (datetimeString) => {
+  return dayjs(datetimeString).isBefore(dayjs())
+}
+
+export { hoursOptions, combinedDateAndTime, availableDays, appointmentFormattedStringDate, appointmentAlreadyStarted }

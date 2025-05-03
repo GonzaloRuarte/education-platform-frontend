@@ -20,7 +20,7 @@ interface I_AppointmentDetail {
   school: {
     id: T_SchoolId
     name: string
-  }
+  } | null
   evaluation_brief: I_AppointmentEvaluationBrief | null
   status: T_AppointmentStatus
   students: Array<{
@@ -28,12 +28,12 @@ interface I_AppointmentDetail {
     personal_id: T_StudentProfilePersonalId
     cohort: string
   }>
-  requested_evaluation_subject: {
+  requested_evaluation_subject: null | {
     id: string
     name: string
     prefix: string
   }
-  requested_evaluation_grade: SchoolGrade
+  requested_evaluation_grade: null | SchoolGrade
 }
 interface I_AppointmentEvaluationBrief {
   id: T_EvaluationId

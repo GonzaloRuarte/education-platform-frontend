@@ -1,1 +1,1 @@
-export { default } from '@/mta_schedule/pages/AppointmentProcessPage'
+export { default } from '@/mta_schedule/pages/AppointmentReadOnlyDetailPage'

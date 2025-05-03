@@ -10,6 +10,7 @@ import {
   useAppointmentReject,
   useNavigateToAppointmentList,
 } from '@/mta_schedule/hooks'
+import { SchoolGrade } from '@/mta_schools/constants'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
@@ -87,9 +88,9 @@ const AppointmentProcessPage = () => {
               <AppointmentBriefCard
                 appointmentId={Number(appointmentId)}
                 begins_at={data.begins_at}
-                title={data.school.name}
-                subject={data.requested_evaluation_subject.name}
-                grade={data.requested_evaluation_grade}
+                title={data.school?.name as string}
+                subject={data.requested_evaluation_subject?.name}
+                grade={data.requested_evaluation_grade as SchoolGrade}
               />
               <Spacer />
               <Body1>Tomando como base los requerimientos del turno, asigne la evaluación correspondiente:</Body1>
