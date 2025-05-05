@@ -15,6 +15,11 @@ const useARPList = listHook<T_AppointmentResolutionProcessList>(
   axiosGet,
   useAuthResources,
 )
+const useARPListByUserSchool = listHook<T_AppointmentResolutionProcessList>(
+  `${APPOINTMENT_RESOLUTION_PROCESSES_PATH}/list-by-user-school`,
+  axiosGet,
+  useAuthResources,
+)
 
 const useARPDetail = detailHook<T_AppointmentResolutionProcessId, I_AppointmentResolutionProcessDetail>(
   APPOINTMENT_RESOLUTION_PROCESSES_PATH,
@@ -25,4 +30,4 @@ const useARPDetail = detailHook<T_AppointmentResolutionProcessId, I_AppointmentR
 const useNavigateToARPList = navigationHook(pages.D._.procesosDeEvaluacion.path)
 const useNavigateToARPDetail = navigationWithIdHook(pages.D._.procesosDeEvaluacion.path)
 
-export { useARPList, useARPDetail, useNavigateToARPList, useNavigateToARPDetail }
+export { useARPList, useARPDetail, useNavigateToARPList, useNavigateToARPDetail, useARPListByUserSchool }
