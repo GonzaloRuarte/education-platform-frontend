@@ -73,7 +73,7 @@ const useAuthResources = (): I_AuthResources => {
   const handleFatal401Error = () => {
     clearAuthData()
     log.info("Auth Token couldn't be refreshed. Destroying session")
-    errorToast('Tus sesión anterior ha caducado. Ingresa nuevamente.')
+    errorToast('Tu sesión anterior ha caducado. Ingresa nuevamente.')
   }
 
   return { profiles, accessToken, refreshToken, refresh, handleFatal401Error }

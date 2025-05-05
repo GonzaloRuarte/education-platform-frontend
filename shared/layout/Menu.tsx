@@ -1,6 +1,6 @@
 'use client'
 
-import { useUserProfiles, useUserProfilesResources } from '@/mta_auth/hooks'
+import { useUserProfilesResources } from '@/mta_auth/hooks'
 import P from '@/pages'
 import MagicGrid from '@/shared/components/MagicGrid'
 import MenuBlock from '@/shared/layout/MenuBlock'
@@ -10,10 +10,12 @@ import BadgeIcon from '@mui/icons-material/Badge'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import FactCheckIcon from '@mui/icons-material/FactCheck'
 import PersonIcon from '@mui/icons-material/Person'
+import QueryStatsIcon from '@mui/icons-material/QueryStats'
 import SchoolIcon from '@mui/icons-material/School'
 import { ListItem, Skeleton } from '@mui/material'
 import { useIsClient } from '@uidotdev/usehooks'
-import QueryStatsIcon from '@mui/icons-material/QueryStats'
+import HistoryIcon from '@mui/icons-material/History'
+
 const SkeletonMenu = () => {
   return (
     <MenuBlock>
@@ -55,6 +57,7 @@ const Menu = () => {
           />
         )}
         <MenuItem Icon={FactCheckIcon} label={P.D._.evaluaciones.label} href={P.D._.evaluaciones.path} />
+        <MenuItem Icon={HistoryIcon} label={P.D._.procesosDeEvaluacion.label} href={P.D._.procesosDeEvaluacion.path} />
         {(isSchoolStaff || isAdmin) && (
           <MenuItem
             Icon={PersonIcon}

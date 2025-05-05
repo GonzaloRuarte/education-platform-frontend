@@ -109,6 +109,10 @@ const pages = {
           },
         },
       },
+      procesosDeEvaluacion: {
+        path: '/dashboard/procesos-de-evaluacion',
+        label: 'Procesos de evaluación',
+      },
       estudiantes: {
         path: '/dashboard/estudiantes',
         label: 'Estudiantes',

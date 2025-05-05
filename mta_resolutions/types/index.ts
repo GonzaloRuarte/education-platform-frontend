@@ -2,6 +2,8 @@ import { T_AnswerId, T_AnswerType, T_EvaluationId, T_QuestionId } from '@/mta_ev
 import { T_AppointmentId } from '@/mta_schedule/types'
 import { T_StudentProfilePersonalId } from '@/mta_schools/types'
 
+type T_ResolutionId = number
+
 interface I_AuthorizeStudentRequestData {
   personal_id: T_StudentProfilePersonalId
 }
@@ -84,6 +86,7 @@ interface I_OngoingResolution {
 }
 
 export type {
+  T_ResolutionId,
   I_AuthorizeStudentRequestData,
   I_ResumeResolutionResponse,
   T_EvaluationToResolve_NumericAnswer,
