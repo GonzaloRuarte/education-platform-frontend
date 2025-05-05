@@ -58,7 +58,7 @@ const listHook = <T_Response>(
         })
     }, [options?.page, options?.page_size, options?.filters])
 
-    useEffect(debounce(reload), [path, options?.page, options?.page_size])
+    useEffect(debounce(reload), [path, options?.page, options?.page_size, options?.filters])
 
     return { data, reload, isLoading: isInProgress }
   }

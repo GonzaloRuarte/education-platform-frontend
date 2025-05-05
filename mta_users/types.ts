@@ -41,8 +41,8 @@ interface I_UserChangePasswordRequest {
 
 interface I_UserWhoIAmData {
   username: string
-  first_name: string
-  last_name: string
+  first_name: string | null
+  last_name: string | null
 }
 
 export type {

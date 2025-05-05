@@ -13,7 +13,7 @@ import { paginationModelAsFetchPaginationOptions } from '@/shared/pages/utils'
 import { EntityName } from '@/shared/utils'
 import { ComponentProps } from 'react'
 
-interface I_Props<T_Id, T_Response> {
+interface I_Props<T_Id, T_Response, T_Filters = object> {
   columns: Array<GridColDef>
   useList: T_ListServiceHook<T_Response>
   entityName: EntityName
@@ -21,6 +21,8 @@ interface I_Props<T_Id, T_Response> {
   onCreate?: T_VoidFn
   useBatchDelete?: T_BatchDeletionServiceHook<T_Id>
   customButtons?: React.ReactNode
+  filtersComponents?: React.ReactNode
+  filtersData?: T_Filters
   singleSelectionButtons?: (id: T_Id) => React.ReactNode
 }
 
@@ -55,7 +57,10 @@ function ListPage<T_Id, T_Response extends I_PaginatedResponse>(p: I_Props<T_Id,
   const { paginationModel, setPaginationModel } = Table.usePaginationModel()
   const { rowSelectionModel, setRowSelectionModel } = Table.useRowSelectionModel()
 
-  const { data, isLoading, reload } = p.useList(paginationModelAsFetchPaginationOptions(paginationModel))
+  const { data, isLoading, reload } = p.useList({
+    ...paginationModelAsFetchPaginationOptions(paginationModel),
+    filters: p.filtersData,
+  })
 
   return (
     <>
@@ -82,6 +87,7 @@ function ListPage<T_Id, T_Response extends I_PaginatedResponse>(p: I_Props<T_Id,
             p.singleSelectionButtons(rowSelectionModel[0] as T_Id)}
           {p.customButtons}
         </Page.Toolbar>
+        <Page.Toolbar>{p.filtersComponents}</Page.Toolbar>
         <Page.Content>
           <Table
             data={data?.results}

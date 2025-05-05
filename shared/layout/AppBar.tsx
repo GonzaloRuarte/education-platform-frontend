@@ -15,14 +15,14 @@ import Typography from '@mui/material/Typography'
 const AppBar = () => {
   const whoIAm = useUserWhoIAmData()
   const ownSchool = useSchoolOwnSchool()
-  const nameAndSurname = `${whoIAm?.first_name} ${whoIAm?.last_name}`
+  const nameAndSurname = whoIAm?.first_name !== null ? `${whoIAm?.first_name} ${whoIAm?.last_name}` : null
   return (
     <>
       <MUI_AppBar elevation={0} sx={{ position: 'relative', borderBottom: `1px solid #CCC` }}>
         <Toolbar>
           {whoIAm !== undefined && (
             <Typography noWrap>
-              Buenos días, <Bold>{nameAndSurname.length > 3 ? nameAndSurname : whoIAm.username}</Bold>{' '}
+              Buenos días, <Bold>{nameAndSurname !== null ? nameAndSurname : whoIAm.username}</Bold>{' '}
               {ownSchool !== undefined && ownSchool !== null && `(${ownSchool.name})`}
             </Typography>
           )}

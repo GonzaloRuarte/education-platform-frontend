@@ -10,6 +10,7 @@ import ListPage from '@/shared/pages/ListPage'
 import { Box } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import PasswordIcon from '@mui/icons-material/Password'
+import { useUserListFilters } from '@/mta_users/components/UsersListFiltersControl'
 const columns: Array<GridColDef<I_UserListItemWithProfiles>> = [
   { field: 'id', headerName: '#' },
   { field: 'username', headerName: 'Nombre de usuario', flex: 1 },
@@ -46,6 +47,8 @@ const columns: Array<GridColDef<I_UserListItemWithProfiles>> = [
 
 const UsersListPage = () => {
   const navigateToChangePassword = useNavigateToUserChangePassword()
+  const { UsersListFiltersControl, filters, setFilters } = useUserListFilters()
+
   return (
     <ListPage
       columns={columns}
@@ -59,6 +62,8 @@ const UsersListPage = () => {
           </Button>
         </>
       )}
+      filtersData={filters}
+      filtersComponents={<UsersListFiltersControl filters={filters} setFilters={setFilters} />}
     />
   )
 }
