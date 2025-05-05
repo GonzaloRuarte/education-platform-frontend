@@ -26,7 +26,10 @@ const EvaluatorProfileFormFields = ({ control, excludePassword = false }) => {
         rules={{
           ...rules.required(),
           ...rules.minLength(4),
-          ...rules.pattern(/^[a-z0-9_.]+$/, 'Solo se permiten letras minúsculas, números, puntos y guiones bajos'),
+          ...rules.pattern(
+            /^[a-z0-9_.-]+$/,
+            'Solo se permiten letras minúsculas, números, puntos, guiones y guiones bajos',
+          ),
         }}
         label="Nombre de usuario"
       />
