@@ -11,6 +11,8 @@ import { Box } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import PasswordIcon from '@mui/icons-material/Password'
 import { useUserListFilters } from '@/mta_users/components/UsersListFiltersControl'
+import { ChangePasswordButton } from '@/shared/components/buttons'
+
 const columns: Array<GridColDef<I_UserListItemWithProfiles>> = [
   { field: 'id', headerName: '#' },
   { field: 'username', headerName: 'Nombre de usuario', flex: 1 },
@@ -57,9 +59,7 @@ const UsersListPage = () => {
       useBatchDelete={useUserBatchDelete}
       singleSelectionButtons={(id) => (
         <>
-          <Button startIcon={<PasswordIcon />} onClick={() => navigateToChangePassword({ userId: id })}>
-            Cambiar Password
-          </Button>
+          <ChangePasswordButton onClick={() => navigateToChangePassword({ userId: id })} />
         </>
       )}
       filtersData={filters}

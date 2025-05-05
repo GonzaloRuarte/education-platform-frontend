@@ -14,6 +14,7 @@ interface I_Props<T_Id, T_Data> {
   useDelete?: T_DeletionServiceHook<T_Id, any>
   onExit: T_VoidFn
   idFieldName?: string
+  customButtons?: (data: T_Data) => React.ReactNode
 }
 
 export default function EditionPage<T_Id extends string | number, T_Data>({
@@ -34,6 +35,7 @@ export default function EditionPage<T_Id extends string | number, T_Data>({
           {p.useDelete !== undefined && (
             <DeleteInstanceButton callback={p.onExit} entityName={p.entityName} useDelete={p.useDelete} id={id} />
           )}
+          {p.customButtons !== undefined && data !== undefined && p.customButtons(data)}
         </Page.Toolbar>
         <Page.Content>{data === undefined ? <Spinner /> : <p.EditionForm {...{ data, reload }} />}</Page.Content>
       </Page>

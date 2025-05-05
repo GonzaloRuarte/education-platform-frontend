@@ -7,6 +7,8 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import ReplayIcon from '@mui/icons-material/Replay'
 import CancelIcon from '@mui/icons-material/Cancel'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import PasswordIcon from '@mui/icons-material/Password'
+
 interface I_ButtonProps extends Omit<ComponentProps<typeof Button>, 'startIcon' | 'children'> {}
 
 const ReloadButton: React.FC<I_ButtonProps> = ({ ...props }) => (
@@ -42,4 +44,10 @@ const DeleteButton: React.FC<I_DeleteButtonProps> = ({ label, ...props }) => (
   </Button>
 )
 
-export { AddButton, DeleteButton, ReloadButton, CancelButton, BackButton }
+const ChangePasswordButton: React.FC<I_ButtonProps> = ({ ...props }) => (
+  <Button startIcon={<PasswordIcon />} {...props}>
+    Cambiar Password
+  </Button>
+)
+
+export { AddButton, DeleteButton, ReloadButton, CancelButton, BackButton, ChangePasswordButton }
