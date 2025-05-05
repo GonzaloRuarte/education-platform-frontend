@@ -1,5 +1,8 @@
+import { useUserProfilesResources } from '@/mta_auth/hooks'
 import { evaluationStatusCodeToLabels } from '@/mta_evaluations/labels'
 import { EvaluationStatus } from '@/mta_evaluations/types'
+import Spinner from '@/shared/components/Spinner'
+import { Body1 } from '@/shared/components/Typography'
 import { FormControl, FormHelperText, InputLabel, MenuItem, Select, SelectProps } from '@mui/material'
 import React from 'react'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
@@ -12,6 +15,10 @@ export const EvaluationStatusSelect: React.FC<{
   helperText?: string
   size?: SelectProps['size']
 }> = ({ value, onChange, label = 'Seleccionar estado', error, helperText, size }) => {
+  const { isEvaluator } = useUserProfilesResources()
+  if (isEvaluator === undefined) return <Spinner />
+  if (isEvaluator) return <></>
+
   return (
     <FormControl fullWidth error={error}>
       <InputLabel>{label}</InputLabel>

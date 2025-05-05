@@ -1,5 +1,6 @@
 'use client'
 
+import { RRCC } from '@/mta_auth/components/RestrictedContent'
 import { useUserProfilesResources } from '@/mta_auth/hooks'
 import P from '@/pages'
 import MagicGrid from '@/shared/components/MagicGrid'
@@ -9,12 +10,12 @@ import { range } from '@/shared/utils'
 import BadgeIcon from '@mui/icons-material/Badge'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import FactCheckIcon from '@mui/icons-material/FactCheck'
+import HistoryIcon from '@mui/icons-material/History'
 import PersonIcon from '@mui/icons-material/Person'
 import QueryStatsIcon from '@mui/icons-material/QueryStats'
 import SchoolIcon from '@mui/icons-material/School'
 import { ListItem, Skeleton } from '@mui/material'
 import { useIsClient } from '@uidotdev/usehooks'
-import HistoryIcon from '@mui/icons-material/History'
 
 const SkeletonMenu = () => {
   return (
@@ -39,12 +40,10 @@ const Menu = () => {
   return (
     <>
       <MenuBlock>
-        {isAdmin && (
-          <>
-            <MenuItem Icon={SchoolIcon} label={P.D._.escuelas.label} href={P.D._.escuelas.path} />
-          </>
-        )}
-        {(isSchoolStaff || isAdmin) && (
+        <RRCC allowedProfiles={['admin']}>
+          <MenuItem Icon={SchoolIcon} label={P.D._.escuelas.label} href={P.D._.escuelas.path} />
+        </RRCC>
+        <RRCC allowedProfiles={['admin', 'school_staff']}>
           <MenuItem
             Icon={CalendarMonthIcon}
             label={P.D._.turnos.label}
@@ -55,10 +54,18 @@ const Menu = () => {
               </MenuBlock>
             }
           />
-        )}
-        <MenuItem Icon={FactCheckIcon} label={P.D._.evaluaciones.label} href={P.D._.evaluaciones.path} />
-        <MenuItem Icon={HistoryIcon} label={P.D._.procesosDeEvaluacion.label} href={P.D._.procesosDeEvaluacion.path} />
-        {(isSchoolStaff || isAdmin) && (
+        </RRCC>
+        <RRCC allowedProfiles={['admin', 'school_staff', 'evaluator']}>
+          <MenuItem Icon={FactCheckIcon} label={P.D._.evaluaciones.label} href={P.D._.evaluaciones.path} />
+        </RRCC>
+        <RRCC allowedProfiles={['admin', 'school_staff']}>
+          <MenuItem
+            Icon={HistoryIcon}
+            label={P.D._.procesosDeEvaluacion.label}
+            href={P.D._.procesosDeEvaluacion.path}
+          />
+        </RRCC>
+        <RRCC allowedProfiles={['admin', 'school_staff']}>
           <MenuItem
             Icon={PersonIcon}
             label={P.D._.estudiantes.label}
@@ -69,8 +76,8 @@ const Menu = () => {
               </MenuBlock>
             }
           />
-        )}
-        {isAdmin && (
+        </RRCC>
+        <RRCC allowedProfiles={['admin']}>
           <MenuItem
             Icon={BadgeIcon}
             label={P.D._.usuarios.label}
@@ -82,10 +89,10 @@ const Menu = () => {
               </MenuBlock>
             }
           />
-        )}
-        {(isSchoolStaff || isAdmin) && (
+        </RRCC>
+        <RRCC allowedProfiles={['admin', 'school_staff']}>
           <MenuItem Icon={QueryStatsIcon} label={P.D._.reportes.label} href={P.D._.reportes.path} />
-        )}
+        </RRCC>
       </MenuBlock>
     </>
   )

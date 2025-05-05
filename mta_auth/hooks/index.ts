@@ -31,6 +31,7 @@ const useIsAuthorized = () => {
 const useUserProfiles = () => useStore.getState().auth_profiles
 const useUserProfilesResources = () => {
   const profiles = useUserProfiles()
+
   return {
     profiles,
     isAdmin: profiles?.includes('admin'),
