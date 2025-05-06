@@ -5,6 +5,7 @@ import AppointmentRequestForm from '@/mta_schedule/components/AppointmentRequest
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
 import { useSchoolOwnSchool } from '@/mta_schools/hooks/state'
 import Page from '@/shared/components/Page'
+import Spacer from '@/shared/components/Spacer'
 import Spinner from '@/shared/components/Spinner'
 
 const AppointmentRequestPage = () => {
@@ -16,6 +17,7 @@ const AppointmentRequestPage = () => {
       <Page.Content>
         {ownSchoolData === undefined ? <Spinner /> : <AppointmentRequestForm ownSchoolData={ownSchoolData} />}
       </Page.Content>
+      <Spacer size="l" />
     </Page>
   )
 }

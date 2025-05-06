@@ -33,7 +33,6 @@ const SkeletonMenu = () => {
 }
 
 const Menu = () => {
-  const { isAdmin, isSchoolStaff, isEvaluator } = useUserProfilesResources()
   const isClient = useIsClient()
 
   if (!isClient) return <SkeletonMenu />
@@ -55,7 +54,7 @@ const Menu = () => {
             }
           />
         </RRCC>
-        <RRCC allowedProfiles={['admin', 'school_staff', 'evaluator']}>
+        <RRCC allowedProfiles={['admin', 'evaluator']}>
           <MenuItem Icon={FactCheckIcon} label={P.D._.evaluaciones.label} href={P.D._.evaluaciones.path} />
         </RRCC>
         <RRCC allowedProfiles={['admin', 'school_staff']}>

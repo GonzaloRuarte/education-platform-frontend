@@ -72,7 +72,7 @@ const secondsToHHMMSS = (seconds: number): string => {
 
   const paddedHours = String(hours).padStart(2, '0')
   const paddedMinutes = String(minutes).padStart(2, '0')
-  const paddedSeconds = String(remainingSeconds).padStart(2, '0')
+  const paddedSeconds = String(Math.round(remainingSeconds)).padStart(2, '0')
 
   return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`
 }
