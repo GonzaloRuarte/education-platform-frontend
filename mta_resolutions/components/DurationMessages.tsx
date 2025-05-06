@@ -9,6 +9,7 @@ const DurationMessages = () => {
   const { maxDurationReached, requiresMaxDurationWarning, timeLeft, maxDurationOverflow } =
     useResolutionDurationResources()
 
+  if (timeLeft === null || maxDurationOverflow === null) return <></>
   return (
     <>
       {requiresMaxDurationWarning && (

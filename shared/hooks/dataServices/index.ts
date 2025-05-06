@@ -1,4 +1,5 @@
-import { I_AuthResources } from '@/mta_auth/types'
+'use client'
+
 import { I_UseConfirm } from '@/shared/confirm'
 import {
   I_FetchOptions,
@@ -204,4 +205,4 @@ const updateHook = <T_Id, T_RequestData, T_Response = {}>(
   return useUpdate
 }
 
-export { batchDeletionHook, creationHook, deletionHook, detailHook, listHook, updateHook, actionHook, getHook }
+export { actionHook, batchDeletionHook, creationHook, deletionHook, detailHook, getHook, listHook, updateHook }

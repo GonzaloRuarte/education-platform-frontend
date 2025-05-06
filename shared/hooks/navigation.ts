@@ -1,3 +1,5 @@
+'use client'
+
 import { pages, pathWithId } from '@/pages'
 
 import { useRouter } from 'next/navigation'
