@@ -1,19 +1,17 @@
 import { AppointmentOccurrenceStatus, AppointmentStatus, I_AppointmentListItem } from '@/mta_schedule/types'
 import { Grid2, Tooltip } from '@mui/material'
 
+import AppointmentOccurrenceStatusChip from '@/mta_schedule/components/AppointmentOccurrenceStatusChip'
 import AppointmentStatusChip from '@/mta_schedule/components/AppointmentStatusChip'
-import { appointmentAlreadyStarted, appointmentFormattedStringDate } from '@/mta_schedule/utils'
+import { useNavigateToAppointmentDetail, useNavigateToAppointmentEditStudents } from '@/mta_schedule/hooks'
+import { appointmentFormattedStringDate } from '@/mta_schedule/utils'
 import Bold from '@/shared/components/Bold'
 import Button from '@/shared/components/Button'
 import { DeleteButton } from '@/shared/components/buttons'
 import MagicGrid from '@/shared/components/MagicGrid'
+import Spacer from '@/shared/components/Spacer'
 import { Body1 } from '@/shared/components/Typography'
 import TodayIcon from '@mui/icons-material/Today'
-import { useNavigateToAppointmentDetail, useNavigateToAppointmentEditStudents } from '@/mta_schedule/hooks'
-import Chip from '@/shared/components/Chip'
-import { grey } from '@mui/material/colors'
-import Spacer from '@/shared/components/Spacer'
-import AppointmentOccurrenceStatusChip from '@/mta_schedule/components/AppointmentOccurrenceStatusChip'
 
 interface I_Props {
   data: I_AppointmentListItem

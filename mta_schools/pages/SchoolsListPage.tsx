@@ -9,12 +9,13 @@ import {
   useSchoolList,
 } from '@/mta_schools/hooks'
 import ListPage from '@/shared/pages/ListPage'
+import { idReplacementColumn } from '@/shared/pages/utils'
 import { Chip } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 
 const columns: Array<GridColDef> = [
-  { field: 'id', headerName: '#' },
-  { field: 'name', headerName: 'Nombre', flex: 1.5 },
+  // { field: 'id', headerName: '#' },
+  idReplacementColumn({ field: 'name', headerName: 'Nombre', flex: 1.5 }),
   { field: 'district', headerName: 'Distrito', flex: 1 },
   {
     field: 'staff',
