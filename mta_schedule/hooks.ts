@@ -10,7 +10,7 @@ import {
   T_AppointmentId,
   T_AppointmentList,
 } from '@/mta_schedule/types'
-import pages, { appointmentsProcessPath, appointmentsEditStudentsPath } from '@/pages'
+import pages, { appointmentsEditStudentsPath, appointmentsProcessPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
 import {
   actionHook,
@@ -84,23 +84,25 @@ const useNavigateToAppointmentProcess = dynamicNavigationHook(appointmentsProces
 const useNavigateToAppointmentEditStudents = dynamicNavigationHook(appointmentsEditStudentsPath)
 const useNavigateToAppointmentCreate = navigationHook(pages.D._.turnos._.agregar.path)
 const useNavigateToAppointmentDetail = navigationWithIdHook(pages.D._.turnos.path)
+const useNavigateToAppointmentRequest = navigationHook(pages.D._.turnos._.solicitar.path)
 
 export {
-  useNavigateToAppointmentDetail,
+  useAppointmentAddStudents,
+  useAppointmentApprove,
   useAppointmentBatchDelete,
   useAppointmentCreate,
   useAppointmentDelete,
   useAppointmentDetail,
   useAppointmentFreeListByMonth,
   useAppointmentList,
+  useAppointmentListByUserSchool,
+  useAppointmentReject,
   useAppointmentRequest,
   useAppointmentUpdate,
   useNavigateToAppointmentCreate,
+  useNavigateToAppointmentDetail,
+  useNavigateToAppointmentEditStudents,
   useNavigateToAppointmentList,
   useNavigateToAppointmentProcess,
-  useAppointmentApprove,
-  useAppointmentReject,
-  useNavigateToAppointmentEditStudents,
-  useAppointmentAddStudents,
-  useAppointmentListByUserSchool,
+  useNavigateToAppointmentRequest,
 }

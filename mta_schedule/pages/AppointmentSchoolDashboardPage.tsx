@@ -3,19 +3,21 @@
 import { DEFAULT_PAGE_SIZE } from '@/config'
 import AppointmentSchoolCard from '@/mta_schedule/components/AppointmentSchoolCard'
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
-import { useAppointmentListByUserSchool } from '@/mta_schedule/hooks'
+import { useAppointmentListByUserSchool, useNavigateToAppointmentRequest } from '@/mta_schedule/hooks'
 import Button from '@/shared/components/Button'
 import { ReloadButton } from '@/shared/components/buttons'
 import Page from '@/shared/components/Page'
 import Spinner from '@/shared/components/Spinner'
 import { Box, Grid2, Pagination } from '@mui/material'
 import { useRouter, useSearchParams } from 'next/navigation'
+import EditCalendarIcon from '@mui/icons-material/EditCalendar'
 
-import React from 'react'
 const pageCount = (itemsCount: number) => itemsCount / DEFAULT_PAGE_SIZE
+
 const AppointmentSchoolDashboardPage = () => {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const navToAppointmentRequest = useNavigateToAppointmentRequest()
 
   // Get the current page from query params or default to 1
   const currentPage = parseInt(searchParams.get('page') || '1', 10)
@@ -33,6 +35,10 @@ const AppointmentSchoolDashboardPage = () => {
       <Page.Title>Listado de {APPOINTMENT_NAME.plural}</Page.Title>
       <Page.Toolbar>
         <ReloadButton onClick={reload} />
+
+        <Button startIcon={<EditCalendarIcon />} onClick={navToAppointmentRequest}>
+          Solicitar {APPOINTMENT_NAME.singular}
+        </Button>
       </Page.Toolbar>
       {data === undefined ? (
         <Spinner />

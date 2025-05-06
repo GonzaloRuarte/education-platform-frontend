@@ -3,10 +3,12 @@
 import AppointmentBriefCard from '@/mta_schedule/components/AppointmentBriefCard'
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
 import { useAppointmentDetail, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
+import Chip from '@/shared/components/Chip'
+import MagicGrid from '@/shared/components/MagicGrid'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import Spinner from '@/shared/components/Spinner'
-import { H3 } from '@/shared/components/Typography'
+import { Body1, H3 } from '@/shared/components/Typography'
 import { List, ListItem } from '@mui/material'
 import { useParams } from 'next/navigation'
 import React from 'react'
@@ -40,13 +42,13 @@ const AppointmentReadOnlyDetail = () => {
               <>
                 <H3>Listado de estudiantes</H3>
                 <Spacer size="s" />
-                <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
+                <Body1>Cantidad: {data.students.length}</Body1>
+                <Spacer size="s" />
+                <MagicGrid itemSize="auto">
                   {data.students.map((s) => (
-                    <ListItem key={s.personal_id}>
-                      {s.personal_id} ({s.cohort})
-                    </ListItem>
+                    <Chip key={s.personal_id} label={`${s.personal_id} (${s.cohort})`} />
                   ))}
-                </List>
+                </MagicGrid>
               </>
             )}
           </>
