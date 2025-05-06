@@ -36,7 +36,7 @@ const AppointmentSchoolDashboardPage = () => {
       <Page.Toolbar>
         <ReloadButton onClick={reload} />
 
-        <Button startIcon={<EditCalendarIcon />} onClick={navToAppointmentRequest}>
+        <Button color="warning" startIcon={<EditCalendarIcon />} onClick={navToAppointmentRequest}>
           Solicitar {APPOINTMENT_NAME.singular}
         </Button>
       </Page.Toolbar>

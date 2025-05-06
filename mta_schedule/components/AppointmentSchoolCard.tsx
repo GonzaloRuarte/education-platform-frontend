@@ -1,4 +1,4 @@
-import { AppointmentStatus, I_AppointmentListItem } from '@/mta_schedule/types'
+import { AppointmentOccurrenceStatus, AppointmentStatus, I_AppointmentListItem } from '@/mta_schedule/types'
 import { Grid2, Tooltip } from '@mui/material'
 
 import AppointmentStatusChip from '@/mta_schedule/components/AppointmentStatusChip'
@@ -13,6 +13,7 @@ import { useNavigateToAppointmentDetail, useNavigateToAppointmentEditStudents } 
 import Chip from '@/shared/components/Chip'
 import { grey } from '@mui/material/colors'
 import Spacer from '@/shared/components/Spacer'
+import AppointmentOccurrenceStatusChip from '@/mta_schedule/components/AppointmentOccurrenceStatusChip'
 
 interface I_Props {
   data: I_AppointmentListItem
@@ -36,13 +37,16 @@ const AppointmentSchoolCard = ({ data }: I_Props) => {
     >
       {/* Header */}
       <Grid2 container size={12}>
-        <Grid2 size={6}>
+        <Grid2 size={3}>
           <Tooltip title={`id: ${data.id}`} placement="right-end">
             <TodayIcon />
           </Tooltip>
         </Grid2>
-        <Grid2 size={6} textAlign={'right'}>
-          <AppointmentStatusChip status={data.status} />
+        <Grid2 size={9}>
+          <MagicGrid itemSize="auto" justifyContent={'flex-end'}>
+            <AppointmentStatusChip status={data.status} />
+            <AppointmentOccurrenceStatusChip status={data.occurrence_status} />
+          </MagicGrid>
         </Grid2>
       </Grid2>
 
@@ -55,29 +59,30 @@ const AppointmentSchoolCard = ({ data }: I_Props) => {
       {/* Actions */}
       <Grid2 size={12}>
         <MagicGrid>
-          {appointmentAlreadyStarted(data.begins_at) ? (
-            <Chip label="Turno Pasado" sx={{ background: grey[300], width: '100%' }} />
-          ) : (
+          {data.occurrence_status === AppointmentOccurrenceStatus.upcoming && (
             <>
-              {data.status === AppointmentStatus.approved && (
-                <MagicGrid itemSize="auto">
-                  <Body1>
-                    Estudiantes: <Bold>{data.student_count}</Bold>
-                  </Body1>
-                  {data.student_count === 0 ? (
-                    <Button fullWidth color="primary" onClick={handleEditStudents}>
-                      Agregar estudiantes
-                    </Button>
-                  ) : (
-                    <Button fullWidth color="secondary" onClick={handleEditStudents}>
-                      Editar estudiantes
-                    </Button>
-                  )}
-                </MagicGrid>
-              )}
+              <>
+                {data.status === AppointmentStatus.approved && (
+                  <MagicGrid itemSize="auto">
+                    <Body1>
+                      Estudiantes: <Bold>{data.student_count}</Bold>
+                    </Body1>
+                    {data.student_count === 0 ? (
+                      <Button fullWidth color="primary" onClick={handleEditStudents}>
+                        Agregar estudiantes
+                      </Button>
+                    ) : (
+                      <Button fullWidth color="secondary" onClick={handleEditStudents}>
+                        Editar estudiantes
+                      </Button>
+                    )}
+                  </MagicGrid>
+                )}
+              </>
             </>
           )}
-          <Button fullWidth color="info" onClick={() => navToDetail(data.id)}>
+
+          <Button fullWidth onClick={() => navToDetail(data.id)}>
             Ver detalle
           </Button>
           <DeleteButton fullWidth color="error" label="Eliminar turno" variant="outlined" disabled />

@@ -9,9 +9,7 @@ import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import Spinner from '@/shared/components/Spinner'
 import { Body1, H3 } from '@/shared/components/Typography'
-import { List, ListItem } from '@mui/material'
 import { useParams } from 'next/navigation'
-import React from 'react'
 
 const AppointmentReadOnlyDetail = () => {
   const { appointmentId } = useParams()

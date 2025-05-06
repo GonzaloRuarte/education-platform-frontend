@@ -1,4 +1,4 @@
-import { T_AppointmentStatus } from './types'
+import { T_AppointmentOccurrenceStatus, T_AppointmentStatus } from './types'
 
 const appointmentStatusCodeToLabels: Record<T_AppointmentStatus, string> = {
   F: 'Libre',
@@ -6,10 +6,15 @@ const appointmentStatusCodeToLabels: Record<T_AppointmentStatus, string> = {
   A: 'Aprobado',
   R: 'Rechazado',
 }
+const appointmentOccurrenceStatusCodeToLabels: Record<T_AppointmentOccurrenceStatus, string> = {
+  PAST: 'Pasado',
+  ONGOING: 'En curso',
+  UPCOMING: 'Próximo',
+}
 
 const appointmentLabels = {
   begins_at: 'Desde',
   quantity: 'Cantidad de turnos en ese horario',
 }
 
-export { appointmentStatusCodeToLabels, appointmentLabels }
+export { appointmentStatusCodeToLabels, appointmentLabels, appointmentOccurrenceStatusCodeToLabels }

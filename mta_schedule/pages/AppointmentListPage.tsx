@@ -1,6 +1,7 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
+import AppointmentOccurrenceStatusChip from '@/mta_schedule/components/AppointmentOccurrenceStatusChip'
 import AppointmentStatusChip from '@/mta_schedule/components/AppointmentStatusChip'
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
 import {
@@ -11,12 +12,13 @@ import {
   useNavigateToAppointmentEditStudents,
   useNavigateToAppointmentProcess,
 } from '@/mta_schedule/hooks'
-import { AppointmentStatus, I_AppointmentListItem } from '@/mta_schedule/types'
+import { AppointmentOccurrenceStatus, AppointmentStatus, I_AppointmentListItem } from '@/mta_schedule/types'
 import { appointmentAlreadyStarted } from '@/mta_schedule/utils'
 import Button from '@/shared/components/Button'
 import ListPage from '@/shared/pages/ListPage'
 import RuleIcon from '@mui/icons-material/Rule'
 import SchoolIcon from '@mui/icons-material/School'
+import TroubleshootIcon from '@mui/icons-material/Troubleshoot'
 import { GridColDef } from '@mui/x-data-grid'
 import dayjs from 'dayjs'
 
@@ -43,6 +45,12 @@ const columns = (a: {
     flex: 0.7,
     renderCell: ({ value }) => <AppointmentStatusChip status={value} size="small" />,
   },
+  {
+    field: 'occurrence_status',
+    headerName: 'Estado de Ocurrencia',
+    flex: 0.7,
+    renderCell: ({ value }) => <AppointmentOccurrenceStatusChip status={value} size="small" />,
+  },
 
   {
     field: 'school',
@@ -65,10 +73,13 @@ const columns = (a: {
     getActions: (params) => {
       const actions: Array<any> = []
 
-      if (params.row.begins_at && appointmentAlreadyStarted(params.row.begins_at)) {
+      if (params.row.occurrence_status === AppointmentOccurrenceStatus.past) {
+        return []
+      }
+      if (params.row.occurrence_status === AppointmentOccurrenceStatus.ongoing) {
         return [
-          <Button bgcolor="grey" disabled size="small">
-            Turno pasado
+          <Button startIcon={<TroubleshootIcon />} size="small">
+            Monitorear
           </Button>,
         ]
       }

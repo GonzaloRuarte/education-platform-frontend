@@ -5,12 +5,18 @@ import { I_PaginatedResponse } from '@/shared/data/types'
 
 type T_AppointmentId = number
 type T_AppointmentStatus = 'F' | 'P' | 'A' | 'R'
+type T_AppointmentOccurrenceStatus = 'PAST' | 'ONGOING' | 'UPCOMING'
 
 enum AppointmentStatus {
   free = 'F',
   pending = 'P',
   approved = 'A',
   rejected = 'R',
+}
+enum AppointmentOccurrenceStatus {
+  past = 'PAST',
+  ongoing = 'ONGOING',
+  upcoming = 'UPCOMING',
 }
 
 interface I_AppointmentDetail {
@@ -23,6 +29,7 @@ interface I_AppointmentDetail {
   } | null
   evaluation_brief: I_AppointmentEvaluationBrief | null
   status: T_AppointmentStatus
+  occurrence_status: T_AppointmentOccurrenceStatus
   students: Array<{
     id: T_StudentProfileId
     personal_id: T_StudentProfilePersonalId
@@ -49,6 +56,7 @@ interface I_AppointmentListItem {
     name: string
   }
   status: T_AppointmentStatus
+  occurrence_status: T_AppointmentOccurrenceStatus
   student_count: number
 }
 type T_AppointmentList = I_PaginatedResponse<I_AppointmentListItem>
@@ -99,5 +107,7 @@ export type {
   I_AppointmentReject_RequestData,
   I_AppointmentEvaluationBrief,
   I_AppointmentAddStudents_RequestData,
+  T_AppointmentOccurrenceStatus,
 }
-export { AppointmentStatus }
+
+export { AppointmentStatus, AppointmentOccurrenceStatus }
