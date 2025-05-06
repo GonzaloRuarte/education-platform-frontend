@@ -10,14 +10,16 @@ import pages from '@/pages'
 import { useInProgress, useInterval } from '@/shared/hooks'
 import { handleServiceError } from '@/shared/service'
 import { useStore } from '@/shared/state'
+import { withRouterHistoryReset } from '@/shared/utils'
 import { useState } from 'react'
 
 const useResolutionPagination = () => {
   const currentPage = useStore((state) => state.resolution_currentPage)
   const pagesQuantity = useStore((state) => state.resolution_evaluation?.pages_quantity)
-  const storeNewPage = useStore((state) => state.resolution_storeCurrentPage)
+  const storeNewPage = withRouterHistoryReset(useStore((state) => state.resolution_storeCurrentPage))
   const isLastPage = currentPage === pagesQuantity
   const isFirstPage = currentPage === 1
+
   return {
     currentPage,
     pagesQuantity,

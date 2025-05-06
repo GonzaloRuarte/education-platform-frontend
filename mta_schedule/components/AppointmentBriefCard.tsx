@@ -1,6 +1,12 @@
 import { LIGHT_BG_COLOR } from '@/config'
+import AppointmentOccurrenceStatusChip from '@/mta_schedule/components/AppointmentOccurrenceStatusChip'
 import AppointmentStatusChip from '@/mta_schedule/components/AppointmentStatusChip'
-import { I_AppointmentEvaluationBrief, T_AppointmentId, T_AppointmentStatus } from '@/mta_schedule/types'
+import {
+  I_AppointmentEvaluationBrief,
+  T_AppointmentId,
+  T_AppointmentOccurrenceStatus,
+  T_AppointmentStatus,
+} from '@/mta_schedule/types'
 import { appointmentFormattedStringDate } from '@/mta_schedule/utils'
 import { SchoolGrade } from '@/mta_schools/constants'
 import { gradeLabel } from '@/mta_schools/labels'
@@ -20,17 +26,28 @@ interface I_Props {
   evaluation?: I_AppointmentEvaluationBrief
   appointmentId: T_AppointmentId
   status?: T_AppointmentStatus
+  occurrence_status?: T_AppointmentOccurrenceStatus
 }
 
-const AppointmentBriefCard = ({ appointmentId, title, begins_at, subject, grade, evaluation, status }: I_Props) => {
+const AppointmentBriefCard = ({
+  appointmentId,
+  title,
+  begins_at,
+  subject,
+  grade,
+  evaluation,
+  status,
+  occurrence_status,
+}: I_Props) => {
   return (
     <Box bgcolor={LIGHT_BG_COLOR} borderRadius={2} padding={2}>
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <TodayIcon />
-        {status !== undefined && (
+        {(status !== undefined || occurrence_status !== undefined) && (
           <Box display="flex" justifyContent="space-between" alignItems="center" gap={1}>
             <Body1>Estado del turno:</Body1>
-            <AppointmentStatusChip style={{ background: '#FFFFFFAA' }} status={status} />
+            {status !== undefined && <AppointmentStatusChip style={{ background: '#FFFFFFAA' }} status={status} />}
+            {occurrence_status !== undefined && <AppointmentOccurrenceStatusChip status={occurrence_status} />}
           </Box>
         )}
       </Box>

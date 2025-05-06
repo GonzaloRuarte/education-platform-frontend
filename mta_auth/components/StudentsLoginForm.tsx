@@ -16,6 +16,7 @@ import { successToast } from '@/shared/toasts'
 import { useForm } from 'react-hook-form'
 import { useNavigateToResolutionPage } from '@/mta_resolutions/hooks/navigation'
 import { IntegerInputControlled } from '@/shared/forms/IntegerInput'
+import { withRouterHistoryReset } from '@/shared/utils'
 
 interface I_FormFields {
   personal_id: T_StudentProfilePersonalId | ''

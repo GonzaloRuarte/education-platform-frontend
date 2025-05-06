@@ -6,9 +6,11 @@ import { useAppointmentDetail, useNavigateToAppointmentList } from '@/mta_schedu
 import Chip from '@/shared/components/Chip'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Page from '@/shared/components/Page'
+import Pastilla from '@/shared/components/Pastilla'
 import Spacer from '@/shared/components/Spacer'
 import Spinner from '@/shared/components/Spinner'
-import { Body1, H3 } from '@/shared/components/Typography'
+import { Body1, H2, H3 } from '@/shared/components/Typography'
+import { Card, Grid2 } from '@mui/material'
 import { useParams } from 'next/navigation'
 
 const AppointmentReadOnlyDetail = () => {
@@ -34,6 +36,7 @@ const AppointmentReadOnlyDetail = () => {
               subject={data.requested_evaluation_subject === null ? '' : data.requested_evaluation_subject.name}
               grade={data.requested_evaluation_grade === null ? undefined : data.requested_evaluation_grade}
               evaluation={data.evaluation_brief !== null ? data.evaluation_brief : undefined}
+              occurrence_status={data.occurrence_status}
             />
             <Spacer />
             {data.students.length > 0 && (
@@ -49,8 +52,36 @@ const AppointmentReadOnlyDetail = () => {
                 </MagicGrid>
               </>
             )}
+            {data.real_time_status !== null && (
+              <>
+                <Spacer size="l" />
+                <H3>Estado en tiempo real</H3>
+                <Spacer size="s" />
+                <Grid2 container spacing={5}>
+                  <Grid2 size={4}>
+                    <Pastilla variant="light_blue" padding={'20px 30px'}>
+                      <H2>{data.real_time_status.included_students}</H2>
+                      <Body1>Estudiantes incluidos</Body1>
+                    </Pastilla>
+                  </Grid2>
+                  <Grid2 size={4}>
+                    <Pastilla variant="light_blue" padding={'20px 30px'}>
+                      <H2>{data.real_time_status.started_students}</H2>
+                      <Body1>Estudiantes iniciados</Body1>
+                    </Pastilla>
+                  </Grid2>
+                  <Grid2 size={4}>
+                    <Pastilla variant="light_blue" padding={'20px 30px'}>
+                      <H2>{data.real_time_status.finished_students}</H2>
+                      <Body1>Estudiantes finalizados</Body1>
+                    </Pastilla>
+                  </Grid2>
+                </Grid2>
+              </>
+            )}
           </>
         )}
+        <Spacer size="xxl" />
       </Page.Content>
     </Page>
   )

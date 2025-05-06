@@ -154,6 +154,12 @@ class ImageSize {
   }
 }
 
+const withRouterHistoryReset = (fn: (...args: any[]) => any) => {
+  // window.history.replaceState(null, '', window.location.pathname)
+
+  return fn
+}
+
 export {
   EntityName,
   ImageSize,
@@ -168,4 +174,5 @@ export {
   randomInt,
   secondsToHHMMSS,
   range,
+  withRouterHistoryReset,
 }

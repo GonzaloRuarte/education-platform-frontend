@@ -30,6 +30,7 @@ interface I_AppointmentDetail {
   evaluation_brief: I_AppointmentEvaluationBrief | null
   status: T_AppointmentStatus
   occurrence_status: T_AppointmentOccurrenceStatus
+  real_time_status: I_AppointmentRealTimeStatus | null
   students: Array<{
     id: T_StudentProfileId
     personal_id: T_StudentProfilePersonalId
@@ -41,6 +42,11 @@ interface I_AppointmentDetail {
     prefix: string
   }
   requested_evaluation_grade: null | SchoolGrade
+}
+interface I_AppointmentRealTimeStatus {
+  included_students: number
+  started_students: number
+  finished_students: number
 }
 interface I_AppointmentEvaluationBrief {
   id: T_EvaluationId
@@ -108,6 +114,7 @@ export type {
   I_AppointmentEvaluationBrief,
   I_AppointmentAddStudents_RequestData,
   T_AppointmentOccurrenceStatus,
+  I_AppointmentRealTimeStatus,
 }
 
 export { AppointmentStatus, AppointmentOccurrenceStatus }
