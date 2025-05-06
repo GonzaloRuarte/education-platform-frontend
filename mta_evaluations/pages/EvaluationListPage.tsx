@@ -48,4 +48,7 @@ const EvaluationListPage = () => {
   )
 }
 
-export default withAuth(EvaluationListPage, ['admin', 'evaluator', 'school_staff'])
+export default withAuth(EvaluationListPage, {
+  allowedUserProfiles: ['admin', 'evaluator', 'school_staff'],
+  logoutDestination: 'dashboard',
+})

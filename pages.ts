@@ -13,6 +13,11 @@ const evaluationsEditContentPath = '/dashboard/evaluaciones/{evaluationId:number
 const questionEditPath = '/dashboard/evaluaciones/{evaluationId:number}/pregunta/{questionId:number}'
 const questionCreateMCPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.MultipleChoice}`
 const questionCreateNumericPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.Numeric}`
+const appointmentsProcessPath = '/dashboard/turnos/{appointmentId:number}/procesar'
+const appointmentsEditStudentsPath = '/dashboard/turnos/{appointmentId:number}/editar-estudiantes'
+
+const userChangePasswordPath = '/dashboard/usuarios/{userId:number}/cambiar-password'
+
 const pages = {
   R: {
     path: '/',
@@ -62,6 +67,14 @@ const pages = {
             path: '/dashboard/turnos/solicitar',
             label: 'Solicitar turno',
           },
+          procesar: {
+            path: appointmentsProcessPath,
+            label: 'Procesar Turno',
+          },
+          editarEstudiantes: {
+            path: appointmentsEditStudentsPath,
+            label: 'Editar estudiantes',
+          },
         },
       },
       evaluaciones: {
@@ -96,9 +109,33 @@ const pages = {
           },
         },
       },
+      procesosDeEvaluacion: {
+        path: '/dashboard/procesos-de-evaluacion',
+        label: 'Procesos de evaluación',
+      },
       estudiantes: {
         path: '/dashboard/estudiantes',
         label: 'Estudiantes',
+        _: {
+          agregar: {
+            path: '/dashboard/estudiantes/agregar',
+            label: 'Agregar estudiante',
+          },
+          cargaMasiva: {
+            path: '/dashboard/estudiantes/carga-masiva',
+            label: 'Carga masiva de estudiantes',
+          },
+        },
+      },
+      reportes: {
+        path: '/dashboard/reportes',
+        label: 'Reportes',
+        _: {
+          agregar: {
+            path: '/dashboard/reportes/agregar',
+            label: 'Agregar estudiante',
+          },
+        },
       },
       comisiones: {
         path: '/dashboard/comisiones',
@@ -107,6 +144,36 @@ const pages = {
       usuarios: {
         path: '/dashboard/usuarios',
         label: 'Usuarios',
+        _: {
+          cambiarPassword: {
+            path: userChangePasswordPath,
+            label: 'Usuarios',
+          },
+          staffEscuela: {
+            path: '/dashboard/usuarios/staff-escuela',
+            label: "Staff's Escuela",
+            _: {
+              agregar: {
+                path: '/dashboard/usuarios/staff-escuela/agregar',
+                label: 'Agregar estudiante',
+              },
+            },
+          },
+          itemista: {
+            path: '/dashboard/usuarios/itemistas',
+            label: 'Itemistas',
+            _: {
+              agregar: {
+                path: '/dashboard/usuarios/itemistas/agregar',
+                label: 'Agregar Itemista',
+              },
+            },
+          },
+          admins: {
+            path: '/dashboard/usuarios/administradores',
+            label: 'Administradores',
+          },
+        },
       },
     },
   },
@@ -123,6 +190,9 @@ export {
   questionEditPath,
   questionCreateMCPath,
   questionCreateNumericPath,
+  appointmentsProcessPath,
+  appointmentsEditStudentsPath,
+  userChangePasswordPath,
 }
 
 export default pages

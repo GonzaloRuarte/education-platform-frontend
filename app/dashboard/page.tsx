@@ -5,4 +5,7 @@ const Welcome = () => {
   return <DashboardLoggedInLayout>Bienvenido/a a Meta</DashboardLoggedInLayout>
 }
 
-export default withAuth(Welcome, ['admin', 'evaluator', 'school_staff'])
+export default withAuth(Welcome, {
+  allowedUserProfiles: ['admin', 'evaluator', 'school_staff'],
+  logoutDestination: 'dashboard',
+})

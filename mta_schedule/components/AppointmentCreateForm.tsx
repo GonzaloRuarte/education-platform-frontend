@@ -5,7 +5,7 @@ import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import { Body1, H4 } from '@/shared/components/Typography'
 import DateCalendarControlled from '@/shared/forms/DateCalendarControlled'
-import IntegerInputControlled from '@/shared/forms/IntegerInputControlled'
+import CountInputControlled from '@/shared/forms/CountInputControlled'
 import { rules } from '@/shared/forms/messages'
 import SelectControlled from '@/shared/forms/SelectControlled'
 import { useInProgress } from '@/shared/hooks'
@@ -68,7 +68,7 @@ const AppointmentCreateForm = () => {
             </Body1>
             <Spacer size="m" />
             <H4>{appointmentLabels.quantity}</H4>
-            <IntegerInputControlled min={1} control={control} name="quantity" />
+            <CountInputControlled min={1} control={control} name="quantity" />
           </Grid2>
         </Grid2>
         <Spacer />

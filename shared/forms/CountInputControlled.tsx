@@ -12,7 +12,7 @@ interface I_Props<T_FormFields extends FieldValues>
   step?: number
 }
 
-export default function IntegerInputControlled<T_FormFields extends FieldValues>({
+export default function CountInputControlled<T_FormFields extends FieldValues>({
   name,
   rules,
   shouldUnregister,

@@ -1,8 +1,10 @@
 import { T_VoidFn } from '@/shared/types'
 
-interface I_FetchOptions {
-  page: number
-  page_size: number
+interface I_FetchPaginationOptions {
+  page?: number
+  page_size?: number
+}
+interface I_FetchOptions extends I_FetchPaginationOptions {
   filters?: Record<string, any>
 }
 
@@ -16,12 +18,14 @@ type T_TokenRefresher = (
   postMethod: (url: string, data: object) => Promise<{ access: string }>,
 ) => (data: I_RefreshRequestData) => Promise<any>
 type T_Fatal401Handler = T_VoidFn
+
 interface I_RequestSetup {
   accessToken?: string
   refreshToken?: string
   headers?: object
   refresh?: T_TokenRefresher
   handleFatal401Error?: T_Fatal401Handler
+  'Content-Type'?: string
 }
 
 type T_GetMethod = <T_Response>(args: {
@@ -62,6 +66,7 @@ type T_401Handler = <T_Fetcher extends T_BaseFetcher>(fetcher: T_Fetcher) => T_F
 
 export type {
   I_FetchOptions,
+  I_FetchPaginationOptions,
   I_RequestSetup,
   T_GetMethod,
   I_PaginatedResponse,

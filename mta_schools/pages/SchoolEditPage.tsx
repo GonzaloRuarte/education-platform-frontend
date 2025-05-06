@@ -1,5 +1,6 @@
 'use client'
 
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import SchoolEditForm from '@/mta_schools/components/SchoolEditForm'
 import { SCHOOL_NAME } from '@/mta_schools/constants'
 import { useSchoolDelete, useSchoolDetail, useNavigateToSchoolList } from '@/mta_schools/hooks'
@@ -15,4 +16,7 @@ const SchoolEditPage = () => (
   />
 )
 
-export default SchoolEditPage
+export default withAuth(SchoolEditPage, {
+  allowedUserProfiles: ['admin'],
+  logoutDestination: 'dashboard',
+})

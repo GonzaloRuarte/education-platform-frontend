@@ -15,6 +15,18 @@ const randomInt = (min: number, max: number): number => {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
+const range = (start: number, end: number, step: number = 1): number[] => {
+  if (step <= 0) {
+    throw new Error('Step must be a positive number.')
+  }
+
+  const result: number[] = []
+  for (let i = start; i < end; i += step) {
+    result.push(i)
+  }
+  return result
+}
+
 /**
  * Truncates a string to the first N characters and append '(...)' if the string is longer than N.
  */
@@ -60,7 +72,7 @@ const secondsToHHMMSS = (seconds: number): string => {
 
   const paddedHours = String(hours).padStart(2, '0')
   const paddedMinutes = String(minutes).padStart(2, '0')
-  const paddedSeconds = String(remainingSeconds).padStart(2, '0')
+  const paddedSeconds = String(Math.round(remainingSeconds)).padStart(2, '0')
 
   return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`
 }
@@ -142,6 +154,12 @@ class ImageSize {
   }
 }
 
+const withRouterHistoryReset = (fn: (...args: any[]) => any) => {
+  // window.history.replaceState(null, '', window.location.pathname)
+
+  return fn
+}
+
 export {
   EntityName,
   ImageSize,
@@ -155,4 +173,6 @@ export {
   sentence,
   randomInt,
   secondsToHHMMSS,
+  range,
+  withRouterHistoryReset,
 }

@@ -1,11 +1,8 @@
 import { useLogout } from '@/mta_auth/hooks'
 import {
   useResolutionDownloadState,
-  useResolutionClearEvaluation,
-  useResolutionClearLastUploadDatetime,
-  useResolutionClearMetadata,
-  useResolutionClearState,
   useResolutionRequestSubmit,
+  useResolutionResetState,
   useResolutionState,
 } from '@/mta_resolutions/hooks/data'
 import { useNavigateToResolutionSubmittedPage } from '@/mta_resolutions/hooks/navigation'
@@ -13,16 +10,30 @@ import pages from '@/pages'
 import { useInProgress, useInterval } from '@/shared/hooks'
 import { handleServiceError } from '@/shared/service'
 import { useStore } from '@/shared/state'
+import { withRouterHistoryReset } from '@/shared/utils'
 import { useState } from 'react'
 
 const useResolutionPagination = () => {
   const currentPage = useStore((state) => state.resolution_currentPage)
   const pagesQuantity = useStore((state) => state.resolution_evaluation?.pages_quantity)
+  const storeNewPage = withRouterHistoryReset(useStore((state) => state.resolution_storeCurrentPage))
+  const isLastPage = currentPage === pagesQuantity
+  const isFirstPage = currentPage === 1
+
   return {
     currentPage,
     pagesQuantity,
-    storeNewPage: useStore((state) => state.resolution_storeCurrentPage),
-    isLastPage: currentPage === pagesQuantity,
+    isLastPage,
+    isFirstPage,
+    storeNewPage,
+    goToPreviousPage: () => {
+      if (isFirstPage) return
+      storeNewPage(currentPage - 1)
+    },
+    goToNextPage: () => {
+      if (isLastPage) return
+      storeNewPage(currentPage + 1)
+    },
   }
 }
 
@@ -44,17 +55,11 @@ const useResolutionLogout = () => useLogout(pages.R._.login.path)
 
 const useResolutionExit = () => {
   const logOut = useResolutionLogout()
-  const clearEvaluation = useResolutionClearEvaluation()
-  const clearState = useResolutionClearState()
-  const clearLastUpload = useResolutionClearLastUploadDatetime()
-  const clearMetadata = useResolutionClearMetadata()
+  const resetState = useResolutionResetState()
 
   return () => {
     logOut()
-    clearEvaluation()
-    clearState()
-    clearLastUpload()
-    clearMetadata()
+    resetState()
   }
 }
 

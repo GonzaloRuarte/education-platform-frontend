@@ -1,6 +1,6 @@
 import { ErrorCode } from '@/config'
 import { useAuthResources } from '@/mta_auth/hooks'
-import { I_AuthorizeResponseData } from '@/mta_auth/types'
+import { I_AuthorizeStudentResponseData } from '@/mta_auth/types'
 import { T_AnswerId, T_AnswerType, T_QuestionId } from '@/mta_evaluations/types'
 import { useResolutionLogout, useResolutionPagination } from '@/mta_resolutions/hooks'
 import {
@@ -21,6 +21,7 @@ import { useStore } from '@/shared/state'
 import useToasts from '@/shared/toasts'
 import { T_EmptyPayload } from '@/shared/types'
 import { useCallback } from 'react'
+import { useDebouncedCallback } from 'use-debounce'
 
 // Data Service
 const RESOLUTIONS_PATH = '/resolutions'
@@ -29,7 +30,7 @@ const RESOLUTIONS_PATH = '/resolutions'
  * Authorize student to access evaluation zone (login)
  */
 const useResolutionAuthorizeStudent = () => {
-  return postService<I_AuthorizeStudentRequestData, I_AuthorizeResponseData>(
+  return postService<I_AuthorizeStudentRequestData, I_AuthorizeStudentResponseData>(
     `${RESOLUTIONS_PATH}/authorize`,
     axiosPost,
   )()
@@ -60,16 +61,18 @@ const useResolutionRequestSubmit = actionHook<I_ResolutionState, T_EmptyPayload>
 
 // STATE HOOKS - - -
 const useResolutionStoreEvaluation = () => useStore((state) => state.resolution_storeEvaluation)
-const useResolutionClearEvaluation = () => useStore((state) => state.resolution_clearEvaluation)
 const useResolutionStoreMetadata = () => useStore((state) => state.resolution_storeMetadata)
-const useResolutionClearMetadata = () => useStore((state) => state.resolution_clearMetadata)
-const useStoreResolutionState = () => useStore((state) => state.resolution_storeState)
+const useResolutionStoreState = () => useStore((state) => state.resolution_storeState)
+const useResolutionResetState = () => useStore((state) => state.resolution_resetState)
 const useResolutionEvaluationToResolve = () => useStore((state) => state.resolution_evaluation)
+const useResolutionRemainingTimeWarningAlreadyDisplayed = () => {
+  const warningAlreadyDisplayed = useStore((state) => state.resolution_remainingTimeWarningAlreadyDisplayed)
+  const setWarningAsAlreadyDisplayed = useStore((state) => state.resolution_setRemainingTimeWarningAsDisplayed)
+  return { warningAlreadyDisplayed, setWarningAsAlreadyDisplayed }
+}
 const useResolutionMaxDurationMinutes = () => useStore((state) => state.resolution_maxDurationMinutes)
 const useResolutionState = () => useStore((state) => state.resolution_state)
 const useResolutionLastUploadDatetime = () => useStore((state) => state.resolution_lastUpload)
-const useResolutionClearLastUploadDatetime = () => useStore((state) => state.resolution_clearLastUpload)
-const useResolutionClearState = () => useStore((state) => state.resolution_clearState)
 const useResolutionUpdateLastUploadDatetime = () => {
   const storeLastUpload = useStore((state) => state.resolution_storeLastUpload)
   return () => {
@@ -89,14 +92,14 @@ const initialState = (personal_id: T_StudentProfilePersonalId, appointment_id: T
 const useResolutionResume = () => {
   const requestResume = _useResolutionRequestResume()
   const storeEvaluationToResolve = useResolutionStoreEvaluation()
-  const storeResolutionState = useStoreResolutionState()
+  const storeResolutionState = useResolutionStoreState()
   const storeMetadata = useResolutionStoreMetadata()
   const { storeNewPage } = useResolutionPagination()
   const { setIsNotInProgress, setIsInProgress } = useInProgress()
   const { errorToast, dismissAll } = useToasts()
   const logout = useResolutionLogout()
 
-  const resume = () => {
+  const resume = useDebouncedCallback(() => {
     setIsInProgress()
     requestResume({})
       .then((response) => {
@@ -128,7 +131,7 @@ const useResolutionResume = () => {
         errorToast('Hubo un error iniciando la evaluación. ')
       })
       .finally(setIsNotInProgress)
-  }
+  }, 100)
   return { resume }
 }
 
@@ -238,13 +241,13 @@ const useResolutionDownloadState = () => {
 
 export {
   useResolutionAuthorizeStudent,
-  useResolutionClearEvaluation,
-  useResolutionClearLastUploadDatetime,
-  useResolutionClearMetadata,
-  useResolutionClearState,
+  useResolutionResetState,
+  useResolutionDownloadState,
   useResolutionEvaluationToResolve,
   useResolutionLastUploadDatetime,
   useResolutionManageUploadState,
+  useResolutionMaxDurationMinutes,
+  useResolutionRemainingTimeWarningAlreadyDisplayed,
   useResolutionRequestSubmit,
   useResolutionResume,
   useResolutionState,
@@ -252,6 +255,4 @@ export {
   useResolutionStoreEvaluation,
   useResolutionStoreMetadata,
   useResolutionUpdateLastUploadDatetime,
-  useResolutionDownloadState,
-  useResolutionMaxDurationMinutes,
 }

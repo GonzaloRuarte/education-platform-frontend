@@ -1,13 +1,11 @@
-import { T_StudentProfilePersonalId } from '@/mta_schools/types'
+import { I_SchoolName } from '@/mta_schools/types'
+import { T_UserProfiles } from '@/mta_users/types'
 import { T_Fatal401Handler, T_TokenRefresher } from '@/shared/data/types'
-
-type T_AccessGroup = 'admin' | 'school_staff' | 'evaluator' | 'student'
-type T_AllowedAccessGroups = Array<T_AccessGroup> | undefined
 
 interface I_AuthData {
   accessToken?: string
   refreshToken?: string
-  accessGroups?: Array<T_AccessGroup>
+  profiles?: Array<T_UserProfiles>
 }
 
 interface I_AuthResources extends I_AuthData {
@@ -20,16 +18,30 @@ interface I_AuthorizeRequestData {
   password: string
 }
 interface I_AuthorizeResponseData {
-  access: string
+  token: {
+    refresh: string
+    access: string
+  }
+  user: {
+    username: string
+    first_name: string
+    last_name: string
+  }
+  profiles: Array<T_UserProfiles>
+  school: null | I_SchoolName
+}
+
+interface I_AuthorizeStudentResponseData {
   refresh: string
+  access: string
 }
 
 export type {
-  T_AccessGroup,
-  T_AllowedAccessGroups,
   I_AuthData,
-  I_AuthResources,
   I_AuthorizeRequestData,
   I_AuthorizeResponseData,
+  I_AuthorizeStudentResponseData,
+  I_AuthResources,
+  T_UserProfiles,
 }
 export type T_LoginZone = 'dashboard' | 'resolutions'

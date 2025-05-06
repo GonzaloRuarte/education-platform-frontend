@@ -14,6 +14,7 @@ import RecoverEvaluationSubjects from '@/mta_evaluations/appServices/RecoverEval
 import LoadFormulasResources from '@/shared/formulas/appServices/LoadFormulasResources'
 import LocalizationProvider from '@/shared/datetime/LocalizationProvider'
 import { MAIN_BG_COLOR } from '@/config'
+import '@/shared/globals.css'
 
 const monstserrat = Montserrat({
   weight: ['300', '400', '500', '700'],
@@ -47,7 +48,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 <ToastContainer />
                 <GlobalBackdrop />
                 <ApplicationServices
-                  version={'0.1.0'}
+                  version={'0.2.0'}
                   services={[RecoverEvaluationSubjects, LoadFormulasResources]}
                   d={{}}
                 />

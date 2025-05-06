@@ -1,1 +1,1 @@
-export { default } from '@/mta_schedule/pages/AppointmentListPage'
+export { default } from '@/mta_schedule/pages/AppointmentHome'

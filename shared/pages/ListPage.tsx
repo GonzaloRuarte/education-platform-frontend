@@ -1,26 +1,29 @@
-import { DEFAULT_PAGE_SIZE } from '@/config'
 import Button from '@/shared/components/Button'
 import Page from '@/shared/components/Page'
 import Table from '@/shared/components/Table'
 import { I_PaginatedResponse } from '@/shared/data/types'
-import { T_BatchDeletionServiceHook, T_ListServiceHookV2, T_VoidFn } from '@/shared/types'
+import { T_BatchDeletionServiceHook, T_ListServiceHook, T_VoidFn } from '@/shared/types'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ReplayIcon from '@mui/icons-material/Replay'
-import { GridColDef, GridPaginationModel, GridRowParams, GridRowSelectionModel } from '@mui/x-data-grid'
+import { GridColDef, GridRowParams, GridRowSelectionModel } from '@mui/x-data-grid'
 
 import { useConfirm } from '@/shared/confirm'
-import { successToast } from '@/shared/toasts'
-import { EntityName, sentence } from '@/shared/utils'
-import { ComponentProps, FC, useState } from 'react'
+import { paginationModelAsFetchPaginationOptions } from '@/shared/pages/utils'
+import { EntityName } from '@/shared/utils'
+import { ComponentProps } from 'react'
 
-interface I_Props<T_Id, T_Response> {
+interface I_Props<T_Id, T_Response, T_Filters = object> {
   columns: Array<GridColDef>
-  useList: T_ListServiceHookV2<T_Response>
+  useList: T_ListServiceHook<T_Response>
   entityName: EntityName
   onRowClick?: ComponentProps<typeof Table>['onRowClick']
   onCreate?: T_VoidFn
   useBatchDelete?: T_BatchDeletionServiceHook<T_Id>
+  customButtons?: React.ReactNode
+  filtersComponents?: React.ReactNode
+  filtersData?: T_Filters
+  singleSelectionButtons?: (id: T_Id) => React.ReactNode
 }
 
 function BatchDeleteAction<T_Id>(p: {
@@ -43,7 +46,7 @@ function BatchDeleteAction<T_Id>(p: {
 
   return (
     <>
-      <Button onClick={handleBatchDelete} startIcon={<DeleteIcon />}>
+      <Button onClick={handleBatchDelete} startIcon={<DeleteIcon />} color="error">
         Eliminar
       </Button>
       <ConfirmDialogComponent />
@@ -51,13 +54,13 @@ function BatchDeleteAction<T_Id>(p: {
   )
 }
 function ListPage<T_Id, T_Response extends I_PaginatedResponse>(p: I_Props<T_Id, T_Response>) {
-  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
-    pageSize: DEFAULT_PAGE_SIZE,
-    page: 0,
-  })
-  const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>([])
+  const { paginationModel, setPaginationModel } = Table.usePaginationModel()
+  const { rowSelectionModel, setRowSelectionModel } = Table.useRowSelectionModel()
 
-  const { data, isLoading, reload } = p.useList({ page: paginationModel.page + 1, page_size: paginationModel.pageSize })
+  const { data, isLoading, reload } = p.useList({
+    ...paginationModelAsFetchPaginationOptions(paginationModel),
+    filters: p.filtersData,
+  })
 
   return (
     <>
@@ -79,7 +82,12 @@ function ListPage<T_Id, T_Response extends I_PaginatedResponse>(p: I_Props<T_Id,
               useBatchDelete={p.useBatchDelete}
             />
           )}
+          {rowSelectionModel.length === 1 &&
+            p.singleSelectionButtons !== undefined &&
+            p.singleSelectionButtons(rowSelectionModel[0] as T_Id)}
+          {p.customButtons}
         </Page.Toolbar>
+        <Page.Toolbar>{p.filtersComponents}</Page.Toolbar>
         <Page.Content>
           <Table
             data={data?.results}
@@ -99,17 +107,6 @@ function ListPage<T_Id, T_Response extends I_PaginatedResponse>(p: I_Props<T_Id,
     </>
   )
 }
-
-// const CustomToolbar = ({ rowSelectionModel }: GridToolbarProps & { rowSelectionModel: GridRowSelectionModel }) => {
-//   return (
-//     <GridToolbarContainer>
-//       {/*
-//       <GridToolbarDensitySelector /> */}
-//       {/* <Box sx={{ flexGrow: 1 }} /> */}
-//       {/* <GridToolbarExport /> */}
-//     </GridToolbarContainer>
-//   )
-// }
 
 ListPage.mapNavToOnRowClick = (nav: (id: number | string) => void) => (params: GridRowParams<any>) => nav(params.id)
 

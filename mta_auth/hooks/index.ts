@@ -1,16 +1,13 @@
 import { apiUrl } from '@/config'
-import {
-  I_AuthData,
-  I_AuthorizeRequestData,
-  I_AuthorizeResponseData,
-  I_AuthResources,
-  T_AllowedAccessGroups,
-} from '@/mta_auth/types'
+import { I_AuthData, I_AuthorizeRequestData, I_AuthorizeResponseData, I_AuthResources } from '@/mta_auth/types'
+import { useSchoolStoreOwnSchool } from '@/mta_schools/hooks/state'
+import { useUserStoreWhoIAmData } from '@/mta_users/hooks'
+import { T_AllowedUserProfiles } from '@/mta_users/types'
 import pages from '@/pages'
 import { axiosPost } from '@/shared/data/axios'
 import { T_TokenRefresher } from '@/shared/data/types'
 import log from '@/shared/log'
-import { postService } from '@/shared/service'
+import { handleServiceError, postService } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import { errorToast, successToast } from '@/shared/toasts'
 import { intersection } from '@/shared/utils'
@@ -20,8 +17,8 @@ import { useEffect, useState } from 'react'
 const useIsAuthorized = () => {
   const [useFastMethod, setUseFastMethod] = useState(true)
 
-  const isAuthorizedWithFastNonReactiveMethod = useStore.getState().accessToken !== undefined
-  const isAuthorizedWithReactiveMethod = useStore((state) => state.accessToken !== undefined)
+  const isAuthorizedWithFastNonReactiveMethod = useStore.getState().auth_accessToken !== undefined
+  const isAuthorizedWithReactiveMethod = useStore((state) => state.auth_accessToken !== undefined)
 
   useEffect(() => {
     const to = setTimeout(() => setUseFastMethod(false), 100)
@@ -31,26 +28,41 @@ const useIsAuthorized = () => {
   return useFastMethod ? isAuthorizedWithFastNonReactiveMethod : isAuthorizedWithReactiveMethod
 }
 
-const useUserAccessGroups = () => useStore.getState().accessGroups
+const useUserProfiles = () => useStore.getState().auth_profiles
+const useUserProfilesResources = () => {
+  const profiles = useUserProfiles()
 
-const useHasPermissions = (requiredAccesses: T_AllowedAccessGroups): boolean => {
-  const userAccessGroups = useUserAccessGroups()
+  return {
+    profiles,
+    isAdmin: profiles?.includes('admin'),
+    isStudent: profiles?.includes('student'),
+    isEvaluator: profiles?.includes('evaluator'),
+    isSchoolStaff: profiles?.includes('school_staff'),
+  }
+}
 
-  if (userAccessGroups === undefined) return false
-  if (requiredAccesses === undefined || requiredAccesses.length === 0) return true
+const useHasPermissions = (requiredProfiles: T_AllowedUserProfiles): boolean => {
+  const userProfiles = useUserProfiles()
 
-  return intersection(requiredAccesses, userAccessGroups).length > 0
+  if (userProfiles === undefined) return false
+  if (requiredProfiles === undefined || requiredProfiles.length === 0) return true
+
+  return intersection(requiredProfiles, userProfiles).length > 0
 }
 
 const useAuthData = (): I_AuthData => {
-  const { accessGroups, accessToken, refreshToken } = useStore.getState()
-  return { accessGroups, accessToken, refreshToken }
+  const { auth_profiles, auth_accessToken, auth_refreshToken } = useStore.getState()
+  return {
+    profiles: auth_profiles,
+    accessToken: auth_accessToken,
+    refreshToken: auth_refreshToken,
+  }
 }
 
 const useAuthResources = (): I_AuthResources => {
-  const { accessGroups, accessToken, refreshToken } = useAuthData()
-  const storeRefreshedToken = useStore((state) => state.storeRefreshedToken)
-  const clearAuthData = useStore((state) => state.clearAuthData)
+  const { profiles, accessToken, refreshToken } = useAuthData()
+  const storeRefreshedToken = useStore((state) => state.auth_storeRefreshedToken)
+  const clearAuthData = useStore((state) => state.auth_clearAuthData)
 
   const refresh: T_TokenRefresher = (postMethod) => async (data) => {
     return postMethod(apiUrl('/token/refresh/'), data).then((res) => {
@@ -62,35 +74,65 @@ const useAuthResources = (): I_AuthResources => {
   const handleFatal401Error = () => {
     clearAuthData()
     log.info("Auth Token couldn't be refreshed. Destroying session")
-    errorToast('Error con tus credenciales de acceso. Inicia sesión nuevamente')
+    errorToast('Tu sesión anterior ha caducado. Ingresa nuevamente.')
   }
 
-  return { accessGroups, accessToken, refreshToken, refresh, handleFatal401Error }
+  return { profiles, accessToken, refreshToken, refresh, handleFatal401Error }
 }
 
 const useLogout = (callbackPath: string = pages.D._.login.path) => {
   const router = useRouter()
 
+  const cleanTasks = () => {
+    useStore.getState().auth_clearAuthData()
+    useStore.getState().resolution_resetState()
+    useStore.getState().school_resetState()
+    useStore.getState().user_resetState()
+  }
+
   return () => {
     successToast('Sesión cerrada correctamente. Hasta Pronto!')
-    useStore.getState().clearAuthData()
+    cleanTasks()
     router.push(callbackPath)
   }
 }
-const useStoreAuthData = () => useStore((state) => state.storeAuthData)
+const useAuthStoreData = () => useStore((state) => state.auth_storeAuthData)
 
 const useAuthorize = () => {
   return postService<I_AuthorizeRequestData, I_AuthorizeResponseData>('/token', axiosPost)()
 }
 
+const useAuthorizeAndStore = () => {
+  const _authorize = useAuthorize()
+  const storeAuthData = useAuthStoreData()
+  const storeUserWhoIAmData = useUserStoreWhoIAmData()
+  const storeOwnSchool = useSchoolStoreOwnSchool()
+
+  const authorize = (data: { username: string; password: string }) => {
+    return _authorize(data)
+      .then((res) => {
+        successToast('¡Sesión iniciada correctamente, bienvenido/a!')
+        storeAuthData({ accessToken: res.token.access, refreshToken: res.token.refresh, profiles: res.profiles })
+        storeUserWhoIAmData({ ...res.user })
+        storeOwnSchool(res.school)
+        return res
+      })
+      .catch(handleServiceError)
+  }
+  return { authorize }
+}
+
 export { useNavigateToLogin } from './navigation'
+
 export {
   useAuthData,
   useAuthorize,
+  useAuthorizeAndStore,
   useAuthResources,
   useHasPermissions,
   useIsAuthorized,
   useLogout,
-  useStoreAuthData,
-  useUserAccessGroups,
+  useAuthStoreData,
+  useUserProfiles,
+  useUserProfilesResources,
 }

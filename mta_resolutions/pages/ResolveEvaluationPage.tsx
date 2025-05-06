@@ -2,13 +2,13 @@
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import ResolutionHeader from '@/mta_resolutions/components/ResolutionHeader'
-import ResolutionPageIndicator from '@/mta_resolutions/components/ResolutionPageIndicator'
 import ResolutionPaginator from '@/mta_resolutions/components/ResolutionPaginator'
 import ResolutionPinnedText from '@/mta_resolutions/components/ResolutionPinnedText'
 import ResolutionQuestions from '@/mta_resolutions/components/ResolutionQuestions'
 import ResolutionReviewDisclaimer from '@/mta_resolutions/components/ResolutionReviewDisclaimer'
 import { useResolutionPagination } from '@/mta_resolutions/hooks'
 import { useResolutionEvaluationToResolve } from '@/mta_resolutions/hooks/data'
+import ResolutionRemaingTimeManager from '@/mta_resolutions/services/ResolutionRemaingTimeManager'
 import ResolutionResumingManager from '@/mta_resolutions/services/ResolutionResumingManager'
 import ResolutionUploadStateManager from '@/mta_resolutions/services/ResolutionUploadStateManager'
 import Page from '@/shared/components/Page'
@@ -25,6 +25,8 @@ const ResolveEvaluationPage = () => {
     <>
       <ResolutionResumingManager />
       <ResolutionUploadStateManager />
+      <ResolutionRemaingTimeManager />
+
       <Page>
         <Page.Content>
           {evaluationToResolve === null ? (
@@ -32,14 +34,14 @@ const ResolveEvaluationPage = () => {
           ) : (
             <>
               <Box position={'relative'}>
-                <Box width={hasPinnedText ? '50%' : '100%'}>
+                <Box width={hasPinnedText ? '70%' : '100%'}>
                   {currentPage === 1 ? (
                     <ResolutionHeader evaluationToResolve={evaluationToResolve} />
                   ) : (
                     <Spacer size="l" />
                   )}
 
-                  <ResolutionPageIndicator />
+                  {/* <ResolutionPageIndicator /> */}
                   <Spacer size="xl" />
 
                   <ResolutionQuestions evaluationToResolve={evaluationToResolve} />
@@ -64,4 +66,7 @@ const ResolveEvaluationPage = () => {
   )
 }
 
-export default withAuth(ResolveEvaluationPage, ['admin', 'student'])
+export default withAuth(ResolveEvaluationPage, {
+  allowedUserProfiles: ['admin', 'student'],
+  logoutDestination: 'resolutions',
+})

@@ -1,6 +1,6 @@
 'use client'
 
-import { useStoreAuthData } from '@/mta_auth/hooks'
+import { useAuthStoreData } from '@/mta_auth/hooks'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
 import InputControlled from '@/shared/forms/InputControlled'
@@ -15,16 +15,18 @@ import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { useForm } from 'react-hook-form'
 import { useNavigateToResolutionPage } from '@/mta_resolutions/hooks/navigation'
+import { IntegerInputControlled } from '@/shared/forms/IntegerInput'
+import { withRouterHistoryReset } from '@/shared/utils'
 
 interface I_FormFields {
   personal_id: T_StudentProfilePersonalId | ''
 }
 
 export default function StudentsLoginForm() {
-  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues: { personal_id: 35425196 } })
+  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues: { personal_id: '' } })
   const navigateToBeginResolution = useNavigateToResolutionPage()
   const authorize = useResolutionAuthorizeStudent()
-  const storeAuthData = useStoreAuthData()
+  const storeAuthData = useAuthStoreData()
 
   const { setInProgressStatus } = useInProgress()
   const onSubmit = (data: I_AuthorizeStudentRequestData) => {
@@ -32,7 +34,7 @@ export default function StudentsLoginForm() {
     authorize(data)
       .then((res) => {
         successToast('¡Pudiste ingresar correctamente, bienvenido/a. ¡Suerte en tu Evaluación!')
-        storeAuthData({ accessToken: res.access, refreshToken: res.refresh, accessGroups: ['admin'] })
+        storeAuthData({ accessToken: res.access, refreshToken: res.refresh, profiles: ['student'] })
         navigateToBeginResolution()
       })
       .catch(handleServiceError)
@@ -45,11 +47,10 @@ export default function StudentsLoginForm() {
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
         <MagicGrid>
-          <InputControlled<I_FormFields>
+          <IntegerInputControlled<I_FormFields>
             control={control}
             name="personal_id"
-            type="number"
-            rules={{ ...rules.required() }}
+            rules={{ ...rules.required(), ...rules.pattern(/^[0-9]+$/, 'Solo se permiten números.') }}
             label="DNI"
           />
         </MagicGrid>

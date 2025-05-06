@@ -10,9 +10,8 @@ export const useNavigateToLogin = (loginZone: T_LoginZone = 'dashboard') => {
     resolutions: pages.R._.login.path,
   }
   const router = useRouter()
+
   return () => {
-    return () => {
-      router.push(loginPath[loginZone])
-    }
+    router.push(loginPath[loginZone])
   }
 }

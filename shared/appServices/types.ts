@@ -1,6 +1,6 @@
 import { T_LogService } from '@/shared/log'
 import { T_VoidFn } from '@/shared/types'
-import { Component, ComponentType, FC } from 'react'
+import { ComponentType } from 'react'
 
 interface IApplicationServiceBaseProps {}
 

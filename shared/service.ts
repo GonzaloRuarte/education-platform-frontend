@@ -1,6 +1,14 @@
 import { apiUrl } from '@/config'
 import ApiError from '@/shared/data/errors'
-import { I_FetchOptions, I_RequestSetup, T_DeleteMethod, T_GetMethod, T_PatchMethod, T_PostMethod } from '@/shared/data/types'
+import {
+  I_FetchOptions,
+  I_RequestSetup,
+  T_DeleteMethod,
+  T_GetMethod,
+  T_HttpMethod,
+  T_PatchMethod,
+  T_PostMethod,
+} from '@/shared/data/types'
 import log from '@/shared/log'
 import { errorToast } from '@/shared/toasts'
 import { T_BatchDeletionCommonRequestData } from '@/shared/types'
@@ -54,11 +62,28 @@ const batchDeletionService = <T_Id, T_Response>(path: string, deleteMethod: T_De
  * @param options {pathSuffix} adds a suffix in the path after the id
  * @returns
  */
-const updateService = <T_Id, T_RequestData, T_Response>(path: string, patchMethod: T_PatchMethod, options?: { pathSuffix?: string }) => {
+const updateService = <T_Id, T_RequestData, T_Response>(
+  path: string,
+  patchMethod: T_PatchMethod,
+  options?: { pathSuffix?: string },
+) => {
   return (requestSetup?: I_RequestSetup) => {
     return async (id: T_Id, data: T_RequestData) => {
       return patchMethod<T_RequestData, T_Response>({
         url: `${apiUrl(path)}/${id}${options?.pathSuffix !== undefined ? options.pathSuffix : ''}/`,
+        requestSetup,
+        data,
+      })
+    }
+  }
+}
+
+const httpService = <T_RequestData, T_Response>(path: string, httpMethod: T_HttpMethod) => {
+  return (requestSetup?: I_RequestSetup) => {
+    return async (data?: T_RequestData) => {
+      // @ts-expect-error
+      return httpMethod<T_RequestData, T_Response>({
+        url: apiUrl(path),
         requestSetup,
         data,
       })
@@ -75,4 +100,14 @@ const handleError = (msg: string) => (errorReason: any) => {
   log.error(errorReason)
 }
 
-export { batchDeletionService, deletionService, detailService, handleError, handleServiceError, listService, postService, updateService }
+export {
+  batchDeletionService,
+  deletionService,
+  detailService,
+  handleError,
+  handleServiceError,
+  listService,
+  postService,
+  updateService,
+  httpService,
+}
