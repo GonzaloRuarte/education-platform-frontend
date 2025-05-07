@@ -25,6 +25,7 @@ import dayjs from 'dayjs'
 const columns = (a: {
   navToProcess: (args: Record<'appointmentId', string | number>) => void
   navToEditStudents: (args: Record<'appointmentId', string | number>) => void
+  navToDetail: (id) => void
 }): Array<GridColDef<I_AppointmentListItem>> => [
   idReplacementColumn({
     field: 'begins_at_date',
@@ -76,7 +77,7 @@ const columns = (a: {
       }
       if (params.row.occurrence_status === AppointmentOccurrenceStatus.ongoing) {
         return [
-          <Button startIcon={<TroubleshootIcon />} size="small">
+          <Button startIcon={<TroubleshootIcon />} size="small" onClick={() => a.navToDetail(params.id)}>
             Monitorear
           </Button>,
         ]
@@ -120,7 +121,7 @@ const AppointmentListPage = () => {
 
   return (
     <ListPage
-      columns={columns({ navToProcess, navToEditStudents })}
+      columns={columns({ navToProcess, navToEditStudents, navToDetail })}
       useList={useAppointmentList}
       entityName={APPOINTMENT_NAME}
       onCreate={navToCreate}
