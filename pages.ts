@@ -41,6 +41,10 @@ const pages = {
     path: '/dashboard',
     label: 'Dashboard',
     _: {
+      devPanel: {
+        path: '/dashboard/----------dev----------',
+        label: '<Dev Panel>',
+      },
       login: {
         path: '/dashboard/login',
         label: 'Login',

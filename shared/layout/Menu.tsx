@@ -8,6 +8,7 @@ import MenuItem from '@/shared/layout/MenuItem'
 import { range } from '@/shared/utils'
 import BadgeIcon from '@mui/icons-material/Badge'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
+import DeveloperBoardIcon from '@mui/icons-material/DeveloperBoard'
 import FactCheckIcon from '@mui/icons-material/FactCheck'
 import HistoryIcon from '@mui/icons-material/History'
 import PersonIcon from '@mui/icons-material/Person'
@@ -90,6 +91,9 @@ const Menu = () => {
         </RRCC>
         <RRCC allowedProfiles={['admin', 'school_staff']}>
           <MenuItem Icon={QueryStatsIcon} label={P.D._.reportes.label} href={P.D._.reportes.path} />
+        </RRCC>
+        <RRCC allowedProfiles={['superuser']}>
+          <MenuItem Icon={DeveloperBoardIcon} label={P.D._.devPanel.label} href={P.D._.devPanel.path} />
         </RRCC>
       </MenuBlock>
     </>
