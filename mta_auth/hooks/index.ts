@@ -1,7 +1,7 @@
 import { apiUrl } from '@/config'
 import { I_AuthData, I_AuthorizeRequestData, I_AuthorizeResponseData, I_AuthResources } from '@/mta_auth/types'
 import { useSchoolStoreOwnSchool } from '@/mta_schools/hooks/state'
-import { useUserStoreWhoIAmData } from '@/mta_users/hooks'
+
 import { T_AllowedUserProfiles } from '@/mta_users/types'
 import pages from '@/pages'
 import { axiosPost } from '@/shared/data/axios'
@@ -105,7 +105,14 @@ const useAuthorize = () => {
 const useAuthorizeAndStore = () => {
   const _authorize = useAuthorize()
   const storeAuthData = useAuthStoreData()
-  const storeUserWhoIAmData = useUserStoreWhoIAmData()
+
+  /*
+  IMPORTANT: we won't use `import { useUserStoreWhoIAmData } from '@/mta_users/hooks'`
+  here because it will create a circular dependency between mta_auth and mta_users.
+  Instead, we will use the store directly.
+  */
+  const storeUserWhoIAmData = useStore((state) => state.user_storeWhoIAmData)
+
   const storeOwnSchool = useSchoolStoreOwnSchool()
 
   const authorize = (data: { username: string; password: string }) => {
