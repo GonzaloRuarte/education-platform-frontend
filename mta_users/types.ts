@@ -1,7 +1,7 @@
 import { I_PaginatedResponse } from '@/shared/data/types'
 
 type T_UserId = number
-type T_UserProfiles = 'admin' | 'school_staff' | 'evaluator' | 'student'
+type T_UserProfiles = 'admin' | 'school_staff' | 'evaluator' | 'student' | 'superuser'
 type T_AllowedUserProfiles = Array<T_UserProfiles> | undefined
 
 interface I_UserProfilesFlags {
