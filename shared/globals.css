@@ -19,5 +19,6 @@ input[type='number'] {
 }
 
 .ql-tooltip.ql-editing {
-  left: 0;
+  left: 0 !important;
+  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.5) !important;
 }

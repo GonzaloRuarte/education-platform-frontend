@@ -5,13 +5,13 @@ import { useMultipleChoiceOptionDelete, useMultipleChoiceOptionEditIsTrue } from
 import { I_AnswerMultipleChoiceDetail, T_MultiplChoiceOptionId } from '@/mta_evaluations/types'
 import Chip from '@/shared/components/Chip'
 import HTMLParser from '@/shared/components/HTMLParser'
+import { useInProgress } from '@/shared/hooks'
+import { handleServiceError } from '@/shared/service'
 import { T_ArrayElement, T_VoidFn } from '@/shared/types'
-import { HorizontalRule } from '@mui/icons-material'
 import DeleteIcon from '@mui/icons-material/Delete'
-import { Box, Checkbox, IconButton } from '@mui/material'
+import { Checkbox, IconButton } from '@mui/material'
 import { green } from '@mui/material/colors'
 import Grid from '@mui/material/Grid2'
-import parse from 'html-react-parser'
 import { FC } from 'react'
 
 const MultipleChoiceOption: FC<{
@@ -19,6 +19,7 @@ const MultipleChoiceOption: FC<{
   reload?: T_VoidFn
   withDelete?: boolean
 }> = ({ data, reload, withDelete = false }) => {
+  const { setIsInProgress, setIsNotInProgress } = useInProgress()
   const { content, id, is_true, name } = data
   const deleteInstance = useMultipleChoiceOptionDelete()
   const handleDelete = (id: T_MultiplChoiceOptionId) => {
@@ -28,8 +29,11 @@ const MultipleChoiceOption: FC<{
   const multipleChoiceOptionEditIsTrue = useMultipleChoiceOptionEditIsTrue()
   const handleChangeIsTrue = (_, value: boolean) => {
     if (reload === undefined) return
+    setIsInProgress()
     multipleChoiceOptionEditIsTrue(id, { is_true: value })
-    reload()
+      .then(reload)
+      .catch(handleServiceError)
+      .finally(setIsNotInProgress)
   }
 
   return (
