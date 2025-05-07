@@ -13,9 +13,9 @@ import {
   useNavigateToAppointmentProcess,
 } from '@/mta_schedule/hooks'
 import { AppointmentOccurrenceStatus, AppointmentStatus, I_AppointmentListItem } from '@/mta_schedule/types'
-import { appointmentAlreadyStarted } from '@/mta_schedule/utils'
 import Button from '@/shared/components/Button'
 import ListPage from '@/shared/pages/ListPage'
+import { idReplacementColumn } from '@/shared/pages/utils'
 import RuleIcon from '@mui/icons-material/Rule'
 import SchoolIcon from '@mui/icons-material/School'
 import TroubleshootIcon from '@mui/icons-material/Troubleshoot'
@@ -26,13 +26,11 @@ const columns = (a: {
   navToProcess: (args: Record<'appointmentId', string | number>) => void
   navToEditStudents: (args: Record<'appointmentId', string | number>) => void
 }): Array<GridColDef<I_AppointmentListItem>> => [
-  {
+  idReplacementColumn({
     field: 'begins_at_date',
-
     headerName: 'Fecha',
-    // flex: 1,
     renderCell: ({ row }) => <>{dayjs(row.begins_at).format('DD/MM/YYYY')}</>,
-  },
+  }),
   {
     field: 'begins_at_time',
     headerName: 'Hora Inicio',

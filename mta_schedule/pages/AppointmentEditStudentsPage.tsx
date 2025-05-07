@@ -5,6 +5,7 @@ import AppointmentsEditStudentsForm from '@/mta_schedule/components/Appointments
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
 import { useAppointmentDetail, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
 import Page from '@/shared/components/Page'
+import Spacer from '@/shared/components/Spacer'
 import Spinner from '@/shared/components/Spinner'
 import { useParams } from 'next/navigation'
 
@@ -25,6 +26,7 @@ const AppointmentEditStudentsPage = () => {
         <>
           <Page.Content>
             <AppointmentsEditStudentsForm data={data} />
+            <Spacer size="xl" />
           </Page.Content>
         </>
       )}
