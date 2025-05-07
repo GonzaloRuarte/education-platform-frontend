@@ -1,4 +1,8 @@
-import { useAddPageBreak, useNavigateToQuestionCreateMultipleChoice, useNavigateToQuestionCreateNumeric } from '@/mta_evaluations/hooks'
+import {
+  useAddPageBreak,
+  useNavigateToQuestionCreateMultipleChoice,
+  useNavigateToQuestionCreateNumeric,
+} from '@/mta_evaluations/hooks'
 import { evaluationLabels, questionLabels } from '@/mta_evaluations/labels'
 import { I_EvaluationDetail, T_AnswerType, T_EvaluationId } from '@/mta_evaluations/types'
 import Button from '@/shared/components/Button'
@@ -7,19 +11,26 @@ import Pastilla from '@/shared/components/Pastilla'
 import Spacer from '@/shared/components/Spacer'
 import { Body1 } from '@/shared/components/Typography'
 import { useDialog } from '@/shared/dialogs'
+import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
+import { handleServiceError } from '@/shared/service'
 import { T_VoidFn } from '@/shared/types'
 import InsertPageBreakIcon from '@mui/icons-material/InsertPageBreak'
 import QuizIcon from '@mui/icons-material/Quiz'
 import Grid from '@mui/material/Grid2'
 import { FC } from 'react'
 
-const AddPageBreakForm: FC<{ close: T_VoidFn; reload: T_VoidFn; questions: I_EvaluationDetail['questions'] }> = ({ reload, close, questions }) => {
+const AddPageBreakForm: FC<{ close: T_VoidFn; reload: T_VoidFn; questions: I_EvaluationDetail['questions'] }> = ({
+  reload,
+  close,
+  questions,
+}) => {
   const add = useAddPageBreak()
   const availableQuestions = questions.filter((question) => !question.breaks_page_after)
   if (availableQuestions.length === 0) {
     return <Body1>Ups. Ya tienen salto de línea todas las preguntas.</Body1>
   }
+  const { setIsInProgress, setIsNotInProgress } = useInProgress()
   return (
     <>
       <Body1>Agregar salto después de pregunta nº...</Body1>
@@ -29,10 +40,14 @@ const AddPageBreakForm: FC<{ close: T_VoidFn; reload: T_VoidFn; questions: I_Eva
           <Button
             key={question.id}
             onClick={() => {
-              add({ after_question_id: question.id }).then(() => {
-                close()
-                reload()
-              })
+              setIsInProgress()
+              add({ after_question_id: question.id })
+                .then(() => {
+                  close()
+                  reload()
+                })
+                .catch(handleServiceError)
+                .finally(setIsNotInProgress)
             }}
           >
             {question.order + 1}
@@ -43,7 +58,10 @@ const AddPageBreakForm: FC<{ close: T_VoidFn; reload: T_VoidFn; questions: I_Eva
   )
 }
 
-const CreateQuestionDialogContent: FC<{ close: T_VoidFn; evaluationId: T_EvaluationId }> = ({ close, evaluationId }) => {
+const CreateQuestionDialogContent: FC<{ close: T_VoidFn; evaluationId: T_EvaluationId }> = ({
+  close,
+  evaluationId,
+}) => {
   const navToCreateMC = useNavigateToQuestionCreateMultipleChoice()
   const navToCreateNumeric = useNavigateToQuestionCreateNumeric()
 
