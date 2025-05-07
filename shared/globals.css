@@ -17,3 +17,7 @@ input[type='number'] {
 .ql-snow .ql-tooltip {
   z-index: 100;
 }
+
+.ql-tooltip.ql-editing {
+  left: 0;
+}
