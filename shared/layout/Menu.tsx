@@ -1,7 +1,6 @@
 'use client'
 
 import { RRCC } from '@/mta_auth/components/RestrictedContent'
-import { useUserProfilesResources } from '@/mta_auth/hooks'
 import P from '@/pages'
 import MagicGrid from '@/shared/components/MagicGrid'
 import MenuBlock from '@/shared/layout/MenuBlock'

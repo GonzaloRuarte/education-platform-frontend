@@ -5,6 +5,7 @@ import { T_AddedStudents } from '@/mta_schedule/components/StudentsProfileSelect
 import { ControlledStudentsProfileSelector } from '@/mta_schedule/components/StudentsProfileSelectorControlled'
 import { useAppointmentAddStudents, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
 import { I_AppointmentDetail } from '@/mta_schedule/types'
+import { I_SchoolName } from '@/mta_schools/types'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import { useConfirm } from '@/shared/confirm'
@@ -50,21 +51,22 @@ const AppointmentsEditStudentsForm = ({ data }: I_Props) => {
         .finally(setIsNotInProgress)
     })
   }
+
   return (
     <>
       <MagicGrid>
         <AppointmentBriefCard
           appointmentId={data.id}
           begins_at={data.begins_at}
-          title={data.school.name}
-          subject={data.requested_evaluation_subject.name}
-          grade={data.requested_evaluation_grade}
+          title={data.school?.name}
+          subject={data.requested_evaluation_subject?.name}
+          grade={data.requested_evaluation_grade === null ? undefined : data.requested_evaluation_grade}
           evaluation={data.evaluation_brief !== null ? data.evaluation_brief : undefined}
         />
         <Spacer />
         <form onSubmit={handleSubmit(addStudentProfiles)}>
           <ControlledStudentsProfileSelector
-            schoolId={data.school.id}
+            schoolId={(data.school as I_SchoolName).id}
             name="student_profiles"
             control={control}
             rules={{

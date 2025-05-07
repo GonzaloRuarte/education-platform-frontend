@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useStore } from '@/shared/state'
 import { successToast } from '@/shared/toasts'
