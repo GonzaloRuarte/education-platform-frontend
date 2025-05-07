@@ -1,5 +1,6 @@
 'use client'
 
+import { useUserProfilesResources } from '@/mta_auth/hooks'
 import UserProfileChip from '@/mta_users/components/UserProfileChip'
 import { T_UserProfiles } from '@/mta_users/types'
 import MagicGrid from '@/shared/components/MagicGrid'
@@ -10,6 +11,7 @@ export interface I_UserListFilterData {
   has_student_profile: boolean | null
   has_school_staff_profile: boolean | null
   has_evaluator_profile: boolean | null
+  is_superuser: boolean | null
 }
 
 const profileNameAsUserFilter: Record<T_UserProfiles, keyof I_UserListFilterData> = {
@@ -17,6 +19,7 @@ const profileNameAsUserFilter: Record<T_UserProfiles, keyof I_UserListFilterData
   school_staff: 'has_school_staff_profile',
   evaluator: 'has_evaluator_profile',
   student: 'has_student_profile',
+  superuser: 'is_superuser',
 }
 
 const UsersListFiltersControl = ({
@@ -31,11 +34,14 @@ const UsersListFiltersControl = ({
     school_staff: { label: 'Personal de escuela' },
     evaluator: { label: 'Evaluador' },
     student: { label: 'Estudiante' },
+    superuser: { label: 'Superusuario' },
   }
+  const { isSuperuser } = useUserProfilesResources()
 
   return (
     <MagicGrid itemSize={'auto'}>
       {Object.entries(buttons).map(([profile, { label }]) => {
+        if (profile === 'superuser' && !isSuperuser) return null
         return (
           <UserProfileChip
             variant={filters[profileNameAsUserFilter[profile]] === null ? 'filled' : 'outlined'}
@@ -71,6 +77,7 @@ export const useUserListFilters = () => {
     has_student_profile: false,
     has_school_staff_profile: null,
     has_evaluator_profile: null,
+    is_superuser: null,
   })
 
   return { filters, setFilters, UsersListFiltersControl }
