@@ -35,6 +35,7 @@ const useUserProfilesResources = () => {
   return {
     profiles,
     isAdmin: profiles?.includes('admin'),
+    isSuperuser: profiles?.includes('superuser'),
     isStudent: profiles?.includes('student'),
     isEvaluator: profiles?.includes('evaluator'),
     isSchoolStaff: profiles?.includes('school_staff'),

@@ -17,6 +17,7 @@ const userProfileLabel = (profile: T_UserProfiles): string => {
     school_staff: 'StaffEscuela',
     evaluator: 'Itemista',
     student: 'Estudiante',
+    superuser: 'Superusuario',
   }
 
   return profileTranslations[profile]
@@ -25,10 +26,12 @@ const userProfileLabel = (profile: T_UserProfiles): string => {
 const userListItemWithProfiles = (dirtyUser: I_UserListItem): I_UserListItemWithProfiles => {
   const { has_evaluator_profile, has_school_staff_profile, has_student_profile, is_admin, ...rest } = dirtyUser
   const profiles: Array<T_UserProfiles> = []
+
   if (has_evaluator_profile) profiles.push('evaluator')
   if (has_school_staff_profile) profiles.push('school_staff')
   if (has_student_profile) profiles.push('student')
   if (is_admin) profiles.push('admin')
+  // if (is_superuser) profiles.push('superuser')
 
   return { ...rest, profiles }
 }

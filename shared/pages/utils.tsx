@@ -7,8 +7,11 @@ const paginationModelAsFetchPaginationOptions = (paginationModel: GridPagination
   return { page: paginationModel.page + 1, page_size: paginationModel.pageSize }
 }
 
-const idReplacementColumn = ({ renderCell, ...fields }, idFieldName = 'id'): GridColDef => {
-  // @ts-expect-error
+interface I_ColumnReplacement extends Omit<GridColDef, 'renderCell'> {
+  renderCell?: (params: any) => JSX.Element
+}
+
+const idReplacementColumn = ({ renderCell, ...fields }: I_ColumnReplacement, idFieldName = 'id'): GridColDef => {
   return {
     ...fields,
     renderCell: (params) => (
