@@ -4,7 +4,7 @@ import { Body1 } from '@/shared/components/Typography'
 import { useDialog } from '@/shared/dialogs'
 import { sharedLabels } from '@/shared/labels'
 
-const SubmitEvaluationButton = () => {
+const SubmitEvaluationButton = ({ disabled = false }) => {
   const { DialogComponent, componentProps, showDialog, closeDialog } = useDialog()
   const submit = useResolutionManageSubmit()
 
@@ -33,7 +33,9 @@ const SubmitEvaluationButton = () => {
   }
   return (
     <>
-      <Button onClick={askForSubmit}>Entregar evaluación</Button>
+      <Button onClick={askForSubmit} disabled={disabled}>
+        Entregar evaluación
+      </Button>
       <DialogComponent {...componentProps} />
     </>
   )

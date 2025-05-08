@@ -7,6 +7,7 @@ type T_AppointmentResolutionProcessId = number
 
 interface I_AppointmentResolutionProcessListItem {
   id: T_AppointmentResolutionProcessId
+  name: string
   appointment_id: T_AppointmentId
   resolutions_count: number
   created_at: string

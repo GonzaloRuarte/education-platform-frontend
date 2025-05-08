@@ -9,10 +9,14 @@ import ListPage from '@/shared/pages/ListPage'
 import { GridColDef } from '@mui/x-data-grid'
 
 const columns: Array<GridColDef> = [
-  { field: 'id', headerName: '#' },
-  { field: 'appointment_id', headerName: 'ID de la Cita', flex: 1 },
-  { field: 'resolutions_count', headerName: 'Cantidad de Resoluciones', flex: 1 },
-  { field: 'created_at', headerName: 'Creado el', flex: 1 },
+  { field: 'name', headerName: 'Turno', flex: 2 },
+  {
+    field: 'created_at',
+    headerName: 'Fecha Procesamiento',
+    flex: 1,
+    type: 'dateTime',
+    valueGetter: (value) => new Date(value),
+  },
 ]
 
 const AppointmentResolutionProcessListPage = () => {

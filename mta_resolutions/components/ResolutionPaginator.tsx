@@ -7,9 +7,11 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import { useResolutionDurationResources } from '@/mta_resolutions/hooks/duration'
 import { T_VoidFn } from '@/shared/types'
 import { warningToast } from '@/shared/toasts'
+import { Body1 } from '@/shared/components/Typography'
+import MagicGrid from '@/shared/components/MagicGrid'
 
 const ResolutionPaginator = () => {
-  const { isLastPage, isFirstPage, goToPreviousPage, goToNextPage } = useResolutionPagination()
+  const { isLastPage, isFirstPage, goToPreviousPage, goToNextPage, canSubmitOrForwardPage } = useResolutionPagination()
   const { maxDurationReached } = useResolutionDurationResources()
   const submit = useResolutionManageSubmit()
 
@@ -31,17 +33,25 @@ const ResolutionPaginator = () => {
             Anterior
           </Button>
         )}
-
-        {/* <Pagination count={pagesQuantity} variant="outlined" page={currentPage} onChange={(_, p) => storeNewPage(p)} /> */}
       </Grid>
       <Grid size="grow"></Grid>
       <Grid>
         {!isLastPage ? (
-          <Button endIcon={<ArrowForwardIcon />} onClick={safePageMovement(goToNextPage)}>
-            Siguiente
-          </Button>
+          <MagicGrid itemSize="auto">
+            {!canSubmitOrForwardPage && <Body1>Para avanzar necesitas completar todas las preguntas</Body1>}
+            <Button
+              disabled={!canSubmitOrForwardPage}
+              endIcon={<ArrowForwardIcon />}
+              onClick={safePageMovement(goToNextPage)}
+            >
+              {!maxDurationReached ? 'Siguiente' : 'Entregar'}
+            </Button>
+          </MagicGrid>
         ) : (
-          <SubmitEvaluation />
+          <MagicGrid itemSize="auto">
+            {!canSubmitOrForwardPage && <Body1>Para entregar necesitas completar todas las preguntas</Body1>}
+            <SubmitEvaluation disabled={!canSubmitOrForwardPage} />
+          </MagicGrid>
         )}
       </Grid>
     </Grid>

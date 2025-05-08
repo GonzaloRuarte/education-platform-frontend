@@ -16,7 +16,7 @@ import { useParams } from 'next/navigation'
 const columns: Array<GridColDef> = [
   { field: 'student_personal_id', headerName: 'DNI' },
   { field: 'total_question_resolutions', headerName: 'C/ respuestas', flex: 1 },
-  { field: 'right_resolutions', headerName: 'Correctas', flex: 1 },
+  // { field: 'right_resolutions', headerName: 'Correctas', flex: 1 },
   // { field: 'started_at', headerName: 'Iniciado el', flex: 1 },
   // { field: 'finished_at', headerName: 'Finalizado el', flex: 1 },
   {
