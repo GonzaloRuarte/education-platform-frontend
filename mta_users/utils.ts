@@ -14,7 +14,7 @@ import {
 const userProfileLabel = (profile: T_UserProfiles): string => {
   const profileTranslations: Record<T_UserProfiles, string> = {
     admin: 'Admin',
-    school_staff: 'StaffEscuela',
+    school_staff: 'R. Institucional',
     evaluator: 'Itemista',
     student: 'Estudiante',
     superuser: 'Superusuario',

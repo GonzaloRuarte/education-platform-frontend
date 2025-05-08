@@ -4,7 +4,7 @@ import {
   useNavigateToQuestionCreateNumeric,
 } from '@/mta_evaluations/hooks'
 import { evaluationLabels, questionLabels } from '@/mta_evaluations/labels'
-import { I_EvaluationDetail, T_AnswerType, T_EvaluationId } from '@/mta_evaluations/types'
+import { EvaluationStatus, I_EvaluationDetail, T_AnswerType, T_EvaluationId } from '@/mta_evaluations/types'
 import Button from '@/shared/components/Button'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Pastilla from '@/shared/components/Pastilla'
@@ -103,10 +103,18 @@ const QuestionCreationToolbar = ({ data, reload }: { data: I_EvaluationDetail; r
         <Grid container justifyContent="center" alignItems="center">
           <Grid size="grow">{evaluationLabels.create}</Grid>
           <MagicGrid itemSize={'auto'}>
-            <Button onClick={handleAddPageBreak} startIcon={<InsertPageBreakIcon />}>
+            <Button
+              disabled={data.status === EvaluationStatus.Published}
+              onClick={handleAddPageBreak}
+              startIcon={<InsertPageBreakIcon />}
+            >
               {evaluationLabels.pageBreak}
             </Button>
-            <Button onClick={handleCreateQuestion} startIcon={<QuizIcon />}>
+            <Button
+              disabled={data.status === EvaluationStatus.Published}
+              onClick={handleCreateQuestion}
+              startIcon={<QuizIcon />}
+            >
               {evaluationLabels.newQuestion}
             </Button>
           </MagicGrid>

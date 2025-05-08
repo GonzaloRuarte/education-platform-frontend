@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Autocomplete, CircularProgress, TextField } from '@mui/material'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 import { useEvaluationList } from '@/mta_evaluations/hooks'
+import { EvaluationStatus } from '@/mta_evaluations/types'
 
 interface I_EvaluationOption {
   id: string
@@ -17,6 +18,7 @@ export const EvaluationSelect: React.FC<{
   error?: boolean
   helperText?: string
   filterTitle?: string // Optional filter for evaluations
+  onlyPublished?: boolean // Optional filter for published evaluations
 }> = ({
   value,
   onChange,
@@ -25,13 +27,22 @@ export const EvaluationSelect: React.FC<{
   error,
   helperText,
   filterTitle,
+  onlyPublished = false, // Default to false
 }) => {
   const [options, setOptions] = useState<I_EvaluationOption[]>([])
   const [loading, setLoading] = useState(false)
+  const [filters, setFilters] = useState<object | undefined>({ status: EvaluationStatus.Published })
 
-  const { data, isLoading } = useEvaluationList({
+  useEffect(() => {
+    setFilters({
+      ...(onlyPublished && { status: EvaluationStatus.Published }),
+      ...(filterTitle && { title__contains: filterTitle }),
+    })
+  }, [filterTitle, onlyPublished])
+
+  const { data, isLoading, reload } = useEvaluationList({
     page_size: 0,
-    filters: filterTitle ? { title__contains: filterTitle } : undefined,
+    filters: filters,
   })
 
   useEffect(() => {
@@ -45,6 +56,8 @@ export const EvaluationSelect: React.FC<{
     }
     setLoading(isLoading)
   }, [data, isLoading])
+
+  useEffect(reload, [filters])
 
   return (
     <Autocomplete
@@ -87,10 +100,12 @@ export const EvaluationSelectControlled = <T_FormFields extends FieldValues>({
   label,
   placeholder,
   filterTitle,
+  onlyPublished = false,
 }: UseControllerProps<T_FormFields> & {
   label?: string
   placeholder?: string
   filterTitle?: string
+  onlyPublished?: boolean
 }) => {
   const { field, fieldState } = useController({ name, rules, shouldUnregister, defaultValue, control })
   const hasError = fieldState.error !== undefined
@@ -104,6 +119,7 @@ export const EvaluationSelectControlled = <T_FormFields extends FieldValues>({
       error={hasError}
       helperText={fieldState.error?.message}
       filterTitle={filterTitle}
+      onlyPublished={onlyPublished}
     />
   )
 }

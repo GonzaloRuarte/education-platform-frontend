@@ -7,8 +7,9 @@ import {
   T_StudentProfileId,
   T_StudentProfilePersonalId,
 } from '@/mta_schools/types'
+import Bold from '@/shared/components/Bold'
 import Button from '@/shared/components/Button'
-import { AddButton } from '@/shared/components/buttons'
+import { AddButton, ReloadButton } from '@/shared/components/buttons'
 import Chip from '@/shared/components/Chip'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
@@ -102,7 +103,11 @@ const StudentsProfileSelector = ({ schoolId, addedStudents, onAddedStudentsChang
 
   const hasSelection = rowSelectionModel.length > 0
 
-  const { data: students, isLoading } = useStudentProfileListBySchool(
+  const {
+    data: students,
+    isLoading,
+    reload,
+  } = useStudentProfileListBySchool(
     { ...paginationModelAsFetchPaginationOptions(paginationModel), filters: { search: searchCriteria } },
     {
       schoolId,
@@ -152,15 +157,14 @@ const StudentsProfileSelector = ({ schoolId, addedStudents, onAddedStudentsChang
               isLoading={isLoading}
               density="compact"
               slots={{
-                toolbar: hasSelection
-                  ? () => {
-                      return (
-                        <GridToolbarContainer sx={{ padding: 1, justifyContent: 'flex-end', display: 'flex' }}>
-                          <AddButton size="small" variant="text" onClick={handleBatchAdd} />
-                        </GridToolbarContainer>
-                      )
-                    }
-                  : undefined,
+                toolbar: () => {
+                  return (
+                    <GridToolbarContainer sx={{ padding: 1, justifyContent: 'flex-end', display: 'flex' }}>
+                      {hasSelection && <AddButton size="small" variant="text" onClick={handleBatchAdd} />}
+                      <ReloadButton size="small" variant="text" onClick={reload} />
+                    </GridToolbarContainer>
+                  )
+                },
               }}
             />
           </Box>
@@ -183,7 +187,7 @@ const StudentsProfileSelector = ({ schoolId, addedStudents, onAddedStudentsChang
             />
             <Spacer />
             <Body1>
-              Hay {addedStudentsEntries.length} estudiantes agregados{' '}
+              <Bold>Hay {addedStudentsEntries.length} estudiantes agregados</Bold>{' '}
               {addedStudentsEntries.length > filteredAddedStudents.length
                 ? `(mostrando ${filteredAddedStudents.length})`
                 : ''}

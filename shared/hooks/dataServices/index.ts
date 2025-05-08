@@ -10,11 +10,12 @@ import {
   T_PatchMethod,
   T_PostMethod,
 } from '@/shared/data/types'
-import { useInProgressLocal } from '@/shared/hooks/utils'
+import { useInProgress, useInProgressLocal } from '@/shared/hooks/utils'
 import {
   batchDeletionService,
   deletionService,
   detailService,
+  handleServiceError,
   listService,
   postService,
   updateService,
@@ -147,6 +148,7 @@ const batchDeletionHook = <T_Id, T_Response = I_DeletionCommonResponse>(
     reload: T_VoidFn
   }) => {
     const authResources = useRequestSetup()
+    const { setIsInProgress, setIsNotInProgress } = useInProgress()
 
     return (ids: Array<T_Id>) => {
       const isJustOne = ids.length === 1
@@ -156,13 +158,18 @@ const batchDeletionHook = <T_Id, T_Response = I_DeletionCommonResponse>(
         : `Eliminar ${d.entityName.plural} con IDs# ${ids.join(', ')}.`
 
       d.showConfirm(title, '¿Estás seguro/a que querés proceder?').then(() => {
+        setIsInProgress()
         batchDeleteRaw(ids)
           .then(() => {
             successToast(
               sentence(`${d.entityName.plural} ${d.entityName.gs({ m: 'eliminados', f: 'eliminadas' })} correctamente`),
             )
           })
-          .finally(d.reload)
+          .catch(handleServiceError)
+          .finally(() => {
+            setIsNotInProgress()
+            d.reload()
+          })
       })
     }
   }

@@ -158,12 +158,12 @@ const pages = {
             path: userChangePasswordPath,
             label: 'Usuarios',
           },
-          staffEscuela: {
-            path: '/dashboard/usuarios/staff-escuela',
-            label: "Staff's Escuela",
+          responsableInstitucional: {
+            path: '/dashboard/usuarios/responsables-institucionales',
+            label: 'Responsable Institucional',
             _: {
               agregar: {
-                path: '/dashboard/usuarios/staff-escuela/agregar',
+                path: '/dashboard/usuarios/responsables-institucionales/agregar',
                 label: 'Agregar estudiante',
               },
             },

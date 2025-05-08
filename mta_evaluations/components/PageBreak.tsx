@@ -10,7 +10,11 @@ import { T_VoidFn } from '@/shared/types'
 import { Grid2 as Grid } from '@mui/material'
 import { FC } from 'react'
 
-const PageBreak: FC<{ afterQuestionId: number; reload: T_VoidFn }> = ({ afterQuestionId, reload }) => {
+const PageBreak: FC<{ afterQuestionId: number; reload: T_VoidFn; disabled?: boolean }> = ({
+  afterQuestionId,
+  reload,
+  disabled = false,
+}) => {
   const remove = useRemovePageBreak()
   const { setIsInProgress, setIsNotInProgress } = useInProgress()
 
@@ -27,7 +31,7 @@ const PageBreak: FC<{ afterQuestionId: number; reload: T_VoidFn }> = ({ afterQue
         <Grid container justifyContent="center" alignItems="center">
           <Grid size="grow">{evaluationLabels.pageBreak}</Grid>
           <MagicGrid itemSize="auto">
-            <DeleteButton onClick={handleDelete} />
+            <DeleteButton disabled={disabled} onClick={handleDelete} />
           </MagicGrid>
         </Grid>
       </Pastilla>

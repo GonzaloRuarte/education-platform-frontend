@@ -8,6 +8,7 @@ import {
   useQuestionMoveForward,
 } from '@/mta_evaluations/hooks'
 import {
+  EvaluationStatus,
   I_AnswerMultipleChoiceDetail,
   I_AnswerNumericDetail,
   I_EvaluationDetail,
@@ -17,7 +18,6 @@ import {
 } from '@/mta_evaluations/types'
 import Bold from '@/shared/components/Bold'
 import Button from '@/shared/components/Button'
-import Chip from '@/shared/components/Chip'
 import DeleteInstanceButton from '@/shared/components/DeleteInstanceButton'
 import HTMLParser from '@/shared/components/HTMLParser'
 import MagicGrid from '@/shared/components/MagicGrid'
@@ -32,10 +32,11 @@ import UploadIcon from '@mui/icons-material/Upload'
 import { Accordion, AccordionDetails, AccordionSummary, Box, Grid2 as Grid } from '@mui/material'
 import React, { FC } from 'react'
 
-const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId; reload: T_VoidFn }> = ({
+const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId; reload: T_VoidFn; disabled: boolean }> = ({
   questionId,
   evaluationId,
   reload,
+  disabled,
 }) => {
   const navigateToEdit = useNavigateToQuestionEdit()
   const mBackward = useQuestionMoveBackward()
@@ -53,16 +54,17 @@ const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId; relo
     <>
       <Grid container justifyContent="flex-end" alignItems="center">
         <MagicGrid itemSize={'auto'}>
-          <Button onClick={handleEdit} startIcon={<EditIcon />}>
+          <Button disabled={disabled} onClick={handleEdit} startIcon={<EditIcon />}>
             {sharedLabels.edit}
           </Button>
-          <Button onClick={handleMoveBackward} startIcon={<UploadIcon />}>
+          <Button disabled={disabled} onClick={handleMoveBackward} startIcon={<UploadIcon />}>
             {sharedLabels.moveUp}
           </Button>
-          <Button onClick={handleMoveForward} startIcon={<DownloadIcon />}>
+          <Button disabled={disabled} onClick={handleMoveForward} startIcon={<DownloadIcon />}>
             {sharedLabels.moveDown}
           </Button>
           <DeleteInstanceButton
+            disabled={disabled}
             callback={reload}
             entityName={QUESTION_NAME}
             useDelete={useQuestionDelete}
@@ -104,7 +106,8 @@ const QuestionAccordion: FC<{
   isExpanded: boolean
   setExpanded: React.Dispatch<React.SetStateAction<number | false>>
   reload: T_VoidFn
-}> = ({ isExpanded, setExpanded, question, evaluationId, reload }) => {
+  evaluationStatus: I_EvaluationDetail['status']
+}> = ({ isExpanded, setExpanded, question, evaluationId, reload, evaluationStatus }) => {
   const handleChange = (panel: I_EvaluationDetail['id']) => (_: React.SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false)
   }
@@ -119,8 +122,7 @@ const QuestionAccordion: FC<{
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Body1 component="span" sx={{ width: '33%', flexShrink: 0 }}>
-          Pregunta #{question.order + 1}{' '}
-          {/* {question.is_mandatory && <Chip variant="outlined" size="small" label="Obligatoria" />} */}
+          Pregunta #{question.order + 1}
         </Body1>
         {!isExpanded && (
           <>
@@ -138,7 +140,12 @@ const QuestionAccordion: FC<{
             <HTMLParser htmlContent={question.content} />
           </Box>
           <AnswerComponent data={question.answer} />
-          <Toolbar evaluationId={evaluationId} questionId={question.id} reload={reload} />
+          <Toolbar
+            evaluationId={evaluationId}
+            questionId={question.id}
+            reload={reload}
+            disabled={evaluationStatus === EvaluationStatus.Published}
+          />
         </MagicGrid>
       </AccordionDetails>
     </Accordion>

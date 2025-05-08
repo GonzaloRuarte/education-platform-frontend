@@ -66,7 +66,7 @@ const SchoolCreateForm = ({ data }: I_Props) => {
           return (
             <Link
               key={member.school_staff_id}
-              href={`${pages.D._.usuarios._.staffEscuela.path}/${member.school_staff_id}`}
+              href={`${pages.D._.usuarios._.responsableInstitucional.path}/${member.school_staff_id}`}
             >
               <Chip icon={<AccountCircleIcon />} label={`${member.full_name} <${member.email}>`} />
             </Link>
