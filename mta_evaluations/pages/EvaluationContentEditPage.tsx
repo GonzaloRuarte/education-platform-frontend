@@ -10,9 +10,11 @@ import {
   useEvaluationDetail,
   useEvaluationSetStatus,
   useNavigateToEvaluationList,
+  useNavigateToEvaluationPreview,
 } from '@/mta_evaluations/hooks'
 import { evaluationLabels } from '@/mta_evaluations/labels'
 import { T_EvaluationStatusCode } from '@/mta_evaluations/types'
+import Button from '@/shared/components/Button'
 import { BackButton, DeleteButton, ReloadButton } from '@/shared/components/buttons'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
@@ -23,6 +25,7 @@ import { handleServiceError } from '@/shared/service'
 import { Box } from '@mui/material'
 import { useParams } from 'next/navigation'
 import { useEffect } from 'react'
+import PreviewIcon from '@mui/icons-material/Preview'
 
 const EvaluationContentEditPage = () => {
   const { evaluationId } = useParams<{ evaluationId: string }>()
@@ -30,6 +33,7 @@ const EvaluationContentEditPage = () => {
   const { setIsInProgress, setIsNotInProgress } = useInProgress()
 
   const navigateToList = useNavigateToEvaluationList()
+  const navToPreview = useNavigateToEvaluationPreview()
   const deleteInstance = useEvaluationDelete()
   const setStatus = useEvaluationSetStatus()
   const { ConfirmDialogComponent, showConfirm } = useConfirm()
@@ -63,7 +67,10 @@ const EvaluationContentEditPage = () => {
         <Page.Toolbar
           right={
             data !== undefined && (
-              <Box minWidth={150}>
+              <Box display="flex" flexDirection="row" gap={2} justifyContent={'flex-end'}>
+                <Button startIcon={<PreviewIcon />} onClick={() => navToPreview({ evaluationId: data.id })}>
+                  Preview
+                </Button>
                 <EvaluationStatusSelect
                   size="small"
                   onChange={handleStatusChange}
