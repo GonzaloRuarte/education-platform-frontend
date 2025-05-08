@@ -7,6 +7,7 @@ import {
   T_StudentProfileId,
   T_StudentProfilePersonalId,
 } from '@/mta_schools/types'
+import Bold from '@/shared/components/Bold'
 import Button from '@/shared/components/Button'
 import { AddButton, ReloadButton } from '@/shared/components/buttons'
 import Chip from '@/shared/components/Chip'
@@ -186,7 +187,7 @@ const StudentsProfileSelector = ({ schoolId, addedStudents, onAddedStudentsChang
             />
             <Spacer />
             <Body1>
-              Hay {addedStudentsEntries.length} estudiantes agregados{' '}
+              <Bold>Hay {addedStudentsEntries.length} estudiantes agregados</Bold>{' '}
               {addedStudentsEntries.length > filteredAddedStudents.length
                 ? `(mostrando ${filteredAddedStudents.length})`
                 : ''}
