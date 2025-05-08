@@ -31,20 +31,18 @@ export const EvaluationSelect: React.FC<{
 }) => {
   const [options, setOptions] = useState<I_EvaluationOption[]>([])
   const [loading, setLoading] = useState(false)
-  const [filters, setFilters] = useState<object>({})
+  const [filters, setFilters] = useState<object | undefined>({ status: EvaluationStatus.Published })
 
   useEffect(() => {
-    if (onlyPublished) {
-      setFilters({
-        ...(onlyPublished && { status: EvaluationStatus.Published }),
-        ...(filterTitle && { title__contains: filterTitle }),
-      })
-    }
+    setFilters({
+      ...(onlyPublished && { status: EvaluationStatus.Published }),
+      ...(filterTitle && { title__contains: filterTitle }),
+    })
   }, [filterTitle, onlyPublished])
 
-  const { data, isLoading } = useEvaluationList({
+  const { data, isLoading, reload } = useEvaluationList({
     page_size: 0,
-    filters: Object.keys(filters).length > 0 ? filters : undefined,
+    filters: filters,
   })
 
   useEffect(() => {
@@ -58,6 +56,8 @@ export const EvaluationSelect: React.FC<{
     }
     setLoading(isLoading)
   }, [data, isLoading])
+
+  useEffect(reload, [filters])
 
   return (
     <Autocomplete
