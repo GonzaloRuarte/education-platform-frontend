@@ -39,6 +39,7 @@ function BatchDeleteAction<T_Id>(p: {
 
   const handleBatchDelete = () => {
     const ids = rowSelectionModel as Array<T_Id>
+
     batchDelete(ids)
   }
 
