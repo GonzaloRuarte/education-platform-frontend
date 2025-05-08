@@ -9,15 +9,22 @@ interface I_Props<T_Id> {
   id: T_Id
   callback: T_VoidFn
   entityName: EntityName
+  disabled?: boolean
 }
 
-function DeleteInstanceButton<T_Id extends number | string>({ useDelete, id, callback, entityName }: I_Props<T_Id>) {
+function DeleteInstanceButton<T_Id extends number | string>({
+  useDelete,
+  id,
+  callback,
+  entityName,
+  disabled = false,
+}: I_Props<T_Id>) {
   const deleteInstance = useDelete()
   const { ConfirmDialogComponent, showConfirm } = useConfirm()
   const handleDelete = useHandleDelete(id, { showConfirm, deleteInstance, callback, entityName })
   return (
     <>
-      <DeleteButton onClick={handleDelete} color="error" />
+      <DeleteButton onClick={handleDelete} color="error" disabled={disabled} />
       <ConfirmDialogComponent />
     </>
   )

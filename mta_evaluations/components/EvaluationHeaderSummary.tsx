@@ -1,6 +1,6 @@
 import { useNavigateToEvaluationDetail } from '@/mta_evaluations/hooks'
 import { evaluationLabels } from '@/mta_evaluations/labels'
-import { I_EvaluationDetail } from '@/mta_evaluations/types'
+import { EvaluationStatus, I_EvaluationDetail } from '@/mta_evaluations/types'
 import Button from '@/shared/components/Button'
 import HTMLParser from '@/shared/components/HTMLParser'
 import Spacer from '@/shared/components/Spacer'
@@ -41,7 +41,13 @@ const EvaluationHeaderSummary: FC<{ data: I_EvaluationDetail }> = ({ data }) => 
         )}
 
         <Spacer />
-        <Button onClick={() => navigateToEvaluationDetail(data.id)}>Editar</Button>
+
+        <Button
+          disabled={data.status === EvaluationStatus.Published}
+          onClick={() => navigateToEvaluationDetail(data.id)}
+        >
+          Editar
+        </Button>
       </Paper>
     </>
   )

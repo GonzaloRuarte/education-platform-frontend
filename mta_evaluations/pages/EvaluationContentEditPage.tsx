@@ -13,7 +13,7 @@ import {
   useNavigateToEvaluationPreview,
 } from '@/mta_evaluations/hooks'
 import { evaluationLabels } from '@/mta_evaluations/labels'
-import { T_EvaluationStatusCode } from '@/mta_evaluations/types'
+import { EvaluationStatus, T_EvaluationStatusCode } from '@/mta_evaluations/types'
 import Button from '@/shared/components/Button'
 import { BackButton, DeleteButton, ReloadButton } from '@/shared/components/buttons'
 import Page from '@/shared/components/Page'
@@ -83,7 +83,8 @@ const EvaluationContentEditPage = () => {
         >
           <BackButton onClick={navigateToList} />
           <ReloadButton onClick={reload} />
-          <DeleteButton onClick={handleDelete} color="error" />
+
+          <DeleteButton onClick={handleDelete} color="error" disabled={data?.status === EvaluationStatus.Published} />
         </Page.Toolbar>
         {data === undefined ? (
           <Spinner />

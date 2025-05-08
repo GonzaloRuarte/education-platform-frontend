@@ -1,7 +1,7 @@
 import PageBreak from '@/mta_evaluations/components/PageBreak'
 import QuestionAccordion from '@/mta_evaluations/components/QuestionAccordion'
 import { evaluationLabels } from '@/mta_evaluations/labels'
-import { I_EvaluationDetail } from '@/mta_evaluations/types'
+import { EvaluationStatus, I_EvaluationDetail } from '@/mta_evaluations/types'
 import Spacer from '@/shared/components/Spacer'
 import { H3 } from '@/shared/components/Typography'
 import { T_VoidFn } from '@/shared/types'
@@ -18,8 +18,19 @@ const CreatedQuestions: FC<{ data: I_EvaluationDetail; reload: T_VoidFn }> = ({ 
         const isExpanded = expanded === question.id
         return (
           <React.Fragment key={question.id}>
-            <QuestionAccordion reload={reload} evaluationId={data.id} {...{ isExpanded, setExpanded, question }} />
-            {question.breaks_page_after && <PageBreak afterQuestionId={question.id} reload={reload} />}
+            <QuestionAccordion
+              reload={reload}
+              evaluationStatus={data.status}
+              evaluationId={data.id}
+              {...{ isExpanded, setExpanded, question }}
+            />
+            {question.breaks_page_after && (
+              <PageBreak
+                disabled={data.status === EvaluationStatus.Published}
+                afterQuestionId={question.id}
+                reload={reload}
+              />
+            )}
           </React.Fragment>
         )
       })}
