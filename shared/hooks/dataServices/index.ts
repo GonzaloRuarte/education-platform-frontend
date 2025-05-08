@@ -168,7 +168,7 @@ const batchDeletionHook = <T_Id, T_Response = I_DeletionCommonResponse>(
           .catch(handleServiceError)
           .finally(() => {
             setIsNotInProgress()
-            d.reload
+            d.reload()
           })
       })
     }
