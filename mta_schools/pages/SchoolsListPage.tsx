@@ -14,7 +14,6 @@ import { Chip } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 
 const columns: Array<GridColDef> = [
-  // { field: 'id', headerName: '#' },
   idExposeColumn({ field: 'name', headerName: 'Nombre', flex: 1.5 }),
   { field: 'district', headerName: 'Distrito', flex: 1 },
   {

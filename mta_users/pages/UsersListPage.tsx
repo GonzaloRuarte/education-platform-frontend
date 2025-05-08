@@ -2,20 +2,18 @@
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import UserProfileChip from '@/mta_users/components/UserProfileChip'
+import { useUserListFilters } from '@/mta_users/components/UsersListFiltersControl'
 import { USER_NAME } from '@/mta_users/constants'
 import { useNavigateToUserChangePassword, useUserBatchDelete, useUserList } from '@/mta_users/hooks'
 import { I_UserListItemWithProfiles } from '@/mta_users/types'
-import Button from '@/shared/components/Button'
+import { ChangePasswordButton } from '@/shared/components/buttons'
 import ListPage from '@/shared/pages/ListPage'
+import { idExposeColumn } from '@/shared/pages/utils'
 import { Box } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
-import PasswordIcon from '@mui/icons-material/Password'
-import { useUserListFilters } from '@/mta_users/components/UsersListFiltersControl'
-import { ChangePasswordButton } from '@/shared/components/buttons'
 
 const columns: Array<GridColDef<I_UserListItemWithProfiles>> = [
-  { field: 'id', headerName: '#' },
-  { field: 'username', headerName: 'Nombre de usuario', flex: 1 },
+  idExposeColumn({ field: 'username', headerName: 'Nombre de usuario', flex: 1 }),
   { field: 'email', headerName: 'E-Mail', flex: 1 },
   { field: 'is_active', headerName: 'Activo', flex: 0.5, type: 'boolean' },
 

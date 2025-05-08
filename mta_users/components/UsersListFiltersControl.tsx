@@ -41,7 +41,7 @@ const UsersListFiltersControl = ({
   return (
     <MagicGrid itemSize={'auto'}>
       {Object.entries(buttons).map(([profile, { label }]) => {
-        if (profile === 'superuser' && !isSuperuser) return null
+        if (profile === 'superuser') return null
         return (
           <UserProfileChip
             variant={filters[profileNameAsUserFilter[profile]] === null ? 'filled' : 'outlined'}

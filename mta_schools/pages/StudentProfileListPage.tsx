@@ -21,7 +21,6 @@ import { idExposeColumn } from '@/shared/pages/utils'
 import { GridColDef } from '@mui/x-data-grid'
 
 const columns: Array<GridColDef> = [
-  // { field: 'id', headerName: '#' },
   idExposeColumn({ field: 'personal_id', headerName: 'DNI', flex: 1 }),
   {
     field: 'school',
