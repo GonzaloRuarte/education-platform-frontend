@@ -4,6 +4,7 @@ import { withAuth } from '@/mta_auth/hocs/withAuth'
 import {
   useDevAppointmentFakerize,
   useDevAppointmentMakeAvailableNow,
+  useDevAppointmentMakeResolutionsLeft10Seconds,
   useDevAppointmentMakeResolutionsLeft5Minutes,
   useDevAppointmentSetAsFinished,
   useDevEvaluationsFakerize,
@@ -28,6 +29,7 @@ const DevDashboard = () => {
   const { executeAction: appointmentMakeAvailableNow } = useDevAppointmentMakeAvailableNow()
   const { executeAction: appointmentSetAsFinished } = useDevAppointmentSetAsFinished()
   const { executeAction: appointmentMakeResolutionsLeft5Minutes } = useDevAppointmentMakeResolutionsLeft5Minutes()
+  const { executeAction: appointmentMakeResolutionsLeft10Seconds } = useDevAppointmentMakeResolutionsLeft10Seconds()
 
   const { executeAction: schoolsFakerize } = useDevSchoolsFakerize()
   const { executeAction: schoolsFakerizeComplete } = useDevSchoolsFakerizeComplete()
@@ -180,6 +182,32 @@ const DevDashboard = () => {
                   })}
                 >
                   5'10'' para finalizar
+                </DevButton>
+                <Input
+                  size="small"
+                  type="number"
+                  value={appointment_id}
+                  onChange={(e) => setAppointmentId(Number(e.target.value))}
+                  label="Turno ID"
+                />
+              </MagicGrid>
+            </Grid2>
+            <Grid2 size={3}>
+              <MagicGrid>
+                <DevButton
+                  fullWidth
+                  size="large"
+                  onClick={actionHandler(() => {
+                    if (appointment_id === '') {
+                      errorToast('Por favor, proporcione un ID de turno válido.')
+                      return Promise.reject('ID de turno inválido')
+                    }
+                    return appointmentMakeResolutionsLeft10Seconds({ appointment_id }).then((r) =>
+                      successToast(r.message),
+                    )
+                  })}
+                >
+                  10'' para finalizar
                 </DevButton>
                 <Input
                   size="small"
