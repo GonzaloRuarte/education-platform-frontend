@@ -96,6 +96,7 @@ const AppointmentProcessPage = () => {
               <Body1>Tomando como base los requerimientos del turno, asigne la evaluación correspondiente:</Body1>
               <form onSubmit={handleSubmit(onApprove)}>
                 <EvaluationSelectControlled
+                  onlyPublished
                   name="evaluation"
                   control={control}
                   label="Evaluación"
