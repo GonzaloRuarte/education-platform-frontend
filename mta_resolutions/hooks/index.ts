@@ -19,7 +19,7 @@ import { useInProgress, useInterval } from '@/shared/hooks'
 import { handleServiceError } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import { withRouterHistoryReset } from '@/shared/utils'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 const hasAllCurrentPageQuestionsAnswered = (
   currentPageData: T_EvaluationToResolve_Page,
@@ -42,6 +42,7 @@ const hasAllCurrentPageQuestionsAnswered = (
     if (question.answer.resource_type === 'MultipleChoice') {
       // For multiple-choice answers, check if at least one option is chosen
       const multipleChoiceAnswer = answer as T_ResolutionState_MultipleChoiceAnswerData
+
       return multipleChoiceAnswer.specific_data.choosed_options.length > 0
     }
 
@@ -60,7 +61,7 @@ const _canSubmitOrForwardPage = (a: {
     a.pagesQuantity !== undefined &&
     a.resolutionState !== null &&
     a.evaluationToResolve !== null &&
-    a.currentPage < a.pagesQuantity &&
+    a.currentPage <= a.pagesQuantity &&
     hasAllCurrentPageQuestionsAnswered(a.evaluationToResolve.pages[a.currentPage - 1], a.resolutionState)
   )
 }
@@ -73,12 +74,17 @@ const useResolutionPagination = () => {
   const isFirstPage = currentPage === 1
   const resolutionState = useResolutionState()
   const evaluationToResolve = useResolutionEvaluationToResolve()
-  const canSubmitOrForwardPage = _canSubmitOrForwardPage({
-    currentPage,
-    pagesQuantity,
-    resolutionState,
-    evaluationToResolve,
-  })
+
+  const canSubmitOrForwardPage = useMemo(
+    () =>
+      _canSubmitOrForwardPage({
+        currentPage,
+        pagesQuantity,
+        resolutionState,
+        evaluationToResolve,
+      }),
+    [currentPage, pagesQuantity, resolutionState, evaluationToResolve],
+  )
 
   return {
     currentPage,

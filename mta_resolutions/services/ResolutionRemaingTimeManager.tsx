@@ -9,7 +9,6 @@ const ResolutionRemaingTimeManager = () => {
   const { setWarningAsAlreadyDisplayed, warningAlreadyDisplayed } = useResolutionRemainingTimeWarningAlreadyDisplayed()
 
   useEffect(() => {
-    console.log({ timeLeft, warningAlreadyDisplayed })
     if (warningAlreadyDisplayed) return
     if (timeLeft === null) return
     if (timeLeft > RESOLUTIONS__REMAINING_TIME_WARNING_IN_SECONDS) return
