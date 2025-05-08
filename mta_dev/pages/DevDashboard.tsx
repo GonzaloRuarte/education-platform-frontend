@@ -5,6 +5,10 @@ import {
   useDevAppointmentFakerize,
   useDevAppointmentMakeAvailableNow,
   useDevAppointmentSetAsFinished,
+  useDevEvaluationsFakerize,
+  useDevEvaluationsFakerizeComplete,
+  useDevSchoolsFakerize,
+  useDevSchoolsFakerizeComplete,
 } from '@/mta_dev/hooks'
 import { T_AppointmentId } from '@/mta_schedule/types'
 import DevButton from '@/shared/components/DevButton'
@@ -22,6 +26,10 @@ const DevDashboard = () => {
   const { executeAction: appointmentFakerize } = useDevAppointmentFakerize()
   const { executeAction: appointmentMakeAvailableNow } = useDevAppointmentMakeAvailableNow()
   const { executeAction: appointmentSetAsFinished } = useDevAppointmentSetAsFinished()
+  const { executeAction: schoolsFakerize } = useDevSchoolsFakerize()
+  const { executeAction: schoolsFakerizeComplete } = useDevSchoolsFakerizeComplete()
+  const { executeAction: evaluationsFakerize } = useDevEvaluationsFakerize()
+  const { executeAction: evaluationsFakerizeComplete } = useDevEvaluationsFakerizeComplete()
 
   const actionHandler = (action: () => Promise<any>, message?: string) => {
     return () => {
@@ -47,12 +55,22 @@ const DevDashboard = () => {
               <H4>Escuelas</H4>
             </Grid2>
             <Grid2 size={3}>
-              <DevButton fullWidth size="large" title="python manage.py school_fakerize">
+              <DevButton
+                fullWidth
+                size="large"
+                title="python manage.py school_fakerize"
+                onClick={actionHandler(() => schoolsFakerize({}), 'Escuela creada')}
+              >
                 Crear escuela
               </DevButton>
             </Grid2>
             <Grid2 size={3}>
-              <DevButton fullWidth size="large" title="python manage.py school_fakerize complete">
+              <DevButton
+                fullWidth
+                size="large"
+                title="python manage.py school_fakerize complete"
+                onClick={actionHandler(() => schoolsFakerizeComplete({}), 'Escuela creada con contenido')}
+              >
                 Crear escuela c/contenido
               </DevButton>
             </Grid2>
@@ -61,8 +79,23 @@ const DevDashboard = () => {
               <H4>Evaluaciones</H4>
             </Grid2>
             <Grid2 size={3}>
-              <DevButton fullWidth size="large" title="python manage.py evaluations_fakerize complete">
+              <DevButton
+                fullWidth
+                size="large"
+                title="python manage.py evaluations_fakerize"
+                onClick={actionHandler(() => evaluationsFakerize({}), 'Evaluación creada')}
+              >
                 Crear Evaluación
+              </DevButton>
+            </Grid2>
+            <Grid2 size={3}>
+              <DevButton
+                fullWidth
+                size="large"
+                title="python manage.py evaluations_fakerize complete"
+                onClick={actionHandler(() => evaluationsFakerizeComplete({}), 'Evaluación creada con contenido')}
+              >
+                Crear Eval. c/contenido
               </DevButton>
             </Grid2>
             <Grid2 size={12}>
