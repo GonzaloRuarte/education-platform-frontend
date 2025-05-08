@@ -44,7 +44,7 @@ const ResolutionPaginator = () => {
               endIcon={<ArrowForwardIcon />}
               onClick={safePageMovement(goToNextPage)}
             >
-              Siguiente
+              {!maxDurationReached ? 'Siguiente' : 'Entregar'}
             </Button>
           </MagicGrid>
         ) : (

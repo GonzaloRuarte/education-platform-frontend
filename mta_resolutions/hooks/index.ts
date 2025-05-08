@@ -132,6 +132,7 @@ const useResolutionExit = () => {
 
 const useResolutionManageSubmit = () => {
   const submit = useResolutionRequestSubmit()
+  const resetState = useResolutionResetState()
   const state = useResolutionState()
   const navigateToResolutionSubmittedPage = useNavigateToResolutionSubmittedPage()
   const { downloadResolutionState } = useResolutionDownloadState()
@@ -142,7 +143,10 @@ const useResolutionManageSubmit = () => {
     setIsInProgress()
     downloadResolutionState()
     submit(state)
-      .then((res) => navigateToResolutionSubmittedPage())
+      .then((res) => {
+        navigateToResolutionSubmittedPage()
+        resetState()
+      })
       .catch(handleServiceError)
       .finally(setIsNotInProgress)
   }
