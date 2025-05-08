@@ -14,9 +14,9 @@ import Bold from '@/shared/components/Bold'
 import Chip from '@/shared/components/Chip'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
-import { Body1, H4 } from '@/shared/components/Typography'
+import { Body1, H1, H4 } from '@/shared/components/Typography'
 import TodayIcon from '@mui/icons-material/Today'
-import { Box } from '@mui/material'
+import { Box, Grid2 } from '@mui/material'
 
 interface I_Props {
   title?: string
@@ -27,6 +27,7 @@ interface I_Props {
   appointmentId: T_AppointmentId
   status?: T_AppointmentStatus
   occurrence_status?: T_AppointmentOccurrenceStatus
+  pin?: number
 }
 
 const AppointmentBriefCard = ({
@@ -38,6 +39,7 @@ const AppointmentBriefCard = ({
   evaluation,
   status,
   occurrence_status,
+  pin,
 }: I_Props) => {
   return (
     <Box bgcolor={LIGHT_BG_COLOR} borderRadius={2} padding={2}>
@@ -51,31 +53,45 @@ const AppointmentBriefCard = ({
           </Box>
         )}
       </Box>
-      <MagicGrid spacing={1}>
-        {title !== undefined && <H4>{title}</H4>}
-        <MagicGrid itemSize="auto">
-          <Body1>{appointmentFormattedStringDate(begins_at)}</Body1>
-          <Chip sx={{ opacity: 0.4 }} size="small" label={`ID: ${appointmentId}`} />
-        </MagicGrid>
-        <MagicGrid itemSize="auto">
-          {subject && <Chip size="small" label={subject} color="info" />}
-          {grade && <Chip size="small" label={gradeLabel(grade)} color="success" />}
-        </MagicGrid>
-        <Box>
-          {evaluation && (
-            <>
-              <Spacer />
-              <Body1>
-                Evaluación asignada:
-                <br />
-                <Bold>
-                  {evaluation.title} ({evaluation.code})
-                </Bold>
-              </Body1>
-            </>
-          )}
-        </Box>
-      </MagicGrid>
+      <Grid2 container spacing={5}>
+        <Grid2 size={8}>
+          <MagicGrid spacing={1}>
+            {title !== undefined && <H4>{title}</H4>}
+            <MagicGrid itemSize="auto">
+              <Body1>{appointmentFormattedStringDate(begins_at)}</Body1>
+              <Chip sx={{ opacity: 0.4 }} size="small" label={`ID: ${appointmentId}`} />
+            </MagicGrid>
+            <MagicGrid itemSize="auto">
+              {subject && <Chip size="small" label={subject} color="info" />}
+              {grade && <Chip size="small" label={gradeLabel(grade)} color="success" />}
+            </MagicGrid>
+            <Box>
+              {evaluation && (
+                <>
+                  <Spacer />
+                  <Body1>
+                    Evaluación asignada:
+                    <br />
+                    <Bold>
+                      {evaluation.title} ({evaluation.code})
+                    </Bold>
+                  </Body1>
+                </>
+              )}
+            </Box>
+          </MagicGrid>
+        </Grid2>
+        {pin !== undefined && (
+          <Grid2 size={4} justifyContent={'flex-end'} display="flex" textAlign={'right'} alignItems={'flex-end'}>
+            <Box>
+              <Body1>PIN</Body1>
+              <H1 fontSize={50} fontWeight="bold" fontFamily="monospace">
+                {pin}
+              </H1>
+            </Box>
+          </Grid2>
+        )}
+      </Grid2>
     </Box>
   )
 }

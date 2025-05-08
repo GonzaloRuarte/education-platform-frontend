@@ -57,7 +57,7 @@ const columns = (a: {
     flex: 2,
     renderCell: ({ value }) => <>{value !== null ? value.name : '-'}</>,
   },
-
+  { field: 'pin', headerName: 'PIN' },
   {
     field: 'student_count',
     headerName: 'C/Estudiantes',

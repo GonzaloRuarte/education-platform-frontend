@@ -42,6 +42,7 @@ interface I_AppointmentDetail {
     prefix: string
   }
   requested_evaluation_grade: null | SchoolGrade
+  pin: number
 }
 interface I_AppointmentRealTimeStatus {
   included_students: number
@@ -64,6 +65,7 @@ interface I_AppointmentListItem {
   status: T_AppointmentStatus
   occurrence_status: T_AppointmentOccurrenceStatus
   student_count: number
+  pin: number
 }
 type T_AppointmentList = I_PaginatedResponse<I_AppointmentListItem>
 

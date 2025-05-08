@@ -37,6 +37,7 @@ const AppointmentReadOnlyDetail = () => {
               grade={data.requested_evaluation_grade === null ? undefined : data.requested_evaluation_grade}
               evaluation={data.evaluation_brief !== null ? data.evaluation_brief : undefined}
               occurrence_status={data.occurrence_status}
+              pin={data.pin}
             />
             <Spacer />
             {data.students.length > 0 && (
