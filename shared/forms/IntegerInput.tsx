@@ -7,7 +7,7 @@ const IntegerInput: React.FC<TextFieldProps> = (props) => {
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const charCode = event.key
     // Allow only numbers, backspace, and navigation keys
-    if (!/^[0-9]$/.test(charCode) && !['Backspace', 'ArrowLeft', 'ArrowRight', 'Delete'].includes(charCode)) {
+    if (!/^[0-9]$/.test(charCode) && !['Backspace', 'ArrowLeft', 'ArrowRight', 'Delete', 'Enter'].includes(charCode)) {
       event.preventDefault()
     }
   }

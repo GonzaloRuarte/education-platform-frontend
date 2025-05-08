@@ -7,6 +7,10 @@ import { T_EmptyPayload } from '@/shared/types'
 // const DEV_PATH = '/development'
 const DEV_APPOINTMENT_FAKERIZE_PATH = '/development/appointments/fakerize/'
 const DEV_APPOINTMENT_MAKE_AVAILABLE_NOW_PATH = '/development/appointments/make-available-now/'
+const DEV_APPOINTMENT_MAKE_RESOLUTIONS_LEFT_5_MINUTES_PATH =
+  '/development/appointments/make-resolutions-left-5-minutes/'
+const DEV_APPOINTMENT_MAKE_RESOLUTIONS_LEFT_10_SECONDS_PATH =
+  '/development/appointments/make-resolutions-left-10-seconds/'
 const DEV_APPOINTMENT_SET_AS_FINISHED_PATH = '/development/appointments/set-as-finished/'
 
 const useDevAppointmentFakerize = actionHookV3<typeof DEV_APPOINTMENT_FAKERIZE_PATH, T_EmptyPayload, T_EmptyPayload>(
@@ -25,6 +29,17 @@ const useDevAppointmentSetAsFinished = actionHookV3<
   { appointment_id: T_AppointmentId },
   { message: string }
 >(DEV_APPOINTMENT_SET_AS_FINISHED_PATH, axiosPost, useAuthResources)
+
+const useDevAppointmentMakeResolutionsLeft5Minutes = actionHookV3<
+  typeof DEV_APPOINTMENT_MAKE_RESOLUTIONS_LEFT_5_MINUTES_PATH,
+  { appointment_id: T_AppointmentId },
+  { message: string }
+>(DEV_APPOINTMENT_MAKE_RESOLUTIONS_LEFT_5_MINUTES_PATH, axiosPost, useAuthResources)
+const useDevAppointmentMakeResolutionsLeft10Seconds = actionHookV3<
+  typeof DEV_APPOINTMENT_MAKE_RESOLUTIONS_LEFT_10_SECONDS_PATH,
+  { appointment_id: T_AppointmentId },
+  { message: string }
+>(DEV_APPOINTMENT_MAKE_RESOLUTIONS_LEFT_10_SECONDS_PATH, axiosPost, useAuthResources)
 
 const DEV_SCHOOLS_FAKERIZE_PATH = '/development/schools/fakerize/'
 const DEV_SCHOOLS_FAKERIZE_COMPLETE_PATH = '/development/schools/fakerize-complete/'
@@ -59,8 +74,10 @@ export {
   useDevAppointmentFakerize,
   useDevAppointmentMakeAvailableNow,
   useDevAppointmentSetAsFinished,
+  useDevAppointmentMakeResolutionsLeft5Minutes,
   useDevSchoolsFakerize,
   useDevSchoolsFakerizeComplete,
   useDevEvaluationsFakerize,
   useDevEvaluationsFakerizeComplete,
+  useDevAppointmentMakeResolutionsLeft10Seconds,
 }
