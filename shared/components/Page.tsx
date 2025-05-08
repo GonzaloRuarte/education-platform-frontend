@@ -46,7 +46,7 @@ Page.Toolbar = ({ children, right = undefined }: I_ToolbarProps) => (
         {right !== undefined && (
           <>
             <Grid2 size="grow" />
-            <Grid2>{right}</Grid2>
+            <Grid2 size="grow">{right}</Grid2>
           </>
         )}
       </Grid2>

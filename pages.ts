@@ -10,6 +10,7 @@ type T_PagesConfig = { [key: string]: T_PageConfig }
 
 // const pages: T_PagesConfig = {
 const evaluationsEditContentPath = '/dashboard/evaluaciones/{evaluationId:number}/editar-contenido'
+const evaluationsPreviewPath = '/dashboard/evaluaciones/{evaluationId:number}/preview'
 const questionEditPath = '/dashboard/evaluaciones/{evaluationId:number}/pregunta/{questionId:number}'
 const questionCreateMCPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.MultipleChoice}`
 const questionCreateNumericPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.Numeric}`
@@ -91,6 +92,10 @@ const pages = {
             _: {
               editarContenido: {
                 path: evaluationsEditContentPath,
+                label: 'Editar Contenido de Evaluación',
+              },
+              preview: {
+                path: evaluationsPreviewPath,
                 label: 'Editar Contenido de Evaluación',
               },
               editarPregunta: {
@@ -197,6 +202,7 @@ export {
   appointmentsProcessPath,
   appointmentsEditStudentsPath,
   userChangePasswordPath,
+  evaluationsPreviewPath,
 }
 
 export default pages

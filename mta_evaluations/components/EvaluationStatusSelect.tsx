@@ -14,13 +14,14 @@ export const EvaluationStatusSelect: React.FC<{
   error?: boolean
   helperText?: string
   size?: SelectProps['size']
-}> = ({ value, onChange, label = 'Seleccionar estado', error, helperText, size }) => {
+  fullwidth?: SelectProps['fullWidth']
+}> = ({ value, onChange, label = 'Seleccionar estado', error, helperText, size, fullwidth }) => {
   const { isEvaluator } = useUserProfilesResources()
   if (isEvaluator === undefined) return <Spinner />
   if (isEvaluator) return <></>
 
   return (
-    <FormControl fullWidth error={error}>
+    <FormControl fullWidth={fullwidth} error={error}>
       <InputLabel>{label}</InputLabel>
       <Select value={value || ''} onChange={(e) => onChange(e.target.value)} fullWidth size={size}>
         {Object.entries(EvaluationStatus).map(([key, status]) => (

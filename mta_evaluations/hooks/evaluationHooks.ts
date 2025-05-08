@@ -7,7 +7,7 @@ import {
   T_EvaluationList,
   T_EvaluationSubjectList,
 } from '@/mta_evaluations/types'
-import pages, { evaluationsEditContentPath } from '@/pages'
+import pages, { evaluationsEditContentPath, evaluationsPreviewPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
 import {
   actionHook,
@@ -62,6 +62,7 @@ const useNavigateToEvaluationList = navigationHook(pages.D._.evaluaciones.path)
 const useNavigateToEvaluationDetail = navigationWithIdHook(pages.D._.evaluaciones.path)
 const useNavigateToEvaluationCreate = navigationHook(pages.D._.evaluaciones._.agregar.path)
 const useNavigateToEvaluationContentEdit = dynamicNavigationHook(evaluationsEditContentPath)
+const useNavigateToEvaluationPreview = dynamicNavigationHook(evaluationsPreviewPath)
 
 export {
   useEvaluationBatchDelete,
@@ -72,6 +73,7 @@ export {
   useEvaluationSubjects,
   useEvaluationUpdate,
   useNavigateToEvaluationContentEdit,
+  useNavigateToEvaluationPreview,
   useNavigateToEvaluationCreate,
   useNavigateToEvaluationDetail,
   useNavigateToEvaluationList,
