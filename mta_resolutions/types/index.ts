@@ -33,6 +33,17 @@ interface I_ResumeResolutionResponse {
   }
 }
 
+interface I_EvaluationToResolve_PageQuestion {
+  id: T_QuestionId
+  order: number
+  answer: T_EvaluationToResolve_NumericAnswer | T_EvaluationToResolve_MultipleChoiceAnswer
+  content: string
+  is_mandatory: boolean
+  breaks_page_after: boolean
+}
+
+type T_EvaluationToResolve_Page = Array<I_EvaluationToResolve_PageQuestion>
+
 interface I_EvaluationToResolve {
   id: T_EvaluationId
   code: string
@@ -40,16 +51,7 @@ interface I_EvaluationToResolve {
   header: string
   pinned_text: string | null
   subject: string
-  pages: Array<
-    Array<{
-      id: T_QuestionId
-      order: number
-      answer: T_EvaluationToResolve_NumericAnswer | T_EvaluationToResolve_MultipleChoiceAnswer
-      content: string
-      is_mandatory: boolean
-      breaks_page_after: boolean
-    }>
-  >
+  pages: Array<T_EvaluationToResolve_Page>
   pages_quantity: number
 }
 
@@ -96,4 +98,6 @@ export type {
   T_ResolutionState_MultipleChoiceAnswerData,
   I_OngoingResolution,
   I_EvaluationToResolve,
+  I_EvaluationToResolve_PageQuestion,
+  T_EvaluationToResolve_Page,
 }
