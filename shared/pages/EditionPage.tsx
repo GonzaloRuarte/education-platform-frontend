@@ -13,6 +13,7 @@ interface I_Props<T_Id, T_Data> {
   useDetail: T_DetailServiceHook<T_Id, T_Data>
   useDelete?: T_DeletionServiceHook<T_Id, any>
   onExit: T_VoidFn
+  overridedExitOnDelete?: T_VoidFn
   idFieldName?: string
   customButtons?: (data: T_Data) => React.ReactNode
 }
@@ -33,7 +34,12 @@ export default function EditionPage<T_Id extends string | number, T_Data>({
           <BackButton onClick={p.onExit} />
           <ReloadButton onClick={reload} />
           {p.useDelete !== undefined && (
-            <DeleteInstanceButton callback={p.onExit} entityName={p.entityName} useDelete={p.useDelete} id={id} />
+            <DeleteInstanceButton
+              callback={p.overridedExitOnDelete ?? p.onExit}
+              entityName={p.entityName}
+              useDelete={p.useDelete}
+              id={id}
+            />
           )}
           {p.customButtons !== undefined && data !== undefined && p.customButtons(data)}
         </Page.Toolbar>

@@ -6,6 +6,7 @@ import { successToast } from '@/shared/toasts'
 import { useTheme as useMUITheme } from '@mui/material'
 import { T_InProgressHook, T_VoidFn } from '@/shared/types'
 import { EntityName, sentence } from '@/shared/utils'
+import { handleServiceError } from '@/shared/service'
 
 const useInProgressLocal: T_InProgressHook = () => {
   const [isInProgress, setInProgressStatus] = useState(false)
@@ -35,16 +36,21 @@ const useHandleDelete = (
     callback: T_VoidFn
   },
 ) => {
+  const { setInProgressStatus, setIsNotInProgress } = useInProgress()
   return () => {
     d.showConfirm(`Eliminar ${d.entityName.singular} #${id}`, '¿Estás seguro/a que querés proceder?').then(() => {
-      d.deleteInstance(id).then(() => {
-        successToast(
-          sentence(
-            `${d.entityName.singular} ${d.entityName.genderedString({ m: 'eliminado', f: 'eliminada' })} correctamente.`,
-          ),
-        )
-        d.callback()
-      })
+      setInProgressStatus(true)
+      d.deleteInstance(id)
+        .then(() => {
+          successToast(
+            sentence(
+              `${d.entityName.singular} ${d.entityName.genderedString({ m: 'eliminado', f: 'eliminada' })} correctamente.`,
+            ),
+          )
+          d.callback()
+        })
+        .catch(handleServiceError)
+        .finally(setIsNotInProgress)
     })
   }
 }
