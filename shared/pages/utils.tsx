@@ -11,16 +11,16 @@ interface I_ColumnReplacement extends Omit<GridColDef, 'renderCell'> {
   renderCell?: (params: any) => JSX.Element
 }
 
-const idReplacementColumn = ({ renderCell, ...fields }: I_ColumnReplacement, idFieldName = 'id'): GridColDef => {
+const idExposeColumn = ({ renderCell, ...fields }: I_ColumnReplacement, idFieldName = 'id'): GridColDef => {
   return {
     ...fields,
     renderCell: (params) => (
       <>
-        <Tooltip placement="right" title={`Id ${params.row[idFieldName]}`}>
+        <Tooltip placement="left" title={`Id ${params.row[idFieldName]}`}>
           <Box>{renderCell ? renderCell(params) : params.value}</Box>
         </Tooltip>
       </>
     ),
   }
 }
-export { paginationModelAsFetchPaginationOptions, idReplacementColumn }
+export { paginationModelAsFetchPaginationOptions, idExposeColumn }

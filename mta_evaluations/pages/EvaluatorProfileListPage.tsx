@@ -10,10 +10,11 @@ import {
 import { I_EvaluatorProfileListItem } from '@/mta_evaluations/types/evaluatorProfile'
 
 import ListPage from '@/shared/pages/ListPage'
+import { idExposeColumn } from '@/shared/pages/utils'
 import { GridColDef } from '@mui/x-data-grid'
 
 const columns: Array<GridColDef<I_EvaluatorProfileListItem>> = [
-  { field: 'username', headerName: 'Usuario', flex: 1.5 },
+  idExposeColumn({ field: 'username', headerName: 'Usuario', flex: 1.5 }),
   { field: 'email', headerName: 'Email', flex: 1.5 },
   { field: 'first_name', headerName: 'Nombre', flex: 1 },
   { field: 'last_name', headerName: 'Apellido', flex: 1 },

@@ -6,11 +6,11 @@ import { useReportList } from '@/mta_reports/hooks'
 import { useNavigateToSchoolCreate } from '@/mta_schools/hooks'
 import Button from '@/shared/components/Button'
 import ListPage from '@/shared/pages/ListPage'
+import { idExposeColumn } from '@/shared/pages/utils'
 import { GridColDef } from '@mui/x-data-grid'
 
 const columns: Array<GridColDef> = [
-  { field: 'id', headerName: '#' },
-  { field: 'title', headerName: 'Título', flex: 1.5 },
+  idExposeColumn({ field: 'title', headerName: 'Título', flex: 1.5 }),
   {
     field: 'url',
     headerName: 'Link',

@@ -9,6 +9,7 @@ import {
   useDevAppointmentSetAsFinished,
   useDevEvaluationsFakerize,
   useDevEvaluationsFakerizeComplete,
+  useDevReportsFakerize,
   useDevSchoolsFakerize,
   useDevSchoolsFakerizeComplete,
 } from '@/mta_dev/hooks'
@@ -35,6 +36,8 @@ const DevDashboard = () => {
   const { executeAction: schoolsFakerizeComplete } = useDevSchoolsFakerizeComplete()
   const { executeAction: evaluationsFakerize } = useDevEvaluationsFakerize()
   const { executeAction: evaluationsFakerizeComplete } = useDevEvaluationsFakerizeComplete()
+
+  const { executeAction: reportFakerize } = useDevReportsFakerize()
 
   const actionHandler = (action: () => Promise<any>, message?: string) => {
     return () => {
@@ -103,6 +106,7 @@ const DevDashboard = () => {
                 Crear Eval. c/contenido
               </DevButton>
             </Grid2>
+
             <Grid2 size={12}>
               <H4>Turnos</H4>
             </Grid2>
@@ -217,6 +221,14 @@ const DevDashboard = () => {
                   label="Turno ID"
                 />
               </MagicGrid>
+            </Grid2>
+            <Grid2 size={12}>
+              <H4>Reportes</H4>
+            </Grid2>
+            <Grid2 size={3}>
+              <DevButton fullWidth size="large" onClick={actionHandler(() => reportFakerize({}), 'Reporte creado')}>
+                Crear Reporte
+              </DevButton>
             </Grid2>
           </Grid2>
         </Page.Content>

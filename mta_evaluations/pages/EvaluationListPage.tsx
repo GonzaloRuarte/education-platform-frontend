@@ -11,11 +11,11 @@ import {
 } from '@/mta_evaluations/hooks'
 import Chip from '@/shared/components/Chip'
 import ListPage from '@/shared/pages/ListPage'
+import { idExposeColumn } from '@/shared/pages/utils'
 import { GridColDef } from '@mui/x-data-grid'
 
 const columns: Array<GridColDef> = [
-  { field: 'id', headerName: '#' },
-  { field: 'title', headerName: 'Título', flex: 2 },
+  idExposeColumn({ field: 'title', headerName: 'Título', flex: 2 }),
   {
     field: 'code',
     headerName: 'Código',

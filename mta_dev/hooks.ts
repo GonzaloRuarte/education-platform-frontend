@@ -70,6 +70,14 @@ const useDevEvaluationsFakerizeComplete = actionHookV3<
   T_EmptyPayload
 >(DEV_EVALUATIONS_FAKERIZE_COMPLETE_PATH, axiosPost, useAuthResources)
 
+const DEV_REPORTS_FAKERIZE_PATH = '/development/reports/fakerize/'
+
+const useDevReportsFakerize = actionHookV3<typeof DEV_REPORTS_FAKERIZE_PATH, T_EmptyPayload, T_EmptyPayload>(
+  DEV_REPORTS_FAKERIZE_PATH,
+  axiosPost,
+  useAuthResources,
+)
+
 export {
   useDevAppointmentFakerize,
   useDevAppointmentMakeAvailableNow,
@@ -80,4 +88,5 @@ export {
   useDevEvaluationsFakerize,
   useDevEvaluationsFakerizeComplete,
   useDevAppointmentMakeResolutionsLeft10Seconds,
+  useDevReportsFakerize,
 }
