@@ -161,9 +161,11 @@ const useNavigateToStudentProfileList = navigationHook(pages.D._.estudiantes.pat
 const useNavigateToStudentProfileCreate = navigationHook(pages.D._.estudiantes._.agregar.path)
 const useNavigateToStudentProfileBatchCreate = navigationHook(pages.D._.estudiantes._.cargaMasiva.path)
 const useNavigateToStudentProfileDetail = navigationWithIdHook(pages.D._.estudiantes.path)
-const useNavigateToSchoolStaffProfileList = navigationHook(pages.D._.usuarios._.staffEscuela.path)
-const useNavigateToSchoolStaffProfileCreate = navigationHook(pages.D._.usuarios._.staffEscuela._.agregar.path)
-const useNavigateToSchoolStaffProfileDetail = navigationWithIdHook(pages.D._.usuarios._.staffEscuela.path)
+const useNavigateToSchoolStaffProfileList = navigationHook(pages.D._.usuarios._.responsableInstitucional.path)
+const useNavigateToSchoolStaffProfileCreate = navigationHook(
+  pages.D._.usuarios._.responsableInstitucional._.agregar.path,
+)
+const useNavigateToSchoolStaffProfileDetail = navigationWithIdHook(pages.D._.usuarios._.responsableInstitucional.path)
 
 export {
   useCohortsDistinctBySchool,

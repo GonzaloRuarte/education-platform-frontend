@@ -83,7 +83,10 @@ const Menu = () => {
             href={P.D._.usuarios.path}
             subMenu={
               <MenuBlock isSubMenu>
-                <MenuItem label={P.D._.usuarios._.staffEscuela.label} href={P.D._.usuarios._.staffEscuela.path} />
+                <MenuItem
+                  label={P.D._.usuarios._.responsableInstitucional.label}
+                  href={P.D._.usuarios._.responsableInstitucional.path}
+                />
                 <MenuItem label={P.D._.usuarios._.itemista.label} href={P.D._.usuarios._.itemista.path} />
               </MenuBlock>
             }
