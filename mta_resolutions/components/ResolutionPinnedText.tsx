@@ -2,7 +2,7 @@ import { LIGHT_BG_COLOR } from '@/config'
 import { Box, Button, Grid2, IconButton } from '@mui/material'
 import React, { useState } from 'react'
 import parse from 'html-react-parser'
-import { H3, H4 } from '@/shared/components/Typography'
+import { Body1, H3, H4 } from '@/shared/components/Typography'
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
@@ -55,6 +55,11 @@ const ResolutionPinnedText = ({ pinnedText }) => {
 
         {!isOpen && (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+            <Body1 position={'absolute'} textAlign={'right'} right={90} width={200}>
+              Desplegar texto
+              <br />
+              de trabajo
+            </Body1>
             <IconButton onClick={() => setIsOpen(true)}>
               <ArrowBackIosIcon />
             </IconButton>
