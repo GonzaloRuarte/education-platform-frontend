@@ -62,20 +62,20 @@ const DevDashboard = () => {
             <Grid2 size={12}>
               <H4>Escuelas</H4>
             </Grid2>
-            <Grid2 size={3}>
+            <Grid2 size={2}>
               <DevButton
                 fullWidth
-                size="large"
+                size="small"
                 title="python manage.py school_fakerize"
                 onClick={actionHandler(() => schoolsFakerize({}), 'Escuela creada')}
               >
                 Crear escuela
               </DevButton>
             </Grid2>
-            <Grid2 size={3}>
+            <Grid2 size={2}>
               <DevButton
                 fullWidth
-                size="large"
+                size="small"
                 title="python manage.py school_fakerize complete"
                 onClick={actionHandler(() => schoolsFakerizeComplete({}), 'Escuela creada con contenido')}
               >
@@ -86,20 +86,20 @@ const DevDashboard = () => {
             <Grid2 size={12}>
               <H4>Evaluaciones</H4>
             </Grid2>
-            <Grid2 size={3}>
+            <Grid2 size={2}>
               <DevButton
                 fullWidth
-                size="large"
+                size="small"
                 title="python manage.py evaluations_fakerize"
                 onClick={actionHandler(() => evaluationsFakerize({}), 'Evaluación creada')}
               >
                 Crear Evaluación
               </DevButton>
             </Grid2>
-            <Grid2 size={3}>
+            <Grid2 size={2}>
               <DevButton
                 fullWidth
-                size="large"
+                size="small"
                 title="python manage.py evaluations_fakerize complete"
                 onClick={actionHandler(() => evaluationsFakerizeComplete({}), 'Evaluación creada con contenido')}
               >
@@ -110,21 +110,21 @@ const DevDashboard = () => {
             <Grid2 size={12}>
               <H4>Turnos</H4>
             </Grid2>
-            <Grid2 size={3}>
+            <Grid2 size={2}>
               <DevButton
                 onClick={actionHandler(() => appointmentFakerize({}), 'Turno creado')}
                 fullWidth
-                size="large"
+                size="small"
                 title="python manage.py appointment_fakerize"
               >
                 Crear Turno
               </DevButton>
             </Grid2>
-            <Grid2 size={3}>
+            <Grid2 size={2}>
               <MagicGrid>
                 <DevButton
                   fullWidth
-                  size="large"
+                  size="small"
                   title="python manage.py make_available_now <appointment_id>"
                   onClick={actionHandler(() => {
                     if (appointment_id === '') {
@@ -145,11 +145,11 @@ const DevDashboard = () => {
                 />
               </MagicGrid>
             </Grid2>
-            <Grid2 size={3}>
+            <Grid2 size={2}>
               <MagicGrid>
                 <DevButton
                   fullWidth
-                  size="large"
+                  size="small"
                   title="python manage.py set_as_finished <appointment_id>"
                   onClick={actionHandler(() => {
                     if (appointment_id === '') {
@@ -170,11 +170,11 @@ const DevDashboard = () => {
                 />
               </MagicGrid>
             </Grid2>
-            <Grid2 size={3}>
+            <Grid2 size={2}>
               <MagicGrid>
                 <DevButton
                   fullWidth
-                  size="large"
+                  size="small"
                   onClick={actionHandler(() => {
                     if (appointment_id === '') {
                       errorToast('Por favor, proporcione un ID de turno válido.')
@@ -196,11 +196,11 @@ const DevDashboard = () => {
                 />
               </MagicGrid>
             </Grid2>
-            <Grid2 size={3}>
+            <Grid2 size={2}>
               <MagicGrid>
                 <DevButton
                   fullWidth
-                  size="large"
+                  size="small"
                   onClick={actionHandler(() => {
                     if (appointment_id === '') {
                       errorToast('Por favor, proporcione un ID de turno válido.')
@@ -225,8 +225,8 @@ const DevDashboard = () => {
             <Grid2 size={12}>
               <H4>Reportes</H4>
             </Grid2>
-            <Grid2 size={3}>
-              <DevButton fullWidth size="large" onClick={actionHandler(() => reportFakerize({}), 'Reporte creado')}>
+            <Grid2 size={2}>
+              <DevButton fullWidth size="small" onClick={actionHandler(() => reportFakerize({}), 'Reporte creado')}>
                 Crear Reporte
               </DevButton>
             </Grid2>
