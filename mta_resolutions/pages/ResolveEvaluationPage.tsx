@@ -21,6 +21,7 @@ const ResolveEvaluationPage = () => {
   const evaluationToResolve = useResolutionEvaluationToResolve()
   const { currentPage } = useResolutionPagination()
   const hasPinnedText = evaluationToResolve?.pinned_text !== null
+
   return (
     <>
       <ResolutionResumingManager />

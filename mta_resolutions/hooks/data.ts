@@ -71,6 +71,7 @@ const useResolutionRemainingTimeWarningAlreadyDisplayed = () => {
   return { warningAlreadyDisplayed, setWarningAsAlreadyDisplayed }
 }
 const useResolutionMaxDurationMinutes = () => useStore((state) => state.resolution_maxDurationMinutes)
+const useResolutionPin = () => useStore((state) => state.resolution_pin)
 const useResolutionState = () => useStore((state) => state.resolution_state)
 const useResolutionLastUploadDatetime = () => useStore((state) => state.resolution_lastUpload)
 const useResolutionUpdateLastUploadDatetime = () => {
@@ -116,6 +117,7 @@ const useResolutionResume = () => {
         storeMetadata({
           resolution_maxDurationMinutes: response.resolution.max_duration_minutes,
           resolution_startedAt: response.resolution.started_at,
+          resolution_pin: response.appointment_pin,
         })
 
         storeNewPage(1)
@@ -239,6 +241,13 @@ const useResolutionDownloadState = () => {
   return { downloadResolutionState }
 }
 
+const useResolutionAccessibility = () => {
+  const storeRequiresAccessibility = useStore((state) => state.resolution_storeRequiresAccessibility)
+  const requiresAccessibility = useStore((state) => state.resolution_requiresAccessibility)
+
+  return { requiresAccessibility, storeRequiresAccessibility }
+}
+
 export {
   useResolutionAuthorizeStudent,
   useResolutionResetState,
@@ -255,4 +264,6 @@ export {
   useResolutionStoreEvaluation,
   useResolutionStoreMetadata,
   useResolutionUpdateLastUploadDatetime,
+  useResolutionPin,
+  useResolutionAccessibility,
 }

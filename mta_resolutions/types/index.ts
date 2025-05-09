@@ -25,6 +25,7 @@ type T_EvaluationToResolve_MultipleChoiceAnswer = I_EvaluationToResolve_BaseAnsw
 interface I_ResumeResolutionResponse {
   evaluation: I_EvaluationToResolve
   appointment_id: T_AppointmentId
+  appointment_pin: number | null
   student_personal_id: number
   resolution: {
     last_uploaded_state: null | I_ResolutionState
