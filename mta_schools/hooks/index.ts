@@ -1,4 +1,4 @@
-import { useAuthResources } from '@/mta_auth/hooks'
+import { useAuthResources, useRequestSetupWithMultipart } from '@/mta_auth/hooks'
 import {
   I_CohortsDistinctBySchool,
   I_SchoolCreateRequestData,
@@ -87,14 +87,10 @@ const useStudentProfileBatchDelete = batchDeletionHook<T_StudentProfileId>(
   useAuthResources,
 )
 
-const _useRequestSetup = (): I_RequestSetup => {
-  const authResources = useAuthResources()
-  return { ...authResources, 'Content-Type': 'multipart/form-data' }
-}
 const useStudentProfileBatchCreate = creationHook<T_StudentProfileBatchCreateRequestData, I_CreationCommonResponse>(
   `${STUDENT_PROFILE_PATH}/batch-create`,
   axiosPost,
-  _useRequestSetup,
+  useRequestSetupWithMultipart,
 )
 
 const COHORTS_BY_SCHOOL_PATH = '/cohorts/distinct-by-school/{schoolId:string}'

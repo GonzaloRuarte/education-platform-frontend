@@ -5,7 +5,7 @@ import { useSchoolStoreOwnSchool } from '@/mta_schools/hooks/state'
 import { T_AllowedUserProfiles } from '@/mta_users/types'
 import pages from '@/pages'
 import { axiosPost } from '@/shared/data/axios'
-import { T_TokenRefresher } from '@/shared/data/types'
+import { I_RequestSetup, T_TokenRefresher } from '@/shared/data/types'
 import log from '@/shared/log'
 import { handleServiceError, postService } from '@/shared/service'
 import { useStore } from '@/shared/state'
@@ -81,6 +81,11 @@ const useAuthResources = (): I_AuthResources => {
   return { profiles, accessToken, refreshToken, refresh, handleFatal401Error }
 }
 
+const useRequestSetupWithMultipart = (): I_RequestSetup => {
+  const authResources = useAuthResources()
+  return { ...authResources, 'Content-Type': 'multipart/form-data' }
+}
+
 const useLogout = (callbackPath: string = pages.D._.login.path) => {
   const router = useRouter()
 
@@ -143,4 +148,5 @@ export {
   useAuthStoreData,
   useUserProfiles,
   useUserProfilesResources,
+  useRequestSetupWithMultipart,
 }

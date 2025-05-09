@@ -2,20 +2,28 @@
 
 import { LIGHT_BG_COLOR } from '@/config'
 import { APPOINTMENT_RESOLUTION_PROCESS_NAME } from '@/mta_resolutions/constants'
+import { useResolutionUploadOfflineState } from '@/mta_resolutions/hooks/offline'
 import { useNavigateToAppointmentHome, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
+import Button from '@/shared/components/Button'
 import { BackButton, DeleteButton } from '@/shared/components/buttons'
 import Chip from '@/shared/components/Chip'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
-import { H4 } from '@/shared/components/Typography'
+import { H3, H4 } from '@/shared/components/Typography'
 import { useTheme } from '@/shared/hooks'
-import { Box } from '@mui/material'
-import React, { useCallback } from 'react'
+import { handleServiceError } from '@/shared/service'
+import { successToast, warningToast } from '@/shared/toasts'
+import { Box, LinearProgress } from '@mui/material'
+import React, { useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 
 const AppointmentUploadOfflineResolutions = () => {
   const [files, setFiles] = React.useState<File[]>([])
+  const [lastProcessedFileIndex, setLastProcessedFileIndex] = React.useState<number | null>(null)
+  const [isUploading, setIsUploading] = React.useState(false)
+  const progress = lastProcessedFileIndex !== null ? ((lastProcessedFileIndex + 1) / files.length) * 100 : 0
+
   const onDrop = useCallback((acceptedFiles) => {
     console.log(acceptedFiles)
     setFiles(acceptedFiles)
@@ -24,6 +32,47 @@ const AppointmentUploadOfflineResolutions = () => {
   const t = useTheme()
 
   const navToAppointmentHome = useNavigateToAppointmentHome()
+  const uploadOfflineState = useResolutionUploadOfflineState()
+
+  const handleUpload = useCallback(() => {
+    if (files.length === 0) {
+      warningToast('No hay archivos para cargar')
+      return
+    }
+    setIsUploading(true)
+  }, [files, lastProcessedFileIndex])
+
+  useEffect(() => {
+    if (!isUploading) return
+    if (lastProcessedFileIndex === files.length - 1) {
+      setIsUploading(false)
+      setFiles([])
+      setLastProcessedFileIndex(null)
+      return
+    }
+
+    const formData = new FormData()
+    const currentIndex = lastProcessedFileIndex === null ? 0 : lastProcessedFileIndex + 1
+    formData.append('file', files[currentIndex])
+    uploadOfflineState(formData)
+      .then(() => {
+        successToast('Archivo cargado correctamente')
+        setLastProcessedFileIndex(currentIndex)
+      })
+      .catch((err) => {
+        handleServiceError(err)
+        setLastProcessedFileIndex(currentIndex)
+      })
+      .finally(() => {
+        if (currentIndex === files.length - 1) {
+          setIsUploading(false)
+          setFiles([])
+          setLastProcessedFileIndex(null)
+          successToast('Todos los archivos han sido cargados')
+        }
+      })
+  }, [isUploading, lastProcessedFileIndex])
+
   return (
     <Page>
       <Page.Title>Cargar {APPOINTMENT_RESOLUTION_PROCESS_NAME.plural} Offline</Page.Title>
@@ -32,27 +81,37 @@ const AppointmentUploadOfflineResolutions = () => {
       </Page.Toolbar>
       <Page.Content>
         <Box>
-          <div
-            style={{
-              background: LIGHT_BG_COLOR,
-              padding: 20,
-              borderRadius: 5,
-              border: '4px dashed',
-              borderColor: t.palette.primary.main,
-            }}
-            {...getRootProps()}
-          >
-            <input {...getInputProps()} />
-            {isDragActive ? (
-              <H4>Arroje los archivos aquí</H4>
-            ) : (
-              <H4>Arrastre y suelte algunos archivos aquí, o haga clic para seleccionar archivos</H4>
-            )}
-          </div>
-          <Spacer size="l" />
+          {!isUploading ? (
+            <>
+              <div
+                style={{
+                  background: LIGHT_BG_COLOR,
+                  padding: 20,
+                  borderRadius: 5,
+                  border: '4px dashed',
+                  borderColor: t.palette.primary.main,
+                }}
+                {...getRootProps()}
+              >
+                <input {...getInputProps()} />
+                {isDragActive ? (
+                  <H4>Arroje los archivos aquí</H4>
+                ) : (
+                  <H4>Arrastre y suelte algunos archivos aquí, o haga clic para seleccionar archivos</H4>
+                )}
+              </div>
+              <Spacer size="l" />
+              <Spacer size="l" />
+            </>
+          ) : (
+            <>
+              <H3>Subiendo archivos...</H3>
+              <LinearProgress value={progress} variant="determinate" sx={{ height: 15, borderRadius: 5 }} />
+            </>
+          )}
           <H4>Archivos seleccionados:</H4>
           <Spacer />
-          <DeleteButton onClick={() => setFiles([])} color="error" />
+          {!isUploading && <DeleteButton onClick={() => setFiles([])} color="error" />}
           <Spacer size="s" />
           <MagicGrid spacing={0}>
             {files.map((file) => (
@@ -60,6 +119,11 @@ const AppointmentUploadOfflineResolutions = () => {
             ))}
           </MagicGrid>
         </Box>
+        <Spacer size="l" />
+        <Button onClick={handleUpload} color="primary">
+          Cargar Archivos
+        </Button>
+        <Spacer size="xxl" />
       </Page.Content>
     </Page>
   )
