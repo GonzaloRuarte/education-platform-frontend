@@ -84,6 +84,8 @@ const useNavigateToAppointmentProcess = dynamicNavigationHook(appointmentsProces
 const useNavigateToAppointmentEditStudents = dynamicNavigationHook(appointmentsEditStudentsPath)
 const useNavigateToAppointmentCreate = navigationHook(pages.D._.turnos._.agregar.path)
 const useNavigateToAppointmentDetail = navigationWithIdHook(pages.D._.turnos.path)
+const useNavigateToAppointmentHome = navigationHook(pages.D._.turnos.path)
+const useNavigateToAppointmentUploadOfflineStates = navigationHook(pages.D._.turnos._.cargarResolucionesOffline.path)
 const useNavigateToAppointmentRequest = navigationHook(pages.D._.turnos._.solicitar.path)
 
 export {
@@ -105,4 +107,6 @@ export {
   useNavigateToAppointmentList,
   useNavigateToAppointmentProcess,
   useNavigateToAppointmentRequest,
+  useNavigateToAppointmentHome,
+  useNavigateToAppointmentUploadOfflineStates,
 }

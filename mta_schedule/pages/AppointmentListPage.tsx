@@ -11,6 +11,7 @@ import {
   useNavigateToAppointmentDetail,
   useNavigateToAppointmentEditStudents,
   useNavigateToAppointmentProcess,
+  useNavigateToAppointmentUploadOfflineStates,
 } from '@/mta_schedule/hooks'
 import { AppointmentOccurrenceStatus, AppointmentStatus, I_AppointmentListItem } from '@/mta_schedule/types'
 import Button from '@/shared/components/Button'
@@ -18,6 +19,7 @@ import ListPage from '@/shared/pages/ListPage'
 import { idExposeColumn } from '@/shared/pages/utils'
 import RuleIcon from '@mui/icons-material/Rule'
 import SchoolIcon from '@mui/icons-material/School'
+import UploadIcon from '@mui/icons-material/Upload'
 import TroubleshootIcon from '@mui/icons-material/Troubleshoot'
 import { GridColDef } from '@mui/x-data-grid'
 import dayjs from 'dayjs'
@@ -118,6 +120,7 @@ const AppointmentListPage = () => {
   const navToEditStudents = useNavigateToAppointmentEditStudents()
   const navToCreate = useNavigateToAppointmentCreate()
   const navToDetail = useNavigateToAppointmentDetail()
+  const navToUploadOfflineStates = useNavigateToAppointmentUploadOfflineStates()
 
   return (
     <ListPage
@@ -127,6 +130,13 @@ const AppointmentListPage = () => {
       onCreate={navToCreate}
       useBatchDelete={useAppointmentBatchDelete}
       onRowClick={ListPage.mapNavToOnRowClick(navToDetail)}
+      customButtons={
+        <>
+          <Button startIcon={<UploadIcon />} onClick={navToUploadOfflineStates}>
+            Cargar Resoluciones Offline
+          </Button>
+        </>
+      }
     />
   )
 }

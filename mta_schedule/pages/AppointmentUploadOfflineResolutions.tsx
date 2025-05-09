@@ -2,6 +2,7 @@
 
 import { LIGHT_BG_COLOR } from '@/config'
 import { APPOINTMENT_RESOLUTION_PROCESS_NAME } from '@/mta_resolutions/constants'
+import { useNavigateToAppointmentHome, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
 import { BackButton, DeleteButton } from '@/shared/components/buttons'
 import Chip from '@/shared/components/Chip'
 import MagicGrid from '@/shared/components/MagicGrid'
@@ -21,11 +22,13 @@ const AppointmentUploadOfflineResolutions = () => {
   }, [])
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
   const t = useTheme()
+
+  const navToAppointmentHome = useNavigateToAppointmentHome()
   return (
     <Page>
       <Page.Title>Cargar {APPOINTMENT_RESOLUTION_PROCESS_NAME.plural} Offline</Page.Title>
       <Page.Toolbar>
-        <BackButton />
+        <BackButton onClick={navToAppointmentHome} />
       </Page.Toolbar>
       <Page.Content>
         <Box>
