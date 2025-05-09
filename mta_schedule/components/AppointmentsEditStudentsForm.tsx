@@ -3,6 +3,7 @@
 import AppointmentBriefCard from '@/mta_schedule/components/AppointmentBriefCard'
 import { T_AddedStudents } from '@/mta_schedule/components/StudentsProfileSelector'
 import { ControlledStudentsProfileSelector } from '@/mta_schedule/components/StudentsProfileSelectorControlled'
+import { APPOINTMENT_MAX_STUDENTS } from '@/mta_schedule/constants'
 import { useAppointmentAddStudents, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
 import { I_AppointmentDetail } from '@/mta_schedule/types'
 import { I_SchoolName } from '@/mta_schools/types'
@@ -72,6 +73,8 @@ const AppointmentsEditStudentsForm = ({ data }: I_Props) => {
             rules={{
               validate: (student_profiles) => {
                 if (Object.values(student_profiles).length === 0) return 'Debe agregar al menos un estudiante'
+                if (Object.values(student_profiles).length > APPOINTMENT_MAX_STUDENTS)
+                  return `El turno puede tener un máximo de ${APPOINTMENT_MAX_STUDENTS} estudiantes`
 
                 return true
               },

@@ -1,5 +1,6 @@
 'use client'
 
+import { APPOINTMENT_MAX_STUDENTS } from '@/mta_schedule/constants'
 import { useStudentProfileListBySchool } from '@/mta_schools/hooks'
 import {
   I_StudentProfileListItem,
@@ -14,7 +15,7 @@ import Chip from '@/shared/components/Chip'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Table from '@/shared/components/Table'
-import { Body1, H4 } from '@/shared/components/Typography'
+import { Body1, Body2, H4 } from '@/shared/components/Typography'
 import Input from '@/shared/forms/Input'
 import { paginationModelAsFetchPaginationOptions } from '@/shared/pages/utils'
 import { Box, FormHelperText, Grid2 } from '@mui/material'
@@ -96,6 +97,7 @@ const StudentsProfileSelector = ({ schoolId, addedStudents, onAddedStudentsChang
   const { rowSelectionModel, setRowSelectionModel } = Table.useRowSelectionModel()
 
   const addedStudentsEntries = Object.entries(addedStudents)
+  const studentsCountMaximumExceeded = addedStudentsEntries.length > APPOINTMENT_MAX_STUDENTS
   const filteredAddedStudents = addedStudentsEntries.filter(
     ([_, { personal_id, cohort }]) =>
       String(personal_id).includes(addedStudentsFilterCriteria) || cohort.includes(addedStudentsFilterCriteria),
@@ -192,6 +194,13 @@ const StudentsProfileSelector = ({ schoolId, addedStudents, onAddedStudentsChang
                 ? `(mostrando ${filteredAddedStudents.length})`
                 : ''}
             </Body1>
+            <Body2 color={studentsCountMaximumExceeded ? red[500] : undefined}>
+              El máximo de estudiantes por turno es {APPOINTMENT_MAX_STUDENTS}.{' '}
+              {studentsCountMaximumExceeded &&
+                `Debes quitar ${addedStudentsEntries.length - APPOINTMENT_MAX_STUDENTS} estudiantes para continuar.`}
+              {addedStudentsEntries.length < APPOINTMENT_MAX_STUDENTS &&
+                `Todavía podés agregar ${APPOINTMENT_MAX_STUDENTS - addedStudentsEntries.length} estudiantes.`}
+            </Body2>
             <Spacer />
             <MagicGrid itemSize="auto">
               {filteredAddedStudents.map(([studentId, { personal_id, cohort }]) => {
