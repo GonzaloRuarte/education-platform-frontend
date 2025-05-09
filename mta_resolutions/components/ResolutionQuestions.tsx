@@ -116,9 +116,10 @@ const forms: Record<T_AnswerType, FC<any>> = {
   MultipleChoice: MultipleChoiceForm,
   Numeric: NumericForm,
 }
-const ResolutionQuestions: FC<{ evaluationToResolve: I_EvaluationToResolve }> = ({ evaluationToResolve }) => {
-  const { currentPage } = useResolutionPagination()
-
+const ResolutionQuestions: FC<{ evaluationToResolve: I_EvaluationToResolve; currentPage: number }> = ({
+  evaluationToResolve,
+  currentPage,
+}) => {
   const questions = evaluationToResolve.pages[currentPage - 1]
 
   return (

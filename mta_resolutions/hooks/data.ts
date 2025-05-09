@@ -15,7 +15,7 @@ import { T_StudentProfilePersonalId } from '@/mta_schools/types'
 import { axiosPost } from '@/shared/data/axios'
 import ApiError from '@/shared/data/errors'
 import { actionHook, useInProgress } from '@/shared/hooks'
-import log from '@/shared/log'
+import log, { logWarning } from '@/shared/log'
 import { postService } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import useToasts from '@/shared/toasts'
@@ -140,9 +140,11 @@ const useResolutionResume = () => {
 const useResolutionStateUpdateAnswer = () => {
   const resolutionState = useResolutionState()
   const storeResolutionState = useStore((state) => state.resolution_storeState)
-  if (resolutionState === null) throw new Error('Resolution local state not initialized')
+  logWarning('Resolution local state not initialized')
 
   const Numeric = (questionId: T_QuestionId, answerId: T_AnswerId, value: number) => {
+    if (resolutionState === null) return
+
     const now = new Date().toISOString()
     const answerData: T_ResolutionState_NumericAnswerData = {
       id: answerId,
@@ -160,6 +162,8 @@ const useResolutionStateUpdateAnswer = () => {
     })
   }
   const MultipleChoice = (questionId: T_QuestionId, answerId: T_AnswerId, choosed_options: Array<string>) => {
+    if (resolutionState === null) return
+
     const now = new Date().toISOString()
     const answerData: T_ResolutionState_MultipleChoiceAnswerData = {
       id: answerId,

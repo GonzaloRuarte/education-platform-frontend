@@ -7,6 +7,7 @@ import {
   T_EvaluationList,
   T_EvaluationSubjectList,
 } from '@/mta_evaluations/types'
+import { I_EvaluationToResolve } from '@/mta_resolutions/types'
 import pages, { evaluationsEditContentPath, evaluationsPreviewPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
 import {
@@ -21,6 +22,7 @@ import {
   navigationWithIdHook,
   updateHook,
 } from '@/shared/hooks'
+import { actionDataHookV3 } from '@/shared/hooks/dataServices/v3'
 import { listService } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import { I_CreationCommonResponse, T_EmptyPayload } from '@/shared/types'
@@ -56,6 +58,12 @@ const useRecoverAndStoreEvaluationSubjects = () => {
       return res
     })
 }
+const EVALUATION_PREVIEW_PATH = '/evaluations/{evaluationId:number}/preview'
+const useEvaluationPreview = actionDataHookV3<typeof EVALUATION_PREVIEW_PATH, T_EmptyPayload, I_EvaluationToResolve>(
+  EVALUATION_PREVIEW_PATH,
+  axiosGet,
+  useAuthResources,
+)
 
 // Navigation
 const useNavigateToEvaluationList = navigationHook(pages.D._.evaluaciones.path)
@@ -79,4 +87,5 @@ export {
   useNavigateToEvaluationList,
   useRecoverAndStoreEvaluationSubjects,
   useEvaluationSetStatus,
+  useEvaluationPreview,
 }

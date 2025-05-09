@@ -45,7 +45,7 @@ const ResolveEvaluationPage = () => {
                   {/* <ResolutionPageIndicator /> */}
                   <Spacer size="xl" />
 
-                  <ResolutionQuestions evaluationToResolve={evaluationToResolve} />
+                  <ResolutionQuestions {...{ evaluationToResolve, currentPage }} />
 
                   <Spacer size="s" />
 
