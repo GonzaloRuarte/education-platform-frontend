@@ -70,15 +70,21 @@ const Footer = () => {
 
 const ResolutionLoggedInLayout: T_FCwChildren = ({ children }) => {
   return (
-    <Box height={'100%'} minHeight={'100vh'} justifyContent={'space-between'} flexDirection={'column'} display={'flex'}>
-      <AccessibilityWrapper>
+    <AccessibilityWrapper>
+      <Box
+        height={'100%'}
+        minHeight={'100vh'}
+        justifyContent={'space-between'}
+        flexDirection={'column'}
+        display={'flex'}
+      >
         <Header />
         <Box display={'flex'} flexDirection={'column'} flex={1}>
           <Main>{children}</Main>
           <Footer />
         </Box>
-      </AccessibilityWrapper>
-    </Box>
+      </Box>
+    </AccessibilityWrapper>
   )
 }
 export default ResolutionLoggedInLayout
