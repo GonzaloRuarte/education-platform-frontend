@@ -50,6 +50,10 @@ const Menu = () => {
             subMenu={
               <MenuBlock isSubMenu>
                 <MenuItem label={P.D._.turnos._.solicitar.label} href={P.D._.turnos._.solicitar.path} />
+                <MenuItem
+                  label={P.D._.turnos._.cargarResolucionesOffline.label}
+                  href={P.D._.turnos._.cargarResolucionesOffline.path}
+                />
               </MenuBlock>
             }
           />

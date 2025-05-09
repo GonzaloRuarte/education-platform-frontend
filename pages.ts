@@ -80,6 +80,10 @@ const pages = {
             path: appointmentsEditStudentsPath,
             label: 'Editar estudiantes',
           },
+          cargarResolucionesOffline: {
+            path: '/dashboard/turnos/cargar-resoluciones-offline',
+            label: 'Cargar Resoluciones Offline',
+          },
         },
       },
       evaluaciones: {
