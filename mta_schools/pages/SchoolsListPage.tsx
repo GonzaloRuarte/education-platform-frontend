@@ -1,7 +1,7 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
-import { SCHOOL_NAME } from '@/mta_schools/constants'
+import { SCHOOL_NAME, SCHOOL_STAFF_PROFILE_NAME } from '@/mta_schools/constants'
 import {
   useNavigateToSchoolCreate,
   useNavigateToSchoolDetail,
@@ -18,7 +18,7 @@ const columns: Array<GridColDef> = [
   { field: 'district', headerName: 'Distrito', flex: 1 },
   {
     field: 'staff',
-    headerName: 'Staff',
+    headerName: 'Responsables institucionales',
     flex: 1.5,
     renderCell: ({ value }) => {
       if (value.length === 0) return <>-</>

@@ -62,7 +62,7 @@ const columns = (a: {
   { field: 'pin', headerName: 'PIN' },
   {
     field: 'student_count',
-    headerName: 'C/Estudiantes',
+    headerName: 'Cantidad Estudiantes',
     renderCell: ({ row }) => <>{row.status === AppointmentStatus.approved ? row.student_count : '-'}</>,
     flex: 0.7,
   },

@@ -44,22 +44,13 @@ const UserChangePasswordPage = () => {
   return (
     <>
       <Page>
-        <Page.Title>Cambiar Password</Page.Title>
+        <Page.Title>Cambiar contraseña</Page.Title>
         <Page.Toolbar>
           <BackButton onClick={navToList} />
         </Page.Toolbar>
         <Page.Content>
           <form onSubmit={handleSubmit(onSubmit)}>
             <MagicGrid>
-              {/* <InputControlled<I_FormFields>
-                control={control}
-                name="old_password"
-                rules={{
-                  ...rules.required(),
-                }}
-                label="Contraseña actual"
-                type="password"
-              /> */}
               <InputControlled<I_FormFields>
                 control={control}
                 name="new_password"
@@ -86,7 +77,7 @@ const UserChangePasswordPage = () => {
               />
             </MagicGrid>
             <Spacer />
-            <Submit>Cambiar password</Submit>
+            <Submit>Cambiar contraseña</Submit>
           </form>
         </Page.Content>
       </Page>

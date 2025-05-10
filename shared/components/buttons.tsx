@@ -46,7 +46,7 @@ const DeleteButton: React.FC<I_DeleteButtonProps> = ({ label, ...props }) => (
 
 const ChangePasswordButton: React.FC<I_ButtonProps> = ({ ...props }) => (
   <Button startIcon={<PasswordIcon />} {...props}>
-    Cambiar Password
+    Cambiar contraseña
   </Button>
 )
 
