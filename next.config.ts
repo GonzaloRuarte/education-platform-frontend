@@ -5,9 +5,10 @@ import withSerwistInit from '@serwist/next'
 // const revision = crypto.randomUUID()
 
 const withSerwist = withSerwistInit({
-  cacheOnNavigation: false,
+  cacheOnNavigation: true,
   swSrc: 'app/sw.ts',
   swDest: 'public/sw.js',
+  reloadOnOnline: false,
   // additionalPrecacheEntries: [{ url: '/~offline', revision }],
 })
 

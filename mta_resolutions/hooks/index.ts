@@ -16,6 +16,7 @@ import {
 } from '@/mta_resolutions/types'
 import pages from '@/pages'
 import { useInProgress, useInterval } from '@/shared/hooks'
+import { useNetworkStatus } from '@/shared/offline/hooks'
 import { handleServiceError } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import { withRouterHistoryReset } from '@/shared/utils'
@@ -131,6 +132,7 @@ const useResolutionExit = () => {
 }
 
 const useResolutionManageSubmit = () => {
+  const { isOnline } = useNetworkStatus()
   const submit = useResolutionRequestSubmit()
   const resetState = useResolutionResetState()
   const state = useResolutionState()
@@ -141,7 +143,15 @@ const useResolutionManageSubmit = () => {
   const manageSubmit = () => {
     if (state === null) return
     setIsInProgress()
-    downloadResolutionState()
+
+    if (!isOnline) {
+      downloadResolutionState()
+      navigateToResolutionSubmittedPage()
+      resetState()
+      setIsNotInProgress()
+      return
+    }
+
     submit(state)
       .then((res) => {
         navigateToResolutionSubmittedPage()

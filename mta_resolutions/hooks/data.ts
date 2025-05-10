@@ -16,9 +16,10 @@ import { axiosPost } from '@/shared/data/axios'
 import ApiError from '@/shared/data/errors'
 import { actionHook, useInProgress } from '@/shared/hooks'
 import log, { logWarning } from '@/shared/log'
+import { useNetworkStatus } from '@/shared/offline/hooks'
 import { postService } from '@/shared/service'
 import { useStore } from '@/shared/state'
-import useToasts from '@/shared/toasts'
+import useToasts, { warningToast } from '@/shared/toasts'
 import { T_EmptyPayload } from '@/shared/types'
 import { useCallback } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
@@ -91,6 +92,7 @@ const initialState = (personal_id: T_StudentProfilePersonalId, appointment_id: T
   }
 }
 const useResolutionResume = () => {
+  const { isOnline } = useNetworkStatus()
   const requestResume = _useResolutionRequestResume()
   const storeEvaluationToResolve = useResolutionStoreEvaluation()
   const storeResolutionState = useResolutionStoreState()
@@ -101,6 +103,12 @@ const useResolutionResume = () => {
   const logout = useResolutionLogout()
 
   const resume = useDebouncedCallback(() => {
+    if (!isOnline) {
+      logWarning('Resolution resume skipped: offline')
+      warningToast('No hay conexión a internet')
+      return
+    }
+
     setIsInProgress()
     requestResume({})
       .then((response) => {
@@ -140,7 +148,9 @@ const useResolutionResume = () => {
 const useResolutionStateUpdateAnswer = () => {
   const resolutionState = useResolutionState()
   const storeResolutionState = useStore((state) => state.resolution_storeState)
-  logWarning('Resolution local state not initialized')
+  if (resolutionState === null) {
+    logWarning('Resolution local state not initialized')
+  }
 
   const Numeric = (questionId: T_QuestionId, answerId: T_AnswerId, value: number) => {
     if (resolutionState === null) return
@@ -189,6 +199,7 @@ const useResolutionStateUpdateAnswer = () => {
 }
 
 const useResolutionManageUploadState = () => {
+  const { isOnline } = useNetworkStatus()
   const uploadState = _useResolutionUploadState()
   const resolutionState = useResolutionState()
   const lastUploadDatetime = useResolutionLastUploadDatetime()
@@ -199,6 +210,10 @@ const useResolutionManageUploadState = () => {
   }
 
   const manageUpload = () => {
+    if (!isOnline) {
+      logWarning('Resolution state upload skipped: offline')
+      return
+    }
     if (resolutionState === null) return
     if (resolutionState.last_update_datetime === null) return
     if (lastUploadDatetime !== null && new Date(resolutionState.last_update_datetime) < new Date(lastUploadDatetime))

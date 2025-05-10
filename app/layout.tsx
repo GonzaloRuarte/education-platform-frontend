@@ -15,6 +15,7 @@ import LoadFormulasResources from '@/shared/formulas/appServices/LoadFormulasRes
 import LocalizationProvider from '@/shared/datetime/LocalizationProvider'
 import { MAIN_BG_COLOR } from '@/config'
 import '@/shared/globals.css'
+import OfflineIndicator from '@/shared/offline/OfflineIndicator'
 
 const monstserrat = Montserrat({
   weight: ['300', '400', '500', '700'],
@@ -88,6 +89,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                   services={[RecoverEvaluationSubjects, LoadFormulasResources]}
                   d={{}}
                 />
+                <OfflineIndicator />
                 {children}
               </LocalizationProvider>
             </ThemeProvider>

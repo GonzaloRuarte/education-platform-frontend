@@ -23,3 +23,14 @@ const serwist = new Serwist({
 })
 
 serwist.addEventListeners()
+
+// serwist.addToPrecacheList([
+//   { url: '/boy.jpg', revision: null },
+//   { url: '/girl.jpg', revision: null },
+//   { url: '/icon-512x512.png', revision: null },
+//   { url: '/logo_austral_@2x.png', revision: null },
+//   { url: '/logo_color.png', revision: null },
+//   { url: '/logo_white.png', revision: null },
+//   { url: '/triangle.png', revision: null },
+//   // Other entries...
+// ])
