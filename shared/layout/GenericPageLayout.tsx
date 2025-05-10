@@ -1,6 +1,5 @@
 import { T_FCwChildren } from '@/shared/types'
 import { Box } from '@mui/material'
-import Container from '@mui/material/Container'
 
 const GenericPageLayout: T_FCwChildren = ({ children }) => {
   return (

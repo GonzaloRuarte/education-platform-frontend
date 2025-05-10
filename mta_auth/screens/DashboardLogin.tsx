@@ -7,7 +7,7 @@ import Paper from '@mui/material/Paper'
 
 const DashboardLogin = () => {
   return (
-    <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+    <Box display="flex" justifyContent="center" alignItems="center">
       <Box width="30vw">
         <Paper style={{ padding: 30 }}>
           <H1>Meta</H1>

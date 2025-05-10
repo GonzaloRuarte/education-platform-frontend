@@ -4,16 +4,15 @@ import Box from '@mui/material/Box'
 
 import { useResolutionEvaluationToResolve } from '@/mta_resolutions/hooks/data'
 import Logo from '@/shared/components/Logo'
-import LogoAustral from '@/shared/components/LogoAustral'
 import { H4 } from '@/shared/components/Typography'
 import { useTheme } from '@/shared/hooks'
 import { T_FCwChildren } from '@/shared/types'
 import { ImageSize } from '@/shared/utils'
 
-import TeachersPinMenu from '@/mta_resolutions/components/TeachersPinMenu'
+import AccessibilityWrapper from '@/mta_resolutions/components/AccessibilityWrapper'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid2'
-import AccessibilityWrapper from '@/mta_resolutions/components/AccessibilityWrapper'
+import Footer from '@/shared/layout/Footer'
 
 const logoSize = new ImageSize(262, 101, { scale: 0.5 })
 
@@ -46,25 +45,6 @@ const Main: T_FCwChildren = ({ children }) => {
     <Container style={{ flex: 1 }}>
       <Box justifyContent={'flex-start'}>{children}</Box>
     </Container>
-  )
-}
-
-const australLogoSize = new ImageSize(412, 72, { scale: 0.5 })
-const Footer = () => {
-  const t = useTheme()
-  return (
-    <footer style={{ background: t.palette.primary.main, padding: 20 }}>
-      <Container>
-        <Grid container alignItems={'center'} justifyContent={'space-between'}>
-          <Grid size={8}>
-            <LogoAustral width={australLogoSize.w} height={australLogoSize.h} />
-          </Grid>
-          <Grid size={4} display={'flex'} justifyContent={'flex-end'}>
-            <TeachersPinMenu />
-          </Grid>
-        </Grid>
-      </Container>
-    </footer>
   )
 }
 
