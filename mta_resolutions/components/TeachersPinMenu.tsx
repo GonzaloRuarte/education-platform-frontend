@@ -4,11 +4,12 @@ import MagicGrid from '@/shared/components/MagicGrid'
 import { H4 } from '@/shared/components/Typography'
 import Input from '@/shared/forms/Input'
 import { useTheme } from '@/shared/hooks'
-import { Box, FormControlLabel, FormGroup, Popover, Switch, ToggleButton } from '@mui/material'
+import { Box, FormControlLabel, FormGroup, IconButton, Popover, Switch, ToggleButton } from '@mui/material'
 import React from 'react'
 import DownloadIcon from '@mui/icons-material/Download'
 import Spacer from '@/shared/components/Spacer'
 import { useResolutionExit } from '@/mta_resolutions/hooks'
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
 
 const TeachersPinMenu = () => {
   const t = useTheme()
@@ -75,21 +76,26 @@ const TeachersPinMenu = () => {
         </Box>
       </Popover>
       <form onSubmit={handleSubmit}>
-        <Input
-          name="pin"
-          label="PIN"
-          placeholder="Ingrese el PIN"
-          type="password"
-          autoComplete="off"
-          size="small"
-          value={inputPin}
-          sx={{ width: 150 }}
-          onChange={(e) => setInputPinValue(e.target.value)}
-          slotProps={{
-            inputLabel: { sx: { background: t.palette.primary.main, color: 'white !important' } },
-            input: { sx: { border: '1px solid rgba(255,255,255,.5) !important', color: 'white !important' } },
-          }}
-        />
+        <Box display="flex" alignItems="center" justifyContent="space-between" gap={1}>
+          <Input
+            name="pin"
+            label="PIN"
+            placeholder="Ingrese el PIN"
+            type="password"
+            autoComplete="off"
+            size="small"
+            value={inputPin}
+            sx={{ width: 150 }}
+            onChange={(e) => setInputPinValue(e.target.value)}
+            slotProps={{
+              inputLabel: { sx: { background: t.palette.primary.main, color: 'white !important' } },
+              input: { sx: { border: '1px solid rgba(255,255,255,.5) !important', color: 'white !important' } },
+            }}
+          />
+          <IconButton type="submit" size="small" sx={{ color: 'white', background: 'rgba(255,255,255,.1)' }}>
+            <ArrowForwardIosIcon />
+          </IconButton>
+        </Box>
       </form>
     </Box>
   )
