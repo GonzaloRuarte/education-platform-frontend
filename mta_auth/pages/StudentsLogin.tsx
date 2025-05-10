@@ -16,7 +16,7 @@ const StudentsLogin = () => {
     storeNewPage(1)
   }, [])
   return (
-    <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+    <Box display="flex" justifyContent="center" alignItems="center">
       <Box width="30vw">
         {/* <Paper style={{ padding: 30 }}> */}
         <Logo variant="color" width={logoSize.w} height={logoSize.h} />

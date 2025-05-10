@@ -28,7 +28,7 @@ const LogInPageLayout: T_FCwChildren<{ pic: 'boy' | 'girl' }> = ({ children, pic
           {children}
         </Box>
       </Box>
-      <Footer />
+      <Footer includePin={false} />
     </Box>
   )
 }
