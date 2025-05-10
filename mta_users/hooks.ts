@@ -1,9 +1,23 @@
 import { useAuthResources } from '@/mta_auth/hooks'
-import { I_UserChangePasswordRequest, I_UserDetail, T_UserId, T_UserListWithProfiles } from '@/mta_users/types'
+import {
+  I_AdminProfileCreateRequestData,
+  I_UserChangePasswordRequest,
+  I_UserDetail,
+  T_UserId,
+  T_UserListWithProfiles,
+} from '@/mta_users/types'
 import { userListWithProfiles } from '@/mta_users/utils'
 import pages, { userChangePasswordPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPost } from '@/shared/data/axios'
-import { batchDeletionHook, detailHook, dynamicNavigationHook, listHook, navigationHook } from '@/shared/hooks'
+import {
+  batchDeletionHook,
+  creationHook,
+  detailHook,
+  dynamicNavigationHook,
+  listHook,
+  navigationHook,
+  navigationWithIdHook,
+} from '@/shared/hooks'
 import { actionHookV3 } from '@/shared/hooks/dataServices/v3'
 import { useStore } from '@/shared/state'
 import { T_EmptyPayload } from '@/shared/types'
@@ -22,12 +36,23 @@ const useUserChangePassword = actionHookV3<
   T_EmptyPayload
 >(USERS_CHANGE_PASSWORD_PATH, axiosPost, useAuthResources)
 
+const useAdminProfileList = listHook<T_UserListWithProfiles>(`${USERS_PATH}/admins`, axiosGet, useAuthResources, {
+  dataPostProcessor: userListWithProfiles,
+})
+const useAdminProfileCreate = creationHook<I_AdminProfileCreateRequestData, I_UserDetail>(
+  `${USERS_PATH}/create-admin`,
+  axiosPost,
+  useAuthResources,
+)
 const useNavigateToUserChangePassword = dynamicNavigationHook(userChangePasswordPath)
 const useNavigateToUserList = navigationHook(pages.D._.usuarios.path)
 
 const useUserStoreWhoIAmData = () => useStore((state) => state.user_storeWhoIAmData)
 const useUserWhoIAmData = () => useStore((state) => state.user_whoIAmData)
 
+const useNavigateToAdminProfileDetail = navigationWithIdHook(pages.D._.usuarios._.admins.path)
+const useNavigateToAdminProfileList = navigationHook(pages.D._.usuarios._.admins.path)
+const useNavigateToAdminProfileCreate = navigationHook(pages.D._.usuarios._.admins._.agregar.path)
 export {
   useNavigateToUserChangePassword,
   useNavigateToUserList,
@@ -37,4 +62,9 @@ export {
   useUserList,
   useUserStoreWhoIAmData,
   useUserWhoIAmData,
+  useAdminProfileList,
+  useNavigateToAdminProfileDetail,
+  useNavigateToAdminProfileList,
+  useNavigateToAdminProfileCreate,
+  useAdminProfileCreate,
 }

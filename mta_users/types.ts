@@ -45,6 +45,14 @@ interface I_UserWhoIAmData {
   last_name: string | null
 }
 
+interface I_AdminProfileCreateRequestData {
+  username: string
+  email: string
+  password: string
+  first_name: string
+  last_name: string
+}
+
 export type {
   T_UserId,
   T_UserProfiles,
@@ -56,4 +64,5 @@ export type {
   I_UserListItemWithProfiles,
   I_UserChangePasswordRequest,
   I_UserWhoIAmData,
+  I_AdminProfileCreateRequestData,
 }

@@ -164,7 +164,7 @@ const pages = {
           },
           responsableInstitucional: {
             path: '/dashboard/usuarios/responsables-institucionales',
-            label: 'Responsable Institucional',
+            label: 'Responsables Institucionales',
             _: {
               agregar: {
                 path: '/dashboard/usuarios/responsables-institucionales/agregar',
@@ -185,6 +185,12 @@ const pages = {
           admins: {
             path: '/dashboard/usuarios/administradores',
             label: 'Administradores',
+            _: {
+              agregar: {
+                path: '/dashboard/usuarios/administradores/agregar',
+                label: 'Agregar Administrador',
+              },
+            },
           },
         },
       },

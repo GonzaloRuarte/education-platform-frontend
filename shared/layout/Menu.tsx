@@ -92,6 +92,7 @@ const Menu = () => {
                   href={P.D._.usuarios._.responsableInstitucional.path}
                 />
                 <MenuItem label={P.D._.usuarios._.itemista.label} href={P.D._.usuarios._.itemista.path} />
+                <MenuItem label={P.D._.usuarios._.admins.label} href={P.D._.usuarios._.admins.path} />
               </MenuBlock>
             }
           />
