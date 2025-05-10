@@ -1,1 +1,1 @@
-export { default } from '@/mta_auth/screens/StudentsLogin'
+export { default } from '@/mta_auth/pages/StudentsLogin'
