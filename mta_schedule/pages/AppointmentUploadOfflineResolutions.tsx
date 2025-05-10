@@ -14,19 +14,21 @@ import { H3, H4 } from '@/shared/components/Typography'
 import { useTheme } from '@/shared/hooks'
 import { handleServiceError } from '@/shared/service'
 import { successToast, warningToast } from '@/shared/toasts'
-import { Box, LinearProgress } from '@mui/material'
+import { Box, Grid2, LinearProgress } from '@mui/material'
 import React, { useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 
 const AppointmentUploadOfflineResolutions = () => {
   const [files, setFiles] = React.useState<File[]>([])
   const [lastProcessedFileIndex, setLastProcessedFileIndex] = React.useState<number | null>(null)
+  const [withErrorFiles, setWithErrorFiles] = React.useState<File[]>([])
   const [isUploading, setIsUploading] = React.useState(false)
   const progress = lastProcessedFileIndex !== null ? ((lastProcessedFileIndex + 1) / files.length) * 100 : 0
 
   const onDrop = useCallback((acceptedFiles) => {
     console.log(acceptedFiles)
     setFiles(acceptedFiles)
+    setWithErrorFiles([])
   }, [])
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
   const t = useTheme()
@@ -39,6 +41,7 @@ const AppointmentUploadOfflineResolutions = () => {
       warningToast('No hay archivos para cargar')
       return
     }
+    setWithErrorFiles([])
     setIsUploading(true)
   }, [files, lastProcessedFileIndex])
 
@@ -62,6 +65,7 @@ const AppointmentUploadOfflineResolutions = () => {
       .catch((err) => {
         handleServiceError(err)
         setLastProcessedFileIndex(currentIndex)
+        setWithErrorFiles((prev) => [...prev, files[currentIndex]])
       })
       .finally(() => {
         if (currentIndex === files.length - 1) {
@@ -106,18 +110,37 @@ const AppointmentUploadOfflineResolutions = () => {
           ) : (
             <>
               <H3>Subiendo archivos...</H3>
+              <Spacer size="xs" />
               <LinearProgress value={progress} variant="determinate" sx={{ height: 15, borderRadius: 5 }} />
+              <Spacer size="l" />
             </>
           )}
-          <H4>Archivos seleccionados:</H4>
-          <Spacer />
-          {!isUploading && <DeleteButton onClick={() => setFiles([])} color="error" />}
-          <Spacer size="s" />
-          <MagicGrid spacing={0}>
-            {files.map((file) => (
-              <Chip key={file.name} label={file.name} color="primary" variant="outlined" sx={{ margin: 1 }} />
-            ))}
-          </MagicGrid>
+          <Grid2 container spacing={2} size={12}>
+            <Grid2 size={6}>
+              <H4>Archivos seleccionados:</H4>
+              <Spacer />
+              {!isUploading && <DeleteButton onClick={() => setFiles([])} color="error" />}
+              <Spacer size="s" />
+              <MagicGrid spacing={0}>
+                {files.map((file) => (
+                  <Chip key={file.name} label={file.name} color="primary" variant="outlined" sx={{ margin: 1 }} />
+                ))}
+              </MagicGrid>
+            </Grid2>
+            <Grid2 size={6}>
+              {withErrorFiles.length > 0 && (
+                <>
+                  <H4>Archivos con error:</H4>
+                  <Spacer />
+                  <MagicGrid spacing={0}>
+                    {withErrorFiles.map((file) => (
+                      <Chip key={file.name} label={file.name} color="error" variant="outlined" sx={{ margin: 1 }} />
+                    ))}
+                  </MagicGrid>
+                </>
+              )}
+            </Grid2>
+          </Grid2>
         </Box>
         <Spacer size="l" />
         <Button onClick={handleUpload} color="primary">
