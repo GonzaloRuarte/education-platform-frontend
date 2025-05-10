@@ -1,15 +1,15 @@
 import type { NextConfig } from 'next'
-// import withSerwistInit from '@serwist/next'
+import withSerwistInit from '@serwist/next'
 // import crypto from 'crypto'
 
 // const revision = crypto.randomUUID()
 
-// const withSerwist = withSerwistInit({
-//   cacheOnNavigation: true,
-//   swSrc: 'app/sw.ts',
-//   swDest: 'public/sw.js',
-//   additionalPrecacheEntries: [{ url: '/~offline', revision }],
-// })
+const withSerwist = withSerwistInit({
+  cacheOnNavigation: false,
+  swSrc: 'app/sw.ts',
+  swDest: 'public/sw.js',
+  // additionalPrecacheEntries: [{ url: '/~offline', revision }],
+})
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -26,5 +26,5 @@ const nextConfig: NextConfig = {
   output: 'standalone',
 }
 
-// export default withSerwist(nextConfig)
-export default nextConfig
+export default withSerwist(nextConfig)
+// export default nextConfig
