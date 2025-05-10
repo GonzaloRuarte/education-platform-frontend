@@ -79,7 +79,7 @@ const EvaluationCreateForm = () => {
         />
         <SchoolGradeSelectControlled control={control} name="grade" rules={{ ...rules.required() }} />
         <SubjectOptions<I_FormFields> {...{ control }} name="subject_id" />
-        <Input name="code" label={evaluationLabels.code} disabled value={code} />
+        <Input name="code" label={evaluationLabels.code} disabled value={code} title="El código de la evaluación se genera automáticamente" />
         <WysiwygEditorControlled<I_FormFields>
           {...{ control }}
           label={evaluationLabels.header}

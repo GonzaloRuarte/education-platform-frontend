@@ -79,8 +79,10 @@ const EvaluationEditForm = ({ data }: I_Props) => {
         <InputControlled<I_FormFields>
           {...{ control }}
           name="code"
+          title="El código de la evaluación no se puede editar"
           rules={{ ...rules.required() }}
           label={evaluationLabels.code}
+          disabled
         />
         <SubjectOptions {...{ control }} name="subject_id" />
         <WysiwygEditorControlled

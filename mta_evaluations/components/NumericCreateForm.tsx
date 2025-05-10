@@ -17,7 +17,9 @@ import { successToast } from '@/shared/toasts'
 import { useParams } from 'next/navigation'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
-interface I_FormFields extends Omit<I_QuestionCreateNumericRequestData, 'evaluation_id'> {}
+interface I_FormFields extends Omit<I_QuestionCreateNumericRequestData, 'evaluation_id' | 'value'> {
+  value: number | ''
+}
 
 const NumericCreateForm: T_QuestionForm<I_AnswerNumericDetail> = () => {
   const { evaluationId } = useParams()
@@ -25,7 +27,7 @@ const NumericCreateForm: T_QuestionForm<I_AnswerNumericDetail> = () => {
   const { handleSubmit, control } = useForm<I_FormFields>({
     defaultValues: {
       content: '',
-      value: undefined,
+      value: '',
     },
   })
 
