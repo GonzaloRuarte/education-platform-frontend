@@ -1,5 +1,6 @@
 'use client'
 
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import EvaluatorProfileUpdateForm from '@/mta_evaluations/components/EvaluatorProfileUpdateForm'
 import { EVALUATOR_PROFILE_NAME } from '@/mta_evaluations/constants'
 import {
@@ -32,4 +33,7 @@ const EvaluatorProfileEditPage = () => {
   )
 }
 
-export default EvaluatorProfileEditPage
+export default withAuth(EvaluatorProfileEditPage, {
+  allowedUserProfiles: ['admin'],
+  logoutDestination: 'dashboard',
+})

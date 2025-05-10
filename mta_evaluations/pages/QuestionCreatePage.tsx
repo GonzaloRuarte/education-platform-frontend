@@ -1,5 +1,6 @@
 'use client'
 
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import MultipleChoiceCreateForm from '@/mta_evaluations/components/MultipleChoiceCreateForm'
 import NumericCreateForm from '@/mta_evaluations/components/NumericCreateForm'
 import { MULTIPLE_CHOICE_NAME, urlPathsToAnswerTypes } from '@/mta_evaluations/constants'
@@ -53,4 +54,7 @@ const QuestionCreatePage = () => {
   return <PageContent evaluationId={Number(evaluationId)} />
 }
 
-export default QuestionCreatePage
+export default withAuth(QuestionCreatePage, {
+  allowedUserProfiles: ['admin', 'evaluator'],
+  logoutDestination: 'dashboard',
+})

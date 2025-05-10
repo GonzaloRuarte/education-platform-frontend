@@ -49,6 +49,6 @@ const EvaluationListPage = () => {
 }
 
 export default withAuth(EvaluationListPage, {
-  allowedUserProfiles: ['admin', 'evaluator', 'school_staff'],
+  allowedUserProfiles: ['admin', 'evaluator'],
   logoutDestination: 'dashboard',
 })

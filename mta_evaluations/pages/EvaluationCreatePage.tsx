@@ -1,5 +1,6 @@
 'use client'
 
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import EvaluationCreateForm from '@/mta_evaluations/components/EvaluationCreateForm'
 import { EVALUATION_NAME } from '@/mta_evaluations/constants'
 import { useNavigateToEvaluationList } from '@/mta_evaluations/hooks'
@@ -13,4 +14,7 @@ const EvaluationCreatePage = () => (
   />
 )
 
-export default EvaluationCreatePage
+export default withAuth(EvaluationCreatePage, {
+  allowedUserProfiles: ['admin', 'evaluator'],
+  logoutDestination: 'dashboard',
+})

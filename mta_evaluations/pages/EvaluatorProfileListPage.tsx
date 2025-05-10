@@ -1,5 +1,6 @@
 'use client'
 
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { EVALUATOR_PROFILE_NAME } from '@/mta_evaluations/constants'
 import {
   useEvaluatorProfileBatchDelete,
@@ -36,4 +37,7 @@ const EvaluatorProfileListPage = () => {
   )
 }
 
-export default EvaluatorProfileListPage
+export default withAuth(EvaluatorProfileListPage, {
+  allowedUserProfiles: ['admin'],
+  logoutDestination: 'dashboard',
+})

@@ -1,5 +1,6 @@
 'use client'
 
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { EVALUATION_NAME } from '@/mta_evaluations/constants'
 import { useEvaluationPreview, useNavigateToEvaluationContentEdit } from '@/mta_evaluations/hooks'
 import ResolutionQuestions from '@/mta_resolutions/components/ResolutionQuestions'
@@ -50,4 +51,7 @@ const EvaluationPreviewPage = () => {
   )
 }
 
-export default EvaluationPreviewPage
+export default withAuth(EvaluationPreviewPage, {
+  allowedUserProfiles: ['admin', 'evaluator'],
+  logoutDestination: 'dashboard',
+})
