@@ -1,9 +1,9 @@
 'use client'
 
-import EvaluatorProfileFormFields from '@/mta_evaluations/components/EvaluatorProfileFormFields'
-import { EVALUATOR_PROFILE_NAME } from '@/mta_evaluations/constants'
-import { useEvaluatorProfileUpdate, useNavigateToEvaluatorProfileList } from '@/mta_evaluations/hooks/evaluators'
-import { I_EvaluatorProfileDetail, I_EvaluatorProfileUpdateRequestData } from '@/mta_evaluations/types/evaluatorProfile'
+import AdminProfileFormFields from '@/mta_users/components/AdminProfileFormFields'
+import { ADMIN_PROFILE_NAME } from '@/mta_users/constants'
+import { useAdminProfileUpdate, useNavigateToAdminProfileList } from '@/mta_users/hooks'
+import { I_AdminProfileUpdateRequestData, I_UserDetail } from '@/mta_users/types'
 
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
@@ -22,7 +22,7 @@ interface I_FormFields {
 }
 
 interface I_Props {
-  data: I_EvaluatorProfileDetail
+  data: I_UserDetail
 }
 const AdminProfileUpdateForm = ({ data }: I_Props) => {
   const { handleSubmit, control } = useForm<I_FormFields>({
@@ -35,11 +35,11 @@ const AdminProfileUpdateForm = ({ data }: I_Props) => {
   })
 
   const { setInProgressStatus } = useInProgress()
-  const navToList = useNavigateToEvaluatorProfileList()
-  const update = useEvaluatorProfileUpdate()
+  const navToList = useNavigateToAdminProfileList()
+  const update = useAdminProfileUpdate()
 
   const onSubmit: SubmitHandler<I_FormFields> = ({ first_name, last_name, email, username }) => {
-    const payload: I_EvaluatorProfileUpdateRequestData = {
+    const payload: I_AdminProfileUpdateRequestData = {
       username,
       first_name,
       last_name,
@@ -48,9 +48,9 @@ const AdminProfileUpdateForm = ({ data }: I_Props) => {
     setInProgressStatus(true)
     update(data.id, payload)
       .then((res) => {
-        log.info(sentence(`${EVALUATOR_PROFILE_NAME.singular} editado correctamente`), res)
+        log.info(sentence(`${ADMIN_PROFILE_NAME.singular} editado correctamente`), res)
 
-        successToast(sentence(`${EVALUATOR_PROFILE_NAME.singular} editado correctamente`))
+        successToast(sentence(`${ADMIN_PROFILE_NAME.singular} editado correctamente`))
         navToList()
       })
       .catch(handleServiceError)
@@ -61,7 +61,7 @@ const AdminProfileUpdateForm = ({ data }: I_Props) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <EvaluatorProfileFormFields control={control} excludePassword />
+      <AdminProfileFormFields control={control} excludePassword />
 
       <Spacer />
       <Submit>Guardar</Submit>

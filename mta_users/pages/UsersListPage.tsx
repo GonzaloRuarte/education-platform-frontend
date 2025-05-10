@@ -16,7 +16,6 @@ const columns: Array<GridColDef<I_UserListItemWithProfiles>> = [
   idExposeColumn({ field: 'username', headerName: 'Nombre de usuario', flex: 1 }),
   { field: 'email', headerName: 'E-Mail', flex: 1 },
   { field: 'is_active', headerName: 'Activo', flex: 0.5, type: 'boolean' },
-
   {
     field: 'profiles',
     headerName: 'Roles',

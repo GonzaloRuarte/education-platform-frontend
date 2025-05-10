@@ -52,6 +52,12 @@ interface I_AdminProfileCreateRequestData {
   first_name: string
   last_name: string
 }
+interface I_AdminProfileUpdateRequestData {
+  username: string
+  email: string
+  first_name: string
+  last_name: string
+}
 
 export type {
   T_UserId,
@@ -65,4 +71,5 @@ export type {
   I_UserChangePasswordRequest,
   I_UserWhoIAmData,
   I_AdminProfileCreateRequestData,
+  I_AdminProfileUpdateRequestData,
 }

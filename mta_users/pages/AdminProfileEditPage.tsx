@@ -1,32 +1,32 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
-import SchoolStaffProfileUpdateForm from '@/mta_schools/components/SchoolStaffProfileUpdateForm'
-import { SCHOOL_STAFF_PROFILE_NAME } from '@/mta_schools/constants'
+import AdminProfileUpdateForm from '@/mta_users/components/AdminProfileUpdateForm'
+import { ADMIN_PROFILE_NAME } from '@/mta_users/constants'
 import {
-  useNavigateToSchoolStaffProfileList,
-  useSchoolStaffProfileDelete,
-  useSchoolStaffProfileDetail,
-} from '@/mta_schools/hooks'
-import { I_SchoolStaffProfileDetail, T_SchoolStaffProfileId } from '@/mta_schools/types'
-import { useNavigateToUserChangePassword } from '@/mta_users/hooks'
+  useAdminProfileDelete,
+  useNavigateToAdminProfileList,
+  useNavigateToUserChangePassword,
+  useUserDetail,
+} from '@/mta_users/hooks'
+import { I_UserDetail, T_UserId } from '@/mta_users/types'
 import { ChangePasswordButton } from '@/shared/components/buttons'
 import EditionPage from '@/shared/pages/EditionPage'
 
 const AdminProfileEditPage = () => {
-  const navToList = useNavigateToSchoolStaffProfileList()
+  const navToList = useNavigateToAdminProfileList()
   const navigateToChangePassword = useNavigateToUserChangePassword()
 
   return (
-    <EditionPage<T_SchoolStaffProfileId, I_SchoolStaffProfileDetail>
-      EditionForm={SchoolStaffProfileUpdateForm}
-      entityName={SCHOOL_STAFF_PROFILE_NAME}
+    <EditionPage<T_UserId, I_UserDetail>
+      EditionForm={AdminProfileUpdateForm}
+      entityName={ADMIN_PROFILE_NAME}
       onExit={navToList}
-      useDetail={useSchoolStaffProfileDetail}
-      useDelete={useSchoolStaffProfileDelete}
+      useDetail={useUserDetail}
+      useDelete={useAdminProfileDelete}
       customButtons={(data) => (
         <>
-          <ChangePasswordButton onClick={() => navigateToChangePassword({ userId: data.user_id })} />
+          <ChangePasswordButton onClick={() => navigateToChangePassword({ userId: data.id })} />
         </>
       )}
     />
