@@ -36,7 +36,7 @@ const NumericForm: FC<{ data: T_EvaluationToResolve_NumericAnswer; questionId: T
         label="Respuesta"
         value={specific_data?.value === undefined ? '' : specific_data.value}
         onChange={(e) => {
-          updateNumeric(questionId, data.id, Number(e.target.value))
+          updateNumeric(questionId, data.id, e.target.value === '' ? null : Number(e.target.value))
         }}
       />
     </>

@@ -144,7 +144,44 @@ const useResolutionResume = () => {
   }, 100)
   return { resume }
 }
+const _resolutionStateWithoutNullAnswer = (
+  resolutionState: I_ResolutionState,
+  questionId: T_QuestionId,
+  answerId: T_AnswerId,
+): I_ResolutionState => {
+  const now = new Date().toISOString()
+  const newResolutionState = {
+    ...resolutionState,
+    last_update_datetime: now,
+    answers: {
+      ...resolutionState.answers,
+    },
+  }
 
+  delete newResolutionState.answers[questionId]
+  return newResolutionState
+}
+const _resolutionStateWithNewAnswer = (
+  resolutionState: I_ResolutionState,
+  questionId: T_QuestionId,
+  answerId: T_AnswerId,
+  value: number,
+): I_ResolutionState => {
+  const now = new Date().toISOString()
+  return {
+    ...resolutionState,
+    last_update_datetime: now,
+    answers: {
+      ...resolutionState.answers,
+      [questionId]: {
+        id: answerId,
+        last_update_datetime: now,
+        resource_type: 'Numeric',
+        specific_data: { value },
+      },
+    },
+  }
+}
 const useResolutionStateUpdateAnswer = () => {
   const resolutionState = useResolutionState()
   const storeResolutionState = useStore((state) => state.resolution_storeState)
@@ -152,24 +189,17 @@ const useResolutionStateUpdateAnswer = () => {
     logWarning('Resolution local state not initialized')
   }
 
-  const Numeric = (questionId: T_QuestionId, answerId: T_AnswerId, value: number) => {
+  const Numeric = (questionId: T_QuestionId, answerId: T_AnswerId, value: number | null) => {
     if (resolutionState === null) return
 
     const now = new Date().toISOString()
-    const answerData: T_ResolutionState_NumericAnswerData = {
-      id: answerId,
-      last_update_datetime: now,
-      resource_type: 'Numeric',
-      specific_data: { value },
-    }
-    storeResolutionState({
-      ...resolutionState,
-      last_update_datetime: now,
-      answers: {
-        ...resolutionState.answers,
-        [questionId]: answerData,
-      },
-    })
+
+    const newResolutionState: I_ResolutionState =
+      value === null
+        ? _resolutionStateWithoutNullAnswer(resolutionState, questionId, answerId)
+        : _resolutionStateWithNewAnswer(resolutionState, questionId, answerId, value)
+
+    storeResolutionState(newResolutionState)
   }
   const MultipleChoice = (questionId: T_QuestionId, answerId: T_AnswerId, choosed_options: Array<string>) => {
     if (resolutionState === null) return
