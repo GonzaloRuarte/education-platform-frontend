@@ -24,6 +24,9 @@ import useToasts, { warningToast } from '@/shared/toasts'
 import { T_EmptyPayload } from '@/shared/types'
 import { useCallback } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
+import { useRequestSetupWithMultipart } from '@/mta_auth/hooks'
+import { creationHook } from '@/shared/hooks'
+import { I_CreationCommonResponse } from '@/shared/types'
 
 // Data Service
 const RESOLUTIONS_PATH = '/resolutions'
@@ -60,10 +63,6 @@ const useResolutionRequestSubmit = actionHook<I_ResolutionState, T_EmptyPayload>
   axiosPost,
   useAuthResources,
 )
-
-import { useRequestSetupWithMultipart } from '@/mta_auth/hooks'
-import { creationHook } from '@/shared/hooks'
-import { I_CreationCommonResponse } from '@/shared/types'
 
 export type T_ResolutionUploadOfflineData = FormData
 
