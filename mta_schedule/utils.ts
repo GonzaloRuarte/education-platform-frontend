@@ -1,4 +1,10 @@
-import { I_AppointmentsByMonthResponseData } from '@/mta_schedule/types'
+import {
+  AppointmentOccurrenceStatus,
+  AppointmentStatus,
+  I_AppointmentDetail,
+  I_AppointmentListItem,
+  I_AppointmentsByMonthResponseData,
+} from '@/mta_schedule/types'
 import { sentence } from '@/shared/utils'
 import dayjs, { Dayjs } from 'dayjs'
 require('dayjs/locale/es')
@@ -44,4 +50,18 @@ const appointmentAlreadyStarted = (datetimeString) => {
   return dayjs(datetimeString).isBefore(dayjs())
 }
 
-export { hoursOptions, combinedDateAndTime, availableDays, appointmentFormattedStringDate, appointmentAlreadyStarted }
+const appointmentShowPostProcessingResources = (appointment: I_AppointmentListItem | I_AppointmentDetail) => {
+  return (
+    appointment.occurrence_status === AppointmentOccurrenceStatus.past &&
+    appointment.status === AppointmentStatus.approved
+  )
+}
+
+export {
+  hoursOptions,
+  combinedDateAndTime,
+  availableDays,
+  appointmentFormattedStringDate,
+  appointmentAlreadyStarted,
+  appointmentShowPostProcessingResources,
+}

@@ -24,8 +24,11 @@ import {
   navigationHook,
   navigationWithIdHook,
   updateHook,
+  useInProgress,
 } from '@/shared/hooks'
-import { I_CreationCommonResponse } from '@/shared/types'
+import { handleServiceError } from '@/shared/service'
+import { successToast } from '@/shared/toasts'
+import { I_CreationCommonResponse, T_VoidFn } from '@/shared/types'
 
 // Data Service
 const APPOINTMENTS_PATH = '/appointments'
@@ -77,6 +80,27 @@ const useAppointmentAddStudents = actionHook<I_AppointmentAddStudents_RequestDat
   axiosPost,
   useAuthResources,
 )
+const useAppointmentRequestPostProcess = (callback: T_VoidFn) => {
+  const { setIsInProgress, setIsNotInProgress } = useInProgress()
+  const _useReqPP = actionHook<{ appointment_id: T_AppointmentId }, I_AppointmentDetail>(
+    `${APPOINTMENTS_PATH}/request-post-process`,
+    axiosPost,
+    useAuthResources,
+  )
+  const appointmentRequestPostProcess = _useReqPP()
+  return (data: { appointment_id: T_AppointmentId }) => {
+    setIsInProgress()
+    appointmentRequestPostProcess(data)
+      .then(() => {
+        successToast('Se ha solicitado el procesamiento del turno')
+      })
+      .catch(handleServiceError)
+      .finally(() => {
+        setIsNotInProgress()
+        callback()
+      })
+  }
+}
 
 // Navigation
 const useNavigateToAppointmentList = navigationHook(pages.D._.turnos.path)
@@ -109,4 +133,5 @@ export {
   useNavigateToAppointmentRequest,
   useNavigateToAppointmentHome,
   useNavigateToAppointmentUploadOfflineStates,
+  useAppointmentRequestPostProcess,
 }

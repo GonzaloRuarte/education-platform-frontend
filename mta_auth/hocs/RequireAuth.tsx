@@ -1,6 +1,12 @@
 'use client'
 
-import { useHasPermissions, useIsAuthorized, useNavigateToLogin } from '@/mta_auth/hooks'
+import {
+  useHasPermissions,
+  useIsAuthorized,
+  useLogout,
+  useNavigateToLogin,
+  useUserProfilesResources,
+} from '@/mta_auth/hooks'
 
 import { useNavigateToDashboardHome } from '@/shared/hooks'
 import { warningToast } from '@/shared/toasts'
@@ -28,6 +34,8 @@ const RequireAuth = ({
   const navigateToLogin = useNavigateToLogin(logoutDestination)
   const navigateToHome = useNavigateToDashboardHome()
   const isAuthorized = useIsAuthorized()
+  const { isStudent } = useUserProfilesResources()
+  const logout = useLogout()
 
   const hasPermissions = useHasPermissions(allowedUserProfiles)
   const requireAuth = useDebouncedCallback(() => {
@@ -39,8 +47,11 @@ const RequireAuth = ({
 
     if (!hasPermissions) {
       warningToast('No tienes permisos suficientes para acceder a esta zona')
-      navigateToHome()
-      return
+      if (isStudent) {
+        logout()
+      } else {
+        navigateToHome()
+      }
     }
   })
   useEffect(requireAuth, [isAuthorized])

@@ -14,13 +14,15 @@ import {
   useNavigateToAppointmentUploadOfflineStates,
 } from '@/mta_schedule/hooks'
 import { AppointmentOccurrenceStatus, AppointmentStatus, I_AppointmentListItem } from '@/mta_schedule/types'
+import { appointmentShowPostProcessingResources } from '@/mta_schedule/utils'
 import Button from '@/shared/components/Button'
 import ListPage from '@/shared/pages/ListPage'
 import { idExposeColumn } from '@/shared/pages/utils'
+import CalculateIcon from '@mui/icons-material/Calculate'
 import RuleIcon from '@mui/icons-material/Rule'
 import SchoolIcon from '@mui/icons-material/School'
-import UploadIcon from '@mui/icons-material/Upload'
 import TroubleshootIcon from '@mui/icons-material/Troubleshoot'
+import UploadIcon from '@mui/icons-material/Upload'
 import { GridColDef } from '@mui/x-data-grid'
 import dayjs from 'dayjs'
 
@@ -28,6 +30,7 @@ const columns = (a: {
   navToProcess: (args: Record<'appointmentId', string | number>) => void
   navToEditStudents: (args: Record<'appointmentId', string | number>) => void
   navToDetail: (id) => void
+  // requestAppointmentPostProcess: (data: { appointment_id: T_AppointmentId }) => void
 }): Array<GridColDef<I_AppointmentListItem>> => [
   idExposeColumn({
     field: 'begins_at_date',
@@ -67,12 +70,29 @@ const columns = (a: {
     flex: 0.7,
   },
   {
+    field: 'was_post_processed',
+    headerName: 'Fue Procesado',
+    flex: 0.7,
+    renderCell: ({ row }) => {
+      if (!appointmentShowPostProcessingResources(row)) return <>-</>
+      return <>{row.was_post_processed ? 'Sí' : 'No'}</>
+    },
+  },
+  {
     field: 'actions',
     type: 'actions',
     flex: 1.5,
     headerName: 'Acciones',
     getActions: (params) => {
       const actions: Array<any> = []
+
+      if (appointmentShowPostProcessingResources(params.row) && !params.row.was_post_processed) {
+        return [
+          <Button startIcon={<CalculateIcon />} size="small" onClick={() => a.navToDetail(params.row.id)}>
+            Procesar Resultados
+          </Button>,
+        ]
+      }
 
       if (params.row.occurrence_status === AppointmentOccurrenceStatus.past) {
         return []

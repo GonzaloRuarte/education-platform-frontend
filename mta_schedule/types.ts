@@ -1,4 +1,5 @@
 import { T_EvaluationId, T_EvaluationSubjectId } from '@/mta_evaluations/types'
+import { T_AppointmentResolutionProcessId } from '@/mta_resolutions/types/arp'
 import { SchoolGrade } from '@/mta_schools/constants'
 import { T_SchoolId, T_StudentProfileId, T_StudentProfilePersonalId } from '@/mta_schools/types'
 import { I_PaginatedResponse } from '@/shared/data/types'
@@ -43,6 +44,8 @@ interface I_AppointmentDetail {
   }
   requested_evaluation_grade: null | SchoolGrade
   pin: number
+  was_post_processed: boolean
+  post_process: null | T_AppointmentResolutionProcessId
 }
 interface I_AppointmentRealTimeStatus {
   included_students: number
@@ -66,6 +69,7 @@ interface I_AppointmentListItem {
   occurrence_status: T_AppointmentOccurrenceStatus
   student_count: number
   pin: number
+  was_post_processed: boolean
 }
 type T_AppointmentList = I_PaginatedResponse<I_AppointmentListItem>
 

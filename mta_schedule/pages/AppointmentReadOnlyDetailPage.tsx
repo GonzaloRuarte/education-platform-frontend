@@ -1,8 +1,16 @@
 'use client'
 
+import { useNavigateToARPDetail, useNavigateToARPList } from '@/mta_resolutions/hooks/arp'
+import { T_AppointmentResolutionProcessId } from '@/mta_resolutions/types/arp'
 import AppointmentBriefCard from '@/mta_schedule/components/AppointmentBriefCard'
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
-import { useAppointmentDetail, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
+import {
+  useAppointmentDetail,
+  useAppointmentRequestPostProcess,
+  useNavigateToAppointmentList,
+} from '@/mta_schedule/hooks'
+import { appointmentShowPostProcessingResources } from '@/mta_schedule/utils'
+import Button from '@/shared/components/Button'
 import Chip from '@/shared/components/Chip'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Page from '@/shared/components/Page'
@@ -10,13 +18,17 @@ import Pastilla from '@/shared/components/Pastilla'
 import Spacer from '@/shared/components/Spacer'
 import Spinner from '@/shared/components/Spinner'
 import { Body1, H2, H3 } from '@/shared/components/Typography'
-import { Card, Grid2 } from '@mui/material'
+import CalculateIcon from '@mui/icons-material/Calculate'
+import { Grid2 } from '@mui/material'
 import { useParams } from 'next/navigation'
 
 const AppointmentReadOnlyDetail = () => {
   const { appointmentId } = useParams()
   const { data, reload } = useAppointmentDetail(Number(appointmentId))
   const navToList = useNavigateToAppointmentList()
+  const requestAppointmentPostProcess = useAppointmentRequestPostProcess(reload)
+
+  const navToAPRDetail = useNavigateToARPDetail()
 
   return (
     <Page>
@@ -78,6 +90,33 @@ const AppointmentReadOnlyDetail = () => {
                     </Pastilla>
                   </Grid2>
                 </Grid2>
+              </>
+            )}
+
+            {appointmentShowPostProcessingResources(data) && (
+              <>
+                <Spacer size="l" />
+                <H3 id="process-results">Procesamiento de Resultados</H3>
+                <Spacer size="l" />
+                {data.was_post_processed ? (
+                  <Button
+                    bgcolor="purple"
+                    size="large"
+                    startIcon={<CalculateIcon />}
+                    onClick={() => navToAPRDetail(data.post_process as T_AppointmentResolutionProcessId)}
+                  >
+                    Ver Resultados
+                  </Button>
+                ) : (
+                  <Button
+                    bgcolor="purple"
+                    size="large"
+                    startIcon={<CalculateIcon />}
+                    onClick={() => requestAppointmentPostProcess({ appointment_id: data.id })}
+                  >
+                    Procesar Resultados
+                  </Button>
+                )}
               </>
             )}
           </>
