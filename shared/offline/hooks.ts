@@ -1,3 +1,5 @@
+'use client'
+
 import { useNetworkState } from '@uidotdev/usehooks'
 
 const useNetworkStatus = () => {

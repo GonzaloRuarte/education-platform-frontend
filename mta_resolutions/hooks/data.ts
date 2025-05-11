@@ -8,14 +8,13 @@ import {
   I_ResolutionState,
   I_ResumeResolutionResponse,
   T_ResolutionState_MultipleChoiceAnswerData,
-  T_ResolutionState_NumericAnswerData,
 } from '@/mta_resolutions/types'
 import { T_AppointmentId } from '@/mta_schedule/types'
 import { T_StudentProfilePersonalId } from '@/mta_schools/types'
 import { axiosPost } from '@/shared/data/axios'
 import ApiError from '@/shared/data/errors'
 import { actionHook, useInProgress } from '@/shared/hooks'
-import log, { logWarning } from '@/shared/log'
+import log, { logInfo, logWarning } from '@/shared/log'
 import { useNetworkStatus } from '@/shared/offline/hooks'
 import { postService } from '@/shared/service'
 import { useStore } from '@/shared/state'
@@ -91,11 +90,22 @@ const initialState = (personal_id: T_StudentProfilePersonalId, appointment_id: T
     answers: {},
   }
 }
+const _lastUploadedStateIsOlderThanLocal = (
+  response: I_ResumeResolutionResponse,
+  localResolutionState: I_ResolutionState | null,
+) =>
+  response.resolution.last_uploaded_state !== null &&
+  localResolutionState !== null &&
+  localResolutionState.last_update_datetime !== null &&
+  response.resolution.last_uploaded_state.last_update_datetime !== null &&
+  new Date(localResolutionState.last_update_datetime) >
+    new Date(response.resolution.last_uploaded_state.last_update_datetime)
 const useResolutionResume = () => {
   const { isOnline } = useNetworkStatus()
   const requestResume = _useResolutionRequestResume()
   const storeEvaluationToResolve = useResolutionStoreEvaluation()
   const storeResolutionState = useResolutionStoreState()
+  const localResolutionState = useResolutionState()
   const storeMetadata = useResolutionStoreMetadata()
   const { storeNewPage } = useResolutionPagination()
   const { setIsNotInProgress, setIsInProgress } = useInProgress()
@@ -112,13 +122,22 @@ const useResolutionResume = () => {
     setIsInProgress()
     requestResume({})
       .then((response) => {
+        response.resolution.last_uploaded_state?.last_update_datetime
         const alreadyHasAnUploadedState = response.resolution.last_uploaded_state !== null
-
-        storeResolutionState(
-          alreadyHasAnUploadedState
-            ? response.resolution.last_uploaded_state
-            : initialState(response.student_personal_id, response.appointment_id),
+        const lastUploadedStateIsOlderThanLocalState = _lastUploadedStateIsOlderThanLocal(
+          response,
+          localResolutionState,
         )
+
+        if (!lastUploadedStateIsOlderThanLocalState) {
+          storeResolutionState(
+            alreadyHasAnUploadedState
+              ? response.resolution.last_uploaded_state
+              : initialState(response.student_personal_id, response.appointment_id),
+          )
+        } else {
+          logInfo('>>>>>> Resolution state is older than the last uploaded state')
+        }
 
         storeEvaluationToResolve(response.evaluation)
 
@@ -147,7 +166,6 @@ const useResolutionResume = () => {
 const _resolutionStateWithoutNullAnswer = (
   resolutionState: I_ResolutionState,
   questionId: T_QuestionId,
-  answerId: T_AnswerId,
 ): I_ResolutionState => {
   const now = new Date().toISOString()
   const newResolutionState = {
@@ -196,7 +214,7 @@ const useResolutionStateUpdateAnswer = () => {
 
     const newResolutionState: I_ResolutionState =
       value === null
-        ? _resolutionStateWithoutNullAnswer(resolutionState, questionId, answerId)
+        ? _resolutionStateWithoutNullAnswer(resolutionState, questionId)
         : _resolutionStateWithNewAnswer(resolutionState, questionId, answerId, value)
 
     storeResolutionState(newResolutionState)
@@ -298,21 +316,21 @@ const useResolutionAccessibility = () => {
 }
 
 export {
+  useResolutionAccessibility,
   useResolutionAuthorizeStudent,
-  useResolutionResetState,
   useResolutionDownloadState,
   useResolutionEvaluationToResolve,
   useResolutionLastUploadDatetime,
   useResolutionManageUploadState,
   useResolutionMaxDurationMinutes,
+  useResolutionPin,
   useResolutionRemainingTimeWarningAlreadyDisplayed,
   useResolutionRequestSubmit,
+  useResolutionResetState,
   useResolutionResume,
   useResolutionState,
   useResolutionStateUpdateAnswer,
   useResolutionStoreEvaluation,
   useResolutionStoreMetadata,
   useResolutionUpdateLastUploadDatetime,
-  useResolutionPin,
-  useResolutionAccessibility,
 }
