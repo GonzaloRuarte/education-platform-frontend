@@ -14,6 +14,7 @@ import ResolutionUploadStateManager from '@/mta_resolutions/services/ResolutionU
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import Spinner from '@/shared/components/Spinner'
+import OfflineIndicator from '@/shared/offline/OfflineIndicator'
 import { HorizontalRule } from '@mui/icons-material'
 import { Box } from '@mui/material'
 
@@ -24,6 +25,7 @@ const ResolveEvaluationPage = () => {
 
   return (
     <>
+      <OfflineIndicator />
       <ResolutionResumingManager />
       <ResolutionUploadStateManager />
       <ResolutionRemaingTimeManager />

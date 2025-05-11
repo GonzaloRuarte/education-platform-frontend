@@ -20,6 +20,16 @@ const serwist = new Serwist({
   clientsClaim: true,
   navigationPreload: true,
   runtimeCaching: defaultCache,
+  fallbacks: {
+    entries: [
+      {
+        url: '/~offline', // the page that'll display if user goes offline
+        matcher({ request }) {
+          return request.destination === 'document'
+        },
+      },
+    ],
+  },
 })
 
 serwist.addEventListeners()

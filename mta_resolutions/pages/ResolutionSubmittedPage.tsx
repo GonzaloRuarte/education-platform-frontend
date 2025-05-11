@@ -6,11 +6,13 @@ import Button from '@/shared/components/Button'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import { Body1, H3 } from '@/shared/components/Typography'
+import OfflineIndicator from '@/shared/offline/OfflineIndicator'
 
 const ResolutionSubmittedPage = () => {
   const exit = useResolutionExit()
   return (
     <Page>
+      <OfflineIndicator />
       <Spacer />
       <Page.Title>Evaluación enviada correctamente</Page.Title>
       <Page.Content>

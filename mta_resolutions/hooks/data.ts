@@ -1,3 +1,5 @@
+'use client'
+
 import { ErrorCode } from '@/config'
 import { useAuthResources } from '@/mta_auth/hooks'
 import { I_AuthorizeStudentResponseData } from '@/mta_auth/types'
@@ -57,6 +59,18 @@ const useResolutionRequestSubmit = actionHook<I_ResolutionState, T_EmptyPayload>
   `${RESOLUTIONS_PATH}/submit`,
   axiosPost,
   useAuthResources,
+)
+
+import { useRequestSetupWithMultipart } from '@/mta_auth/hooks'
+import { creationHook } from '@/shared/hooks'
+import { I_CreationCommonResponse } from '@/shared/types'
+
+export type T_ResolutionUploadOfflineData = FormData
+
+export const useResolutionUploadOfflineState = creationHook<T_ResolutionUploadOfflineData, I_CreationCommonResponse>(
+  `${RESOLUTIONS_PATH}/upload-offline-state`,
+  axiosPost,
+  useRequestSetupWithMultipart,
 )
 
 // STATE HOOKS - - -

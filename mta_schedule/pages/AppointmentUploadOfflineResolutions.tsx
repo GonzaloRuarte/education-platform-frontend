@@ -2,7 +2,7 @@
 
 import { LIGHT_BG_COLOR } from '@/config'
 import { APPOINTMENT_RESOLUTION_PROCESS_NAME } from '@/mta_resolutions/constants'
-import { useResolutionUploadOfflineState } from '@/mta_resolutions/hooks/offline'
+import { useResolutionUploadOfflineState } from '@/mta_resolutions/hooks/data'
 import { useNavigateToAppointmentHome, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
 import Button from '@/shared/components/Button'
 import { BackButton, DeleteButton } from '@/shared/components/buttons'

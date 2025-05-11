@@ -10,12 +10,11 @@ import theme from '@/shared/theme'
 
 import { ToastContainer } from 'react-toastify'
 
-import RecoverEvaluationSubjects from '@/mta_evaluations/appServices/RecoverEvaluationSubjects'
-import LoadFormulasResources from '@/shared/formulas/appServices/LoadFormulasResources'
-import LocalizationProvider from '@/shared/datetime/LocalizationProvider'
 import { MAIN_BG_COLOR } from '@/config'
+import RecoverEvaluationSubjects from '@/mta_evaluations/appServices/RecoverEvaluationSubjects'
+import LocalizationProvider from '@/shared/datetime/LocalizationProvider'
+import LoadFormulasResources from '@/shared/formulas/appServices/LoadFormulasResources'
 import '@/shared/globals.css'
-import OfflineIndicator from '@/shared/offline/OfflineIndicator'
 
 const monstserrat = Montserrat({
   weight: ['300', '400', '500', '700'],
@@ -89,7 +88,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                   services={[RecoverEvaluationSubjects, LoadFormulasResources]}
                   d={{}}
                 />
-                <OfflineIndicator />
                 {children}
               </LocalizationProvider>
             </ThemeProvider>

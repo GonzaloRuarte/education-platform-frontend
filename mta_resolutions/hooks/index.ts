@@ -1,3 +1,5 @@
+'use client'
+
 import { useLogout } from '@/mta_auth/hooks'
 import {
   useResolutionDownloadState,
