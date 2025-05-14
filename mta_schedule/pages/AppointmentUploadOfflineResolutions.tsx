@@ -11,10 +11,13 @@ import MagicGrid from '@/shared/components/MagicGrid'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import { H3, H4 } from '@/shared/components/Typography'
+import ApiError from '@/shared/data/errors'
 import { useTheme } from '@/shared/hooks'
+import { errorCodeLabels } from '@/shared/labels'
 import { handleServiceError } from '@/shared/service'
-import { successToast, warningToast } from '@/shared/toasts'
+import { errorToast, successToast, warningToast } from '@/shared/toasts'
 import { Box, Grid2, LinearProgress } from '@mui/material'
+import { AxiosError } from 'axios'
 import React, { useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 
@@ -26,7 +29,6 @@ const AppointmentUploadOfflineResolutions = () => {
   const progress = lastProcessedFileIndex !== null ? ((lastProcessedFileIndex + 1) / files.length) * 100 : 0
 
   const onDrop = useCallback((acceptedFiles) => {
-    console.log(acceptedFiles)
     setFiles(acceptedFiles)
     setWithErrorFiles([])
   }, [])
@@ -62,8 +64,15 @@ const AppointmentUploadOfflineResolutions = () => {
         successToast('Archivo cargado correctamente')
         setLastProcessedFileIndex(currentIndex)
       })
-      .catch((err) => {
-        handleServiceError(err)
+      .catch((err: ApiError<AxiosError<any>>) => {
+        if (
+          err.rawError.response?.data?.error_code !== undefined &&
+          err.rawError.response?.data?.error_code in errorCodeLabels
+        ) {
+          errorToast(errorCodeLabels[err.rawError.response?.data?.error_code])
+        } else {
+          handleServiceError(err)
+        }
         setLastProcessedFileIndex(currentIndex)
         setWithErrorFiles((prev) => [...prev, files[currentIndex]])
       })
