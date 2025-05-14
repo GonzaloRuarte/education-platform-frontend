@@ -1,4 +1,4 @@
-import { defaultCache } from '@serwist/next/worker'
+import { customCache } from '@/shared/serciveWorker'
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist'
 import { Serwist } from 'serwist'
 
@@ -19,28 +19,7 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: defaultCache,
-  fallbacks: {
-    entries: [
-      {
-        url: '/~offline', // the page that'll display if user goes offline
-        matcher({ request }) {
-          return request.destination === 'document'
-        },
-      },
-    ],
-  },
+  runtimeCaching: customCache,
 })
 
 serwist.addEventListeners()
-
-// serwist.addToPrecacheList([
-//   { url: '/boy.jpg', revision: null },
-//   { url: '/girl.jpg', revision: null },
-//   { url: '/icon-512x512.png', revision: null },
-//   { url: '/logo_austral_@2x.png', revision: null },
-//   { url: '/logo_color.png', revision: null },
-//   { url: '/logo_white.png', revision: null },
-//   { url: '/triangle.png', revision: null },
-//   // Other entries...
-// ])

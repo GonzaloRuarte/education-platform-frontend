@@ -10,6 +10,7 @@ const withSerwist = withSerwistInit({
   swDest: 'public/sw.js',
   reloadOnOnline: false,
   // additionalPrecacheEntries: [{ url: '/~offline', revision }],
+  additionalPrecacheEntries: [{ url: '/evaluacion-entregada', revision: null }],
 })
 
 const nextConfig: NextConfig = {
