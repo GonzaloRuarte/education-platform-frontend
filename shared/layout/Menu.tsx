@@ -14,6 +14,7 @@ import HistoryIcon from '@mui/icons-material/History'
 import PersonIcon from '@mui/icons-material/Person'
 import QueryStatsIcon from '@mui/icons-material/QueryStats'
 import SchoolIcon from '@mui/icons-material/School'
+import QuizIcon from '@mui/icons-material/Quiz'
 import { ListItem, Skeleton } from '@mui/material'
 import { useIsClient } from '@uidotdev/usehooks'
 
@@ -61,6 +62,10 @@ const Menu = () => {
         <RRCC allowedProfiles={['admin', 'evaluator']}>
           <MenuItem Icon={FactCheckIcon} label={P.D._.evaluaciones.label} href={P.D._.evaluaciones.path} />
         </RRCC>
+        <RRCC allowedProfiles={['admin', 'evaluator']}>
+        <MenuItem Icon={QuizIcon} label={P.D._.bancoDePreguntas.label} href={P.D._.bancoDePreguntas.path}
+        />
+      </RRCC>
         <RRCC allowedProfiles={['admin', 'school_staff']}>
           <MenuItem
             Icon={HistoryIcon}

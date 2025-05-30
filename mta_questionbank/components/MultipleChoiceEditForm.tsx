@@ -1,0 +1,133 @@
+'use client'
+
+import MultipleChoiceOption from '@/mta_questionbank/components/MultipleChoiceOption'
+import OptionCreateForm from '@/mta_questionbank/components/OptionCreateForm'
+import { useNavigateToQuestionBankList, useQuestionMultipleChoiceUpdate } from '@/mta_questionbank/hooks'
+import { questionLabels } from '@/mta_questionbank/labels'
+import {
+  I_AnswerMultipleChoiceDetail,
+  I_QuestionUpdateMultipleChoiceRequestData,
+  T_QuestionForm,
+} from '@/mta_questionbank/types'
+import { AddButton } from '@/shared/components/buttons'
+import MagicGrid from '@/shared/components/MagicGrid'
+import Spacer from '@/shared/components/Spacer'
+import Submit from '@/shared/components/Submit'
+import { H4 } from '@/shared/components/Typography'
+import { useDialog } from '@/shared/dialogs'
+import { rules } from '@/shared/forms/messages'
+import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
+import { useInProgress } from '@/shared/hooks'
+import { sharedLabels } from '@/shared/labels'
+import InputControlled from '@/shared/forms/InputControlled'
+import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
+import log from '@/shared/log'
+import { handleServiceError } from '@/shared/service'
+import { successToast } from '@/shared/toasts'
+import { T_VoidFn } from '@/shared/types'
+import { Box } from '@mui/material'
+import { FC } from 'react'
+import { SubmitHandler, useForm } from 'react-hook-form'
+
+interface I_FormFields extends I_QuestionUpdateMultipleChoiceRequestData {}
+
+const Options: FC<{ data: I_AnswerMultipleChoiceDetail; reload: T_VoidFn }> = ({ data, reload }) => {
+  const { DialogComponent, componentProps, showDialog, closeDialog } = useDialog()
+  const handleReloadAfterCreate = () => {
+    closeDialog()
+    reload()
+  }
+  const handleAddOption = () => {
+    showDialog({
+      title: 'Agregar Opción',
+      content: <OptionCreateForm multipleChoiceId={data.id} reload={handleReloadAfterCreate} />,
+      actions: [
+        {
+          buttonLabel: sharedLabels.cancel,
+          onPress: closeDialog,
+          key: 'close',
+        },
+      ],
+    })
+  }
+
+  return (
+    <>
+      <Box maxWidth="md">
+        <H4>
+          Opciones <AddButton onClick={handleAddOption} size="small" variant="outlined" />
+        </H4>
+        <Spacer />
+
+        {data.options.map((option) => (
+          <MultipleChoiceOption key={option.id} data={option} reload={reload} withDelete />
+        ))}
+      </Box>
+      <DialogComponent {...componentProps} />
+    </>
+  )
+}
+
+const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({ data, reload }) => {
+  const { content, difficulty, subject_id} = data
+
+  const { handleSubmit, control } = useForm<I_FormFields>({
+        defaultValues: {
+      content,
+      subject_id: subject_id,
+      difficulty: difficulty
+    },
+  })
+
+  const { setInProgressStatus } = useInProgress()
+  const backToDetail = useNavigateToQuestionBankList()
+  const update = useQuestionMultipleChoiceUpdate()
+  const onSubmit: SubmitHandler<I_FormFields> = (updatedData) => {
+    setInProgressStatus(true)
+    update(data.id, { ...updatedData })
+      .then(() => {
+        log.info('Question edited succesfully:')
+        successToast('Pregunta editada correctamente')
+        backToDetail()
+      })
+      .catch(handleServiceError)
+      .finally(() => {
+        setInProgressStatus(false)
+      })
+  }
+
+  return (
+    <form>
+      <MagicGrid>
+        <InputControlled<I_FormFields>
+          control={control}
+          name="difficulty"
+          label="Dificultad (1-5)"
+          type="number"
+          rules={{ 
+            ...rules.required(), 
+            min: { value: 1, message: 'Mínimo 1' }, 
+            max: { value: 5, message: 'Máximo 5' } 
+          }}
+          inputProps={{ min: 1, max: 5 }}
+        />
+
+        <SubjectOptions<I_FormFields> {...{ control }} name="subject_id" />
+        <WysiwygEditorControlled<I_FormFields>
+          {...{ control }}
+          label={questionLabels.content}
+          rules={{ ...rules.required() }}
+          name="content"
+        />
+      </MagicGrid>
+      <Spacer />
+          
+      <Options data={data.answer} reload={reload} />
+      <Spacer />
+
+      <Submit onClick={handleSubmit(onSubmit)}>{sharedLabels.update}</Submit>
+    </form>
+  )
+}
+
+export default MultipleChoiceEditForm

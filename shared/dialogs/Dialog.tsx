@@ -7,13 +7,14 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 
-const Dialog = ({ title, content, actions, isVisible, onClose }: I_DialogProps) => {
+const Dialog = ({ title, content, actions, isVisible,  dialogProps, onClose }: I_DialogProps) => {
   return (
     <MUI_Dialog
       open={isVisible}
       onClose={onClose}
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
+       {...dialogProps}     // ← forward everything to MUI
     >
       <DialogTitle component={'div'}>
         <H3>{title}</H3>

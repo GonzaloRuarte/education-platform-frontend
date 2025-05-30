@@ -1,0 +1,121 @@
+'use client'
+
+import { GridColDef } from '@mui/x-data-grid'
+import { FC } from 'react'
+
+import ListPage from '@/shared/pages/ListPage'
+import Chip from '@/shared/components/Chip'
+import Button from '@/shared/components/Button'
+import { stripTags } from '@/shared/utils'
+import { useQuestionList } from '@/mta_questionbank/hooks'       // you already have the list hook
+import { useImportQuestion } from '@/mta_evaluations/hooks'
+import { successToast } from '@/shared/toasts'
+import { handleServiceError } from '@/shared/service'
+import { QUESTION_NAME } from '@/mta_evaluations/constants'
+
+interface I_Props {
+  evaluationId: number          // close the modal
+}
+
+const ImportFromBankDialog: FC<I_Props> = ({ evaluationId }) => {
+  const listHook          = useQuestionList
+  const importQuestion    = useImportQuestion(evaluationId)()
+
+  const columns: GridColDef[] = [
+  {
+    field: 'content',
+    headerName: 'Pregunta',
+    flex: 2,
+  renderCell: ({ value }) => <span>{stripTags(value)}</span>
+  },
+
+  /*──── subject slug → nice chip ────────────────────────────────*/
+  {
+    field: 'subject_id',
+    headerName: 'Materia',
+    flex: 1,
+    renderCell: ({ value }) => (
+      <Chip variant="outlined" size="small" label={value} />
+    ),
+  },
+
+  /*──── difficulty: 1-5 stars or plain number ───────────────────*/
+  {
+    field: 'difficulty',
+    headerName: 'Dificultad',
+    flex: 1,
+    align: 'center',
+    headerAlign: 'center',
+    renderCell: ({ value }) => (value),
+  },
+  {
+    field: 'answerType',
+    headerName: 'Tipo de respuesta',
+    flex: 1,
+    align: 'center',
+    headerAlign: 'center',
+    renderCell: ({ row }) => (
+      row.answer.resource_type === 'MultipleChoiceTemplate' ? 'Opción múltiple' :
+      row.answer.resource_type === 'NumericTemplate' ? 'Numérica' :
+      'Desconocido'
+    ),
+  },
+  {
+    field: 'answer',
+    headerName: 'Respuesta',
+    flex: 1,
+    sortable: false,
+    renderCell: ({ row }) =>{
+
+      if (row.answer.resource_type === 'MultipleChoiceTemplate') {
+        /* Print all of them for which "is_true" is True separated by a ; instead of just printing the first one */
+        /* if there are no true options, print "No hay respuesta correcta" */
+        const trueOptions = row.answer.options.filter((option) => option.is_true)
+        if (trueOptions.length === 0) { 
+          return 'No hay respuesta correcta'
+        }
+        return trueOptions.map((option) => stripTags(option.content)).join('; ')
+
+
+      }
+
+      /* Numeric template — just show the value */
+      if (row.answer.resource_type === 'NumericTemplate') {
+        return row.answer.value
+      }
+      return 'Tipo de respuesta desconocido'
+
+        },
+    },
+    {
+      field: 'actions',
+      headerName: '',
+      width: 120,
+      sortable: false,
+      renderCell: ({ row }) => (
+        <Button
+          size="small"
+          onClick={() =>
+            importQuestion({ template_id: row.id })
+              .then(() => {
+                successToast('Pregunta importada')
+              })
+              .catch(handleServiceError)
+          }
+        >
+          Importar
+        </Button>
+      ),
+    },
+  ]
+
+  return (
+    <ListPage
+      columns={columns}
+      useList={listHook}
+      entityName={QUESTION_NAME}
+    />
+  )
+}
+
+export default ImportFromBankDialog

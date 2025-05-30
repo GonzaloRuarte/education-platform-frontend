@@ -161,6 +161,14 @@ interface I_EvaluationSetStatusRequestData {
   new_status: T_EvaluationStatusCode
 }
 
+interface I_ImportQuestionRequest {
+  template_id: number
+}
+interface I_ImportQuestionResponse {
+  id: number               // ← new Question PK inside the evaluation
+}
+
+
 export type {
   T_EvaluationId,
   T_QuestionId,
@@ -194,5 +202,7 @@ export type {
   T_AnswerPolymorphicDetail,
   I_QuestionCreateResponseData,
   I_EvaluationSetStatusRequestData,
+  I_ImportQuestionRequest,
+  I_ImportQuestionResponse
 }
 export { EvaluationStatus }

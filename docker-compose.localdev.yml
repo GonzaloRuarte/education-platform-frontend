@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  # ── infrastructure ─────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    ports: ["5432:5432"]
+    environment:
+      POSTGRES_DB: mta
+      POSTGRES_USER: mta
+      POSTGRES_PASSWORD: mta
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--requirepass", "mta"]
+    ports: ["6379:6379"]
+
+  # ── Django API ─────────────────────────────────────────────────
+  backend:
+    build:
+      context: ../meta-backend        # path to backend repo root
+      dockerfile: Dockerfile.pre_staging
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ../meta-backend:/app          # live-reload code on save
+    env_file: ../meta-backend/.env
+    environment:
+      DJANGO_DEBUG: "true"
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: mta
+      POSTGRES_USER: mta
+      POSTGRES_PASSWORD: mta
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: mta
+      DJANGO_EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
+    ports: ["8000:8000"]
+    depends_on: [db, redis]
+
+  # ── React hot-reload server (optional) ─────────────────────────
+  frontend-dev:
+    build:
+      context: ../meta-frontend       # path to your front-end repo
+      dockerfile: Dockerfile.pre_staging-local_test         # the file you pasted
+      target: runner                  # <── key line
+    environment:
+      PORT: 3000
+      HOSTNAME: 0.0.0.0               # listens on all IFs
+      NEXT_PUBLIC_API_BASE_PATH: http://backend:8000/api
+    ports:
+      - "3000:3000"
+    depends_on: [backend]
+
+volumes:
+  pgdata:

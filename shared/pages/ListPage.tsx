@@ -57,6 +57,7 @@ function BatchDeleteAction<T_Id>(p: {
 function ListPage<T_Id, T_Response extends I_PaginatedResponse>(p: I_Props<T_Id, T_Response>) {
   const { paginationModel, setPaginationModel } = Table.usePaginationModel()
   const { rowSelectionModel, setRowSelectionModel } = Table.useRowSelectionModel()
+  const enableRowSelection = p.useBatchDelete !== undefined || p.singleSelectionButtons !== undefined
 
   const { data, isLoading, reload } = p.useList({
     ...paginationModelAsFetchPaginationOptions(paginationModel),
@@ -99,7 +100,7 @@ function ListPage<T_Id, T_Response extends I_PaginatedResponse>(p: I_Props<T_Id,
             rowSelectionModel={rowSelectionModel}
             count={data?.count}
             isLoading={isLoading}
-            checkboxSelection
+            checkboxSelection={enableRowSelection}
             disableRowSelectionOnClick
             onRowClick={p.onRowClick}
           />

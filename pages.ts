@@ -1,4 +1,5 @@
 import { answerTypesToUrlPaths } from '@/mta_evaluations/constants'
+import path from 'path'
 
 type T_PageConfig = {
   path: string
@@ -16,6 +17,8 @@ const questionCreateMCPath = `/dashboard/evaluaciones/{evaluationId:number}/preg
 const questionCreateNumericPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.Numeric}`
 const appointmentsProcessPath = '/dashboard/turnos/{appointmentId:number}/procesar'
 const appointmentsEditStudentsPath = '/dashboard/turnos/{appointmentId:number}/editar-estudiantes'
+const questionBankCreatePath = '/dashboard/banco-de-preguntas/crear'
+const questionBankEditPath = '/dashboard/banco-de-preguntas/{questionId:number}'
 
 const userChangePasswordPath = '/dashboard/usuarios/{userId:number}/cambiar-password'
 
@@ -108,7 +111,7 @@ const pages = {
               },
               crearMultipleChoice: {
                 path: questionCreateMCPath,
-                label: 'Crear Multiple Choice',
+                label: 'Crear Opción Múltiple',
               },
               crearNumerica: {
                 path: questionCreateNumericPath,
@@ -119,6 +122,20 @@ const pages = {
           agregar: {
             path: '/dashboard/evaluaciones/agregar',
             label: 'Agregar evaluación',
+          },
+        },
+      },
+      bancoDePreguntas: {
+        path: '/dashboard/banco-de-preguntas',
+        label: 'Banco de preguntas',
+        _: {
+          agregar: {
+            path: '/dashboard/banco-de-preguntas/crear',
+            label: 'Agregar pregunta',
+          },
+          editar: {
+            path: questionBankEditPath,
+            label: 'Editar Pregunta',
           },
         },
       },
@@ -213,6 +230,8 @@ export {
   appointmentsEditStudentsPath,
   userChangePasswordPath,
   evaluationsPreviewPath,
+  questionBankCreatePath,
+  questionBankEditPath,
 }
 
 export default pages

@@ -63,13 +63,13 @@ const EvaluationContentEditPage = () => {
   return (
     <>
       <Page>
-        <Page.Title>Editar contenio de {EVALUATION_NAME.singular}</Page.Title>
+        <Page.Title>Editar contenido de {EVALUATION_NAME.singular}</Page.Title>
         <Page.Toolbar
           right={
             data !== undefined && (
               <Box display="flex" flexDirection="row" gap={2} justifyContent={'flex-end'}>
                 <Button startIcon={<PreviewIcon />} onClick={() => navToPreview({ evaluationId: data.id })}>
-                  Preview
+                  Vista previa
                 </Button>
                 <EvaluationStatusSelect
                   size="small"

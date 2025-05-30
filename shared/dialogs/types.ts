@@ -1,5 +1,6 @@
 import { T_VoidFn } from '@/shared/types'
 import { ReactNode } from 'react'
+import { DialogProps as MUIDialogProps } from '@mui/material/Dialog'
 
 interface I_DialogAction {
   buttonLabel: string
@@ -12,11 +13,13 @@ interface I_DialogProps {
   content: ReactNode
   actions: Array<I_DialogAction>
   onClose: T_VoidFn
+  dialogProps?: Partial<MUIDialogProps>      // ← NEW
 }
 interface I_DialogConfig {
   title: string
   content: ReactNode
   actions: Array<I_DialogAction>
+  dialogProps?: Partial<MUIDialogProps>     
 }
 
 interface I_DialogExtendedConfig extends I_DialogConfig {

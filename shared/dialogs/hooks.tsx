@@ -62,6 +62,7 @@ const useDialog = () => {
     }),
     content: config.content,
     onClose: resetDialog,
+    dialogProps: config.dialogProps,
   }
 
   const DialogComponent = useCallback(({ ...props }: I_DialogProps) => {

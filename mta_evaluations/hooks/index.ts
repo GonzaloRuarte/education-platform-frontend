@@ -21,4 +21,5 @@ const useMultipleChoiceOptionEditIsTrue = updateHook<
 
 export * from './evaluationHooks'
 export * from './questionHooks'
+export * from './importQuestion'
 export { useMultipleChoiceOptionCreate, useMultipleChoiceOptionDelete, useMultipleChoiceOptionEditIsTrue }

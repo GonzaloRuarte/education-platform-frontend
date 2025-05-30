@@ -19,6 +19,8 @@ import InsertPageBreakIcon from '@mui/icons-material/InsertPageBreak'
 import QuizIcon from '@mui/icons-material/Quiz'
 import Grid from '@mui/material/Grid2'
 import { FC } from 'react'
+import ImportFromBankDialog from '@/mta_evaluations/components/ImportFromBankDialog'
+import LibraryAddIcon from '@mui/icons-material/LibraryAdd'
 
 const AddPageBreakForm: FC<{ close: T_VoidFn; reload: T_VoidFn; questions: I_EvaluationDetail['questions'] }> = ({
   reload,
@@ -66,7 +68,7 @@ const CreateQuestionDialogContent: FC<{ close: T_VoidFn; evaluationId: T_Evaluat
   const navToCreateNumeric = useNavigateToQuestionCreateNumeric()
 
   const buttons: Record<T_AnswerType, FC<any>> = {
-    MultipleChoice: () => <Button onClick={() => navToCreateMC({ evaluationId })}>Multiple Choice</Button>,
+    MultipleChoice: () => <Button onClick={() => navToCreateMC({ evaluationId })}>Opción Múltiple</Button>,
     Numeric: () => <Button onClick={() => navToCreateNumeric({ evaluationId })}>Numérica</Button>,
   }
   return (
@@ -97,6 +99,26 @@ const QuestionCreationToolbar = ({ data, reload }: { data: I_EvaluationDetail; r
       actions: [{ buttonLabel: sharedLabels.cancel, key: sharedLabels.cancel, onPress: closeDialog }],
     })
   }
+  
+  const handleImportFromBank = () => {
+    const closeAndReload = () => {
+        closeDialog()   // ← from useDialog
+        reload()       // ← refresh evaluation page
+      }
+    showDialog({
+      title: 'Importar desde Banco de Preguntas',
+      content: (
+        <ImportFromBankDialog
+          evaluationId={data.id}          
+        />
+      ),
+      actions: [{ key: 'close', buttonLabel: sharedLabels.cancel, onPress: closeAndReload }],
+      dialogProps: {                      // ← now legal
+        fullWidth: true, // or false
+        maxWidth: 'xl',   // or 'sm', 'lg', etc.
+        onClose: (_e, _reason) => closeAndReload(),
+      },
+    })}
   return (
     <>
       <Pastilla>
@@ -117,12 +139,21 @@ const QuestionCreationToolbar = ({ data, reload }: { data: I_EvaluationDetail; r
             >
               {evaluationLabels.newQuestion}
             </Button>
+            
+          <Button
+            disabled={data.status === EvaluationStatus.Published}
+            onClick={handleImportFromBank}
+            startIcon={<LibraryAddIcon />}
+          >
+            Importar Pregunta
+          </Button>
           </MagicGrid>
         </Grid>
       </Pastilla>
       <DialogComponent {...componentProps} />
     </>
   )
+  
 }
 
 export default QuestionCreationToolbar
