@@ -9,14 +9,12 @@ import { sentence } from '@/shared/utils'
 import dayjs, { Dayjs } from 'dayjs'
 require('dayjs/locale/es')
 
-const hoursOptions = (args: { startHour: number; endHour: number; stepMinutes: number }) => {
+const hoursOptions = () => {
   const options: Array<{ value: string; label: string }> = []
-  for (let hour = args.startHour; hour <= args.endHour; hour++) {
-    for (let minutes = 0; minutes < 60; minutes += args.stepMinutes) {
-      const timeLabel = `${hour}:${minutes.toString().padStart(2, '0')} hs`
-      options.push({ value: `${hour}:${minutes.toString().padStart(2, '0')}`, label: timeLabel })
-    }
-  }
+
+  options.push({ value: '08:00', label: 'Turno Mañana' })
+  options.push({ value: '13:00', label: 'Turno Tarde' })
+
   return options
 }
 

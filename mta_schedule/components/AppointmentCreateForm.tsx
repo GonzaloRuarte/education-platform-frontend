@@ -20,7 +20,7 @@ interface I_FormFields {
   quantity: number
 }
 
-const options = hoursOptions({ startHour: 9, endHour: 17, stepMinutes: 30 })
+const options = hoursOptions()
 
 const AppointmentCreateForm = () => {
   const { handleSubmit, control } = useForm<I_FormFields>({
