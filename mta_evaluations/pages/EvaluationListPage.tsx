@@ -16,6 +16,18 @@ import { GridColDef } from '@mui/x-data-grid'
 
 const columns: Array<GridColDef> = [
   idExposeColumn({ field: 'title', headerName: 'Título', flex: 2 }),
+    {
+    field: 'grade',
+    headerName: 'Grado',
+    flex: 1,
+    renderCell: (params) => params.value ? `${params.value}º` : '',
+  },
+    {
+    field: 'subject_id',
+    headerName: 'Materia',
+    flex: 1,
+    renderCell: (params) => <Chip variant="outlined" size="small" label={params.value} />,
+  },
   {
     field: 'code',
     headerName: 'Código',

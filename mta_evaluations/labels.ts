@@ -17,7 +17,7 @@ const evaluationLabels = {
   subject: 'Materia',
   create: 'Crear',
   pageBreak: 'Salto de Página',
-  newQuestion: 'Nueva pregunta',
+  newQuestion: 'Creación pregunta',
   createdQuestions: 'Preguntas Creadas',
 }
 
