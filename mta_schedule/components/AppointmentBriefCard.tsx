@@ -28,6 +28,7 @@ interface I_Props {
   status?: T_AppointmentStatus
   occurrence_status?: T_AppointmentOccurrenceStatus
   pin?: number
+  comments?: string
 }
 
 const AppointmentBriefCard = ({
@@ -40,6 +41,7 @@ const AppointmentBriefCard = ({
   status,
   occurrence_status,
   pin,
+  comments,
 }: I_Props) => {
   return (
     <Box bgcolor={LIGHT_BG_COLOR} borderRadius={2} padding={2}>
@@ -76,9 +78,16 @@ const AppointmentBriefCard = ({
                       {evaluation.title} ({evaluation.code})
                     </Bold>
                   </Body1>
+
                 </>
               )}
             </Box>
+                  <Spacer />
+                  <Body1>
+                    Comentarios:
+                    <br />
+                    <Bold>{comments}</Bold>
+                  </Body1>
           </MagicGrid>
         </Grid2>
         {pin !== undefined && (

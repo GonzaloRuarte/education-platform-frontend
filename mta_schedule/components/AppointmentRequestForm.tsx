@@ -42,6 +42,7 @@ interface I_FormFields {
   evaluation_subject_id: T_EvaluationSubjectId | null
   grade: SchoolGrade
   date: Dayjs
+  comments:string
 }
 const distinctAvailableAppointments = (appointments: T_AppointmentsAvailableList) => {
   const disctint: Record<string, T_AppointmentsAvailableList> = {}
@@ -77,6 +78,7 @@ const AppointmentRequestForm = ({ ownSchoolData }: I_Props) => {
       grade: undefined,
       pin: randomInt(1000, 9999),
       school_id: ownSchoolData === null ? undefined : ownSchoolData.id,
+      comments: '',
     },
   })
   const onSubmit: SubmitHandler<I_FormFields> = ({ date, ...data }) => {
@@ -160,6 +162,13 @@ const AppointmentRequestForm = ({ ownSchoolData }: I_Props) => {
             <InputControlled control={control} name="pin" type="number" label="Pin" rules={{ ...rules.required() }} />
             <SubjectOptions control={control} name="evaluation_subject_id" />
             <SchoolGradeSelectControlled control={control} name="grade" rules={{ ...rules.required() }} />
+            <InputControlled
+              control={control}
+              name="comments"
+              label="Comentarios"
+              multiline
+              rows={3}
+            />
           </MagicGrid>
         </Grid2>
       </Grid2>

@@ -46,6 +46,7 @@ interface I_AppointmentDetail {
   pin: number
   was_post_processed: boolean
   post_process: null | T_AppointmentResolutionProcessId
+  comments: string
 }
 interface I_AppointmentRealTimeStatus {
   included_students: number
@@ -91,6 +92,7 @@ interface I_AppointmentRequest_RequestData {
   pin: number
   evaluation_subject_id: T_EvaluationSubjectId | null
   grade: SchoolGrade
+  comments: string
 }
 interface I_AppointmentApprove_RequestData {
   appointment_id: T_AppointmentId

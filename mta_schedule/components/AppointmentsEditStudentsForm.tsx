@@ -63,6 +63,7 @@ const AppointmentsEditStudentsForm = ({ data }: I_Props) => {
           subject={data.requested_evaluation_subject?.name}
           grade={data.requested_evaluation_grade === null ? undefined : data.requested_evaluation_grade}
           evaluation={data.evaluation_brief !== null ? data.evaluation_brief : undefined}
+          comments={data.comments}
         />
         <Spacer />
         <form onSubmit={handleSubmit(addStudentProfiles)}>
