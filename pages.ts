@@ -179,6 +179,16 @@ const pages = {
             path: userChangePasswordPath,
             label: 'Usuarios',
           },
+          responsableEjecutivo: {
+            path: '/dashboard/usuarios/responsables-ejecutivos',
+            label: 'Responsables Ejecutivos',
+            _: {
+              agregar: {
+                path: '/dashboard/usuarios/responsables-ejecutivos/agregar',
+                label: 'Agregar Responsable Ejecutivo',
+              },
+            },
+          },
           responsableInstitucional: {
             path: '/dashboard/usuarios/responsables-institucionales',
             label: 'Responsables Institucionales',

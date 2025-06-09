@@ -15,7 +15,9 @@ const profileColors: Record<T_UserProfiles, string> = {
   evaluator: blue[500],
   student: green[500],
   school_staff: orange[500],
+  executive: 'purple',
   superuser: 'black',
+
 }
 
 const UserProfileChip: React.FC<I_UserProfileChipProps> = ({ profile, ...props }) => {

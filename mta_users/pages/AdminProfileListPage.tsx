@@ -1,14 +1,7 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
-import { SCHOOL_STAFF_PROFILE_NAME } from '@/mta_schools/constants'
-import {
-  useNavigateToSchoolStaffProfileCreate,
-  useNavigateToSchoolStaffProfileDetail,
-  useSchoolStaffProfileBatchDelete,
-  useSchoolStaffProfileList,
-} from '@/mta_schools/hooks'
-import { I_SchoolStaffProfileListItem } from '@/mta_schools/types'
+import { I_SchoolStaffProfileListItem} from '@/mta_schools/types'
 import { ADMIN_PROFILE_NAME } from '@/mta_users/constants'
 import {
   useAdminProfileList,

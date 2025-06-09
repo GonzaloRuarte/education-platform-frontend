@@ -5,6 +5,7 @@ type T_SchoolId = number
 type T_StudentProfileId = number
 type T_SchoolStaffProfileId = number
 type T_StudentProfilePersonalId = number
+type T_ExecutiveProfileId = number
 
 interface I_SchoolStaffListItem {
   school_staff_id: T_SchoolStaffProfileId
@@ -86,7 +87,17 @@ interface I_SchoolStaffProfileListItem {
   school_name: string
 }
 type T_SchoolStaffProfileList = I_PaginatedResponse<I_SchoolStaffProfileListItem>
-
+type T_ExecutiveProfileList = I_PaginatedResponse<I_ExecutiveProfileListItem>
+interface I_ExecutiveProfileListItem {
+  id: T_ExecutiveProfileId
+  user_id: T_UserId
+  username: string
+  first_name: string | null
+  last_name: string | null
+  email: string
+  school_id: T_SchoolId
+  school_name: string
+}
 interface I_SchoolStaffProfileCreateRequestData {
   school_id: T_SchoolId
   username: string
@@ -95,7 +106,25 @@ interface I_SchoolStaffProfileCreateRequestData {
   email: string
   password: string
 }
+
+interface I_ExecutiveProfileCreateRequestData {
+  school_id: T_SchoolId
+  username: string
+  first_name: string
+  last_name: string
+  email: string
+  password: string
+}
+
 interface I_SchoolStaffProfileUpdateRequestData {
+  school_id: T_SchoolId
+  username: string
+  first_name: string
+  last_name: string
+  email: string
+}
+
+interface I_ExecutiveProfileUpdateRequestData {
   school_id: T_SchoolId
   username: string
   first_name: string
@@ -113,12 +142,25 @@ interface I_SchoolStaffProfileDetail {
   school_id: T_SchoolId
   school_name: string
 }
+
+interface I_ExecutiveProfileDetail {
+  id: T_ExecutiveProfileId
+  user_id: T_UserId
+  username: string
+  first_name: string | null
+  last_name: string | null
+  email: string
+  school_id: T_SchoolId
+  school_name: string
+}
+
 export type {
   T_SchoolId,
   I_SchoolName,
   T_StudentProfileId,
   T_StudentProfilePersonalId,
   T_SchoolStaffProfileId,
+  T_ExecutiveProfileId,
   I_SchoolDetail,
   I_SchoolListItem,
   I_StudentProfileListItem,
@@ -136,4 +178,10 @@ export type {
   I_SchoolStaffProfileDetail,
   I_SchoolStaffProfileUpdateRequestData,
   I_StudentProfileDetail,
+  T_ExecutiveProfileList,
+  I_ExecutiveProfileListItem,
+  I_ExecutiveProfileDetail,
+  I_ExecutiveProfileCreateRequestData,
+  I_ExecutiveProfileUpdateRequestData,
+
 }

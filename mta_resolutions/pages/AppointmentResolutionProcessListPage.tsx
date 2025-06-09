@@ -36,6 +36,6 @@ const AppointmentResolutionProcessListPage = () => {
 }
 
 export default withAuth(AppointmentResolutionProcessListPage, {
-  allowedUserProfiles: ['admin', 'school_staff'],
+  allowedUserProfiles: ['admin', 'school_staff','executive'],
   logoutDestination: 'dashboard',
 })

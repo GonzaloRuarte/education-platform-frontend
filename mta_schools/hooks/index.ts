@@ -7,14 +7,19 @@ import {
   I_SchoolStaffProfileCreateRequestData,
   I_SchoolStaffProfileDetail,
   I_SchoolStaffProfileUpdateRequestData,
+  I_ExecutiveProfileCreateRequestData,
+  I_ExecutiveProfileDetail,
+  I_ExecutiveProfileUpdateRequestData,
   I_SchoolUpdateRequestData,
   I_StudentProfileCreateRequestData,
   I_StudentProfileDetail,
+  T_ExecutiveProfileId,
   T_SchoolId,
   T_SchoolNames,
   T_SchoolsList,
   T_SchoolStaffProfileId,
   T_SchoolStaffProfileList,
+  T_ExecutiveProfileList,
   T_StudentProfileBatchCreateRequestData,
   T_StudentProfileId,
   T_StudentProfileList,
@@ -101,29 +106,65 @@ const useCohortsDistinctBySchool = actionDataHookV3<
 >(COHORTS_BY_SCHOOL_PATH, axiosGet, useAuthResources)
 
 const SCHOOL_STAFF_PROFILE = '/school-staff-profiles'
+const EXECUTIVE_PROFILE = '/executive-profiles'
 const useSchoolStaffProfileList = listHook<T_SchoolStaffProfileList>(SCHOOL_STAFF_PROFILE, axiosGet, useAuthResources)
+const useExecutiveProfileList = listHook<T_ExecutiveProfileList>(EXECUTIVE_PROFILE, axiosGet, useAuthResources)
 const useSchoolStaffProfileBatchDelete = batchDeletionHook<T_SchoolStaffProfileId>(
   SCHOOL_STAFF_PROFILE,
   axiosDelete,
   useAuthResources,
 )
+
+const useExecutiveProfileBatchDelete = batchDeletionHook<T_ExecutiveProfileId>(
+  EXECUTIVE_PROFILE,
+  axiosDelete,
+  useAuthResources,
+)
+
 const useSchoolStaffProfileCreate = creationHook<I_SchoolStaffProfileCreateRequestData, I_CreationCommonResponse>(
   SCHOOL_STAFF_PROFILE,
   axiosPost,
   useAuthResources,
 )
+
+const useExecutiveProfileCreate = creationHook<I_ExecutiveProfileCreateRequestData, I_CreationCommonResponse>(
+  EXECUTIVE_PROFILE,
+  axiosPost,
+  useAuthResources,
+)
+
 const useSchoolStaffProfileUpdate = updateHook<
   T_SchoolStaffProfileId,
   I_SchoolStaffProfileUpdateRequestData,
   I_CreationCommonResponse
 >(SCHOOL_STAFF_PROFILE, axiosPatch, useAuthResources)
+
+const useExecutiveProfileUpdate = updateHook<
+  T_ExecutiveProfileId,
+  I_ExecutiveProfileUpdateRequestData,
+  I_CreationCommonResponse
+>(EXECUTIVE_PROFILE, axiosPatch, useAuthResources)
+
 const useSchoolStaffProfileDetail = detailHook<T_SchoolStaffProfileId, I_SchoolStaffProfileDetail>(
   SCHOOL_STAFF_PROFILE,
   axiosGet,
   useAuthResources,
 )
+
+const useExecutiveProfileDetail = detailHook<T_ExecutiveProfileId, I_ExecutiveProfileDetail>(
+  EXECUTIVE_PROFILE,
+  axiosGet,
+  useAuthResources,
+)
+
 const useSchoolStaffProfileDelete = deletionHook<T_SchoolStaffProfileId>(
   SCHOOL_STAFF_PROFILE,
+  axiosDelete,
+  useAuthResources,
+)
+
+const useExecutiveProfileDelete = deletionHook<T_ExecutiveProfileId>(
+  EXECUTIVE_PROFILE,
   axiosDelete,
   useAuthResources,
 )
@@ -163,6 +204,11 @@ const useNavigateToSchoolStaffProfileCreate = navigationHook(
 )
 const useNavigateToSchoolStaffProfileDetail = navigationWithIdHook(pages.D._.usuarios._.responsableInstitucional.path)
 
+const useNavigateToExecutiveProfileList = navigationHook(pages.D._.usuarios._.responsableEjecutivo.path)
+const useNavigateToExecutiveProfileCreate = navigationHook(pages.D._.usuarios._.responsableEjecutivo._.agregar.path)
+const useNavigateToExecutiveProfileDetail = navigationWithIdHook(pages.D._.usuarios._.responsableEjecutivo.path)
+
+
 export {
   useCohortsDistinctBySchool,
   useNavigateToSchoolCreate,
@@ -171,6 +217,9 @@ export {
   useNavigateToSchoolStaffProfileCreate,
   useNavigateToSchoolStaffProfileDetail,
   useNavigateToSchoolStaffProfileList,
+  useNavigateToExecutiveProfileCreate,
+  useNavigateToExecutiveProfileDetail,
+  useNavigateToExecutiveProfileList,
   useNavigateToStudentProfileBatchCreate,
   useNavigateToStudentProfileCreate,
   useNavigateToStudentProfileDetail,
@@ -187,6 +236,12 @@ export {
   useSchoolStaffProfileDetail,
   useSchoolStaffProfileList,
   useSchoolStaffProfileUpdate,
+  useExecutiveProfileBatchDelete,
+  useExecutiveProfileCreate,
+  useExecutiveProfileDelete,
+  useExecutiveProfileDetail,
+  useExecutiveProfileList,
+  useExecutiveProfileUpdate,
   useSchoolUpdate,
   useStudentProfileBatchCreate,
   useStudentProfileCreate,

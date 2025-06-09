@@ -1,13 +1,14 @@
 import { I_PaginatedResponse } from '@/shared/data/types'
 
 type T_UserId = number
-type T_UserProfiles = 'admin' | 'school_staff' | 'evaluator' | 'student' | 'superuser'
+type T_UserProfiles = 'admin' | 'school_staff' | 'evaluator' | 'student' | 'superuser' | 'executive'
 type T_AllowedUserProfiles = Array<T_UserProfiles> | undefined
 
 interface I_UserProfilesFlags {
   has_student_profile: boolean
   has_school_staff_profile: boolean
   has_evaluator_profile: boolean
+  has_executive_profile: boolean
   is_admin: boolean
 }
 interface I_UserListItemBaseFields {

@@ -66,7 +66,7 @@ const Menu = () => {
         <MenuItem Icon={QuizIcon} label={P.D._.bancoDePreguntas.label} href={P.D._.bancoDePreguntas.path}
         />
       </RRCC>
-        <RRCC allowedProfiles={['admin', 'school_staff']}>
+        <RRCC allowedProfiles={['admin', 'school_staff', 'executive']}>
           <MenuItem
             Icon={HistoryIcon}
             label={P.D._.procesosDeEvaluacion.label}
@@ -92,6 +92,10 @@ const Menu = () => {
             href={P.D._.usuarios.path}
             subMenu={
               <MenuBlock isSubMenu>
+                <MenuItem
+                  label={P.D._.usuarios._.responsableEjecutivo.label}
+                  href={P.D._.usuarios._.responsableEjecutivo.path}
+                />
                 <MenuItem
                   label={P.D._.usuarios._.responsableInstitucional.label}
                   href={P.D._.usuarios._.responsableInstitucional.path}

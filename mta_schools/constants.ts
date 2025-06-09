@@ -6,6 +6,13 @@ const SCHOOL_STAFF_PROFILE_NAME = new EntityName({
   plural: 'responsables institucionales',
   singular: 'responsable institucional',
 })
+
+const EXECUTIVE_PROFILE_NAME = new EntityName({
+  gender: 'M',
+  plural: 'responsables ejecutivos',
+  singular: 'responsable ejecutivo',
+})
+
 const SCHOOL_NAME = new EntityName({ gender: 'F', plural: 'escuelas', singular: 'escuela' })
 
 enum SchoolGrade {
@@ -22,4 +29,4 @@ enum SchoolGrade {
   G_11 = '11',
   G_12 = '12',
 }
-export { STUDENT_PROFILE_NAME, SCHOOL_NAME, SCHOOL_STAFF_PROFILE_NAME, SchoolGrade }
+export { STUDENT_PROFILE_NAME, SCHOOL_NAME, SCHOOL_STAFF_PROFILE_NAME, EXECUTIVE_PROFILE_NAME, SchoolGrade }

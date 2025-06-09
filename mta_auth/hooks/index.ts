@@ -39,6 +39,7 @@ const useUserProfilesResources = () => {
     isStudent: profiles?.includes('student'),
     isEvaluator: profiles?.includes('evaluator'),
     isSchoolStaff: profiles?.includes('school_staff'),
+    isExecutive: profiles?.includes('executive'),
   }
 }
 
