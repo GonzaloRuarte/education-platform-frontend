@@ -18,6 +18,9 @@ const columns: Array<GridColDef<I_SchoolStaffProfileListItem>> = [
   idExposeColumn({ field: 'username', headerName: 'Usuario', flex: 1.5 }),
   { field: 'school_name', headerName: 'Escuela', flex: 1.5 },
   { field: 'email', headerName: 'Email', flex: 1.5 },
+  { field: 'position', headerName: 'Cargo', flex: 1.5 },
+  { field: 'institutional_telephone', headerName: 'Teléfono institucional', flex: 1.5 },
+  { field: 'cellphone', headerName: 'Celular', flex: 1.5 },
 ]
 
 const SchoolStaffProfileListPage = () => {

@@ -20,6 +20,9 @@ interface I_FormFields {
   first_name: string
   last_name: string
   email: string
+  institutional_telephone: string
+  cellphone: string
+  position: string
 }
 
 const SchoolStaffProfileCreateForm = () => {
@@ -32,6 +35,9 @@ const SchoolStaffProfileCreateForm = () => {
       first_name: '',
       last_name: '',
       email: '',
+      institutional_telephone: '',
+      cellphone: '',
+      position: '',
     },
   })
 

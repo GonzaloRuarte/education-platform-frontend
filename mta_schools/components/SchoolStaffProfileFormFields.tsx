@@ -16,6 +16,9 @@ interface I_FormFields {
   first_name: string
   last_name: string
   email: string
+  institutional_telephone: string
+  cellphone: string
+  position: string
 }
 
 const SchoolStaffProfileFormFields = ({ control, excludePassword = false }) => {
@@ -88,6 +91,27 @@ const SchoolStaffProfileFormFields = ({ control, excludePassword = false }) => {
         rules={{ ...rules.required(), ...rules.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Debe ser un correo válido') }}
         label="Correo electrónico"
         type="email"
+      />
+      <InputControlled<I_FormFields>
+        control={control}
+        name="institutional_telephone"
+        rules={{ ...rules.pattern(/^\d{10}$/, 'Debe ser un número de teléfono válido') }}
+        label="Teléfono institucional"
+        type="tel"
+      />
+      <InputControlled<I_FormFields>
+        control={control}
+        name="cellphone"
+        rules={{ ...rules.pattern(/^\d{10}$/, 'Debe ser un número de celular válido') }}
+        label="Celular"
+        type="tel"
+      />
+      <InputControlled<I_FormFields>
+        control={control}
+        name="position"
+
+        label="Cargo"
+        type="text"
       />
     </MagicGrid>
   )

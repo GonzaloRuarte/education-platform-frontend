@@ -85,6 +85,9 @@ interface I_SchoolStaffProfileListItem {
   email: string
   school_id: T_SchoolId
   school_name: string
+  institutional_telephone: string | null
+  cellphone: string | null
+  position: string | null
 }
 type T_SchoolStaffProfileList = I_PaginatedResponse<I_SchoolStaffProfileListItem>
 type T_ExecutiveProfileList = I_PaginatedResponse<I_ExecutiveProfileListItem>
@@ -105,6 +108,9 @@ interface I_SchoolStaffProfileCreateRequestData {
   last_name: string
   email: string
   password: string
+  institutional_telephone: string
+  cellphone: string
+  position: string
 }
 
 interface I_ExecutiveProfileCreateRequestData {
@@ -122,6 +128,9 @@ interface I_SchoolStaffProfileUpdateRequestData {
   first_name: string
   last_name: string
   email: string
+  institutional_telephone: string
+  cellphone: string
+  position: string
 }
 
 interface I_ExecutiveProfileUpdateRequestData {
@@ -141,6 +150,9 @@ interface I_SchoolStaffProfileDetail {
   email: string
   school_id: T_SchoolId
   school_name: string
+  institutional_telephone: string | null
+  cellphone: string | null
+  position: string | null
 }
 
 interface I_ExecutiveProfileDetail {

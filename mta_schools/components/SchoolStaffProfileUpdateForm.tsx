@@ -19,6 +19,9 @@ interface I_FormFields {
   first_name: string
   last_name: string
   email: string
+  institutional_telephone: string
+  cellphone: string
+  position: string
 }
 
 interface I_Props {
@@ -32,6 +35,9 @@ const SchoolStaffProfileUpdateForm = ({ data }: I_Props) => {
       first_name: data.first_name || '',
       last_name: data.last_name || '',
       email: data.email,
+      institutional_telephone: data.institutional_telephone || '',
+      cellphone: data.cellphone || '',
+      position: data.position || '',
     },
   })
 
@@ -39,13 +45,16 @@ const SchoolStaffProfileUpdateForm = ({ data }: I_Props) => {
   const navToList = useNavigateToSchoolStaffProfileList()
   const update = useSchoolStaffProfileUpdate()
 
-  const onSubmit: SubmitHandler<I_FormFields> = ({ school_id, first_name, last_name, email, username }) => {
+  const onSubmit: SubmitHandler<I_FormFields> = ({ school_id, first_name, last_name, email, username, institutional_telephone, cellphone, position }) => {
     const payload: I_SchoolStaffProfileUpdateRequestData = {
       school_id,
       username,
       first_name,
       last_name,
       email,
+      institutional_telephone,
+      cellphone,
+      position,
     }
     setInProgressStatus(true)
     update(data.id, payload)
