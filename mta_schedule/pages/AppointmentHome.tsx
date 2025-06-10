@@ -7,13 +7,13 @@ import AppointmentSchoolDashboardPage from '@/mta_schedule/pages/AppointmentScho
 import React from 'react'
 
 const AppointmentHome = () => {
-  const { isAdmin, isSchoolStaff } = useUserProfilesResources()
+  const { isAdmin, isSchoolStaff, isExecutive } = useUserProfilesResources()
   if (isAdmin) return <AppointmentListPage />
-  if (isSchoolStaff) return <AppointmentSchoolDashboardPage />
+  if (isSchoolStaff||isExecutive) return <AppointmentSchoolDashboardPage />
   return <div>AppointmentHome</div>
 }
 
 export default withAuth(AppointmentHome, {
-  allowedUserProfiles: ['admin', 'school_staff'],
+  allowedUserProfiles: ['admin', 'school_staff','executive'],
   logoutDestination: 'dashboard',
 })

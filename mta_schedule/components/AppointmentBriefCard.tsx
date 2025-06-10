@@ -82,12 +82,16 @@ const AppointmentBriefCard = ({
                 </>
               )}
             </Box>
+            {comments && comments.length > 0 &&  
+              <>
                   <Spacer />
                   <Body1>
                     Comentarios:
                     <br />
                     <Bold>{comments}</Bold>
                   </Body1>
+              </>
+            }
           </MagicGrid>
         </Grid2>
         {pin !== undefined && (

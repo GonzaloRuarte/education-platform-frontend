@@ -7,6 +7,7 @@ import { useSchoolOwnSchool } from '@/mta_schools/hooks/state'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import Spinner from '@/shared/components/Spinner'
+import Bold from '@/shared/components/Bold'
 
 const AppointmentRequestPage = () => {
   const ownSchoolData = useSchoolOwnSchool()
@@ -15,6 +16,8 @@ const AppointmentRequestPage = () => {
     <Page>
       <Page.Title>Solicitar {APPOINTMENT_NAME.singular}</Page.Title>
       <Page.Content>
+        <Bold>Empezar al menos 80 minutos antes del corte.</Bold>
+        <Spacer size="l" />
         {ownSchoolData === undefined ? <Spinner /> : <AppointmentRequestForm ownSchoolData={ownSchoolData} />}
       </Page.Content>
       <Spacer size="l" />

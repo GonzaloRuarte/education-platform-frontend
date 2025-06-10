@@ -43,7 +43,7 @@ const Menu = () => {
         <RRCC allowedProfiles={['admin']}>
           <MenuItem Icon={SchoolIcon} label={P.D._.escuelas.label} href={P.D._.escuelas.path} />
         </RRCC>
-        <RRCC allowedProfiles={['admin', 'school_staff']}>
+        <RRCC allowedProfiles={['admin', 'school_staff','executive']}>
           <MenuItem
             Icon={CalendarMonthIcon}
             label={P.D._.turnos.label}

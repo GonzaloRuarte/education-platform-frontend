@@ -36,8 +36,9 @@ const UsersListFiltersControl = ({
     school_staff: { label: 'Personal de escuela' },
     evaluator: { label: 'Evaluador' },
     student: { label: 'Estudiante' },
-    superuser: { label: 'Superusuario' },
     executive: { label: 'Ejecutivo' },
+    superuser: { label: 'Superusuario' },
+
   }
   const { isSuperuser } = useUserProfilesResources()
 
