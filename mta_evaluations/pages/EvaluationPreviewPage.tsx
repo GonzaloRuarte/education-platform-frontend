@@ -41,9 +41,11 @@ const EvaluationPreviewPage = () => {
                   }}
                 />
                 <Spacer />
-              </>
-            )}
+              
+            
             <ResolutionQuestions evaluationToResolve={data} currentPage={page} />
+            </>
+            )}
           </>
         )}
       </Page.Content>
