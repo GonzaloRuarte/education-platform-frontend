@@ -1,18 +1,18 @@
-import PageBreak from '@/mta_evaluations/components/PageBreak'
+
 import QuestionAccordion from '@/mta_evaluations/components/QuestionAccordion'
-import { evaluationLabels } from '@/mta_evaluations/labels'
-import { EvaluationStatus, I_EvaluationDetail } from '@/mta_evaluations/types'
+import { evaluationPageLabels } from '@/mta_evaluations/labels'
+import { I_EvaluationPageDetail, T_EvaluationStatusCode } from '@/mta_evaluations/types'
 import Spacer from '@/shared/components/Spacer'
-import { H3 } from '@/shared/components/Typography'
+import { H4 } from '@/shared/components/Typography'
 import { T_VoidFn } from '@/shared/types'
 import React, { FC, useState } from 'react'
 
-const CreatedQuestions: FC<{ data: I_EvaluationDetail; reload: T_VoidFn }> = ({ data, reload }) => {
-  const [expanded, setExpanded] = useState<I_EvaluationDetail['id'] | false>(false)
+const CreatedQuestions: FC<{ evaluationStatus: T_EvaluationStatusCode; data: I_EvaluationPageDetail; reload: T_VoidFn }> = ({ evaluationStatus, data, reload }) => {
+  const [expanded, setExpanded] = useState<I_EvaluationPageDetail['id'] | false>(false)
 
   return (
     <>
-      <H3>{evaluationLabels.createdQuestions}</H3>
+      <H4>{evaluationPageLabels.createdQuestions}</H4>
       <Spacer />
       {data.questions.map((question) => {
         const isExpanded = expanded === question.id
@@ -20,17 +20,11 @@ const CreatedQuestions: FC<{ data: I_EvaluationDetail; reload: T_VoidFn }> = ({ 
           <React.Fragment key={question.id}>
             <QuestionAccordion
               reload={reload}
-              evaluationStatus={data.status}
+              evaluationStatus={evaluationStatus}
               evaluationId={data.id}
               {...{ isExpanded, setExpanded, question }}
             />
-            {question.breaks_page_after && (
-              <PageBreak
-                disabled={data.status === EvaluationStatus.Published}
-                afterQuestionId={question.id}
-                reload={reload}
-              />
-            )}
+
           </React.Fragment>
         )
       })}

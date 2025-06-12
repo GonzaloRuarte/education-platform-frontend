@@ -3,7 +3,6 @@
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import ResolutionHeader from '@/mta_resolutions/components/ResolutionHeader'
 import ResolutionPaginator from '@/mta_resolutions/components/ResolutionPaginator'
-import ResolutionPinnedText from '@/mta_resolutions/components/ResolutionPinnedText'
 import ResolutionQuestions from '@/mta_resolutions/components/ResolutionQuestions'
 import ResolutionReviewDisclaimer from '@/mta_resolutions/components/ResolutionReviewDisclaimer'
 import { useResolutionPagination } from '@/mta_resolutions/hooks'
@@ -21,8 +20,6 @@ import { Box } from '@mui/material'
 const ResolveEvaluationPage = () => {
   const evaluationToResolve = useResolutionEvaluationToResolve()
   const { currentPage } = useResolutionPagination()
-  const hasPinnedText = evaluationToResolve?.pinned_text !== null
-
   return (
     <>
       <OfflineIndicator />
@@ -37,7 +34,7 @@ const ResolveEvaluationPage = () => {
           ) : (
             <>
               <Box position={'relative'}>
-                <Box width={hasPinnedText ? '70%' : '100%'}>
+                <Box width={'100%'}>
                   {currentPage === 1 ? (
                     <ResolutionHeader evaluationToResolve={evaluationToResolve} />
                   ) : (
@@ -59,7 +56,7 @@ const ResolveEvaluationPage = () => {
                   <ResolutionPaginator />
                   <Spacer size="xl" />
                 </Box>
-                {hasPinnedText && <ResolutionPinnedText pinnedText={evaluationToResolve.pinned_text as string} />}
+
               </Box>
             </>
           )}

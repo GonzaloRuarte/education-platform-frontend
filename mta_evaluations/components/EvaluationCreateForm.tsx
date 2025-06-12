@@ -4,7 +4,6 @@ import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
 import { useEvaluationCreate, useEvaluationSubjects, useNavigateToEvaluationContentEdit } from '@/mta_evaluations/hooks'
 import { evaluationLabels } from '@/mta_evaluations/labels'
 import { EvaluationStatus, I_EvaluationCreateRequestData, I_EvaluationSubject } from '@/mta_evaluations/types'
-import { cleanPinnedText } from '@/mta_evaluations/utils'
 import { SchoolGradeSelectControlled } from '@/mta_schools/components/SchoolGradeSelect'
 import { SchoolGrade } from '@/mta_schools/constants'
 import MagicGrid from '@/shared/components/MagicGrid'
@@ -31,7 +30,6 @@ const defaultValues: I_FormFields = {
   title: '',
   // code: '',
   header: '',
-  pinned_text: null,
   status: EvaluationStatus.Draft,
   subject_id: null,
   grade: null,
@@ -51,12 +49,11 @@ const EvaluationCreateForm = () => {
   const { setIsInProgress, setIsNotInProgress } = useInProgress()
   const navigateToEvaluationContentEdit = useNavigateToEvaluationContentEdit()
   const evaluationCreate = useEvaluationCreate()
-  const onSubmit: SubmitHandler<I_FormFields> = ({ pinned_text, ...data }) => {
+  const onSubmit: SubmitHandler<I_FormFields> = ({  ...data }) => {
     setIsInProgress()
     evaluationCreate({
       ...data,
       code,
-      pinned_text: cleanPinnedText(pinned_text),
       subject_id: data.subject_id as string,
       grade: data.grade as SchoolGrade,
     })
@@ -87,11 +84,6 @@ const EvaluationCreateForm = () => {
           name="header"
         />
 
-        <WysiwygEditorControlled<I_FormFields>
-          {...{ control }}
-          label={evaluationLabels.pinnedText}
-          name="pinned_text"
-        />
       </MagicGrid>
       <Spacer />
 

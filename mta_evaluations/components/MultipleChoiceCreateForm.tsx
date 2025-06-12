@@ -21,7 +21,7 @@ import { successToast } from '@/shared/toasts'
 import { useParams } from 'next/navigation'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
-interface I_FormFields extends Omit<I_QuestionCreateMultipleChoiceRequestData, 'evaluation_id'> {}
+interface I_FormFields extends Omit<I_QuestionCreateMultipleChoiceRequestData, 'page_id'> {}
 
 const MultipleChoiceCreateForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = () => {
   const { evaluationId } = useParams()
@@ -38,11 +38,11 @@ const MultipleChoiceCreateForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = (
 
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
     setInProgressStatus(true)
-    create({ ...data, evaluation_id: Number(evaluationId) })
+    create({ ...data, page_id: Number(evaluationId) })
       .then((res) => {
         log.info('Question created succesfully:')
         successToast('Pregunta de opción múltiple agregada correctamente')
-        navigateToDetail({ evaluationId: res.evaluation_id, questionId: res.question_id })
+        navigateToDetail({ evaluationId: res.page_id, questionId: res.question_id })
       })
       .catch(handleServiceError)
       .finally(() => {

@@ -66,8 +66,8 @@ const Options: FC<{ data: I_AnswerMultipleChoiceDetail; reload: T_VoidFn }> = ({
   )
 }
 
-const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({ data, reload }) => {
-  const { content, evaluation_id } = data
+const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({data, reload }) => {
+  const { content, page_id } = data
 
   const { handleSubmit, control } = useForm<I_FormFields>({
     defaultValues: {

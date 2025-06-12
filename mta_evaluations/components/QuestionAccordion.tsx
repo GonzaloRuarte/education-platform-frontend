@@ -11,7 +11,8 @@ import {
   EvaluationStatus,
   I_AnswerMultipleChoiceDetail,
   I_AnswerNumericDetail,
-  I_EvaluationDetail,
+  I_EvaluationPageDetail,
+  T_EvaluationStatusCode,
   T_AnswerType,
   T_EvaluationId,
   T_QuestionId,
@@ -102,13 +103,13 @@ const answersComponents: Record<T_AnswerType, FC<any>> = {
 
 const QuestionAccordion: FC<{
   evaluationId: T_EvaluationId
-  question: T_ArrayElement<I_EvaluationDetail['questions']>
+  question: T_ArrayElement<I_EvaluationPageDetail['questions']>
   isExpanded: boolean
   setExpanded: React.Dispatch<React.SetStateAction<number | false>>
   reload: T_VoidFn
-  evaluationStatus: I_EvaluationDetail['status']
+  evaluationStatus: T_EvaluationStatusCode
 }> = ({ isExpanded, setExpanded, question, evaluationId, reload, evaluationStatus }) => {
-  const handleChange = (panel: I_EvaluationDetail['id']) => (_: React.SyntheticEvent, isExpanded: boolean) => {
+  const handleChange = (panel: I_EvaluationPageDetail['id']) => (_: React.SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false)
   }
   const AnswerComponent = answersComponents[question.answer.resource_type]

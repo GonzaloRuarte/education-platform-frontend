@@ -40,7 +40,6 @@ interface I_EvaluationToResolve_PageQuestion {
   answer: T_EvaluationToResolve_NumericAnswer | T_EvaluationToResolve_MultipleChoiceAnswer
   content: string
   is_mandatory: boolean
-  breaks_page_after: boolean
 }
 
 type T_EvaluationToResolve_Page = Array<I_EvaluationToResolve_PageQuestion>
@@ -50,7 +49,6 @@ interface I_EvaluationToResolve {
   code: string
   title: string
   header: string
-  pinned_text: string | null
   subject: string
   pages: Array<T_EvaluationToResolve_Page>
   pages_quantity: number

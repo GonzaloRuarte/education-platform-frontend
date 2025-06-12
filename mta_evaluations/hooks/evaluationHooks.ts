@@ -1,9 +1,12 @@
 import { useAuthResources } from '@/mta_auth/hooks'
 import {
   I_EvaluationCreateRequestData,
+  I_EvaluationPageCreateRequestData,
+  I_EvaluationPageEditRequestData,
   I_EvaluationDetail,
   I_EvaluationSetStatusRequestData,
   T_EvaluationId,
+  T_EvaluationPageId,
   T_EvaluationList,
   T_EvaluationSubjectList,
 } from '@/mta_evaluations/types'
@@ -58,6 +61,20 @@ const useRecoverAndStoreEvaluationSubjects = () => {
       return res
     })
 }
+const EVALUATION_PAGE_PATH = '/evaluation-pages'
+const useEvaluationPageCreate = creationHook<I_EvaluationPageCreateRequestData, I_CreationCommonResponse>(
+  EVALUATION_PAGE_PATH,
+  axiosPost,
+  useAuthResources,
+)
+const useEvaluationPageUpdate = updateHook<T_EvaluationPageId, I_EvaluationPageEditRequestData, I_CreationCommonResponse>(
+  EVALUATION_PAGE_PATH,
+  axiosPatch,
+  useAuthResources,
+)
+const useEvaluationPageDelete = deletionHook<T_EvaluationPageId>(EVALUATION_PAGE_PATH, axiosDelete, useAuthResources)
+
+
 const EVALUATION_PREVIEW_PATH = '/evaluations/{evaluationId:number}/preview'
 const useEvaluationPreview = actionDataHookV3<typeof EVALUATION_PREVIEW_PATH, T_EmptyPayload, I_EvaluationToResolve>(
   EVALUATION_PREVIEW_PATH,
@@ -88,4 +105,7 @@ export {
   useRecoverAndStoreEvaluationSubjects,
   useEvaluationSetStatus,
   useEvaluationPreview,
+  useEvaluationPageCreate,
+  useEvaluationPageUpdate,
+  useEvaluationPageDelete,
 }

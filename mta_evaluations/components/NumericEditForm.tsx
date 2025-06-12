@@ -18,8 +18,8 @@ import { SubmitHandler, useForm } from 'react-hook-form'
 
 interface I_FormFields extends I_QuestionUpdateNumericRequestData {}
 
-const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({ data, reload }) => {
-  const { content, evaluation_id, answer } = data
+const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({data, reload }) => {
+  const { content, page_id, answer } = data
 
   const { handleSubmit, control } = useForm<I_FormFields>({
     defaultValues: {

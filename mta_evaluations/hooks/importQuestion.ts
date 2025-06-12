@@ -6,9 +6,9 @@ import { I_ImportQuestionRequest, I_ImportQuestionResponse } from '@/mta_evaluat
 
 
 
-const useImportQuestion = (evaluationId: number) =>
+const useImportQuestion = (evaluationPageId: number) =>
   creationHook<I_ImportQuestionRequest, I_ImportQuestionResponse>(
-    `/evaluations/${evaluationId}/import-question`,
+    `/evaluation-pages/${evaluationPageId}/import-question`,
     axiosPost,
     useAuthResources,
   )

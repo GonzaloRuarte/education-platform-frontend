@@ -2,6 +2,7 @@ import { T_AnswerType, T_AnswerTypeUrlParams } from '@/mta_evaluations/types'
 import { EntityName } from '@/shared/utils'
 
 const EVALUATION_NAME = new EntityName({ gender: 'F', singular: 'evaluación', plural: 'evaluaciones' })
+const EVALUATION_PAGE_NAME = new EntityName({ gender: 'F', singular: 'página de evaluación', plural: 'páginas de evaluación' })
 const EVALUATOR_PROFILE_NAME = new EntityName({ gender: 'M', singular: 'itemista', plural: 'itemistas' })
 const QUESTION_NAME = new EntityName({ gender: 'F', singular: 'pregunta', plural: 'preguntas' })
 const MULTIPLE_CHOICE_NAME = new EntityName({
@@ -23,6 +24,7 @@ const urlPathsToAnswerTypes: Record<T_AnswerTypeUrlParams, T_AnswerType> = {
 
 export {
   EVALUATION_NAME,
+  EVALUATION_PAGE_NAME,
   QUESTION_NAME,
   MULTIPLE_CHOICE_NAME,
   NUMERIC_NAME,

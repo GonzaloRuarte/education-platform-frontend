@@ -1,12 +1,11 @@
 import { T_EvaluationStatusCode } from '@/mta_evaluations/types'
+import pages from '@/pages'
 import { sharedLabels } from '@/shared/labels'
 
 const evaluationLabels = {
   title: 'Título',
   code: 'Código',
   header: 'Encabezado',
-  pinnedText: 'Texto Fijado',
-  questions_per_page: 'Preguntas por página',
   status: 'Estado',
   statuses: {
     published: 'Publicada',
@@ -16,9 +15,18 @@ const evaluationLabels = {
   },
   subject: 'Materia',
   create: 'Crear',
-  pageBreak: 'Salto de Página',
+  pages: 'Páginas',
+  addPage: 'Agregar página',
+
+}
+
+const evaluationPageLabels = {
   newQuestion: 'Creación pregunta',
   createdQuestions: 'Preguntas Creadas',
+  pinnedText: 'Texto fijo',
+  deletePage: 'Eliminar página',
+  delete: 'Eliminar',
+  deletePageAreYouSure: '¿Estás seguro/a que querés eliminar la página?',
 }
 
 const evaluationStatusCodeToLabels = (code: T_EvaluationStatusCode): string =>
@@ -31,9 +39,6 @@ const questionLabels = {
   title: sharedLabels.title,
   content: sharedLabels.content,
   create: 'Crear pregunta',
-  pageBreak: {
-    add: 'Agregar salto de página',
-  },
 }
 
 const multipleChoiceLabels = {
@@ -46,4 +51,4 @@ const numericLabels = {
   value: 'Valor',
 }
 
-export { evaluationLabels, evaluationStatusCodeToLabels, multipleChoiceLabels, questionLabels, numericLabels }
+export { evaluationLabels, evaluationPageLabels, evaluationStatusCodeToLabels, multipleChoiceLabels, questionLabels, numericLabels }

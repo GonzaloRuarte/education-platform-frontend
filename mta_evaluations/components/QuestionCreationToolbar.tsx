@@ -1,64 +1,28 @@
 import {
-  useAddPageBreak,
   useNavigateToQuestionCreateMultipleChoice,
   useNavigateToQuestionCreateNumeric,
+  useEvaluationPageDelete,
 } from '@/mta_evaluations/hooks'
-import { evaluationLabels, questionLabels } from '@/mta_evaluations/labels'
-import { EvaluationStatus, I_EvaluationDetail, T_AnswerType, T_EvaluationId } from '@/mta_evaluations/types'
+import { evaluationPageLabels, questionLabels } from '@/mta_evaluations/labels'
+import { EvaluationStatus, I_EvaluationPageDetail, T_AnswerType, T_EvaluationId, T_EvaluationStatusCode } from '@/mta_evaluations/types'
 import Button from '@/shared/components/Button'
+import { DeleteButton } from '@/shared/components/buttons'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Pastilla from '@/shared/components/Pastilla'
 import Spacer from '@/shared/components/Spacer'
-import { Body1 } from '@/shared/components/Typography'
 import { useDialog } from '@/shared/dialogs'
-import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
-import { handleServiceError } from '@/shared/service'
 import { T_VoidFn } from '@/shared/types'
-import InsertPageBreakIcon from '@mui/icons-material/InsertPageBreak'
 import QuizIcon from '@mui/icons-material/Quiz'
 import Grid from '@mui/material/Grid2'
 import { FC } from 'react'
 import ImportFromBankDialog from '@/mta_evaluations/components/ImportFromBankDialog'
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd'
+import CreatedQuestions from '@/mta_evaluations/components/CreatedQuestions'
+import { useConfirm } from '@/shared/confirm'
+import { useHandleDelete } from '@/shared/hooks'
+import { EVALUATION_PAGE_NAME } from '@/mta_evaluations/constants'
 
-const AddPageBreakForm: FC<{ close: T_VoidFn; reload: T_VoidFn; questions: I_EvaluationDetail['questions'] }> = ({
-  reload,
-  close,
-  questions,
-}) => {
-  const add = useAddPageBreak()
-  const availableQuestions = questions.filter((question) => !question.breaks_page_after)
-  if (availableQuestions.length === 0) {
-    return <Body1>Ups. Ya tienen salto de línea todas las preguntas.</Body1>
-  }
-  const { setIsInProgress, setIsNotInProgress } = useInProgress()
-  return (
-    <>
-      <Body1>Agregar salto después de pregunta nº...</Body1>
-      <Spacer />
-      <MagicGrid itemSize="auto">
-        {availableQuestions.map((question) => (
-          <Button
-            key={question.id}
-            onClick={() => {
-              setIsInProgress()
-              add({ after_question_id: question.id })
-                .then(() => {
-                  close()
-                  reload()
-                })
-                .catch(handleServiceError)
-                .finally(setIsNotInProgress)
-            }}
-          >
-            {question.order + 1}
-          </Button>
-        ))}
-      </MagicGrid>
-    </>
-  )
-}
 
 const CreateQuestionDialogContent: FC<{ close: T_VoidFn; evaluationId: T_EvaluationId }> = ({
   close,
@@ -83,23 +47,23 @@ const CreateQuestionDialogContent: FC<{ close: T_VoidFn; evaluationId: T_Evaluat
   )
 }
 
-const QuestionCreationToolbar = ({ data, reload }: { data: I_EvaluationDetail; reload: T_VoidFn }) => {
+const QuestionCreationToolbar = ({ evaluation_id, status, data, reload }: { evaluation_id: T_EvaluationId; status: T_EvaluationStatusCode; data: I_EvaluationPageDetail; reload: T_VoidFn }) => {
   const { showDialog, closeDialog, DialogComponent, componentProps } = useDialog()
-  const handleAddPageBreak = () => {
-    showDialog({
-      title: questionLabels.pageBreak.add,
-      content: <AddPageBreakForm close={closeDialog} reload={reload} questions={data.questions} />,
-      actions: [{ buttonLabel: sharedLabels.cancel, key: sharedLabels.cancel, onPress: closeDialog }],
-    })
-  }
+  const deleteInstance = useEvaluationPageDelete()
   const handleCreateQuestion = () => {
     showDialog({
       title: questionLabels.create,
-      content: <CreateQuestionDialogContent close={closeDialog} evaluationId={data.id} />,
+      content: <CreateQuestionDialogContent close={closeDialog} evaluationId={evaluation_id} />,
       actions: [{ buttonLabel: sharedLabels.cancel, key: sharedLabels.cancel, onPress: closeDialog }],
     })
   }
-  
+  const { ConfirmDialogComponent, showConfirm } = useConfirm()
+  const handleDelete = useHandleDelete(data.id, {
+    showConfirm,
+    deleteInstance,
+    callback: reload,
+    entityName: EVALUATION_PAGE_NAME,
+  })
   const handleImportFromBank = () => {
     const closeAndReload = () => {
         closeDialog()   // ← from useDialog
@@ -109,7 +73,7 @@ const QuestionCreationToolbar = ({ data, reload }: { data: I_EvaluationDetail; r
       title: 'Importar desde Banco de Preguntas',
       content: (
         <ImportFromBankDialog
-          evaluationId={data.id}          
+          evaluationPageId={data.id}          
         />
       ),
       actions: [{ key: 'close', buttonLabel: sharedLabels.cancel, onPress: closeAndReload }],
@@ -118,38 +82,40 @@ const QuestionCreationToolbar = ({ data, reload }: { data: I_EvaluationDetail; r
         maxWidth: 'xl',   // or 'sm', 'lg', etc.
         onClose: (_e, _reason) => closeAndReload(),
       },
-    })}
+    })
+  }
+  const handleDeletePage = () => {handleDelete() }
+
   return (
     <>
       <Pastilla>
-        <Grid container justifyContent="center" alignItems="center">
-          <Grid size="grow">{evaluationLabels.create}</Grid>
+        <Grid container justifyContent="center" alignItems="center">          
           <MagicGrid itemSize={'auto'}>
             <Button
-              disabled={data.status === EvaluationStatus.Published}
-              onClick={handleAddPageBreak}
-              startIcon={<InsertPageBreakIcon />}
-            >
-              {evaluationLabels.pageBreak}
-            </Button>
-            <Button
-              disabled={data.status === EvaluationStatus.Published}
+              disabled={status === EvaluationStatus.Published}
               onClick={handleCreateQuestion}
               startIcon={<QuizIcon />}
             >
-              {evaluationLabels.newQuestion}
+              {evaluationPageLabels.newQuestion}
             </Button>
             
           <Button
-            disabled={data.status === EvaluationStatus.Published}
+            disabled={status === EvaluationStatus.Published}
             onClick={handleImportFromBank}
             startIcon={<LibraryAddIcon />}
           >
             Importar Pregunta
           </Button>
+          <DeleteButton
+            disabled={status === EvaluationStatus.Published}
+            color="error"
+            onClick={handleDeletePage}
+          />
           </MagicGrid>
         </Grid>
+        <CreatedQuestions {...{ evaluationStatus: status, data: data, reload }} />
       </Pastilla>
+      <ConfirmDialogComponent />
       <DialogComponent {...componentProps} />
     </>
   )

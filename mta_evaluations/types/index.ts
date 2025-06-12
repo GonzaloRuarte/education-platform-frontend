@@ -8,7 +8,7 @@ type T_QuestionId = number
 type T_AnswerId = number
 type T_MultiplChoiceId = number
 type T_MultiplChoiceOptionId = number
-
+type T_EvaluationPageId = number
 type T_EvaluationSubjectId = string
 
 type T_EvaluationStatusCode = 'P' | 'D'
@@ -23,7 +23,6 @@ interface I_EvaluationListItem {
   id: T_EvaluationId
   title: string
   code: string
-  questions_per_page: number
   status: T_EvaluationStatusCode
   created_by: {
     id: number
@@ -57,9 +56,8 @@ interface I_QuestionDetail {
   order: number
   content: string
   is_mandatory: boolean
-  breaks_page_after: boolean
   answer: T_AnswerPolymorphicDetail
-  evaluation_id: T_EvaluationId
+  page_id: T_EvaluationPageId
 }
 
 interface I_QuestionDetailSpecific<T_Answer extends T_AnswerPolymorphicDetail> {
@@ -67,14 +65,21 @@ interface I_QuestionDetailSpecific<T_Answer extends T_AnswerPolymorphicDetail> {
   order: number
   content: string
   is_mandatory: boolean
-  breaks_page_after: boolean
   answer: T_Answer
+  page_id: T_EvaluationPageId
+}
+
+interface I_EvaluationPageDetail {
+  id: number
+  order: number
+  questions: Array<I_QuestionDetail>
+  pinned_text: string | null
   evaluation_id: T_EvaluationId
 }
 
 interface I_EvaluationDetail {
   id: T_EvaluationId
-  questions: Array<I_QuestionDetail>
+  pages: Array<I_EvaluationPageDetail>
   subject_id: T_EvaluationSubjectId
   grade: SchoolGrade
   created_at: string
@@ -82,7 +87,6 @@ interface I_EvaluationDetail {
   title: string
   code: string
   header: string
-  pinned_text: string | null
   status: T_EvaluationStatusCode
   subject: string
   created_by: number
@@ -102,8 +106,16 @@ interface I_EvaluationCreateRequestData {
   subject_id: T_EvaluationSubjectId
   grade: SchoolGrade
   header: string
-  pinned_text: string | null
   status: T_EvaluationStatusCode
+}
+
+interface I_EvaluationPageCreateRequestData {
+  evaluation_id: T_EvaluationId
+}
+
+interface I_EvaluationPageEditRequestData {
+  id: T_EvaluationPageId
+  pinned_text: string | null
 }
 
 interface I_MultipleChoiceOptionCreateRequestData {
@@ -132,23 +144,17 @@ interface I_QuestionUpdateNumericRequestData {
   value: number
 }
 interface I_QuestionCreateMultipleChoiceRequestData {
-  evaluation_id: T_EvaluationId
+  page_id: T_EvaluationPageId
   content: string
 }
 interface I_QuestionCreateNumericRequestData {
-  evaluation_id: T_EvaluationId
+  page_id: T_EvaluationPageId
   content: string
   value: number
 }
 interface I_QuestionCreateResponseData {
-  evaluation_id: T_EvaluationId
+  page_id: T_EvaluationPageId
   question_id: T_QuestionId
-}
-interface I_QuestionAddPageBreakRequestData {
-  after_question_id: T_QuestionId
-}
-interface I_QuestionRemovePageBreakRequestData {
-  after_question_id: T_QuestionId
 }
 
 type T_QuestionForm<T_Data extends T_AnswerPolymorphicDetail> = FC<{
@@ -181,6 +187,10 @@ export type {
   I_EvaluationCreateRequestData,
   T_EvaluationSubjectList,
   I_EvaluationSubject,
+  T_EvaluationPageId,
+  I_EvaluationPageDetail,
+  I_EvaluationPageCreateRequestData,
+  I_EvaluationPageEditRequestData,
   T_AnswerType,
   T_AnswerTypeUrlParams,
   I_AnswerNumericDetail,
@@ -194,8 +204,6 @@ export type {
   I_MultipleChoiceOptionEditIsTrueResponseData,
   I_QuestionUpdateMultipleChoiceRequestData,
   I_QuestionUpdateNumericRequestData,
-  I_QuestionAddPageBreakRequestData,
-  I_QuestionRemovePageBreakRequestData,
   I_QuestionCreateMultipleChoiceRequestData,
   I_QuestionCreateNumericRequestData,
   T_QuestionForm,

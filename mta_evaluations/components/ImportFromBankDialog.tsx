@@ -14,12 +14,12 @@ import { handleServiceError } from '@/shared/service'
 import { QUESTION_NAME } from '@/mta_evaluations/constants'
 
 interface I_Props {
-  evaluationId: number          // close the modal
+  evaluationPageId: number          // close the modal
 }
 
-const ImportFromBankDialog: FC<I_Props> = ({ evaluationId }) => {
+const ImportFromBankDialog: FC<I_Props> = ({ evaluationPageId }) => {
   const listHook          = useQuestionList
-  const importQuestion    = useImportQuestion(evaluationId)()
+  const importQuestion    = useImportQuestion(evaluationPageId)()
 
   const columns: GridColDef[] = [
   {

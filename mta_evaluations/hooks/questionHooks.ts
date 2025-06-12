@@ -1,11 +1,9 @@
 import { useAuthResources } from '@/mta_auth/hooks'
 import {
-  I_QuestionAddPageBreakRequestData,
   I_QuestionCreateMultipleChoiceRequestData,
   I_QuestionCreateNumericRequestData,
   I_QuestionCreateResponseData,
   I_QuestionDetail,
-  I_QuestionRemovePageBreakRequestData,
   I_QuestionUpdateMultipleChoiceRequestData,
   I_QuestionUpdateNumericRequestData,
   T_QuestionId,
@@ -58,16 +56,6 @@ const useQuestionMoveForward = updateHook<T_QuestionId, T_EmptyPayload>(
   useAuthResources,
   { pathSuffix: '/move-forward' },
 )
-const useAddPageBreak = actionHook<I_QuestionAddPageBreakRequestData, T_EmptyPayload>(
-  `${QUESTIONS_PATH}/add-page-break`,
-  axiosPost,
-  useAuthResources,
-)
-const useRemovePageBreak = actionHook<I_QuestionRemovePageBreakRequestData, T_EmptyPayload>(
-  `${QUESTIONS_PATH}/remove-page-break`,
-  axiosPost,
-  useAuthResources,
-)
 
 // Navigation
 const useNavigateToQuestionEdit = dynamicNavigationHook(questionEditPath)
@@ -76,7 +64,6 @@ const useNavigateToQuestionCreateNumeric = dynamicNavigationHook(questionCreateN
 
 export {
   QUESTIONS_PATH,
-  useAddPageBreak,
   useNavigateToQuestionCreateMultipleChoice,
   useNavigateToQuestionCreateNumeric,
   useNavigateToQuestionEdit,
@@ -86,7 +73,6 @@ export {
   useQuestionMoveForward,
   useQuestionMultipleChoiceUpdate,
   useQuestionNumericUpdate,
-  useRemovePageBreak,
   useQuestionMultipleChoiceCreate,
   useQuestionNumericCreate,
 }

@@ -5,7 +5,6 @@ const questionBankLabels = {
   code: 'Código',
   header: 'Encabezado',
   difficulty: 'Dificultad',
-  questions_per_page: 'Preguntas por página',
   subject: 'Materia',
   newQuestion: 'Creación pregunta'
 }

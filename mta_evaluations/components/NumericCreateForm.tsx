@@ -17,7 +17,7 @@ import { successToast } from '@/shared/toasts'
 import { useParams } from 'next/navigation'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
-interface I_FormFields extends Omit<I_QuestionCreateNumericRequestData, 'evaluation_id' | 'value'> {
+interface I_FormFields extends Omit<I_QuestionCreateNumericRequestData, 'page_id' | 'value'> {
   value: number | ''
 }
 
@@ -39,7 +39,7 @@ const NumericCreateForm: T_QuestionForm<I_AnswerNumericDetail> = () => {
     const payload = {
       content: data.content,
       value: Number(data.value),
-      evaluation_id: Number(evaluationId),
+      page_id: Number(evaluationId),
     }
     console.log({ payload })
 

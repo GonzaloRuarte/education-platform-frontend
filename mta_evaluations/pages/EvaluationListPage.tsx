@@ -41,7 +41,7 @@ const columns: Array<GridColDef> = [
     renderCell: (params) => <EvaluationStatusChip status={params.value} size="small" />,
   },
 
-  // { field: 'questions_per_page', headerName: 'Preguntas p/página', flex: 1 },
+
 ]
 
 const EvaluationListPage = () => {
