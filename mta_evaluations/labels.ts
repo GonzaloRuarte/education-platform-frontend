@@ -1,5 +1,4 @@
 import { T_EvaluationStatusCode } from '@/mta_evaluations/types'
-import pages from '@/pages'
 import { sharedLabels } from '@/shared/labels'
 
 const evaluationLabels = {
@@ -15,7 +14,7 @@ const evaluationLabels = {
   },
   subject: 'Materia',
   create: 'Crear',
-  pages: 'Páginas',
+  pages: 'Páginas de evaluación',
   addPage: 'Agregar página',
 
 }

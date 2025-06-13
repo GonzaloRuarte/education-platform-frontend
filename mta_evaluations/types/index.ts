@@ -114,7 +114,6 @@ interface I_EvaluationPageCreateRequestData {
 }
 
 interface I_EvaluationPageEditRequestData {
-  id: T_EvaluationPageId
   pinned_text: string | null
 }
 
@@ -159,7 +158,8 @@ interface I_QuestionCreateResponseData {
 
 type T_QuestionForm<T_Data extends T_AnswerPolymorphicDetail> = FC<{
   data: I_QuestionDetailSpecific<T_Data>
-  reload: T_VoidFn
+  onSuccess: T_VoidFn
+  onCancel?: T_VoidFn
 }>
 
 interface I_EvaluationSetStatusRequestData {

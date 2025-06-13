@@ -1,96 +1,227 @@
+'use client'
+
 import {
-  useNavigateToQuestionCreateMultipleChoice,
-  useNavigateToQuestionCreateNumeric,
+  EvaluationStatus,
+  I_EvaluationPageDetail,
+  T_EvaluationStatusCode,
+} from '@/mta_evaluations/types'
+import {
   useEvaluationPageDelete,
+  useEvaluationPageUpdate,   // ← NEW
 } from '@/mta_evaluations/hooks'
-import { evaluationPageLabels, questionLabels } from '@/mta_evaluations/labels'
-import { EvaluationStatus, I_EvaluationPageDetail, T_AnswerType, T_EvaluationId, T_EvaluationStatusCode } from '@/mta_evaluations/types'
-import Button from '@/shared/components/Button'
-import { DeleteButton } from '@/shared/components/buttons'
-import MagicGrid from '@/shared/components/MagicGrid'
-import Pastilla from '@/shared/components/Pastilla'
-import Spacer from '@/shared/components/Spacer'
+import QuestionCreateDialog from '@/mta_evaluations/components/QuestionCreateDialog'
+import ImportFromBankDialog from '@/mta_evaluations/components/ImportFromBankDialog'
+import CreatedQuestions from '@/mta_evaluations/components/CreatedQuestions'
+import { evaluationPageLabels } from '@/mta_evaluations/labels'
+import { EVALUATION_PAGE_NAME } from '@/mta_evaluations/constants'
+
+import { useConfirm } from '@/shared/confirm'
+import { useHandleDelete } from '@/shared/hooks'
 import { useDialog } from '@/shared/dialogs'
 import { sharedLabels } from '@/shared/labels'
 import { T_VoidFn } from '@/shared/types'
+import {stripTags, truncateString} from '@/shared/utils'
+
+import Pastilla from '@/shared/components/Pastilla'
+import MagicGrid from '@/shared/components/MagicGrid'
+import Button from '@/shared/components/Button'
+import { DeleteButton } from '@/shared/components/buttons'
+import Spacer from '@/shared/components/Spacer'
+import { H4} from '@/shared/components/Typography'
+
+import Grid from '@mui/material/Grid'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import IconButton from '@mui/material/IconButton'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import QuizIcon from '@mui/icons-material/Quiz'
-import Grid from '@mui/material/Grid2'
-import { FC } from 'react'
-import ImportFromBankDialog from '@/mta_evaluations/components/ImportFromBankDialog'
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd'
-import CreatedQuestions from '@/mta_evaluations/components/CreatedQuestions'
-import { useConfirm } from '@/shared/confirm'
-import { useHandleDelete } from '@/shared/hooks'
-import { EVALUATION_PAGE_NAME } from '@/mta_evaluations/constants'
+import EditIcon from '@mui/icons-material/Edit'
+import { useForm, SubmitHandler } from 'react-hook-form'
+import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
+import { rules } from '@/shared/forms/messages'
 
+/*─────────────────────────────────────────────────────────
+  Small form shown in a dialog to edit pinned_text
+──────────────────────────────────────────────────────────*/
+interface IPinnedTextFormProps {
+  pageId: number
+  initial: string
+  onSuccess: () => void
+  onCancel: () => void
+}
 
-const CreateQuestionDialogContent: FC<{ close: T_VoidFn; evaluationId: T_EvaluationId }> = ({
-  close,
-  evaluationId,
-}) => {
-  const navToCreateMC = useNavigateToQuestionCreateMultipleChoice()
-  const navToCreateNumeric = useNavigateToQuestionCreateNumeric()
+const PinnedTextForm = ({
+  pageId,
+  initial,
+  onSuccess,
+  onCancel,
+}: IPinnedTextFormProps) => {
+  const { handleSubmit, control } = useForm<{ pinned_text: string }>({
+    defaultValues: { pinned_text: initial },
+  })
+  const updatePage = useEvaluationPageUpdate()
 
-  const buttons: Record<T_AnswerType, FC<any>> = {
-    MultipleChoice: () => <Button onClick={() => navToCreateMC({ evaluationId })}>Opción Múltiple</Button>,
-    Numeric: () => <Button onClick={() => navToCreateNumeric({ evaluationId })}>Numérica</Button>,
+  const submit: SubmitHandler<{ pinned_text: string }> = (data) => {
+    updatePage(pageId, { pinned_text: data.pinned_text || '' })
+      .then(onSuccess)
+      .catch(console.error)             // keep your own error util if you have one
   }
+
   return (
-    <>
-      <MagicGrid itemSize="auto">
-        {Object.entries(buttons).map(([key, CreationButton]) => (
-          <CreationButton key={key} />
-        ))}
-      </MagicGrid>
+    <form onSubmit={handleSubmit(submit)}>
+      {/* You already use this editor for questions */}
+      <WysiwygEditorControlled
+        {...{ control }}
+        name="pinned_text"
+        label="Texto fijo"
+        rules={{ ...rules.required() }}
+      />
+
       <Spacer />
-    </>
+
+      <MagicGrid itemSize="auto">
+        <Button type="submit">{sharedLabels.edit}</Button>
+        <Button variant="text" onClick={onCancel}>
+          {sharedLabels.cancel}
+        </Button>
+      </MagicGrid>
+    </form>
   )
 }
 
-const QuestionCreationToolbar = ({ evaluation_id, status, data, reload }: { evaluation_id: T_EvaluationId; status: T_EvaluationStatusCode; data: I_EvaluationPageDetail; reload: T_VoidFn }) => {
-  const { showDialog, closeDialog, DialogComponent, componentProps } = useDialog()
-  const deleteInstance = useEvaluationPageDelete()
-  const handleCreateQuestion = () => {
-    showDialog({
-      title: questionLabels.create,
-      content: <CreateQuestionDialogContent close={closeDialog} evaluationId={evaluation_id} />,
-      actions: [{ buttonLabel: sharedLabels.cancel, key: sharedLabels.cancel, onPress: closeDialog }],
-    })
-  }
+/*─────────────────────────────────────────────────────────
+  MAIN TOOLBAR COMPONENT
+──────────────────────────────────────────────────────────*/
+interface Props {
+  status: T_EvaluationStatusCode
+  data: I_EvaluationPageDetail
+  reload: T_VoidFn
+}
+
+const QuestionCreationToolbar = ({ status, data, reload }: Props) => {
+  /* 1️⃣ create-question dialog */
+  const {
+    open: openCreateDialog,
+    DialogComponent: CreateDialog,
+    componentProps: createDialogProps,
+  } = QuestionCreateDialog()
+
+  /* 2️⃣ import-from-bank dialog */
+  const {
+    DialogComponent: ImportDialog,
+    componentProps: importDialogProps,
+    showDialog: showImportDialog,
+    closeDialog: closeImportDialog,
+  } = useDialog()
+
+  /* 3️⃣ pinned-text edit dialog */
+  const {
+    DialogComponent: PinnedDialog,
+    componentProps: pinnedDialogProps,
+    showDialog: showPinnedDialog,
+    closeDialog: closePinnedDialog,
+  } = useDialog()
+
+  /* confirm-delete dialog */
   const { ConfirmDialogComponent, showConfirm } = useConfirm()
-  const handleDelete = useHandleDelete(data.id, {
+
+  /*──────────────────────────────────────────────────────*/
+  /* handlers */
+  const handleCreateQuestion = () => openCreateDialog(data.id, reload)
+
+  const handleDeletePage = useHandleDelete(data.id, {
     showConfirm,
-    deleteInstance,
+    deleteInstance: useEvaluationPageDelete(),
     callback: reload,
     entityName: EVALUATION_PAGE_NAME,
   })
+
   const handleImportFromBank = () => {
     const closeAndReload = () => {
-        closeDialog()   // ← from useDialog
-        reload()       // ← refresh evaluation page
-      }
-    showDialog({
+      closeImportDialog()
+      reload()
+    }
+
+    showImportDialog({
       title: 'Importar desde Banco de Preguntas',
-      content: (
-        <ImportFromBankDialog
-          evaluationPageId={data.id}          
-        />
-      ),
-      actions: [{ key: 'close', buttonLabel: sharedLabels.cancel, onPress: closeAndReload }],
-      dialogProps: {                      // ← now legal
-        fullWidth: true, // or false
-        maxWidth: 'xl',   // or 'sm', 'lg', etc.
-        onClose: (_e, _reason) => closeAndReload(),
-      },
+      content: <ImportFromBankDialog evaluationPageId={data.id} />,
+      actions: [
+        {
+          key: 'close',
+          buttonLabel: sharedLabels.cancel,
+          onPress: closeAndReload,
+        },
+      ],
+      dialogProps: { fullWidth: true, maxWidth: 'xl', onClose: closeAndReload },
     })
   }
-  const handleDeletePage = () => {handleDelete() }
 
+  /* edit pinned text */
+  const handleEditPinnedText = () => {
+    const onSuccess = () => {
+      closePinnedDialog()
+      reload()
+    }
+
+    showPinnedDialog({
+      title: 'Editar texto fijo',
+      content: (
+        <PinnedTextForm
+          pageId={data.id}
+          initial={data.pinned_text ?? ''}
+          onSuccess={onSuccess}
+          onCancel={closePinnedDialog}
+        />
+      ),
+      actions: [],
+    })
+  }
+
+  /*──────────────────────────────────────────────────────*/
+  /* rendering helpers */
+  const plainPinned = truncateString(stripTags(data.pinned_text ?? ''), 40)
+
+  /*──────────────────────────────────────────────────────*/
   return (
     <>
       <Pastilla>
-        <Grid container justifyContent="center" alignItems="center">          
-          <MagicGrid itemSize={'auto'}>
+        {/* pinned text subtitle */}
+        <Grid container justifyContent="center" alignItems="center">
+          <MagicGrid itemSize="auto">
+            <H4 component="div">
+              Texto fijo:&nbsp;
+              {plainPinned || <em>(sin texto)</em>}
+            </H4>
+          </MagicGrid>
+        </Grid>
+        <Spacer />
+
+        {/* pinned text edit button */}
+        <Grid container justifyContent="center" alignItems="center">
+          <MagicGrid itemSize="auto">
+            <Button
+              disabled={status === EvaluationStatus.Published}
+              onClick={handleEditPinnedText}
+              startIcon={<EditIcon fontSize="small" />}
+            >
+              Editar
+            </Button>
+          <DeleteButton
+              disabled={status === EvaluationStatus.Published}
+              color="error"
+              onClick={handleDeletePage}
+            />
+
+          </MagicGrid>
+
+
+        </Grid>
+        <Spacer />
+        {/* create / import / delete buttons */}
+        <Grid container justifyContent="center" alignItems="center">
+          <MagicGrid itemSize="auto">
             <Button
               disabled={status === EvaluationStatus.Published}
               onClick={handleCreateQuestion}
@@ -98,28 +229,44 @@ const QuestionCreationToolbar = ({ evaluation_id, status, data, reload }: { eval
             >
               {evaluationPageLabels.newQuestion}
             </Button>
-            
-          <Button
-            disabled={status === EvaluationStatus.Published}
-            onClick={handleImportFromBank}
-            startIcon={<LibraryAddIcon />}
-          >
-            Importar Pregunta
-          </Button>
-          <DeleteButton
-            disabled={status === EvaluationStatus.Published}
-            color="error"
-            onClick={handleDeletePage}
-          />
+
+            <Button
+              disabled={status === EvaluationStatus.Published}
+              onClick={handleImportFromBank}
+              startIcon={<LibraryAddIcon />}
+            >
+              Importar Pregunta
+            </Button>
+
+
           </MagicGrid>
         </Grid>
-        <CreatedQuestions {...{ evaluationStatus: status, data: data, reload }} />
+
+        <Spacer />
+
+        {/* questions list inside accordion */}
+        <Accordion defaultExpanded={false}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <H4>{evaluationPageLabels.createdQuestions}</H4>
+          </AccordionSummary>
+
+          <AccordionDetails>
+            <CreatedQuestions
+              evaluationStatus={status}
+              data={data}
+              reload={reload}
+            />
+          </AccordionDetails>
+        </Accordion>
       </Pastilla>
+
+      {/* dialogs */}
       <ConfirmDialogComponent />
-      <DialogComponent {...componentProps} />
+      <CreateDialog {...createDialogProps} />
+      <ImportDialog {...importDialogProps} />
+      <PinnedDialog {...pinnedDialogProps} />
     </>
   )
-  
 }
 
 export default QuestionCreationToolbar

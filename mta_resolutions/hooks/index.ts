@@ -12,7 +12,7 @@ import { useNavigateToResolutionSubmittedPage } from '@/mta_resolutions/hooks/na
 import {
   I_EvaluationToResolve,
   I_ResolutionState,
-  T_EvaluationToResolve_Page,
+  I_Page,
   T_ResolutionState_MultipleChoiceAnswerData,
   T_ResolutionState_NumericAnswerData,
 } from '@/mta_resolutions/types'
@@ -25,31 +25,24 @@ import { withRouterHistoryReset } from '@/shared/utils'
 import { useMemo, useState } from 'react'
 
 const hasAllCurrentPageQuestionsAnswered = (
-  currentPageData: T_EvaluationToResolve_Page,
+  pageObj: I_Page,
   state: I_ResolutionState,
 ): boolean => {
-  return currentPageData.every((question) => {
+  return pageObj.questions.every((question) => {
     const answer = state.answers[question.id]
 
-    if (!answer) {
-      // If there's no answer for the question, it's not answered
-      return false
-    }
+    if (!answer) return false
 
     if (question.answer.resource_type === 'Numeric') {
-      // For numeric answers, check if the value is defined
       const numericAnswer = answer as T_ResolutionState_NumericAnswerData
       return numericAnswer.specific_data.value !== undefined
     }
 
     if (question.answer.resource_type === 'MultipleChoice') {
-      // For multiple-choice answers, check if at least one option is chosen
-      const multipleChoiceAnswer = answer as T_ResolutionState_MultipleChoiceAnswerData
-
-      return multipleChoiceAnswer.specific_data.choosed_options.length > 0
+      const mcAnswer = answer as T_ResolutionState_MultipleChoiceAnswerData
+      return mcAnswer.specific_data.choosed_options.length > 0
     }
 
-    // If the resource type is unknown, consider it unanswered
     return false
   })
 }

@@ -18,7 +18,7 @@ const EvaluationPages: FC<{ data: I_EvaluationDetail; reload: T_VoidFn }> = ({ d
         return (
           <>
             <Spacer />
-            <QuestionCreationToolbar {...{ evaluation_id: data.id, status: data.status, data: page, reload }} />
+            <QuestionCreationToolbar {...{ status: data.status, data: page, reload }} />
 
             
           </>

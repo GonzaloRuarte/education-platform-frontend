@@ -12,9 +12,10 @@ import { useImportQuestion } from '@/mta_evaluations/hooks'
 import { successToast } from '@/shared/toasts'
 import { handleServiceError } from '@/shared/service'
 import { QUESTION_NAME } from '@/mta_evaluations/constants'
+import { T_EvaluationPageId } from '@/mta_evaluations/types'
 
 interface I_Props {
-  evaluationPageId: number          // close the modal
+  evaluationPageId: T_EvaluationPageId          // close the modal
 }
 
 const ImportFromBankDialog: FC<I_Props> = ({ evaluationPageId }) => {

@@ -12,7 +12,7 @@ const CreatedQuestions: FC<{ evaluationStatus: T_EvaluationStatusCode; data: I_E
 
   return (
     <>
-      <H4>{evaluationPageLabels.createdQuestions}</H4>
+      
       <Spacer />
       {data.questions.map((question) => {
         const isExpanded = expanded === question.id
@@ -21,7 +21,6 @@ const CreatedQuestions: FC<{ evaluationStatus: T_EvaluationStatusCode; data: I_E
             <QuestionAccordion
               reload={reload}
               evaluationStatus={evaluationStatus}
-              evaluationId={data.id}
               {...{ isExpanded, setExpanded, question }}
             />
 

@@ -1,8 +1,8 @@
 import { T_AnswerType, T_QuestionId } from '@/mta_evaluations/types'
-import { useResolutionPagination } from '@/mta_resolutions/hooks'
 import { useResolutionState, useResolutionStateUpdateAnswer } from '@/mta_resolutions/hooks/data'
 import {
   I_EvaluationToResolve,
+  I_Page,
   T_EvaluationToResolve_MultipleChoiceAnswer,
   T_EvaluationToResolve_NumericAnswer,
   T_ResolutionState_MultipleChoiceAnswerData,
@@ -17,6 +17,8 @@ import HTMLParser from '@/shared/components/HTMLParser'
 import { Box, Checkbox, FormControl, FormControlLabel, Grid2 as Grid, Radio } from '@mui/material'
 import { FC, Fragment } from 'react'
 import MultipleChoiceOptionContainer from '@/mta_evaluations/components/MultipleChoiceOptionContainer'
+import React from 'react';
+
 
 const NumericForm: FC<{ data: T_EvaluationToResolve_NumericAnswer; questionId: T_QuestionId }> = ({
   data,
@@ -116,22 +118,30 @@ const forms: Record<T_AnswerType, FC<any>> = {
   MultipleChoice: MultipleChoiceForm,
   Numeric: NumericForm,
 }
+
+
 const ResolutionQuestions: FC<{ evaluationToResolve: I_EvaluationToResolve; currentPage: number }> = ({
   evaluationToResolve,
   currentPage,
 }) => {
-  const questions = evaluationToResolve.pages[currentPage - 1]
+  // ── NEW: page object ───────────────────────────────────────────
+  const page: I_Page = evaluationToResolve.pages[currentPage - 1];
+  const { pinned_text, questions } = page;
 
   return (
     <>
+
+
+      {/* render the questions for this page */}
       {questions.map((question) => {
-        const AnswerForm = forms[question.answer.resource_type]
+        const AnswerForm = forms[question.answer.resource_type];
         return (
           <Fragment key={question.id}>
             <Body1>
               Pregunta {question.order + 1}
               {/* {question.is_mandatory && <sup style={{ fontSize: 10 }}> (obligatoria)</sup>} */}
             </Body1>
+
             <Box sx={{ fontSize: '1.5em' }}>
               <HTMLParser htmlContent={question.content} />
             </Box>
@@ -140,10 +150,10 @@ const ResolutionQuestions: FC<{ evaluationToResolve: I_EvaluationToResolve; curr
             <AnswerForm data={question.answer} questionId={question.id} />
             <Spacer size="xl" />
           </Fragment>
-        )
+        );
       })}
     </>
-  )
-}
+  );
+};
 
-export default ResolutionQuestions
+export default ResolutionQuestions;

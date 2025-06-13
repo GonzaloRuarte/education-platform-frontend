@@ -2,7 +2,7 @@
 
 import MultipleChoiceOption from '@/mta_evaluations/components/MultipleChoiceOption'
 import OptionCreateForm from '@/mta_evaluations/components/OptionCreateForm'
-import { useNavigateToEvaluationContentEdit, useQuestionMultipleChoiceUpdate } from '@/mta_evaluations/hooks'
+import { useQuestionMultipleChoiceUpdate } from '@/mta_evaluations/hooks'
 import { questionLabels } from '@/mta_evaluations/labels'
 import {
   I_AnswerMultipleChoiceDetail,
@@ -13,6 +13,7 @@ import { AddButton } from '@/shared/components/buttons'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
+import Button from '@/shared/components/Button'
 import { H4 } from '@/shared/components/Typography'
 import { useDialog } from '@/shared/dialogs'
 import { rules } from '@/shared/forms/messages'
@@ -27,13 +28,21 @@ import { Box } from '@mui/material'
 import { FC } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
+
 interface I_FormFields extends I_QuestionUpdateMultipleChoiceRequestData {}
 
-const Options: FC<{ data: I_AnswerMultipleChoiceDetail; reload: T_VoidFn }> = ({ data, reload }) => {
+interface OptionsProps {
+  data: I_AnswerMultipleChoiceDetail
+  onSuccess: T_VoidFn
+  onCancel?: T_VoidFn
+}
+
+
+const Options: FC<OptionsProps> = ({ data, onSuccess, onCancel }) => {
   const { DialogComponent, componentProps, showDialog, closeDialog } = useDialog()
   const handleReloadAfterCreate = () => {
     closeDialog()
-    reload()
+    onSuccess()
   }
   const handleAddOption = () => {
     showDialog({
@@ -58,7 +67,7 @@ const Options: FC<{ data: I_AnswerMultipleChoiceDetail; reload: T_VoidFn }> = ({
         <Spacer />
 
         {data.options.map((option) => (
-          <MultipleChoiceOption key={option.id} data={option} reload={reload} withDelete />
+          <MultipleChoiceOption key={option.id} data={option} reload={onSuccess} withDelete />
         ))}
       </Box>
       <DialogComponent {...componentProps} />
@@ -66,8 +75,11 @@ const Options: FC<{ data: I_AnswerMultipleChoiceDetail; reload: T_VoidFn }> = ({
   )
 }
 
-const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({data, reload }) => {
-  const { content, page_id } = data
+
+
+
+const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({data, onSuccess, onCancel }) => {
+  const { content } = data
 
   const { handleSubmit, control } = useForm<I_FormFields>({
     defaultValues: {
@@ -76,7 +88,6 @@ const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({d
   })
 
   const { setInProgressStatus } = useInProgress()
-  const backToDetail = useNavigateToEvaluationContentEdit()
   const update = useQuestionMultipleChoiceUpdate()
   const onSubmit: SubmitHandler<I_FormFields> = (updatedData) => {
     setInProgressStatus(true)
@@ -84,7 +95,7 @@ const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({d
       .then(() => {
         log.info('Question edited succesfully:')
         successToast('Pregunta editada correctamente')
-        backToDetail({ evaluationId: evaluation_id })
+        onSuccess()
       })
       .catch(handleServiceError)
       .finally(() => {
@@ -104,10 +115,15 @@ const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({d
       </MagicGrid>
       <Spacer />
 
-      <Options data={data.answer} reload={reload} />
+      <Options data={data.answer} onSuccess={onSuccess} onCancel={onCancel} />
       <Spacer />
 
       <Submit onClick={handleSubmit(onSubmit)}>{sharedLabels.update}</Submit>
+        {onCancel && (
+          <Button variant="text" onClick={onCancel}>
+            {sharedLabels.cancel}
+          </Button>
+        )}
     </form>
   )
 }

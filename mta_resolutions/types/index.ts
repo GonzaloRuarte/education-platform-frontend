@@ -34,25 +34,9 @@ interface I_ResumeResolutionResponse {
   }
 }
 
-interface I_EvaluationToResolve_PageQuestion {
-  id: T_QuestionId
-  order: number
-  answer: T_EvaluationToResolve_NumericAnswer | T_EvaluationToResolve_MultipleChoiceAnswer
-  content: string
-  is_mandatory: boolean
-}
 
-type T_EvaluationToResolve_Page = Array<I_EvaluationToResolve_PageQuestion>
 
-interface I_EvaluationToResolve {
-  id: T_EvaluationId
-  code: string
-  title: string
-  header: string
-  subject: string
-  pages: Array<T_EvaluationToResolve_Page>
-  pages_quantity: number
-}
+
 
 interface I_ResolutionState_BaseAnswer<T extends T_AnswerType, T_SpecificData> {
   id: T_AnswerId
@@ -86,6 +70,26 @@ interface I_OngoingResolution {
   max_duration_minutes: number
 }
 
+export interface I_Option   { id: number; name: string; content: string }
+export interface I_Answer   { id: number; resource_type: 'Numeric' | 'MultipleChoice'; specific_data: any }
+export interface I_Question { id: number; order: number; content: string; is_mandatory: boolean; answer: I_Answer }
+
+export interface I_Page {
+  pinned_text: string | null;
+  questions: I_Question[];
+}
+
+interface I_EvaluationToResolve {
+  id: number;
+  code: string;
+  title: string;
+  header: string;
+  subject: string;
+  pages_quantity: number;
+  pages: I_Page[];
+}
+
+
 export type {
   T_ResolutionId,
   I_AuthorizeStudentRequestData,
@@ -97,6 +101,4 @@ export type {
   T_ResolutionState_MultipleChoiceAnswerData,
   I_OngoingResolution,
   I_EvaluationToResolve,
-  I_EvaluationToResolve_PageQuestion,
-  T_EvaluationToResolve_Page,
 }

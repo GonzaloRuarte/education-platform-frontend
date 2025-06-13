@@ -56,8 +56,6 @@ const slugify = (text: string) => {
 /**
  * Strips a string of HTML tags
  */
-const strippedString = (str: string) => str.replace(/(<([^>]+)>)/gi, '')
-
 const intersection = <T>(array1: Array<T>, array2: Array<T>) => array1.filter((value) => array2.includes(value))
 
 const secondsToMMSS = (seconds: number): string => {
@@ -167,7 +165,6 @@ export {
   ImageSize,
   intersection,
   slugify,
-  strippedString,
   toCamelCase,
   truncateString,
   secondsToMMSS,

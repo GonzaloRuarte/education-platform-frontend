@@ -8,9 +8,8 @@ import {
   I_QuestionUpdateNumericRequestData,
   T_QuestionId,
 } from '@/mta_evaluations/types'
-import { questionCreateMCPath, questionCreateNumericPath, questionEditPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
-import { actionHook, creationHook, deletionHook, detailHook, dynamicNavigationHook, updateHook } from '@/shared/hooks'
+import { creationHook, deletionHook, detailHook, updateHook } from '@/shared/hooks'
 import { T_EmptyPayload } from '@/shared/types'
 
 // Data Service
@@ -58,15 +57,10 @@ const useQuestionMoveForward = updateHook<T_QuestionId, T_EmptyPayload>(
 )
 
 // Navigation
-const useNavigateToQuestionEdit = dynamicNavigationHook(questionEditPath)
-const useNavigateToQuestionCreateMultipleChoice = dynamicNavigationHook(questionCreateMCPath)
-const useNavigateToQuestionCreateNumeric = dynamicNavigationHook(questionCreateNumericPath)
+
 
 export {
   QUESTIONS_PATH,
-  useNavigateToQuestionCreateMultipleChoice,
-  useNavigateToQuestionCreateNumeric,
-  useNavigateToQuestionEdit,
   useQuestionDelete,
   useQuestionDetail,
   useQuestionMoveBackward,

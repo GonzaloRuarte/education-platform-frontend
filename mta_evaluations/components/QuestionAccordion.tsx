@@ -2,7 +2,6 @@ import AnswerTypeChip from '@/mta_evaluations/components/AnswerTypeChip'
 import MultipleChoiceOption from '@/mta_evaluations/components/MultipleChoiceOption'
 import { QUESTION_NAME } from '@/mta_evaluations/constants'
 import {
-  useNavigateToQuestionEdit,
   useQuestionDelete,
   useQuestionMoveBackward,
   useQuestionMoveForward,
@@ -14,8 +13,7 @@ import {
   I_EvaluationPageDetail,
   T_EvaluationStatusCode,
   T_AnswerType,
-  T_EvaluationId,
-  T_QuestionId,
+  I_QuestionDetail,
 } from '@/mta_evaluations/types'
 import Bold from '@/shared/components/Bold'
 import Button from '@/shared/components/Button'
@@ -25,31 +23,36 @@ import MagicGrid from '@/shared/components/MagicGrid'
 import { Body1, Body2 } from '@/shared/components/Typography'
 import { sharedLabels } from '@/shared/labels'
 import { T_ArrayElement, T_VoidFn } from '@/shared/types'
-import { strippedString, truncateString } from '@/shared/utils'
+import { stripTags, truncateString } from '@/shared/utils'
 import DownloadIcon from '@mui/icons-material/Download'
 import EditIcon from '@mui/icons-material/Edit'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import UploadIcon from '@mui/icons-material/Upload'
 import { Accordion, AccordionDetails, AccordionSummary, Box, Grid2 as Grid } from '@mui/material'
 import React, { FC } from 'react'
+import QuestionEditDialog from '@/mta_evaluations/components/QuestionEditDialog'
 
-const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId; reload: T_VoidFn; disabled: boolean }> = ({
-  questionId,
-  evaluationId,
+const Toolbar: FC<{ question: I_QuestionDetail; reload: T_VoidFn; disabled: boolean }> = ({
+  question,
   reload,
   disabled,
 }) => {
-  const navigateToEdit = useNavigateToQuestionEdit()
+
   const mBackward = useQuestionMoveBackward()
   const mForward = useQuestionMoveForward()
+  const {
+    open: openEdit,
+    DialogComponent: EditDialog,
+    componentProps: editProps,
+  } = QuestionEditDialog()
   const handleEdit = () => {
-    navigateToEdit({ evaluationId, questionId })
+    openEdit( question, reload )
   }
   const handleMoveForward = () => {
-    mForward(questionId, {}).then(reload)
+    mForward(question.id, {}).then(reload)
   }
   const handleMoveBackward = () => {
-    mBackward(questionId, {}).then(reload)
+    mBackward(question.id, {}).then(reload)
   }
   return (
     <>
@@ -69,10 +72,11 @@ const Toolbar: FC<{ questionId: T_QuestionId; evaluationId: T_EvaluationId; relo
             callback={reload}
             entityName={QUESTION_NAME}
             useDelete={useQuestionDelete}
-            id={questionId}
+            id={question.id}
           />
         </MagicGrid>
       </Grid>
+      <EditDialog {...editProps} />
     </>
   )
 }
@@ -102,13 +106,12 @@ const answersComponents: Record<T_AnswerType, FC<any>> = {
 }
 
 const QuestionAccordion: FC<{
-  evaluationId: T_EvaluationId
   question: T_ArrayElement<I_EvaluationPageDetail['questions']>
   isExpanded: boolean
   setExpanded: React.Dispatch<React.SetStateAction<number | false>>
   reload: T_VoidFn
   evaluationStatus: T_EvaluationStatusCode
-}> = ({ isExpanded, setExpanded, question, evaluationId, reload, evaluationStatus }) => {
+}> = ({ isExpanded, setExpanded, question, reload, evaluationStatus }) => {
   const handleChange = (panel: I_EvaluationPageDetail['id']) => (_: React.SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false)
   }
@@ -129,7 +132,7 @@ const QuestionAccordion: FC<{
           <>
             <Body2 component="span" sx={{ color: 'text.secondary' }}>
               <AnswerTypeChip type={question.answer.resource_type} />{' '}
-              {truncateString(strippedString(question.content), 40)}
+              {truncateString(stripTags(question.content), 40)}
             </Body2>
           </>
         )}
@@ -142,14 +145,14 @@ const QuestionAccordion: FC<{
           </Box>
           <AnswerComponent data={question.answer} />
           <Toolbar
-            evaluationId={evaluationId}
-            questionId={question.id}
+            question={question}
             reload={reload}
             disabled={evaluationStatus === EvaluationStatus.Published}
           />
         </MagicGrid>
       </AccordionDetails>
     </Accordion>
+    
   )
 }
 

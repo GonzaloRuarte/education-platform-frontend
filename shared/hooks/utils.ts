@@ -38,7 +38,7 @@ const useHandleDelete = (
 ) => {
   const { setInProgressStatus, setIsNotInProgress } = useInProgress()
   return () => {
-    d.showConfirm(`Eliminar ${d.entityName.singular} #${id}`, '¿Estás seguro/a que querés proceder?').then(() => {
+    d.showConfirm(`Eliminar ${d.entityName.singular} `, '¿Estás seguro/a que querés proceder?').then(() => {
       setInProgressStatus(true)
       d.deleteInstance(id)
         .then(() => {
