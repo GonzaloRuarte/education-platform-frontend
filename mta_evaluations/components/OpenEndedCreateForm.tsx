@@ -23,8 +23,8 @@ import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 
 interface I_FormFields
-  extends Omit<I_QuestionCreateOpenEndedRequestData, 'page_id' | 'value'> {
-  value: number | ''
+  extends Omit<I_QuestionCreateOpenEndedRequestData, 'page_id' > {
+
 }
 
 interface Props {
@@ -37,7 +37,7 @@ interface Props {
 
 const OpenEndedCreateForm: FC<Props> = ({ page_id, onSuccess, onCancel }) => {
   const { handleSubmit, control } = useForm<I_FormFields>({
-    defaultValues: { content: '', value: '' },
+    defaultValues: { content: ''},
   })
 
   const { setInProgressStatus } = useInProgress()

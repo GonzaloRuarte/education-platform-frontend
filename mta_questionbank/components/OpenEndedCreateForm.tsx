@@ -36,7 +36,6 @@ const OpenEndedCreateForm: T_QuestionForm<I_AnswerOpenEndedDetail> = () => {
     setInProgressStatus(true)
     const payload = {
       content: data.content,
-      value: Number(data.value),
       subject_id: data.subject_id as string,
       difficulty: Number(data.difficulty),
 

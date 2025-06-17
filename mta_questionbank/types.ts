@@ -102,6 +102,8 @@ interface I_QuestionUpdateMultipleChoiceRequestData {
 
 interface I_QuestionUpdateOpenEndedRequestData {
   content: string
+  difficulty: number
+  subject_id: string
 }
 
 interface I_QuestionUpdateNumericRequestData {

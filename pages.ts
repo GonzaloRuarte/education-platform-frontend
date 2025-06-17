@@ -1,6 +1,3 @@
-import { answerTypesToUrlPaths } from '@/mta_evaluations/constants'
-import path from 'path'
-
 type T_PageConfig = {
   path: string
   label: string
@@ -12,10 +9,6 @@ type T_PagesConfig = { [key: string]: T_PageConfig }
 // const pages: T_PagesConfig = {
 const evaluationsEditContentPath = '/dashboard/evaluaciones/{evaluationId:number}/editar-contenido'
 const evaluationsPreviewPath = '/dashboard/evaluaciones/{evaluationId:number}/preview'
-const questionEditPath = '/dashboard/evaluaciones/{evaluationId:number}/pregunta/{questionId:number}'
-const questionCreateMCPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.MultipleChoice}`
-const questionCreateNumericPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.Numeric}`
-const questionCreateOpenEndedPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.OpenEnded}`
 const appointmentsProcessPath = '/dashboard/turnos/{appointmentId:number}/procesar'
 const appointmentsEditStudentsPath = '/dashboard/turnos/{appointmentId:number}/editar-estudiantes'
 const questionBankCreatePath = '/dashboard/banco-de-preguntas/crear'
@@ -105,22 +98,6 @@ const pages = {
               preview: {
                 path: evaluationsPreviewPath,
                 label: 'Editar Contenido de Evaluación',
-              },
-              editarPregunta: {
-                path: questionEditPath,
-                label: 'Editar Pregunta',
-              },
-              crearMultipleChoice: {
-                path: questionCreateMCPath,
-                label: 'Crear Opción Múltiple',
-              },
-              crearNumerica: {
-                path: questionCreateNumericPath,
-                label: 'Crear Numérica',
-              },
-              crearTextoLibre: {
-                path: questionCreateOpenEndedPath,
-                label: 'Crear Texto Libre',
               },
             },
           },
@@ -238,9 +215,6 @@ export {
   pages,
   pathWithId,
   evaluationsEditContentPath,
-  questionEditPath,
-  questionCreateMCPath,
-  questionCreateNumericPath,
   appointmentsProcessPath,
   appointmentsEditStudentsPath,
   userChangePasswordPath,

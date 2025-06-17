@@ -20,12 +20,11 @@ import { SubmitHandler, useForm } from 'react-hook-form'
 interface I_FormFields extends I_QuestionUpdateOpenEndedRequestData {}
 
 const OpenEndedEditForm: T_QuestionForm<I_AnswerOpenEndedDetail> = ({ data, onSuccess, onCancel }) => {
-  const { content, answer } = data
+  const { content } = data
 
   const { handleSubmit, control } = useForm<I_FormFields>({
     defaultValues: {
       content,
-      value: answer.value,
     },
   })
 
