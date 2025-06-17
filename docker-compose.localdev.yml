@@ -21,7 +21,9 @@ services:
     build:
       context: ../meta-backend        # path to backend repo root
       dockerfile: Dockerfile.pre_staging
-    command: python manage.py runserver 0.0.0.0:8000
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ../meta-backend:/app          # live-reload code on save
     env_file: ../meta-backend/.env
