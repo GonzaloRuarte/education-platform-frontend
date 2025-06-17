@@ -58,6 +58,7 @@ const ImportFromBankDialog: FC<I_Props> = ({ evaluationPageId }) => {
     renderCell: ({ row }) => (
       row.answer.resource_type === 'MultipleChoiceTemplate' ? 'Opción múltiple' :
       row.answer.resource_type === 'NumericTemplate' ? 'Numérica' :
+      row.answer.resource_type === 'OpenEndedTemplate' ? 'Texto libre' :
       'Desconocido'
     ),
   },
@@ -84,9 +85,15 @@ const ImportFromBankDialog: FC<I_Props> = ({ evaluationPageId }) => {
       if (row.answer.resource_type === 'NumericTemplate') {
         return row.answer.value
       }
-      return 'Tipo de respuesta desconocido'
+      
 
-        },
+
+      if (row.answer.resource_type === 'OpenEndedTemplate') {
+        return 'Pregunta de texto libre'
+      }
+      return 'Desconocido'  // Fallback for unknown types
+    }
+        
     },
     {
       field: 'actions',

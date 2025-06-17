@@ -15,8 +15,8 @@ type T_EvaluationSubjectId   = string
 /* ------------------------------------------------------------------ */
 /*  Answer polymorphism                                               */
 /* ------------------------------------------------------------------ */
-type T_AnswerType          = 'NumericTemplate' | 'MultipleChoiceTemplate'
-type T_AnswerTypeUrlParams = 'numerica' | 'multiple-choice'
+type T_AnswerType          = 'NumericTemplate' | 'MultipleChoiceTemplate' | 'OpenEndedTemplate'
+type T_AnswerTypeUrlParams = 'numerica' | 'multiple-choice' | 'texto-libre'
 
 interface I_BaseAnswerDetail {
   id: T_AnswerId
@@ -37,9 +37,14 @@ interface I_AnswerMultipleChoiceDetail extends I_BaseAnswerDetail {
   }>
 }
 
+interface I_AnswerOpenEndedDetail extends I_BaseAnswerDetail {
+  content: string
+}
+
 type T_AnswerPolymorphicDetail =
   | I_AnswerNumericDetail
   | I_AnswerMultipleChoiceDetail
+  | I_AnswerOpenEndedDetail
 
 /* ------------------------------------------------------------------ */
 /*  Question (template)                                               */
@@ -95,6 +100,10 @@ interface I_QuestionUpdateMultipleChoiceRequestData {
   subject_id: string
 }
 
+interface I_QuestionUpdateOpenEndedRequestData {
+  content: string
+}
+
 interface I_QuestionUpdateNumericRequestData {
   content: string
   value: number
@@ -107,6 +116,13 @@ interface I_QuestionCreateMultipleChoiceRequestData {
   difficulty: number
   subject_id: T_EvaluationSubjectId
 }
+
+interface I_QuestionCreateOpenEndedRequestData {
+  content: string
+  difficulty: number
+  subject_id: T_EvaluationSubjectId
+}
+
 
 interface I_QuestionCreateNumericRequestData {
   content: string
@@ -141,6 +157,7 @@ export type {
   T_AnswerType,
   T_AnswerTypeUrlParams,
   I_AnswerNumericDetail,
+  I_AnswerOpenEndedDetail,
   I_AnswerMultipleChoiceDetail,
   T_AnswerPolymorphicDetail,
   /* question */
@@ -155,6 +172,8 @@ export type {
   I_QuestionUpdateNumericRequestData,
   I_QuestionCreateMultipleChoiceRequestData,
   I_QuestionCreateNumericRequestData,
+  I_QuestionUpdateOpenEndedRequestData,
+  I_QuestionCreateOpenEndedRequestData,
   I_QuestionCreateResponseData,
   /* form helper */
   T_QuestionForm,

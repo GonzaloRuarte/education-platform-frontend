@@ -6,10 +6,12 @@ import { withAuth } from '@/mta_auth/hocs/withAuth'
 
 import MultipleChoiceCreateForm from '@/mta_questionbank/components/MultipleChoiceCreateForm'
 import NumericCreateForm        from '@/mta_questionbank/components/NumericCreateForm'
+import OpenEndedCreateForm from '@/mta_questionbank/components/OpenEndedCreateForm'
 
 import {
   MULTIPLE_CHOICE_NAME,
   NUMERIC_NAME,
+  OPEN_ENDED_NAME,
   urlPathsToAnswerTypes,
   answerTypesToUrlPaths,
 } from '@/mta_questionbank/constants'
@@ -45,9 +47,21 @@ const NumericCreatePage: FC = () => {
   )
 }
 
+const OpenEndedCreatePage: FC = () => {
+  const back = useNavigateToQuestionBankList()
+  return (
+    <CreationPage
+      CreationForm={OpenEndedCreateForm}
+      entityName={OPEN_ENDED_NAME}
+      onCancel={back}
+    />
+  )
+}
+
 const pagesByType: Record<T_AnswerType, FC> = {
   MultipleChoiceTemplate: MultipleChoiceCreatePage,
   NumericTemplate:        NumericCreatePage,
+  OpenEndedTemplate:     OpenEndedCreatePage,
 }
 
 /* ------------------------------------------------------------------ */
@@ -80,6 +94,17 @@ const TypeSelector: FC = () => {
       >
         Numérica
       </Button>
+
+
+      <Button
+        variant="contained"
+        onClick={() =>
+          router.push(`?tipo=${answerTypesToUrlPaths.OpenEndedTemplate}`, { scroll: false })
+        }
+      >
+        Texto libre
+      </Button>
+
       <Typography variant="body2" color="text.secondary">
         Seleccione el tipo de pregunta que desea crear. Luego podrá completar los
         detalles específicos del tipo elegido.

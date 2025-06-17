@@ -15,6 +15,7 @@ import {
   I_Page,
   T_ResolutionState_MultipleChoiceAnswerData,
   T_ResolutionState_NumericAnswerData,
+  T_ResolutionState_OpenEndedAnswerData,
 } from '@/mta_resolutions/types'
 import pages from '@/pages'
 import { useInProgress, useInterval } from '@/shared/hooks'
@@ -41,6 +42,11 @@ const hasAllCurrentPageQuestionsAnswered = (
     if (question.answer.resource_type === 'MultipleChoice') {
       const mcAnswer = answer as T_ResolutionState_MultipleChoiceAnswerData
       return mcAnswer.specific_data.choosed_options.length > 0
+    }
+
+    if (question.answer.resource_type === 'OpenEnded') {
+      const openEndedAnswer = answer as T_ResolutionState_OpenEndedAnswerData
+      return openEndedAnswer.specific_data.value.trim() !== ''
     }
 
     return false

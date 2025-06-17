@@ -2,12 +2,14 @@
 
 import MultipleChoiceEditForm from '@/mta_questionbank/components/MultipleChoiceEditForm'
 import NumericEditForm from '@/mta_questionbank/components/NumericEditForm'
+import OpenEndedEditForm from '@/mta_questionbank/components/OpenEndedEditForm'
 import { I_QuestionDetail, T_AnswerPolymorphicDetail, T_AnswerType, T_QuestionForm } from '@/mta_questionbank/types'
 import { T_VoidFn } from '@/shared/types'
 
 const formComponents: Record<T_AnswerType, T_QuestionForm<T_AnswerPolymorphicDetail>> = {
   MultipleChoiceTemplate: MultipleChoiceEditForm,
   NumericTemplate: NumericEditForm,
+  OpenEndedTemplate: OpenEndedEditForm,
 }
 
 interface I_Props {

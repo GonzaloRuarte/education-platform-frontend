@@ -15,6 +15,7 @@ const evaluationsPreviewPath = '/dashboard/evaluaciones/{evaluationId:number}/pr
 const questionEditPath = '/dashboard/evaluaciones/{evaluationId:number}/pregunta/{questionId:number}'
 const questionCreateMCPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.MultipleChoice}`
 const questionCreateNumericPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.Numeric}`
+const questionCreateOpenEndedPath = `/dashboard/evaluaciones/{evaluationId:number}/pregunta/crear?tipo=${answerTypesToUrlPaths.OpenEnded}`
 const appointmentsProcessPath = '/dashboard/turnos/{appointmentId:number}/procesar'
 const appointmentsEditStudentsPath = '/dashboard/turnos/{appointmentId:number}/editar-estudiantes'
 const questionBankCreatePath = '/dashboard/banco-de-preguntas/crear'
@@ -116,6 +117,10 @@ const pages = {
               crearNumerica: {
                 path: questionCreateNumericPath,
                 label: 'Crear Numérica',
+              },
+              crearTextoLibre: {
+                path: questionCreateOpenEndedPath,
+                label: 'Crear Texto Libre',
               },
             },
           },

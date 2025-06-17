@@ -10,6 +10,7 @@ import {
   EvaluationStatus,
   I_AnswerMultipleChoiceDetail,
   I_AnswerNumericDetail,
+  I_AnswerOpenEndedDetail,
   I_EvaluationPageDetail,
   T_EvaluationStatusCode,
   T_AnswerType,
@@ -100,9 +101,20 @@ const NumericAnswer: FC<{ data: I_AnswerNumericDetail }> = ({ data }) => {
   )
 }
 
+const OpenEndedAnswer: FC<{ data: I_AnswerOpenEndedDetail }> = ({ data }) => {
+  return (
+    <React.Fragment>
+      <Body1>
+        <Bold>Pregunta de texto libre</Bold>
+      </Body1>
+    </React.Fragment>
+  )
+}
+
 const answersComponents: Record<T_AnswerType, FC<any>> = {
   MultipleChoice: MultipleChoiceAnswer,
   Numeric: NumericAnswer,
+  OpenEnded: OpenEndedAnswer,
 }
 
 const QuestionAccordion: FC<{

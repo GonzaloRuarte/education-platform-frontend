@@ -6,6 +6,7 @@ import { useDialog } from '@/shared/dialogs'
 import { T_VoidFn } from '@/shared/types'
 import NumericCreateForm from '@/mta_evaluations/components/NumericCreateForm'
 import MultipleChoiceCreateForm from '@/mta_evaluations/components/MultipleChoiceCreateForm'
+import OpenEndedCreateForm from '@/mta_evaluations/components/OpenEndedCreateForm'
 import { T_EvaluationPageId } from '@/mta_evaluations/types'
 
 /**
@@ -48,6 +49,15 @@ const QuestionCreateDialog = () => {
           >
             Opción múltiple
           </Button>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              closeDialog()
+              openOpenEndedDialog(evaluation_page_id, reload)
+            }}
+          >
+            Texto libre
+          </Button>
         </MagicGrid>
       ),
       actions: [], // no footer buttons – the inner buttons cover all actions
@@ -78,6 +88,23 @@ const QuestionCreateDialog = () => {
       title: 'Pregunta de opción múltiple',
       content: (
         <MultipleChoiceCreateForm
+          page_id={evaluation_page_id}
+          onSuccess={() => {
+            reload()
+            closeDialog()
+          }}
+          onCancel={closeDialog}
+        />
+      ),
+      actions: [],
+    })
+  }
+  /** helper to open open-ended form (step 2) */
+  const openOpenEndedDialog = (evaluation_page_id: T_EvaluationPageId, reload: T_VoidFn) => {
+    showDialog({
+      title: 'Pregunta de texto libre',
+      content: (
+        <OpenEndedCreateForm
           page_id={evaluation_page_id}
           onSuccess={() => {
             reload()

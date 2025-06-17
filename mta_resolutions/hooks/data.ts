@@ -252,11 +252,31 @@ const useResolutionStateUpdateAnswer = () => {
     })
   }
 
+  const OpenEnded = (questionId: T_QuestionId, answerId: T_AnswerId, value: string) => {
+    if (resolutionState === null) return
+
+    const now = new Date().toISOString()
+    storeResolutionState({
+      ...resolutionState,
+      last_update_datetime: now,
+      answers: {
+        ...resolutionState.answers,
+        [questionId]: {
+          id: answerId,
+          last_update_datetime: now,
+          resource_type: 'OpenEnded',
+          specific_data: { value },
+        },
+      },
+    })
+  }
+
   const _: Record<T_AnswerType, any> = {
     Numeric,
     MultipleChoice,
+    OpenEnded,
   }
-  return { updateMultipleChoice: MultipleChoice, updateNumeric: Numeric }
+  return { updateMultipleChoice: MultipleChoice, updateNumeric: Numeric, updateOpenEnded: OpenEnded }
 }
 
 const useResolutionManageUploadState = () => {

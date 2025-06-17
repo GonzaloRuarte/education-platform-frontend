@@ -3,6 +3,7 @@
 import { useDialog } from '@/shared/dialogs'
 import MultipleChoiceEditForm from '@/mta_evaluations/components/MultipleChoiceEditForm'
 import NumericEditForm from '@/mta_evaluations/components/NumericEditForm'
+import OpenEndedEditForm from '@/mta_evaluations/components/OpenEndedEditForm'
 import {
   I_QuestionDetail,
   T_AnswerPolymorphicDetail,
@@ -16,6 +17,7 @@ const formComponents: Record<
 > = {
   MultipleChoice: MultipleChoiceEditForm,
   Numeric: NumericEditForm,
+  OpenEnded: OpenEndedEditForm,
 }
 
 /**

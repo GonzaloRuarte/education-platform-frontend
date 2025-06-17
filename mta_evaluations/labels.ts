@@ -50,4 +50,5 @@ const numericLabels = {
   value: 'Valor',
 }
 
+
 export { evaluationLabels, evaluationPageLabels, evaluationStatusCodeToLabels, multipleChoiceLabels, questionLabels, numericLabels }

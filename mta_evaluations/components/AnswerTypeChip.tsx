@@ -9,11 +9,15 @@ interface I_AnswerTypeChipProps {
 const answerTypeColors: Record<T_AnswerType, 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
   MultipleChoice: 'info',
   Numeric: 'warning',
+  OpenEnded: 'primary',
 }
 const answerTypeLabels: Record<T_AnswerType, string> = {
   MultipleChoice: 'Opción Múltiple',
   Numeric: 'Numérica',
+  OpenEnded: 'Texto Libre',
 }
+
+
 
 const AnswerTypeChip: React.FC<I_AnswerTypeChipProps> = ({ type }) => {
   const color = answerTypeColors[type]

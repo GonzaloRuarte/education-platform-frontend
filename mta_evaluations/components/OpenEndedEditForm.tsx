@@ -1,8 +1,8 @@
 'use client'
 
-import { useQuestionNumericUpdate } from '@/mta_evaluations/hooks'
-import { numericLabels, questionLabels } from '@/mta_evaluations/labels'
-import { I_AnswerNumericDetail, I_QuestionUpdateNumericRequestData, T_QuestionForm } from '@/mta_evaluations/types'
+import { useQuestionOpenEndedUpdate } from '@/mta_evaluations/hooks'
+import { questionLabels } from '@/mta_evaluations/labels'
+import { I_AnswerOpenEndedDetail, I_QuestionUpdateOpenEndedRequestData, T_QuestionForm } from '@/mta_evaluations/types'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
@@ -17,9 +17,9 @@ import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
-interface I_FormFields extends I_QuestionUpdateNumericRequestData {}
+interface I_FormFields extends I_QuestionUpdateOpenEndedRequestData {}
 
-const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({ data, onSuccess, onCancel }) => {
+const OpenEndedEditForm: T_QuestionForm<I_AnswerOpenEndedDetail> = ({ data, onSuccess, onCancel }) => {
   const { content, answer } = data
 
   const { handleSubmit, control } = useForm<I_FormFields>({
@@ -31,13 +31,13 @@ const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({ data, onSucces
 
   const { setInProgressStatus } = useInProgress()
 
-  const update = useQuestionNumericUpdate()
+  const update = useQuestionOpenEndedUpdate()
   const onSubmit: SubmitHandler<I_FormFields> = (updatedData) => {
     setInProgressStatus(true)
     update(data.id, { ...updatedData })
       .then(() => {
-        log.info('Numeric question edited')
-        successToast('Pregunta numérica editada correctamente')
+        log.info('Open-ended question updated')
+        successToast('Pregunta de texto libre editada correctamente')
         onSuccess()
       })
       .catch(handleServiceError)
@@ -52,13 +52,6 @@ const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({ data, onSucces
           label={questionLabels.content}
           rules={{ ...rules.required() }}
           name="content"
-        />
-        <InputControlled<I_FormFields>
-          {...{ control }}
-          label={numericLabels.value}
-          rules={{ ...rules.required() }}
-          name="value"
-          type="number"
         />
       </MagicGrid>
       <Spacer />
@@ -75,4 +68,4 @@ const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({ data, onSucces
   )
 }
 
-export default NumericEditForm
+export default OpenEndedEditForm

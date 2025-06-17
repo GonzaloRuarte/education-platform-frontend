@@ -12,8 +12,8 @@ type T_EvaluationPageId = number
 type T_EvaluationSubjectId = string
 
 type T_EvaluationStatusCode = 'P' | 'D'
-type T_AnswerType = 'Numeric' | 'MultipleChoice'
-type T_AnswerTypeUrlParams = 'numerica' | 'multiple-choice'
+type T_AnswerType = 'Numeric' | 'MultipleChoice' | 'OpenEnded'
+
 enum EvaluationStatus {
   Published = 'P',
   Draft = 'D',
@@ -49,7 +49,12 @@ interface I_AnswerMultipleChoiceDetail extends I_BaseAnswerDetail {
     is_true: boolean
   }>
 }
-type T_AnswerPolymorphicDetail = I_AnswerNumericDetail | I_AnswerMultipleChoiceDetail
+
+interface I_AnswerOpenEndedDetail extends I_BaseAnswerDetail {
+  content: string
+}
+
+type T_AnswerPolymorphicDetail = I_AnswerNumericDetail | I_AnswerMultipleChoiceDetail | I_AnswerOpenEndedDetail
 
 interface I_QuestionDetail {
   id: T_QuestionId
@@ -142,6 +147,11 @@ interface I_QuestionUpdateNumericRequestData {
   content: string
   value: number
 }
+
+interface I_QuestionUpdateOpenEndedRequestData {
+  content: string
+}
+
 interface I_QuestionCreateMultipleChoiceRequestData {
   page_id: T_EvaluationPageId
   content: string
@@ -151,6 +161,12 @@ interface I_QuestionCreateNumericRequestData {
   content: string
   value: number
 }
+
+interface I_QuestionCreateOpenEndedRequestData {
+  page_id: T_EvaluationPageId
+  content: string
+}
+
 interface I_QuestionCreateResponseData {
   page_id: T_EvaluationPageId
   question_id: T_QuestionId
@@ -192,9 +208,9 @@ export type {
   I_EvaluationPageCreateRequestData,
   I_EvaluationPageEditRequestData,
   T_AnswerType,
-  T_AnswerTypeUrlParams,
   I_AnswerNumericDetail,
   I_AnswerMultipleChoiceDetail,
+  I_AnswerOpenEndedDetail,
   I_QuestionDetail,
   I_QuestionDetailSpecific,
   T_MultiplChoiceId,
@@ -206,6 +222,8 @@ export type {
   I_QuestionUpdateNumericRequestData,
   I_QuestionCreateMultipleChoiceRequestData,
   I_QuestionCreateNumericRequestData,
+  I_QuestionUpdateOpenEndedRequestData,
+  I_QuestionCreateOpenEndedRequestData,
   T_QuestionForm,
   T_AnswerPolymorphicDetail,
   I_QuestionCreateResponseData,

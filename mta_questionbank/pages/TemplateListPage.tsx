@@ -50,6 +50,7 @@ export const columns: Array<GridColDef> = [
     renderCell: ({ row }) => (
       row.answer.resource_type === 'MultipleChoiceTemplate' ? 'Opción múltiple' :
       row.answer.resource_type === 'NumericTemplate' ? 'Numérica' :
+      row.answer.resource_type === 'OpenEndedTemplate' ? 'Texto libre' :
       'Desconocido'
     ),
   },
@@ -78,8 +79,12 @@ export const columns: Array<GridColDef> = [
       if (row.answer.resource_type === 'NumericTemplate') {
         return row.answer.value
       }
-      return 'Tipo de respuesta desconocido'
+      
 
+      if (row.answer.resource_type === 'OpenEndedTemplate') {
+        return 'Pregunta con texto libre'
+      }
+      return 'Tipo de respuesta desconocido'
     },
   },
 

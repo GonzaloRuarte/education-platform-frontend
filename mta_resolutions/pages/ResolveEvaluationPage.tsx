@@ -16,6 +16,7 @@ import Spinner from '@/shared/components/Spinner'
 import OfflineIndicator from '@/shared/offline/OfflineIndicator'
 import { HorizontalRule } from '@mui/icons-material'
 import { Box } from '@mui/material'
+import {StickyPinned} from '@/shared/components/StickyPinned'
 
 const ResolveEvaluationPage = () => {
   const evaluationToResolve = useResolutionEvaluationToResolve()
@@ -40,7 +41,7 @@ const ResolveEvaluationPage = () => {
                   ) : (
                     <Spacer size="l" />
                   )}
-
+                  <StickyPinned text={evaluationToResolve.pages[currentPage - 1].pinned_text} />
                   {/* <ResolutionPageIndicator /> */}
                   <Spacer size="xl" />
 

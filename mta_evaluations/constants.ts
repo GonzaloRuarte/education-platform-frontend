@@ -1,4 +1,3 @@
-import { T_AnswerType, T_AnswerTypeUrlParams } from '@/mta_evaluations/types'
 import { EntityName } from '@/shared/utils'
 
 const EVALUATION_NAME = new EntityName({ gender: 'F', singular: 'evaluación', plural: 'evaluaciones' })
@@ -11,16 +10,8 @@ const MULTIPLE_CHOICE_NAME = new EntityName({
   singular: 'pregunta de opción múltiple',
 })
 const NUMERIC_NAME = new EntityName({ gender: 'F', plural: 'preguntas numérica', singular: 'pregunta numérica' })
+const OPEN_ENDED_NAME = new EntityName({ gender: 'F', plural: 'preguntas de texto libre', singular: 'pregunta de texto libre' })
 
-
-const answerTypesToUrlPaths: Record<T_AnswerType, T_AnswerTypeUrlParams> = {
-  MultipleChoice: 'multiple-choice',
-  Numeric: 'numerica',
-}
-const urlPathsToAnswerTypes: Record<T_AnswerTypeUrlParams, T_AnswerType> = {
-  'multiple-choice': 'MultipleChoice',
-  numerica: 'Numeric',
-}
 
 export {
   EVALUATION_NAME,
@@ -28,7 +19,6 @@ export {
   QUESTION_NAME,
   MULTIPLE_CHOICE_NAME,
   NUMERIC_NAME,
+  OPEN_ENDED_NAME,
   EVALUATOR_PROFILE_NAME,
-  answerTypesToUrlPaths,
-  urlPathsToAnswerTypes,
 }

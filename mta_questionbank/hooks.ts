@@ -9,6 +9,8 @@ import {
   I_QuestionCreateNumericRequestData,
   I_QuestionUpdateMultipleChoiceRequestData,
   I_QuestionUpdateNumericRequestData,
+  I_QuestionUpdateOpenEndedRequestData,
+  I_QuestionCreateOpenEndedRequestData,
   I_QuestionCreateResponseData,
   T_QuestionTemplateList,
 } from '@/mta_questionbank/types'
@@ -67,6 +69,21 @@ const useQuestionNumericCreate = creationHook<I_QuestionCreateNumericRequestData
   useAuthResources,
 )
 
+const useQuestionOpenEndedUpdate = updateHook<T_QuestionId, I_QuestionUpdateOpenEndedRequestData>(
+  QUESTIONS_PATH,
+  axiosPatch,
+  useAuthResources,
+  {
+    pathSuffix: '/update-open-ended',
+  },
+)
+const useQuestionOpenEndedCreate = creationHook<I_QuestionCreateOpenEndedRequestData, I_QuestionCreateResponseData>(
+  `${QUESTIONS_PATH}/create-open-ended`,
+  axiosPost,
+  useAuthResources,
+)
+
+
 // Navigation
 const useNavigateToQuestionCreate = navigationHook(pages.D._.bancoDePreguntas._.agregar.path)
 const useNavigateToQuestionEdit = dynamicNavigationHook(questionBankEditPath)
@@ -84,6 +101,8 @@ export {
   useQuestionNumericUpdate,
   useQuestionMultipleChoiceCreate,
   useQuestionNumericCreate,
+  useQuestionOpenEndedUpdate,
+  useQuestionOpenEndedCreate,
   useMultipleChoiceOptionCreate, 
   useMultipleChoiceOptionDelete,
   useMultipleChoiceOptionEditIsTrue,

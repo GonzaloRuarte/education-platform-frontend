@@ -7,6 +7,8 @@ import {
   T_EvaluationToResolve_NumericAnswer,
   T_ResolutionState_MultipleChoiceAnswerData,
   T_ResolutionState_NumericAnswerData,
+  T_EvaluationToResolve_OpenEndedAnswer,
+  T_ResolutionState_OpenEndedAnswerData,
 } from '@/mta_resolutions/types'
 import Chip from '@/shared/components/Chip'
 import Spacer from '@/shared/components/Spacer'
@@ -44,6 +46,35 @@ const NumericForm: FC<{ data: T_EvaluationToResolve_NumericAnswer; questionId: T
     </>
   )
 }
+
+const OpenEndedForm: FC<{ data: T_EvaluationToResolve_OpenEndedAnswer; questionId: T_QuestionId }> = ({
+  data,
+  questionId,
+}) => {
+  const resolutionState = useResolutionState()
+  const { updateOpenEnded } = useResolutionStateUpdateAnswer()
+
+  const specific_data = resolutionState?.answers[questionId]?.specific_data as
+    | T_ResolutionState_OpenEndedAnswerData['specific_data']
+    | undefined
+  return (
+    <>
+      <Input
+        type="text"
+        name={String(data.id)}
+        label="Respuesta"
+        value={specific_data?.value || ''}
+        onChange={(e) => {
+          updateOpenEnded(questionId, data.id, e.target.value)
+        }}
+      />
+    </>
+  )
+}
+
+
+
+
 const MultipleChoiceForm: FC<{ data: T_EvaluationToResolve_MultipleChoiceAnswer; questionId: T_QuestionId }> = ({
   data,
   questionId,
@@ -117,6 +148,7 @@ const MultipleChoiceForm: FC<{ data: T_EvaluationToResolve_MultipleChoiceAnswer;
 const forms: Record<T_AnswerType, FC<any>> = {
   MultipleChoice: MultipleChoiceForm,
   Numeric: NumericForm,
+  OpenEnded: OpenEndedForm,
 }
 
 

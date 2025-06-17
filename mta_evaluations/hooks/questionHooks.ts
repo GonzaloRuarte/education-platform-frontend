@@ -2,10 +2,12 @@ import { useAuthResources } from '@/mta_auth/hooks'
 import {
   I_QuestionCreateMultipleChoiceRequestData,
   I_QuestionCreateNumericRequestData,
+  I_QuestionCreateOpenEndedRequestData,
   I_QuestionCreateResponseData,
   I_QuestionDetail,
   I_QuestionUpdateMultipleChoiceRequestData,
   I_QuestionUpdateNumericRequestData,
+  I_QuestionUpdateOpenEndedRequestData,
   T_QuestionId,
 } from '@/mta_evaluations/types'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
@@ -43,6 +45,22 @@ const useQuestionNumericCreate = creationHook<I_QuestionCreateNumericRequestData
   axiosPost,
   useAuthResources,
 )
+
+const useQuestionOpenEndedUpdate = updateHook<T_QuestionId, I_QuestionUpdateOpenEndedRequestData>(
+  QUESTIONS_PATH,
+  axiosPatch,
+  useAuthResources,
+  {
+    pathSuffix: '/update-open-ended',
+  },
+)
+
+const useQuestionOpenEndedCreate = creationHook<I_QuestionCreateOpenEndedRequestData, I_QuestionCreateResponseData>(
+  `${QUESTIONS_PATH}/create-open-ended`,
+  axiosPost,
+  useAuthResources,
+)
+
 const useQuestionMoveBackward = updateHook<T_QuestionId, T_EmptyPayload>(
   `${QUESTIONS_PATH}`,
   axiosPatch,
@@ -69,4 +87,6 @@ export {
   useQuestionNumericUpdate,
   useQuestionMultipleChoiceCreate,
   useQuestionNumericCreate,
+  useQuestionOpenEndedUpdate,
+  useQuestionOpenEndedCreate,
 }
