@@ -34,8 +34,8 @@ jobs:
           cp -r .next/standalone/* release/
           cp -r .next/static release/.next/
           cp -r public release/
-          # If you need package.json or other files, add:
-          # cp package.json release/
+          cp package.json release/
+          cp pnpm-lock.yaml release/ || true
           cd release
           zip -r ../release.zip .
 
