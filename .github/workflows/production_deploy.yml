@@ -1,4 +1,4 @@
-name: Production Auto Deploy -  MetaApp-Web
+name: Production Auto Deploy - MetaApp-Web
 
 on:
   push:
