@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Zip source code
-        run: zip -r app.zip . -x ".git/*" "node_modules/*" ".github/*"
+        run: zip -r app.zip . -x ".git/*" "node_modules/*" ".next/*" ".github/*"
 
       - name: Upload to Azure
         uses: azure/webapps-deploy@v3
