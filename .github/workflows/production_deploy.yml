@@ -23,28 +23,25 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm
 
-      - name: Install dependencies and build app
+      - name: Install dependencies and build
         run: |
           pnpm install
           pnpm run build
 
-      - name: Prepare standalone build output
+      - name: Prepare standalone build for deployment
         run: |
-          mkdir release
+          mkdir -p release
           cp -r .next/standalone/* release/
           cp -r .next/static release/.next/static
           cp -r public release/public
-
-      - name: Zip app for deployment (standalone output)
-        run: |
-          cd release
-          zip -r ../release.zip .
+          cp -r node_modules release/node_modules  # only needed if node_modules is not inside standalone
+          cp server.js release/server.js || true   # ensure your server.js exists from Next build
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: release.zip
+          path: release
 
   deploy:
     runs-on: ubuntu-latest
@@ -58,11 +55,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
+          path: .
 
-      - name: Unzip artifact
-        run: unzip release.zip
-
-      - name: 'Deploy to Azure Web App'
+      - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
