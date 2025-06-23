@@ -33,6 +33,7 @@ jobs:
         run: |
           mkdir release
           cp -r .next/standalone/* release/
+          mkdir -p release/.next
           cp -r .next/static release/.next/static
           cp -r public release/public
 
