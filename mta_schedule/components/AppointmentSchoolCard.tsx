@@ -7,21 +7,25 @@ import { useNavigateToAppointmentDetail, useNavigateToAppointmentEditStudents } 
 import { appointmentFormattedStringDate } from '@/mta_schedule/utils'
 import Bold from '@/shared/components/Bold'
 import Button from '@/shared/components/Button'
-import { DeleteButton } from '@/shared/components/buttons'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import { Body1 } from '@/shared/components/Typography'
 import TodayIcon from '@mui/icons-material/Today'
+import { useState } from 'react'
+import RescheduleDialog from '@/mta_schedule/components/AppointmentRescheduleDialog'
+
 
 interface I_Props {
   data: I_AppointmentListItem
+  onRescheduled?: () => void; // ← NEW
 }
-const AppointmentSchoolCard = ({ data }: I_Props) => {
+const AppointmentSchoolCard = ({ data, onRescheduled }: I_Props) => {
   const navToEditStudents = useNavigateToAppointmentEditStudents()
   const handleEditStudents = () => {
     navToEditStudents({ appointmentId: data.id })
   }
   const navToDetail = useNavigateToAppointmentDetail()
+  const [open, setOpen] = useState(false)
   return (
     <Grid2
       size={4}
@@ -74,6 +78,9 @@ const AppointmentSchoolCard = ({ data }: I_Props) => {
                         Editar estudiantes
                       </Button>
                     )}
+                      <Button fullWidth color="info" onClick={() => setOpen(true)}>
+                  Reprogramar
+                </Button>
                   </MagicGrid>
                 )}
               </>
@@ -83,8 +90,14 @@ const AppointmentSchoolCard = ({ data }: I_Props) => {
           <Button fullWidth onClick={() => navToDetail(data.id)}>
             Ver detalle
           </Button>
-          <DeleteButton fullWidth color="error" label="Eliminar turno" variant="outlined" disabled />
+          
         </MagicGrid>
+        <RescheduleDialog
+          open={open}
+          onClose={() => setOpen(false)}
+          originalAppointment={data}
+          onRescheduled={onRescheduled}
+        />
       </Grid2>
     </Grid2>
   )

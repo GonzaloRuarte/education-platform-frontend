@@ -9,6 +9,7 @@ import {
   I_AppointmentsByMonthResponseData,
   T_AppointmentId,
   T_AppointmentList,
+  I_AppointmentReschedule_RequestData,
 } from '@/mta_schedule/types'
 import pages, { appointmentsEditStudentsPath, appointmentsProcessPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
@@ -102,6 +103,12 @@ const useAppointmentRequestPostProcess = (callback: T_VoidFn) => {
   }
 }
 
+const useAppointmentReschedule = actionHook<I_AppointmentReschedule_RequestData, I_AppointmentDetail>(
+  `${APPOINTMENTS_PATH}/reschedule`,
+  axiosPost,
+  useAuthResources,
+)
+
 // Navigation
 const useNavigateToAppointmentList = navigationHook(pages.D._.turnos.path)
 const useNavigateToAppointmentProcess = dynamicNavigationHook(appointmentsProcessPath)
@@ -134,4 +141,6 @@ export {
   useNavigateToAppointmentHome,
   useNavigateToAppointmentUploadOfflineStates,
   useAppointmentRequestPostProcess,
+  useAppointmentReschedule,
+  APPOINTMENTS_PATH,
 }

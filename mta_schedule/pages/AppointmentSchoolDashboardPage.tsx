@@ -47,7 +47,7 @@ const AppointmentSchoolDashboardPage = () => {
           <Box>
             <Grid2 container spacing={5} size={12}>
               {data.results.map((appointment) => (
-                <AppointmentSchoolCard key={appointment.id} data={appointment} />
+                <AppointmentSchoolCard key={appointment.id} data={appointment} onRescheduled={reload}  />
               ))}
             </Grid2>
           </Box>

@@ -1,28 +1,24 @@
 'use client'
 
-import { withAuth } from '@/mta_auth/hocs/withAuth'
-import { useUserProfilesResources } from '@/mta_auth/hooks'
+
 import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
 import { T_EvaluationSubjectId } from '@/mta_evaluations/types'
 import AppointmentBriefCard from '@/mta_schedule/components/AppointmentBriefCard'
-import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
 import {
   useAppointmentFreeListByMonth,
   useAppointmentRequest,
   useNavigateToAppointmentList,
 } from '@/mta_schedule/hooks'
-import { I_AppointmentAvailable, T_AppointmentId, T_AppointmentsAvailableList } from '@/mta_schedule/types'
+import { I_AppointmentAvailable, T_AppointmentId } from '@/mta_schedule/types'
 import { availableDays } from '@/mta_schedule/utils'
 import { SchoolGradeSelectControlled } from '@/mta_schools/components/SchoolGradeSelect'
 import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
 import { SchoolGrade } from '@/mta_schools/constants'
-import { useSchoolStaffProfileOwnSchool } from '@/mta_schools/hooks'
 import { I_SchoolName, T_SchoolId } from '@/mta_schools/types'
 import MagicGrid from '@/shared/components/MagicGrid'
-import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
-import { Body1, H4 } from '@/shared/components/Typography'
+import { H4 } from '@/shared/components/Typography'
 import DateCalendarControlled from '@/shared/forms/DateCalendarControlled'
 import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
@@ -34,6 +30,7 @@ import { FormLabel, Grid2 } from '@mui/material'
 import dayjs, { Dayjs } from 'dayjs'
 import { useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import { distinctAvailableAppointments } from '@/mta_schedule/utils'
 
 interface I_FormFields {
   appointment_id: T_AppointmentId
@@ -44,17 +41,7 @@ interface I_FormFields {
   date: Dayjs
   comments:string
 }
-const distinctAvailableAppointments = (appointments: T_AppointmentsAvailableList) => {
-  const disctint: Record<string, T_AppointmentsAvailableList> = {}
-  appointments.forEach((a) => {
-    if (!(a.begins_at in disctint)) {
-      disctint[a.begins_at] = []
-    }
-    disctint[a.begins_at].push(a)
-  })
 
-  return disctint
-}
 
 interface I_Props {
   ownSchoolData: I_SchoolName | null
