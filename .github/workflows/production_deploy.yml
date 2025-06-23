@@ -59,11 +59,11 @@ jobs:
       - name: Unzip artifact
         run: unzip release.zip
 
-      - name: Deploy to Azure Web App
+      - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'MetaApp-Web'
+          app-name: 'MetaApp-Website'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_727C83F59D79432993967328963B28E3 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_4975FA1D14654DA384E94A6FFD5C4E8C }}
