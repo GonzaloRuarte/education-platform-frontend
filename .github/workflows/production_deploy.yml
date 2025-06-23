@@ -25,22 +25,20 @@ jobs:
 
       - name: Install dependencies and build app
         run: |
-          corepack enable
           pnpm install
           pnpm run build
 
-      - name: Prepare standalone output
+      - name: Prepare standalone build output
         run: |
           mkdir release
           cp -r .next/standalone/* release/
-          mkdir -p release/.next
           cp -r .next/static release/.next/static
           cp -r public release/public
 
-      - name: Zip app for deployment (standalone)
+      - name: Zip app for deployment (standalone output)
         run: |
           cd release
-          zip -r ../release.zip ./*
+          zip -r ../release.zip .
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
