@@ -25,17 +25,21 @@ jobs:
 
       - name: Install dependencies and build app
         run: |
+          corepack enable
           pnpm install
           pnpm run build
 
-      - name: Reinstall only production dependencies
+      - name: Prepare standalone output
         run: |
-          rm -rf node_modules
-          pnpm install --prod
+          mkdir release
+          cp -r .next/standalone/* release/
+          cp -r .next/static release/.next/static
+          cp -r public release/public
 
-      - name: Zip app for deployment (only prod deps)
+      - name: Zip app for deployment (standalone)
         run: |
-          zip -r release.zip . -x ".git/*" ".github/*" "tests/*"
+          cd release
+          zip -r ../release.zip ./*
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
