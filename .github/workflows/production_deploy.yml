@@ -31,10 +31,25 @@ jobs:
       - name: Prepare standalone build for deployment
         run: |
           mkdir -p release
+
+          # Copy standalone output
           cp -r .next/standalone/* release/
-          if [ -d ".next/static" ]; then cp -r .next/static release/.next/static; fi
-          if [ -d "public" ]; then cp -r public release/public; fi
-          if [ -f "server.js" ]; then cp server.js release/server.js; fi
+
+          # Conditionally copy .next/static if it exists
+          if [ -d ".next/static" ]; then
+            mkdir -p release/.next
+            cp -r .next/static release/.next/static
+          fi
+
+          # Conditionally copy public folder if it exists
+          if [ -d "public" ]; then
+            cp -r public release/public
+          fi
+
+          # Conditionally copy server.js if it exists
+          if [ -f "server.js" ]; then
+            cp server.js release/server.js
+          fi
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
