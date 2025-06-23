@@ -15,12 +15,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Zip source code
-        run: zip -r app.zip . -x ".git/*" "node_modules/*" ".github/*" ".next/*"
+        run: zip -r app.zip . -x ".git/*" "node_modules/*" ".github/*"
 
       - name: Upload to Azure
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'MetaApp-Website'
-          slot-name: 'Production'
           package: app.zip
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_4975FA1D14654DA384E94A6FFD5C4E8C }}
