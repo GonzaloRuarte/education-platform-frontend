@@ -31,7 +31,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-ENV NEXT_PUBLIC_API_BASE_PATH=$NEXT_PUBLIC_API_BASE_PATH
+ENV NEXT_PUBLIC_API_BASE_PATH=https://metaapp-ctb5g6afaxhfbzbs.brazilsouth-01.azurewebsites.net/api
 
 RUN \
   if [ -f yarn.lock ]; then yarn build; \
