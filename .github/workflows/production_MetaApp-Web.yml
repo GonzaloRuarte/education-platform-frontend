@@ -14,24 +14,24 @@ jobs:
     runs-on: 'ubuntu-latest'
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-    - name: Log in to registry
-      uses: docker/login-action@v2
-      with:
-        registry: https://metaapp.azurecr.io/
-        username: ${{ secrets.AzureAppService_ContainerUsername_b6b097a4d24b432dad6862bb5f470229 }}
-        password: ${{ secrets.AzureAppService_ContainerPassword_595a0a06775645ba84963da3c9cbec1c }}
+      - name: Log in to registry
+        uses: docker/login-action@v2
+        with:
+          registry: https://metaapp.azurecr.io/
+          username: ${{ secrets.AzureAppService_ContainerUsername_b6b097a4d24b432dad6862bb5f470229 }}
+          password: ${{ secrets.AzureAppService_ContainerPassword_595a0a06775645ba84963da3c9cbec1c }}
 
-    - name: Build and push container image to registry
-      uses: docker/build-push-action@v3
-      with:
-        push: true
-        tags: metaapp.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_b6b097a4d24b432dad6862bb5f470229 }}/metaapp-web:${{ github.sha }}
-        file: ./Dockerfile
+      - name: Build and push container image to registry
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: metaapp.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_b6b097a4d24b432dad6862bb5f470229 }}/metaapp-web:${{ github.sha }}
+          file: ./Dockerfile.production
 
   deploy:
     runs-on: ubuntu-latest
@@ -41,11 +41,11 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
-    - name: Deploy to Azure Web App
-      id: deploy-to-webapp
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: 'MetaApp-Web'
-        slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_3099aa83d59c48a1b2ebfdcbdebaa5ed }}
-        images: 'metaapp.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_b6b097a4d24b432dad6862bb5f470229 }}/metaapp-web:${{ github.sha }}'
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'MetaApp-Web'
+          slot-name: 'production'
+          publish-profile: ${{ secrets.AzureAppService_PublishProfile_3099aa83d59c48a1b2ebfdcbdebaa5ed }}
+          images: 'metaapp.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_b6b097a4d24b432dad6862bb5f470229 }}/metaapp-web:${{ github.sha }}'
