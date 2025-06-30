@@ -58,6 +58,11 @@ interface I_AppointmentEvaluationBrief {
   code: string
   title: string
 }
+
+interface I_AppointmentReschedule_RequestData {
+  current_appointment_id: T_AppointmentId
+  new_appointment_id: T_AppointmentId
+}
 interface I_AppointmentListItem {
   id: T_AppointmentId
   begins_at: string
@@ -123,6 +128,7 @@ export type {
   I_AppointmentAddStudents_RequestData,
   T_AppointmentOccurrenceStatus,
   I_AppointmentRealTimeStatus,
+  I_AppointmentReschedule_RequestData,
 }
 
 export { AppointmentStatus, AppointmentOccurrenceStatus }

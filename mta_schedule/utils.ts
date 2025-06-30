@@ -4,6 +4,7 @@ import {
   I_AppointmentDetail,
   I_AppointmentListItem,
   I_AppointmentsByMonthResponseData,
+  T_AppointmentsAvailableList,
 } from '@/mta_schedule/types'
 import { sentence } from '@/shared/utils'
 import dayjs, { Dayjs } from 'dayjs'
@@ -16,6 +17,19 @@ const hoursOptions = () => {
   options.push({ value: '13:00', label: 'Turno Tarde' })
 
   return options
+}
+
+
+const distinctAvailableAppointments = (appointments: T_AppointmentsAvailableList) => {
+  const distinct: Record<string, T_AppointmentsAvailableList> = {}
+  appointments.forEach((a) => {
+    if (!(a.begins_at in distinct)) {
+      distinct[a.begins_at] = []
+    }
+    distinct[a.begins_at].push(a)
+  })
+
+  return distinct
 }
 
 const combinedDateAndTime = (args: { date: Dayjs; time: string }) =>
@@ -62,4 +76,5 @@ export {
   appointmentFormattedStringDate,
   appointmentAlreadyStarted,
   appointmentShowPostProcessingResources,
+  distinctAvailableAppointments,
 }
