@@ -9,7 +9,7 @@ import React from 'react'
 const AppointmentHome = () => {
   const { isAdmin, isSchoolStaff, isExecutive } = useUserProfilesResources()
   if (isAdmin) return <AppointmentListPage />
-  if (isSchoolStaff||isExecutive) return <AppointmentSchoolDashboardPage />
+  if (isSchoolStaff||isExecutive) return <AppointmentSchoolDashboardPage isSchoolStaff={isSchoolStaff} />
   return <div>AppointmentHome</div>
 }
 

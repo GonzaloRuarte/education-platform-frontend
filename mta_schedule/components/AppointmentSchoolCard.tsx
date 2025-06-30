@@ -18,8 +18,9 @@ import RescheduleDialog from '@/mta_schedule/components/AppointmentRescheduleDia
 interface I_Props {
   data: I_AppointmentListItem
   onRescheduled?: () => void; // ← NEW
+  isSchoolStaff?: boolean;
 }
-const AppointmentSchoolCard = ({ data, onRescheduled }: I_Props) => {
+const AppointmentSchoolCard = ({ data, onRescheduled, isSchoolStaff }: I_Props) => {
   const navToEditStudents = useNavigateToAppointmentEditStudents()
   const handleEditStudents = () => {
     navToEditStudents({ appointmentId: data.id })
@@ -69,6 +70,8 @@ const AppointmentSchoolCard = ({ data, onRescheduled }: I_Props) => {
                     <Body1>
                       Estudiantes: <Bold>{data.student_count}</Bold>
                     </Body1>
+                    {isSchoolStaff && (
+                      <>
                     {data.student_count === 0 ? (
                       <Button fullWidth color="primary" onClick={handleEditStudents}>
                         Agregar estudiantes
@@ -81,6 +84,8 @@ const AppointmentSchoolCard = ({ data, onRescheduled }: I_Props) => {
                       <Button fullWidth color="info" onClick={() => setOpen(true)}>
                   Reprogramar
                 </Button>
+                </>
+                    )}
                   </MagicGrid>
                 )}
               </>
@@ -92,12 +97,14 @@ const AppointmentSchoolCard = ({ data, onRescheduled }: I_Props) => {
           </Button>
           
         </MagicGrid>
-        <RescheduleDialog
-          open={open}
-          onClose={() => setOpen(false)}
-          originalAppointment={data}
-          onRescheduled={onRescheduled}
+        {isSchoolStaff && (
+          <RescheduleDialog
+            open={open}
+            onClose={() => setOpen(false)}
+            originalAppointment={data}
+            onRescheduled={onRescheduled}
         />
+        )}
       </Grid2>
     </Grid2>
   )

@@ -14,7 +14,7 @@ import EditCalendarIcon from '@mui/icons-material/EditCalendar'
 
 const pageCount = (itemsCount: number) => itemsCount / DEFAULT_PAGE_SIZE
 
-const AppointmentSchoolDashboardPage = () => {
+const AppointmentSchoolDashboardPage = ({ isSchoolStaff }) => {
   const searchParams = useSearchParams()
   const router = useRouter()
   const navToAppointmentRequest = useNavigateToAppointmentRequest()
@@ -47,7 +47,7 @@ const AppointmentSchoolDashboardPage = () => {
           <Box>
             <Grid2 container spacing={5} size={12}>
               {data.results.map((appointment) => (
-                <AppointmentSchoolCard key={appointment.id} data={appointment} onRescheduled={reload}  />
+                <AppointmentSchoolCard key={appointment.id} data={appointment} onRescheduled={reload} isSchoolStaff={isSchoolStaff} />
               ))}
             </Grid2>
           </Box>
