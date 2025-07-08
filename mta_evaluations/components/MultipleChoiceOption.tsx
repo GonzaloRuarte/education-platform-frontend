@@ -1,13 +1,10 @@
 'use client'
 
 import MultipleChoiceOptionContainer from '@/mta_evaluations/components/MultipleChoiceOptionContainer'
-import { useMultipleChoiceOptionDelete, useMultipleChoiceOptionEditIsTrue } from '@/mta_evaluations/hooks'
-import { I_AnswerMultipleChoiceDetail, T_MultiplChoiceOptionId } from '@/mta_evaluations/types'
+import { I_AnswerMultipleChoiceDetail } from '@/mta_evaluations/types'
 import Chip from '@/shared/components/Chip'
 import HTMLParser from '@/shared/components/HTMLParser'
-import { useInProgress } from '@/shared/hooks'
-import { handleServiceError } from '@/shared/service'
-import { T_ArrayElement, T_VoidFn } from '@/shared/types'
+import { T_ArrayElement } from '@/shared/types'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { Checkbox, IconButton } from '@mui/material'
 import { green } from '@mui/material/colors'
@@ -16,25 +13,13 @@ import { FC } from 'react'
 
 const MultipleChoiceOption: FC<{
   data: T_ArrayElement<I_AnswerMultipleChoiceDetail['options']>
-  reload?: T_VoidFn
+  onDelete?: () => void
+  onToggleTrue?: (val: boolean) => void
   withDelete?: boolean
-}> = ({ data, reload, withDelete = false }) => {
-  const { setIsInProgress, setIsNotInProgress } = useInProgress()
+}> = ({ data, onDelete, onToggleTrue, withDelete = false }) => {
   const { content, id, is_true, name } = data
-  const deleteInstance = useMultipleChoiceOptionDelete()
-  const handleDelete = (id: T_MultiplChoiceOptionId) => {
-    deleteInstance(id)
-    reload && reload()
-  }
-  const multipleChoiceOptionEditIsTrue = useMultipleChoiceOptionEditIsTrue()
-  const handleChangeIsTrue = (_, value: boolean) => {
-    if (reload === undefined) return
-    setIsInProgress()
-    multipleChoiceOptionEditIsTrue(id, { is_true: value })
-      .then(reload)
-      .catch(handleServiceError)
-      .finally(setIsNotInProgress)
-  }
+  const handleDelete = () => onDelete?.()
+
 
   return (
     <MultipleChoiceOptionContainer>
@@ -49,7 +34,11 @@ const MultipleChoiceOption: FC<{
         borderRadius={is_true ? 5 : undefined}
       >
         <Grid>
-          <Checkbox checked={is_true} onChange={handleChangeIsTrue} color="success" />
+          <Checkbox
+            checked={is_true}
+            onChange={(_, v) => onToggleTrue?.(v)}   // ← local state update
+            color="success"
+          />
         </Grid>
         <Grid size="auto">
           <Chip label={name} />
@@ -65,7 +54,7 @@ const MultipleChoiceOption: FC<{
         {withDelete && (
           <Grid size={1} container>
             <Grid>
-              <IconButton onClick={() => handleDelete(id)}>
+              <IconButton onClick={handleDelete}>
                 <DeleteIcon />
               </IconButton>
             </Grid>

@@ -4,3 +4,9 @@ node_modules
 dist
 *.log
 *.cache
+.github
+.vscode
+.venv
+README.md
+Dockerfile*
+docker*
