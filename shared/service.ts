@@ -95,16 +95,10 @@ const handleServiceError = (error: ApiError<Error>) => {
   errorToast(error.message)
 }
 
-const handleError = (msg: string) => (errorReason: any) => {
-  errorToast(msg)
-  log.error(errorReason)
-}
-
 export {
   batchDeletionService,
   deletionService,
   detailService,
-  handleError,
   handleServiceError,
   listService,
   postService,

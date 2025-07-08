@@ -27,12 +27,10 @@ const formComponents: Record<
 const QuestionEditDialog = () => {
   const { showDialog, closeDialog, DialogComponent, componentProps } = useDialog()
 
-  /** Close dialog, then refresh list */
-  const makeOnSuccess = (reload: () => void) => () => {
-    closeDialog()
-    reload()
+  const handleUpdated = (reloadPage: () => void) => () => {
+    closeDialog()      // close the modal
+    reloadPage()       // refresh evaluation list
   }
-
   const open = (question: I_QuestionDetail, reload: () => void) => {
     const Form = formComponents[question.answer.resource_type]
 
@@ -41,7 +39,7 @@ const QuestionEditDialog = () => {
       content: (
         <Form
           data={question}
-          onSuccess={makeOnSuccess(reload)}
+          onSuccess={handleUpdated(reload)}
           onCancel={closeDialog}
         />
       ),

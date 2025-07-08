@@ -1,7 +1,7 @@
 'use client'
 
 import MultipleChoiceOption from '@/mta_evaluations/components/MultipleChoiceOption'
-import OptionCreateForm from '@/mta_evaluations/components/OptionCreateForm'
+import OptionDraftForm from '@/mta_evaluations/components/OptionDraftForm'
 import { useQuestionMultipleChoiceUpdate } from '@/mta_evaluations/hooks'
 import { questionLabels } from '@/mta_evaluations/labels'
 import {
@@ -23,51 +23,60 @@ import { sharedLabels } from '@/shared/labels'
 import log from '@/shared/log'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
-import { T_VoidFn } from '@/shared/types'
 import { Box } from '@mui/material'
-import { FC } from 'react'
+import { FC, useRef, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
 
 interface I_FormFields extends I_QuestionUpdateMultipleChoiceRequestData {}
 
+type LocalOption = I_AnswerMultipleChoiceDetail['options'][number]
+
 interface OptionsProps {
-  data: I_AnswerMultipleChoiceDetail
-  onSuccess: T_VoidFn
-  onCancel?: T_VoidFn
+  options: LocalOption[]
+  addOption: (o: LocalOption) => void
+  deleteOption: (id: number) => void
+  toggleOptionTrue: (idx: number, value: boolean) => void
 }
 
-
-const Options: FC<OptionsProps> = ({ data, onSuccess, onCancel }) => {
+const Options: FC<OptionsProps> = ({
+  options,
+  addOption,
+  deleteOption,
+  toggleOptionTrue,
+}) => {
   const { DialogComponent, componentProps, showDialog, closeDialog } = useDialog()
-  const handleReloadAfterCreate = () => {
-    closeDialog()
-    onSuccess()
-  }
-  const handleAddOption = () => {
+
+  // opens a tiny local form (see next file) -------------------------------
+  const handleAddOption = () =>
     showDialog({
       title: 'Agregar Opción',
-      content: <OptionCreateForm multipleChoiceId={data.id} reload={handleReloadAfterCreate} />,
-      actions: [
-        {
-          buttonLabel: sharedLabels.cancel,
-          onPress: closeDialog,
-          key: 'close',
-        },
-      ],
+      content: (
+        <OptionDraftForm
+          onCreate={(opt) => {
+            addOption(opt)
+            closeDialog()
+          }}
+        />
+      ),
+      actions: [],
     })
-  }
 
   return (
     <>
       <Box maxWidth="md">
         <H4>
-          Opciones <AddButton onClick={handleAddOption} size="small" variant="outlined" />
+          Opciones <AddButton size="small" variant="outlined" onClick={handleAddOption} />
         </H4>
         <Spacer />
-
-        {data.options.map((option) => (
-          <MultipleChoiceOption key={option.id} data={option} reload={onSuccess} withDelete />
+        {options.map((o, idx) => (
+          <MultipleChoiceOption
+            key={o.id}
+            data={o}
+            onDelete={() => deleteOption(o.id)}
+            onToggleTrue={(v) => toggleOptionTrue(idx, v)}
+            withDelete
+          />
         ))}
       </Box>
       <DialogComponent {...componentProps} />
@@ -75,12 +84,33 @@ const Options: FC<OptionsProps> = ({ data, onSuccess, onCancel }) => {
   )
 }
 
+interface OptionDTO {
+  id: number
+  name: string
+  content: string
+  is_true: boolean
+}
 
+interface MultipleChoiceUpdatePayload {
+  content: string
+  options_ops: {
+    create: Array<Omit<OptionDTO, 'id'>>   // new rows (no id yet)
+    update: Array<OptionDTO>               // existing rows with changes
+    delete: number[]                       // ids of rows to remove
+  }
+}
 
+const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({
+  data,
+  onSuccess,          // <-- called only when finally persisting
+  onCancel,
+}) => {
+  const { content, answer } = data
 
-const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({data, onSuccess, onCancel }) => {
-  const { content } = data
-
+  // ① Local working copy of the option list (NOT yet persisted)
+  const [options, setOptions] = useState(answer.options)
+  // keep the original list to diff later
+  const originalOptionsRef = useRef(answer.options)
   const { handleSubmit, control } = useForm<I_FormFields>({
     defaultValues: {
       content,
@@ -90,8 +120,37 @@ const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({d
   const { setInProgressStatus } = useInProgress()
   const update = useQuestionMultipleChoiceUpdate()
   const onSubmit: SubmitHandler<I_FormFields> = (updatedData) => {
+    /* -------- 1. diff the arrays -------- */
+    const original = originalOptionsRef.current
+    const originalMap = new Map(original.map((o) => [o.id, o]))
+
+    const toCreate = options.filter((o) => o.id == null || o.id < 0)
+
+    const toDelete = original
+      .filter((o) => !options.some((n) => n.id === o.id))
+      .map((o) => o.id)
+
+    const toUpdate = options.filter((o) => {
+      if (o.id == null || o.id < 0) return false
+      const orig = originalMap.get(o.id)!
+      return (
+        o.name !== orig.name ||
+        o.content !== orig.content ||
+        o.is_true !== orig.is_true
+      )
+    })
+
+    /* -------- 2. build batch payload -------- */
+    const payload: MultipleChoiceUpdatePayload = {
+      content: updatedData.content,
+      options_ops: {
+        create: toCreate.map(({ id, ...rest }) => rest),
+        update: toUpdate,
+        delete: toDelete,
+      },
+    }
     setInProgressStatus(true)
-    update(data.id, { ...updatedData })
+    update(data.id, payload)
       .then(() => {
         log.info('Question edited succesfully:')
         successToast('Pregunta editada correctamente')
@@ -115,7 +174,18 @@ const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({d
       </MagicGrid>
       <Spacer />
 
-      <Options data={data.answer} onSuccess={onSuccess} onCancel={onCancel} />
+      <Options
+        options={options}
+        addOption={(opt) => setOptions((prev) => [...prev, opt])}
+        deleteOption={(id) =>
+          setOptions((prev) => prev.filter((o) => o.id !== id))
+        }
+        toggleOptionTrue={(idx, val) =>
+          setOptions((prev) =>
+            prev.map((o, i) => (i === idx ? { ...o, is_true: val } : o)),
+          )
+        }
+      />
       <Spacer />
 
       <Submit onClick={handleSubmit(onSubmit)}>{sharedLabels.update}</Submit>

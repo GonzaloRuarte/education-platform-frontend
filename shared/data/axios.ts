@@ -12,9 +12,9 @@ const _axiosBaseHeaders = (requestSetup?: I_RequestSetup) => ({
   ...(requestSetup?.accessToken && _authHeader(requestSetup.accessToken)),
 })
 
-const _handledAxiosError = (error: AxiosError<{ detail: string }>) => {
+const _handledAxiosError = (error: AxiosError<{ message: string }>) => {
   throw new ApiError<AxiosError>({
-    message: error.response?.data.detail || SERVER_ERROR,
+    message: error.response?.data.message || SERVER_ERROR,
     status: error.response?.status || -1,
     rawError: error,
   })
