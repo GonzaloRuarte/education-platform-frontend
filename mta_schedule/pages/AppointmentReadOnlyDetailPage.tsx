@@ -50,6 +50,7 @@ const AppointmentReadOnlyDetail = () => {
               evaluation={data.evaluation_brief !== null ? data.evaluation_brief : undefined}
               occurrence_status={data.occurrence_status}
               pin={data.pin}
+              comments={data.comments}
             />
             <Spacer />
             {data.students.length > 0 && (

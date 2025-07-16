@@ -86,7 +86,7 @@ const AppointmentBriefCard = ({
               <>
                   <Spacer />
                   <Body1>
-                    Comentarios:
+                    División y comentarios:
                     <br />
                     <Bold>{comments}</Bold>
                   </Body1>

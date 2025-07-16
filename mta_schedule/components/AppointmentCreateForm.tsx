@@ -51,26 +51,42 @@ const AppointmentCreateForm = () => {
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid2 container spacing={3}>
-          <Grid2 size={4}>
-            <DateCalendarControlled control={control} name="date" rules={{ ...rules.required() }} />
+          {/* Calendar ───────────────────────── */}
+          <Grid2
+            size={{ xs: 12, md: 8, lg: 5 }}   // 👈 one prop instead of xs/md/lg
+            sx={{ minWidth: 280 }}
+          >
+            <DateCalendarControlled
+              control={control}
+              name="date"
+              rules={{ ...rules.required() }}
+            />
           </Grid2>
-          <Grid2 size={4}>
+
+          {/* Right-hand column ──────────────── */}
+          <Grid2 size={{ xs: 12, md: 4, lg: 7}}>
             <SelectControlled
               control={control}
               name="beginning_hour"
               options={options}
               label={appointmentLabels.begins_at}
             />
+
             <Spacer />
+
             <Body1>
-              Los turnos tienen un rango de 2 horas y media cada uno. Al seleccionar el horario de inicio del turno el
-              mismo se confirmará con el horario de finalización.{' '}
+              Los turnos de la mañana comienzan a las 8 am y terminan a la 1 pm (rango
+              escolar de la mañana), mientras que los turnos de la tarde comienzan a
+              la 1 pm y terminan a las 6 pm (rango escolar de la tarde).
             </Body1>
+
             <Spacer size="m" />
+
             <H4>{appointmentLabels.quantity}</H4>
-            <CountInputControlled min={1} control={control} name="quantity" />
+            <CountInputControlled min={1} max={5} control={control} name="quantity" />
           </Grid2>
         </Grid2>
+
         <Spacer />
 
         <Submit>Agregar</Submit>

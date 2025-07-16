@@ -16,11 +16,13 @@ interface I_FormFields {
   name: string
   district: string
   contact_email: string
+  max_executives: number
 }
 const defaultValues: I_FormFields = {
   name: '',
   district: '',
   contact_email: '',
+  max_executives: 20,
 }
 const SchoolCreateForm = () => {
   const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues })
@@ -53,6 +55,13 @@ const SchoolCreateForm = () => {
           name="district"
           rules={{ ...rules.required() }}
           label="Distrito"
+        />
+        <InputControlled<I_FormFields>
+          control={control}
+          type="number"
+          name="max_executives"
+          rules={{ ...rules.required() }}
+          label="Máximo de Responsables Ejecutivos"
         />
       </MagicGrid>
       <Spacer />

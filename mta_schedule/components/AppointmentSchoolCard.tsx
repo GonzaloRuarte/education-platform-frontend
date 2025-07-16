@@ -9,6 +9,7 @@ import Bold from '@/shared/components/Bold'
 import Button from '@/shared/components/Button'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
+import Box from '@mui/material/Box'
 import { Body1 } from '@/shared/components/Typography'
 import TodayIcon from '@mui/icons-material/Today'
 import { useState } from 'react'
@@ -62,49 +63,50 @@ const AppointmentSchoolCard = ({ data, onRescheduled, isSchoolStaff }: I_Props) 
       {/* Actions */}
       <Grid2 size={12}>
         <MagicGrid>
-          {data.occurrence_status === AppointmentOccurrenceStatus.upcoming && (
-            <>
-              <>
-                {data.status === AppointmentStatus.approved && (
-                  <MagicGrid itemSize="auto">
-                    <Body1>
-                      Estudiantes: <Bold>{data.student_count}</Bold>
-                    </Body1>
-                    {isSchoolStaff && (
-                      <>
-                    {data.student_count === 0 ? (
-                      <Button fullWidth color="primary" onClick={handleEditStudents}>
-                        Agregar estudiantes
-                      </Button>
-                    ) : (
-                      <Button fullWidth color="secondary" onClick={handleEditStudents}>
-                        Editar estudiantes
-                      </Button>
-                    )}
-                      <Button fullWidth color="info" onClick={() => setOpen(true)}>
-                  Reprogramar
-                </Button>
-                </>
-                    )}
-                  </MagicGrid>
-                )}
-              </>
-            </>
-          )}
+          <Box display="flex" flexDirection="column" gap={2}>
+              {/* Show only when upcoming & approved */}
+              {data.occurrence_status === AppointmentOccurrenceStatus.upcoming &&
+              data.status === AppointmentStatus.approved && (
+                <>
+                  <Body1>
+                    Estudiantes: <Bold>{data.student_count}</Bold>
+                  </Body1>
 
-          <Button fullWidth onClick={() => navToDetail(data.id)}>
-            Ver detalle
-          </Button>
+                  {isSchoolStaff && (
+                    <>
+                      {data.student_count === 0 ? (
+                        <Button fullWidth onClick={handleEditStudents}>
+                          Agregar estudiantes
+                        </Button>
+                      ) : (
+                        <Button fullWidth color="secondary" onClick={handleEditStudents}>
+                          Editar estudiantes
+                        </Button>
+                      )}
+
+
+                    </>
+                  )}
+                </>
+              )}
+              <Button fullWidth color="info" onClick={() => setOpen(true)}>
+                Reprogramar
+              </Button>
+              {/* Always visible */}
+              <Button fullWidth onClick={() => navToDetail(data.id)}>
+                Ver detalle
+              </Button>
+            </Box>
           
         </MagicGrid>
-        {isSchoolStaff && (
+        
           <RescheduleDialog
             open={open}
             onClose={() => setOpen(false)}
             originalAppointment={data}
             onRescheduled={onRescheduled}
         />
-        )}
+        
       </Grid2>
     </Grid2>
   )

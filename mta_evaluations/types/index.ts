@@ -24,12 +24,7 @@ interface I_EvaluationListItem {
   title: string
   code: string
   status: T_EvaluationStatusCode
-  created_by: {
-    id: number
-    first_name: string
-    last_name: string
-    email: string
-  }
+
 }
 type T_EvaluationList = I_PaginatedResponse<I_EvaluationListItem>
 
@@ -59,6 +54,7 @@ type T_AnswerPolymorphicDetail = I_AnswerNumericDetail | I_AnswerMultipleChoiceD
 interface I_QuestionDetail {
   id: T_QuestionId
   order: number
+  global_order: number
   content: string
   is_mandatory: boolean
   answer: T_AnswerPolymorphicDetail

@@ -91,6 +91,7 @@ const AppointmentProcessPage = () => {
                 title={data.school?.name as string}
                 subject={data.requested_evaluation_subject?.name}
                 grade={data.requested_evaluation_grade as SchoolGrade}
+                comments={data.comments}
               />
               <Spacer />
               <Body1>Tomando como base los requerimientos del turno, asigne la evaluación correspondiente:</Body1>

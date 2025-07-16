@@ -13,6 +13,7 @@ import Chip from '@/shared/components/Chip'
 import ListPage from '@/shared/pages/ListPage'
 import { idExposeColumn } from '@/shared/pages/utils'
 import { GridColDef } from '@mui/x-data-grid'
+import { useSubjectLabel } from '@/mta_evaluations/components/SubjectOptions'
 
 const columns: Array<GridColDef> = [
   idExposeColumn({ field: 'title', headerName: 'Título', flex: 2 }),
@@ -26,7 +27,7 @@ const columns: Array<GridColDef> = [
     field: 'subject_id',
     headerName: 'Materia',
     flex: 1,
-    renderCell: (params) => <Chip variant="outlined" size="small" label={params.value} />,
+    renderCell: (params) => <Chip variant="outlined" size="small" label={useSubjectLabel(params.value)} />,
   },
   {
     field: 'code',

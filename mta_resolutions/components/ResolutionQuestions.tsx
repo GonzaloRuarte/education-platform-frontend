@@ -170,7 +170,7 @@ const ResolutionQuestions: FC<{ evaluationToResolve: I_EvaluationToResolve; curr
         return (
           <Fragment key={question.id}>
             <Body1>
-              Pregunta {question.order + 1}
+              Pregunta {question.global_order + 1}
               {/* {question.is_mandatory && <sup style={{ fontSize: 10 }}> (obligatoria)</sup>} */}
             </Body1>
 

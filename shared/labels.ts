@@ -15,6 +15,7 @@ const sharedLabels = {
   title: 'Título',
   name: 'Nombre',
   content: 'Contenido',
+  close: 'Cerrar',
 }
 
 const errorCodeLabels = {

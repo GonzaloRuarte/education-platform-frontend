@@ -76,6 +76,7 @@ interface I_AppointmentListItem {
   student_count: number
   pin: number
   was_post_processed: boolean
+  comments: string
 }
 type T_AppointmentList = I_PaginatedResponse<I_AppointmentListItem>
 

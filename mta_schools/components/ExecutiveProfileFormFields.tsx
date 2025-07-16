@@ -7,6 +7,7 @@ import Spacer from '@/shared/components/Spacer'
 import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
 import { useWatch } from 'react-hook-form'
+import PasswordField from '@/shared/components/PasswordField'
 
 interface I_FormFields {
   school_id: T_SchoolId
@@ -39,7 +40,7 @@ const ExecutiveProfileFormFields = ({ control, excludePassword = false }) => {
         label="Nombre de usuario"
       />
       {!excludePassword && (
-        <InputControlled<I_FormFields>
+        <PasswordField<I_FormFields>
           control={control}
           name="password"
           rules={{
@@ -51,12 +52,11 @@ const ExecutiveProfileFormFields = ({ control, excludePassword = false }) => {
             ),
           }}
           label="Contraseña"
-          type="password"
         />
       )}
       {!excludePassword && (
         <>
-          <InputControlled<I_FormFields>
+          <PasswordField<I_FormFields>
             control={control}
             name="repeat_password"
             rules={{
@@ -64,7 +64,6 @@ const ExecutiveProfileFormFields = ({ control, excludePassword = false }) => {
               validate: (value) => value === password || 'Las contraseñas no coinciden',
             }}
             label="Repetir contraseña"
-            type="password"
           />
           <Spacer size="xs" />
         </>
