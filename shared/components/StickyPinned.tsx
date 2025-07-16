@@ -43,7 +43,7 @@ export const StickyPinned: React.FC<StickyPinnedProps> = ({ text }) => {
         backgroundColor: theme.palette.background.paper,
         borderBottom: `1px solid ${theme.palette.divider}`,
         maxHeight: '50vh',
-        overflow: 'visible',
+        overflowY: 'auto',   // changed
         p: 2,
       }}
     >
