@@ -106,6 +106,9 @@ const Menu = () => {
             }
           />
         </RRCC>
+        <RRCC allowedProfiles={['school_staff']}>
+          <MenuItem Icon={BadgeIcon} label={P.D._.usuarios._.responsableEjecutivo.label} href={P.D._.usuarios._.responsableEjecutivo.path} />
+        </RRCC>
         <RRCC allowedProfiles={['admin', 'school_staff']}>
           <MenuItem Icon={QueryStatsIcon} label={P.D._.reportes.label} href={P.D._.reportes.path} />
         </RRCC>

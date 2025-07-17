@@ -9,6 +9,7 @@ import { useInProgress, useNavigateToDashboardHome } from '@/shared/hooks'
 
 import Spacer from '@/shared/components/Spacer'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import PasswordInputControlled from '@/shared/components/PasswordField'
 
 interface I_FormFields {
   username: string
@@ -41,9 +42,8 @@ export default function DashboardLoginForm() {
             rules={{ ...rules.required() }}
             label="Usuario"
           />
-          <InputControlled<I_FormFields>
+          <PasswordInputControlled<I_FormFields>
             control={control}
-            type="password"
             name="password"
             rules={{ ...rules.required() }}
             label="Contraseña"

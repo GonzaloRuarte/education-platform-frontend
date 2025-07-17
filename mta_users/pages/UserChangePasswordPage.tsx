@@ -7,12 +7,12 @@ import MagicGrid from '@/shared/components/MagicGrid'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
-import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
 import { useInProgress } from '@/shared/hooks'
 import { successToast } from '@/shared/toasts'
 import { useParams } from 'next/navigation'
 import { useForm, useWatch } from 'react-hook-form'
+import PasswordField from '@/shared/components/PasswordField'
 
 interface I_FormFields {
   // old_password: string
@@ -51,7 +51,7 @@ const UserChangePasswordPage = () => {
         <Page.Content>
           <form onSubmit={handleSubmit(onSubmit)}>
             <MagicGrid>
-              <InputControlled<I_FormFields>
+              <PasswordField<I_FormFields>
                 control={control}
                 name="new_password"
                 rules={{
@@ -63,9 +63,8 @@ const UserChangePasswordPage = () => {
                   ),
                 }}
                 label="Nueva Contraseña"
-                type="password"
               />
-              <InputControlled<I_FormFields>
+              <PasswordField<I_FormFields>
                 control={control}
                 name="repeat_new_password"
                 rules={{
@@ -73,7 +72,6 @@ const UserChangePasswordPage = () => {
                   validate: (value) => value === new_password || 'Las contraseñas no coinciden',
                 }}
                 label="Repetir nueva contraseña"
-                type="password"
               />
             </MagicGrid>
             <Spacer />

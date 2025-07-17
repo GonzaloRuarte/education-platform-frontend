@@ -34,6 +34,6 @@ const ExecutiveProfileEditPage = () => {
 }
 
 export default withAuth(ExecutiveProfileEditPage, {
-  allowedUserProfiles: ['admin'],
+  allowedUserProfiles: ['admin', 'school_staff'],
   logoutDestination: 'dashboard',
 })

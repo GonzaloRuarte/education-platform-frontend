@@ -46,3 +46,5 @@ export default function InputControlled<T_FormFields extends FieldValues>({
     />
   )
 }
+
+export type { I_Props as InputControlledProps };

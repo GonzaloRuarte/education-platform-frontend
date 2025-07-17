@@ -138,7 +138,7 @@ const QuestionAccordion: FC<{
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Body1 component="span" sx={{ width: '33%', flexShrink: 0 }}>
-          Pregunta #{question.order + 1}
+          Pregunta #{question.global_order + 1}
         </Body1>
         {!isExpanded && (
           <>

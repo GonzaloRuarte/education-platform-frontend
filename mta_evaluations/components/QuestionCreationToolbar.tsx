@@ -33,7 +33,6 @@ import Grid from '@mui/material/Grid'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
-import IconButton from '@mui/material/IconButton'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import QuizIcon from '@mui/icons-material/Quiz'
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd'
@@ -150,7 +149,7 @@ const QuestionCreationToolbar = ({ status, data, reload }: Props) => {
       actions: [
         {
           key: 'close',
-          buttonLabel: sharedLabels.cancel,
+          buttonLabel: sharedLabels.close,
           onPress: closeAndReload,
         },
       ],

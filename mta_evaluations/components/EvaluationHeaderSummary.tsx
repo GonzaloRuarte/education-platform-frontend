@@ -11,6 +11,7 @@ import { T_VoidFn } from '@/shared/types'
 import { handleServiceError } from '@/shared/service'
 import MagicGrid from '@/shared/components/MagicGrid'
 import { successToast } from '@/shared/toasts'
+import { useSubjectLabel } from '@/mta_evaluations/components/SubjectOptions'
 
 const EvaluationHeaderSummary: FC<{ data: I_EvaluationDetail, reload: T_VoidFn }> = ({ data, reload }) => {
   const navigateToEvaluationDetail = useNavigateToEvaluationDetail()
@@ -19,7 +20,7 @@ const EvaluationHeaderSummary: FC<{ data: I_EvaluationDetail, reload: T_VoidFn }
     <>
       <Paper variant="elevation" style={{ padding: 20, borderRadius: 20 }} elevation={4}>
         <H3>{data.title}</H3>
-        <Body1>{data.subject_id}</Body1>
+        <Body1>{useSubjectLabel(data.subject_id)}</Body1>
         <Spacer size="s" />
         <Grid2 container columnGap={3} alignItems={'center'}>
           <Grid2 size={'auto'}>

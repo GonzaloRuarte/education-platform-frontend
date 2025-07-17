@@ -101,7 +101,10 @@ const AppointmentRequestForm = ({ ownSchoolData }: I_Props) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Grid2 container spacing={3}>
-        <Grid2 size={4}>
+          <Grid2
+            size={{ xs: 12, md: 8, lg: 5 }}   // 👈 one prop instead of xs/md/lg
+            sx={{ minWidth: 280 }}
+          >
           {appointmentFreeListByMonth !== undefined && (
             <DateCalendarControlled
               onMonthChange={(newDate) => setRefDate(newDate)}
@@ -114,7 +117,7 @@ const AppointmentRequestForm = ({ ownSchoolData }: I_Props) => {
             />
           )}
         </Grid2>
-        <Grid2 size={8}>
+        <Grid2 size={{ xs: 12, md: 4, lg: 7}}>
           {selectedAppointmentData !== null && (
             <>
               <AppointmentBriefCard
@@ -152,7 +155,7 @@ const AppointmentRequestForm = ({ ownSchoolData }: I_Props) => {
             <InputControlled
               control={control}
               name="comments"
-              label="Comentarios"
+              label="Especifique la división aquí"
               multiline
               rows={3}
             />

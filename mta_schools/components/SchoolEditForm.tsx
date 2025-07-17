@@ -57,6 +57,13 @@ const SchoolCreateForm = ({ data }: I_Props) => {
           rules={{ ...rules.required() }}
           label="Distrito"
         />
+        <InputControlled<I_FormFields>
+          control={control}
+          type="number"
+          name="max_executives"
+          rules={{ ...rules.required() }}
+          label="Máximo de Responsables Ejecutivos"
+        />
       </MagicGrid>
       <Spacer />
       <H4>Staff</H4>

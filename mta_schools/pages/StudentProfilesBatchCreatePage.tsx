@@ -81,7 +81,7 @@ const StudentProfilesBatchCreatePageContent = ({ ownSchoolData }: I_Props) => {
         <Grid container spacing={12}>
           <Grid size={7}>
             <Body1>
-              Se cargaran los estudiantes incluídos en el archivo Excel incluído. En caso de que ya exista uno o varios
+              Se cargarán los estudiantes incluídos en el archivo Excel incluído. En caso de que ya exista uno o varios
               de los estudiantes (comprobado por DNI), la información prexistente se actualizará con los nuevos datos
               incluídos en el archivo.
             </Body1>

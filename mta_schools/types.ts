@@ -38,6 +38,7 @@ interface I_SchoolCreateRequestData {
   name: string
   district: string
   contact_email: string
+  max_executives: number
 }
 interface I_StudentProfileCreateRequestData {
   cohort: string
@@ -51,6 +52,7 @@ interface I_SchoolDetail {
   name: string
   district: string
   contact_email: string
+  max_executives: number
   staff: Array<I_SchoolStaffListItem>
 }
 
@@ -58,6 +60,7 @@ interface I_SchoolUpdateRequestData {
   name: string
   district: string
   contact_email: string
+  max_executives: number
 }
 
 interface I_StudentProfileListItem {

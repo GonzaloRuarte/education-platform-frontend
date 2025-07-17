@@ -66,6 +66,7 @@ const AppointmentResolutionProcessDetailPage = () => {
                   : data.appointment.requested_evaluation_grade
               }
               evaluation={data.appointment.evaluation_brief !== null ? data.appointment.evaluation_brief : undefined}
+              comments={data.appointment.comments}
             />
             <Spacer size="l" />
 

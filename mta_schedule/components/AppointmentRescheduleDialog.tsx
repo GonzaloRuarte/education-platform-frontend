@@ -37,8 +37,6 @@ import {
 } from '@/mta_schedule/types'
 
 /* ───────────────────────────────────────────────────────── */
-import { APPOINTMENTS_PATH } from '@/mta_schedule/hooks'  // step-1 constant
-
 
 interface FormFields {
   date: Dayjs
@@ -122,6 +120,7 @@ const RescheduleDialog: React.FC<Props> = ({ open, onClose, originalAppointment,
           title="Turno actual"
           appointmentId={originalAppointment.id}
           begins_at={originalAppointment.begins_at}
+          comments={originalAppointment.comments}
         />
 
         <Spacer />

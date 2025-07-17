@@ -70,6 +70,7 @@ export default function WysiwygEditorControlled<T extends FieldValues>({
             ['bold', 'italic'],
             ['link', 'blockquote', 'code-block', 'image', 'formula'],
             [{ list: 'ordered' }, { list: 'bullet' }],
+            [{ align: [] }],
           ],
           imageResize: {
             modules: ['Resize', 'DisplaySize'],

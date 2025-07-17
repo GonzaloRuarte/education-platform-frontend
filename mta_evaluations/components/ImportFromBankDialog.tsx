@@ -13,6 +13,7 @@ import { successToast } from '@/shared/toasts'
 import { handleServiceError } from '@/shared/service'
 import { QUESTION_NAME } from '@/mta_evaluations/constants'
 import { T_EvaluationPageId } from '@/mta_evaluations/types'
+import { useSubjectLabel } from '@/mta_evaluations/components/SubjectOptions'
 
 interface I_Props {
   evaluationPageId: T_EvaluationPageId          // close the modal
@@ -36,7 +37,7 @@ const ImportFromBankDialog: FC<I_Props> = ({ evaluationPageId }) => {
     headerName: 'Materia',
     flex: 1,
     renderCell: ({ value }) => (
-      <Chip variant="outlined" size="small" label={value} />
+      <Chip variant="outlined" size="small" label={useSubjectLabel(value)} />
     ),
   },
 
