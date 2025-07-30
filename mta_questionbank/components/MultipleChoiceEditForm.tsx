@@ -21,7 +21,7 @@ import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
 import InputControlled from '@/shared/forms/InputControlled'
 import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { T_VoidFn } from '@/shared/types'
@@ -86,7 +86,6 @@ const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({ 
     setInProgressStatus(true)
     update(data.id, { ...updatedData })
       .then(() => {
-        log.info('Question edited succesfully:')
         successToast('Pregunta editada correctamente')
         backToDetail()
       })

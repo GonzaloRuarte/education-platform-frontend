@@ -1,23 +1,19 @@
-import { AppointmentOccurrenceStatus, AppointmentStatus, I_AppointmentListItem } from '@/mta_schedule/types'
-import { Grid2, Tooltip } from '@mui/material'
+import { AppointmentOccurrenceStatus, AppointmentStatus, I_AppointmentSchoolCardItem } from '@/mta_schedule/types'
+import { Grid2 } from '@mui/material'
 
-import AppointmentOccurrenceStatusChip from '@/mta_schedule/components/AppointmentOccurrenceStatusChip'
-import AppointmentStatusChip from '@/mta_schedule/components/AppointmentStatusChip'
+import AppointmentBriefCard from '@/mta_schedule/components/AppointmentBriefCard'
 import { useNavigateToAppointmentDetail, useNavigateToAppointmentEditStudents } from '@/mta_schedule/hooks'
-import { appointmentFormattedStringDate } from '@/mta_schedule/utils'
 import Bold from '@/shared/components/Bold'
 import Button from '@/shared/components/Button'
 import MagicGrid from '@/shared/components/MagicGrid'
-import Spacer from '@/shared/components/Spacer'
 import Box from '@mui/material/Box'
 import { Body1 } from '@/shared/components/Typography'
-import TodayIcon from '@mui/icons-material/Today'
 import { useState } from 'react'
 import RescheduleDialog from '@/mta_schedule/components/AppointmentRescheduleDialog'
 
 
 interface I_Props {
-  data: I_AppointmentListItem
+  data: I_AppointmentSchoolCardItem
   onRescheduled?: () => void; // ← NEW
   isSchoolStaff?: boolean;
 }
@@ -39,33 +35,25 @@ const AppointmentSchoolCard = ({ data, onRescheduled, isSchoolStaff }: I_Props) 
       spacing={2}
       flexDirection="column"
     >
-      {/* Header */}
-      <Grid2 container size={12}>
-        <Grid2 size={3}>
-          <Tooltip title={`id: ${data.id}`} placement="right-end">
-            <TodayIcon />
-          </Tooltip>
-        </Grid2>
-        <Grid2 size={9}>
-          <MagicGrid itemSize="auto" justifyContent={'flex-end'}>
-            <AppointmentStatusChip status={data.status} />
-            <AppointmentOccurrenceStatusChip status={data.occurrence_status} />
-          </MagicGrid>
-        </Grid2>
-      </Grid2>
-
-      {/* Date */}
-      <Grid2 size={'grow'}>
-        <Body1>{appointmentFormattedStringDate(data.begins_at)}</Body1>
-      </Grid2>
-      <Spacer />
+          <AppointmentBriefCard
+              appointmentId={data.id}
+              status={data.status}
+              begins_at={data.begins_at}
+              title={data.school === null ? undefined : data.school.name}
+              subject={data.requested_evaluation_subject === null ? '' : data.requested_evaluation_subject.name}
+              grade={data.requested_evaluation_grade === null ? undefined : data.requested_evaluation_grade}
+              evaluation={data.evaluation_brief !== null ? data.evaluation_brief : undefined}
+              occurrence_status={data.occurrence_status}
+              pin={data.pin}
+              comments={data.comments}
+            />
 
       {/* Actions */}
       <Grid2 size={12}>
         <MagicGrid>
           <Box display="flex" flexDirection="column" gap={2}>
               {/* Show only when upcoming & approved */}
-              {data.occurrence_status === AppointmentOccurrenceStatus.upcoming &&
+              {(data.occurrence_status === AppointmentOccurrenceStatus.upcoming || data.occurrence_status === AppointmentOccurrenceStatus.ongoing) &&
               data.status === AppointmentStatus.approved && (
                 <>
                   <Body1>
@@ -92,14 +80,12 @@ const AppointmentSchoolCard = ({ data, onRescheduled, isSchoolStaff }: I_Props) 
               <Button fullWidth color="info" onClick={() => setOpen(true)}>
                 Reprogramar
               </Button>
-              {/* Always visible */}
               <Button fullWidth onClick={() => navToDetail(data.id)}>
                 Ver detalle
               </Button>
             </Box>
           
         </MagicGrid>
-        
           <RescheduleDialog
             open={open}
             onClose={() => setOpen(false)}

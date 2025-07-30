@@ -19,7 +19,7 @@ import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { rules } from '@/shared/forms/messages'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 
@@ -57,7 +57,6 @@ const NumericCreateForm: FC<Props> = ({ page_id, onSuccess, onCancel }) => {
 
     createNumeric(payload)
       .then(() => {
-        log.info('Numeric question created')
         successToast('Pregunta numérica agregada correctamente')
         onSuccess()
       })

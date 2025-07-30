@@ -16,7 +16,7 @@ import { rules } from '@/shared/forms/messages'
 import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
@@ -53,7 +53,6 @@ const EvaluationEditForm = ({ data }: I_Props) => {
       subject_id: updatedData.subject_id as string,
     })
       .then((res) => {
-        log.info('New Evaluation added:', res)
         successToast('Evaluación editada correctamente')
         navigateToEvaluationContentEdit({ evaluationId: data.id })
       })

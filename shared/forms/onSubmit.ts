@@ -1,4 +1,4 @@
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { sentence } from '@/shared/utils'
@@ -21,7 +21,6 @@ export function onSubmit<T_FormFields extends FieldValues>({
     setInProgressStatus(true)
     apiCall(data)
       .then((res) => {
-        log.info('Operation successful:', res)
         successToast(sentence(onSuccessMessage))
         onSuccessRedirect()
       })

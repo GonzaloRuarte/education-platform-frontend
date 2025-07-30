@@ -8,7 +8,7 @@ import { I_EvaluatorProfileDetail, I_EvaluatorProfileUpdateRequestData } from '@
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import { useInProgress } from '@/shared/hooks'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { sentence } from '@/shared/utils'
@@ -48,8 +48,6 @@ const EvaluatorProfileUpdateForm = ({ data }: I_Props) => {
     setInProgressStatus(true)
     update(data.id, payload)
       .then((res) => {
-        log.info(sentence(`${EVALUATOR_PROFILE_NAME.singular} editado correctamente`), res)
-
         successToast(sentence(`${EVALUATOR_PROFILE_NAME.singular} editado correctamente`))
         navToList()
       })

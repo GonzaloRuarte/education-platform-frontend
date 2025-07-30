@@ -7,7 +7,7 @@ import { I_SchoolStaffProfileDetail, I_SchoolStaffProfileUpdateRequestData, T_Sc
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import { useInProgress } from '@/shared/hooks'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { sentence } from '@/shared/utils'
@@ -59,8 +59,6 @@ const SchoolStaffProfileUpdateForm = ({ data }: I_Props) => {
     setInProgressStatus(true)
     update(data.id, payload)
       .then((res) => {
-        log.info('School staff edited:', res)
-
         successToast(sentence(`${SCHOOL_STAFF_PROFILE_NAME.singular} editado correctamente`))
         navToList()
       })

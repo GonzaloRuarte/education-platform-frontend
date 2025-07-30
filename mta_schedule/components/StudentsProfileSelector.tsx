@@ -10,7 +10,7 @@ import {
 } from '@/mta_schools/types'
 import Bold from '@/shared/components/Bold'
 import Button from '@/shared/components/Button'
-import { AddButton, ReloadButton } from '@/shared/components/buttons'
+import { ReloadButton } from '@/shared/components/buttons'
 import Chip from '@/shared/components/Chip'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
@@ -22,6 +22,8 @@ import { Box, FormHelperText, Grid2 } from '@mui/material'
 import { grey, red } from '@mui/material/colors'
 import { GridColDef, GridToolbarContainer } from '@mui/x-data-grid'
 import React, { useMemo, useState } from 'react'
+import { sharedLabels } from '@/shared/labels'
+import AddCircleIcon from '@mui/icons-material/AddCircle'
 
 type T_AddedStudents = Record<T_StudentProfileId, { personal_id: T_StudentProfilePersonalId; cohort: string }>
 type T_OnAddedStudentsChange = (newAddedStudents: T_AddedStudents) => void
@@ -137,7 +139,7 @@ const StudentsProfileSelector = ({ schoolId, addedStudents, onAddedStudentsChang
     <>
       <Grid2 container spacing={5}>
         <Grid2 size={6}>
-          <H4>Listados de todos los estudiantes de la escuela</H4>
+          <H4>Listado de todos los estudiantes de la escuela</H4>
           <Spacer />
           <Input
             label="Buscar"
@@ -162,7 +164,10 @@ const StudentsProfileSelector = ({ schoolId, addedStudents, onAddedStudentsChang
                 toolbar: () => {
                   return (
                     <GridToolbarContainer sx={{ padding: 1, justifyContent: 'flex-end', display: 'flex' }}>
-                      {hasSelection && <AddButton size="small" variant="text" onClick={handleBatchAdd} />}
+                      {hasSelection && 
+                      <Button size="small" variant="text" onClick={handleBatchAdd} startIcon={<AddCircleIcon />}>
+                      {sharedLabels.addAll}
+                      </Button>}
                       <ReloadButton size="small" variant="text" onClick={reload} />
                     </GridToolbarContainer>
                   )

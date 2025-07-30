@@ -18,7 +18,7 @@ import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { rules } from '@/shared/forms/messages'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 
@@ -55,7 +55,6 @@ const OpenEndedCreateForm: FC<Props> = ({ page_id, onSuccess, onCancel }) => {
 
     createOpenEnded(payload)
       .then(() => {
-        log.info('Open-ended question created')
         successToast('Pregunta de texto libre agregada correctamente')
         onSuccess()
       })

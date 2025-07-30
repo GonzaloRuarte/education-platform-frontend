@@ -18,7 +18,7 @@ import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { rules } from '@/shared/forms/messages'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { Body1 } from '@/shared/components/Typography'
@@ -45,7 +45,6 @@ const MultipleChoiceCreateForm: FC<Props> = ({ page_id, onSuccess, onCancel }) =
     setInProgressStatus(true)
     create({ ...data, page_id })
       .then(() => {
-        log.info('Multiple-choice question created')
         successToast('Pregunta de opción múltiple agregada correctamente')
         onSuccess()
       })

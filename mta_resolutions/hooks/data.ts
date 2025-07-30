@@ -16,7 +16,6 @@ import { T_StudentProfilePersonalId } from '@/mta_schools/types'
 import { axiosPost } from '@/shared/data/axios'
 import ApiError from '@/shared/data/errors'
 import { actionHook, useInProgress } from '@/shared/hooks'
-import log, { logInfo, logWarning } from '@/shared/log'
 import { useNetworkStatus } from '@/shared/offline/hooks'
 import { postService } from '@/shared/service'
 import { useStore } from '@/shared/state'
@@ -127,7 +126,6 @@ const useResolutionResume = () => {
 
   const resume = useDebouncedCallback(() => {
     if (!isOnline) {
-      logWarning('Resolution resume skipped: offline')
       warningToast('No hay conexión a internet')
       return
     }
@@ -148,8 +146,6 @@ const useResolutionResume = () => {
               ? response.resolution.last_uploaded_state
               : initialState(response.student_personal_id, response.appointment_id),
           )
-        } else {
-          logInfo('>>>>>> Resolution state is older than the last uploaded state')
         }
 
         storeEvaluationToResolve(response.evaluation)
@@ -216,9 +212,6 @@ const _resolutionStateWithNewAnswer = (
 const useResolutionStateUpdateAnswer = () => {
   const resolutionState = useResolutionState()
   const storeResolutionState = useStore((state) => state.resolution_storeState)
-  if (resolutionState === null) {
-    logWarning('Resolution local state not initialized')
-  }
 
   const Numeric = (questionId: T_QuestionId, answerId: T_AnswerId, value: number | null) => {
     if (resolutionState === null) return
@@ -232,7 +225,7 @@ const useResolutionStateUpdateAnswer = () => {
 
     storeResolutionState(newResolutionState)
   }
-  const MultipleChoice = (questionId: T_QuestionId, answerId: T_AnswerId, choosed_options: Array<string>) => {
+  const MultipleChoice = (questionId: T_QuestionId, answerId: T_AnswerId, chosen_options: Array<string>) => {
     if (resolutionState === null) return
 
     const now = new Date().toISOString()
@@ -240,7 +233,7 @@ const useResolutionStateUpdateAnswer = () => {
       id: answerId,
       last_update_datetime: now,
       resource_type: 'MultipleChoice',
-      specific_data: { choosed_options },
+      specific_data: { chosen_options },
     }
     storeResolutionState({
       ...resolutionState,
@@ -292,7 +285,6 @@ const useResolutionManageUploadState = () => {
 
   const manageUpload = () => {
     if (!isOnline) {
-      logWarning('Resolution state upload skipped: offline')
       return
     }
     if (resolutionState === null) return
@@ -300,7 +292,6 @@ const useResolutionManageUploadState = () => {
     if (lastUploadDatetime !== null && new Date(resolutionState.last_update_datetime) < new Date(lastUploadDatetime))
       return
 
-    log.info('Uploading resolution state', new Date().toISOString())
     executeUploadingTasks(resolutionState)
   }
   return manageUpload
@@ -311,7 +302,6 @@ const useResolutionDownloadState = () => {
 
   const downloadResolutionState = useCallback(() => {
     if (!resolutionState) {
-      log.error('Resolution state is not available')
       return
     }
 

@@ -14,7 +14,7 @@ import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
 import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { useInProgress } from '@/shared/hooks'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { randomInt } from '@/shared/utils'
@@ -58,7 +58,6 @@ const EvaluationCreateForm = () => {
       grade: data.grade as SchoolGrade,
     })
       .then((res) => {
-        log.info('New Evaluation added:', res)
         successToast('Evaluación agregada correctamente')
         navigateToEvaluationContentEdit({ evaluationId: res.id })
       })

@@ -12,7 +12,7 @@ import { rules } from '@/shared/forms/messages'
 import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
@@ -36,7 +36,6 @@ const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({ data, onSucces
     setInProgressStatus(true)
     update(data.id, { ...updatedData })
       .then(() => {
-        log.info('Numeric question edited')
         successToast('Pregunta numérica editada correctamente')
         onSuccess()
       })

@@ -6,7 +6,7 @@ import { T_SchoolId } from '@/mta_schools/types'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import { useInProgress } from '@/shared/hooks'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { sentence } from '@/shared/utils'
@@ -49,8 +49,6 @@ const SchoolStaffProfileCreateForm = () => {
     setInProgressStatus(true)
     create(data)
       .then((res) => {
-        log.info('New school staff added:', res)
-
         successToast(sentence('Personal escolar agregado correctamente'))
         navToList()
       })

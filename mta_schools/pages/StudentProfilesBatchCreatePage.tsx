@@ -15,7 +15,7 @@ import Spinner from '@/shared/components/Spinner'
 import Submit from '@/shared/components/Submit'
 import { Body1, H4 } from '@/shared/components/Typography'
 import { useInProgress } from '@/shared/hooks'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { errorToast, successToast } from '@/shared/toasts'
 import { sentence } from '@/shared/utils'
@@ -55,13 +55,10 @@ const StudentProfilesBatchCreatePageContent = ({ ownSchoolData }: I_Props) => {
     const formData = new FormData()
     formData.append('school_id', String(data.school_id)) // Convertir school_id a string
     formData.append('file', data.file[0]) // Solo se envía el primer archivo
-    console.log('formData')
 
     setIsInProgress()
     batchCreate(formData)
       .then((res) => {
-        log.info('Students created succesfully:', res)
-
         successToast(sentence(`${STUDENT_PROFILE_NAME.plural} creados correctamente`))
         backToList()
       })

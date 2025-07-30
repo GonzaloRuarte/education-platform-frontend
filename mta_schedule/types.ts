@@ -78,6 +78,30 @@ interface I_AppointmentListItem {
   was_post_processed: boolean
   comments: string
 }
+
+interface I_AppointmentSchoolCardItem {
+  id: T_AppointmentId
+  begins_at: string
+  ends_at: string
+  school: null | {
+    id: T_SchoolId
+    name: string
+  }
+  status: T_AppointmentStatus
+  evaluation_brief: I_AppointmentEvaluationBrief | null
+  requested_evaluation_subject: null | {
+    id: string
+    name: string
+    prefix: string
+  }
+  requested_evaluation_grade: null | SchoolGrade
+  occurrence_status: T_AppointmentOccurrenceStatus
+  student_count: number
+  pin: number
+  was_post_processed: boolean
+  comments: string
+}
+type T_AppointmentSchoolCards = I_PaginatedResponse<I_AppointmentSchoolCardItem>
 type T_AppointmentList = I_PaginatedResponse<I_AppointmentListItem>
 
 interface I_AppointmentCreateRequestData {
@@ -122,6 +146,8 @@ export type {
   T_AppointmentId,
   T_AppointmentList,
   T_AppointmentsAvailableList,
+  I_AppointmentSchoolCardItem,
+  T_AppointmentSchoolCards,
   T_AppointmentStatus,
   I_AppointmentApprove_RequestData,
   I_AppointmentReject_RequestData,

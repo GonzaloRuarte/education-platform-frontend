@@ -6,7 +6,7 @@ import { useEvaluatorProfileCreate, useNavigateToEvaluatorProfileList } from '@/
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import { useInProgress } from '@/shared/hooks'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { sentence } from '@/shared/utils'
@@ -41,7 +41,6 @@ const EvaluatorProfileCreateForm = () => {
     setInProgressStatus(true)
     create(data)
       .then((res) => {
-        log.info(`New ${EVALUATOR_PROFILE_NAME.singular} added:`, res)
 
         successToast(sentence(`${EVALUATOR_PROFILE_NAME.singular} agregado correctamente`))
         navToList()

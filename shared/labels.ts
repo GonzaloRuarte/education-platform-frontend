@@ -5,6 +5,7 @@ const sharedLabels = {
   back: 'Atrás',
   reload: 'Recargar',
   add: 'Agregar',
+  addAll: 'Agregar toda la selección',
   submit: 'Entregar',
   cancel: 'Cancelar',
   delete: 'Eliminar',

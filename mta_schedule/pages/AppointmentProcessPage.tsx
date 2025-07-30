@@ -98,6 +98,8 @@ const AppointmentProcessPage = () => {
               <form onSubmit={handleSubmit(onApprove)}>
                 <EvaluationSelectControlled
                   onlyPublished
+                  subject_id={data.requested_evaluation_subject?.id}
+                  grade={data.requested_evaluation_grade as SchoolGrade}
                   name="evaluation"
                   control={control}
                   label="Evaluación"
@@ -121,6 +123,6 @@ const AppointmentProcessPage = () => {
 }
 
 export default withAuth(AppointmentProcessPage, {
-  allowedUserProfiles: ['admin', 'school_staff'],
+  allowedUserProfiles: ['admin'],
   logoutDestination: 'dashboard',
 })

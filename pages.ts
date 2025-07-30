@@ -123,7 +123,7 @@ const pages = {
       },
       procesosDeEvaluacion: {
         path: '/dashboard/procesos-de-evaluacion',
-        label: 'Procesos de evaluación',
+        label: 'Evaluaciones procesadas',
       },
       estudiantes: {
         path: '/dashboard/estudiantes',
