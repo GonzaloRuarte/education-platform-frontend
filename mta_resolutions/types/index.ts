@@ -60,7 +60,7 @@ type T_ResolutionState_OpenEndedAnswerData = I_ResolutionState_BaseAnswer<
 type T_ResolutionState_MultipleChoiceAnswerData = I_ResolutionState_BaseAnswer<
   'MultipleChoice',
   {
-    choosed_options: Array<string>
+    chosen_options: Array<string>
   }
 >
 interface I_ResolutionState {

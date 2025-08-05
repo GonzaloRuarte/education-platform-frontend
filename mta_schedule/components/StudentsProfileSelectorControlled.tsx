@@ -26,8 +26,6 @@ export const ControlledStudentsProfileSelector = <T_FormFields extends FieldValu
     field.onChange(newAddedStudents)
   }
   const handleDelete = (deletedStudentId: T_StudentProfileId) => {
-    console.log('handleDelete')
-
     const newValue = { ...field.value }
     delete newValue[deletedStudentId]
     field.onChange()

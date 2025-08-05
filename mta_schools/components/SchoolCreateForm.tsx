@@ -6,7 +6,7 @@ import MagicGrid from '@/shared/components/MagicGrid'
 import Submit from '@/shared/components/Submit'
 import { rules } from '@/shared/forms/messages'
 import { useInProgress } from '@/shared/hooks'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
@@ -34,8 +34,6 @@ const SchoolCreateForm = () => {
     setInProgressStatus(true)
     schoolCreate(data)
       .then((res) => {
-        log.info('New school added:', res)
-
         successToast('Escuela agregada correctamente')
         navigateToSchoolList()
       })

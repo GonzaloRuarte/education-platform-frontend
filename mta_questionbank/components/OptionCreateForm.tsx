@@ -10,7 +10,7 @@ import { LetterSelectControlled } from '@/shared/forms/LetterSelect'
 import { rules } from '@/shared/forms/messages'
 import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { useInProgress } from '@/shared/hooks'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { T_VoidFn } from '@/shared/types'
@@ -34,11 +34,10 @@ const OptionCreateForm: FC<{ multipleChoiceId: T_MultipleChoiceId; reload: T_Voi
 
   const create = useMultipleChoiceOptionCreate()
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
-    console.log('🍺 payload going out:', { multiple_choice_id: multipleChoiceId, ...data })
+    
     setInProgressStatus(true)
     create({ multiple_choice_id: multipleChoiceId, ...data })
       .then((res) => {
-        log.info('New Option added:', res)
         successToast('Opción agregada correctamente')
       })
       .catch(handleServiceError)

@@ -3,7 +3,7 @@ import { Autocomplete, CircularProgress, TextField } from '@mui/material'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 import { useEvaluationList } from '@/mta_evaluations/hooks'
 import { EvaluationStatus } from '@/mta_evaluations/types'
-
+import { SchoolGrade } from '@/mta_schools/constants'
 interface I_EvaluationOption {
   id: string
   title: string
@@ -19,6 +19,8 @@ export const EvaluationSelect: React.FC<{
   helperText?: string
   filterTitle?: string // Optional filter for evaluations
   onlyPublished?: boolean // Optional filter for published evaluations
+  subject_id?: string // Optional subject filter
+  grade?: SchoolGrade // Optional grade filter
 }> = ({
   value,
   onChange,
@@ -28,6 +30,8 @@ export const EvaluationSelect: React.FC<{
   helperText,
   filterTitle,
   onlyPublished = false, // Default to false
+  subject_id,
+  grade,
 }) => {
   const [options, setOptions] = useState<I_EvaluationOption[]>([])
   const [loading, setLoading] = useState(false)
@@ -37,6 +41,8 @@ export const EvaluationSelect: React.FC<{
     setFilters({
       ...(onlyPublished && { status: EvaluationStatus.Published }),
       ...(filterTitle && { title__contains: filterTitle }),
+      ...(subject_id && { subject_id }),
+      ...(grade && { grade }),
     })
   }, [filterTitle, onlyPublished])
 
@@ -101,11 +107,15 @@ export const EvaluationSelectControlled = <T_FormFields extends FieldValues>({
   placeholder,
   filterTitle,
   onlyPublished = false,
+  subject_id,
+  grade,
 }: UseControllerProps<T_FormFields> & {
   label?: string
   placeholder?: string
   filterTitle?: string
   onlyPublished?: boolean
+  subject_id?: string
+  grade?: SchoolGrade
 }) => {
   const { field, fieldState } = useController({ name, rules, shouldUnregister, defaultValue, control })
   const hasError = fieldState.error !== undefined
@@ -120,6 +130,8 @@ export const EvaluationSelectControlled = <T_FormFields extends FieldValues>({
       helperText={fieldState.error?.message}
       filterTitle={filterTitle}
       onlyPublished={onlyPublished}
+      subject_id={subject_id}
+      grade={grade}
     />
   )
 }

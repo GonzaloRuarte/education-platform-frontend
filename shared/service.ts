@@ -9,7 +9,7 @@ import {
   T_PatchMethod,
   T_PostMethod,
 } from '@/shared/data/types'
-import log from '@/shared/log'
+
 import { errorToast } from '@/shared/toasts'
 import { T_BatchDeletionCommonRequestData } from '@/shared/types'
 

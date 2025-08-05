@@ -26,6 +26,6 @@ const AppointmentRequestPage = () => {
 }
 
 export default withAuth(AppointmentRequestPage, {
-  allowedUserProfiles: ['admin', 'school_staff'],
+  allowedUserProfiles: ['admin', 'school_staff', 'executive'],
   logoutDestination: 'dashboard',
 })

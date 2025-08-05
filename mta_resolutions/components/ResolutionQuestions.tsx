@@ -85,16 +85,16 @@ const MultipleChoiceForm: FC<{ data: T_EvaluationToResolve_MultipleChoiceAnswer;
     | T_ResolutionState_MultipleChoiceAnswerData['specific_data']
     | undefined
   const handleCbChange = (name: string, checked: boolean) => {
-    if (checked && specific_data?.choosed_options?.includes(name)) return
-    if (!checked && !specific_data?.choosed_options?.includes(name)) return
+    if (checked && specific_data?.chosen_options?.includes(name)) return
+    if (!checked && !specific_data?.chosen_options?.includes(name)) return
 
     const checkedOption = () => {
-      const newChosenOptions = specific_data?.choosed_options?.map((i) => i) || []
+      const newChosenOptions = specific_data?.chosen_options?.map((i) => i) || []
       newChosenOptions.push(name)
       return newChosenOptions
     }
     const uncheckedOption = () => {
-      return specific_data?.choosed_options.filter((i) => i !== name) || []
+      return specific_data?.chosen_options.filter((i) => i !== name) || []
     }
     updateMultipleChoice(questionId, data.id, checked ? checkedOption() : uncheckedOption())
   }
@@ -116,14 +116,14 @@ const MultipleChoiceForm: FC<{ data: T_EvaluationToResolve_MultipleChoiceAnswer;
                       onChange={(_, checked) => {
                         handleCbChange(option.name, checked)
                       }}
-                      checked={specific_data?.choosed_options?.includes(option.name) || false}
+                      checked={specific_data?.chosen_options?.includes(option.name) || false}
                     />
                   ) : (
                     <Radio
                       onChange={(_, checked) => {
                         handleRadioChange(option.name, checked)
                       }}
-                      checked={specific_data?.choosed_options?.includes(option.name) || false}
+                      checked={specific_data?.chosen_options?.includes(option.name) || false}
                     />
                   )
                 }

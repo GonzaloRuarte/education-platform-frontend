@@ -41,7 +41,7 @@ const hasAllCurrentPageQuestionsAnswered = (
 
     if (question.answer.resource_type === 'MultipleChoice') {
       const mcAnswer = answer as T_ResolutionState_MultipleChoiceAnswerData
-      return mcAnswer.specific_data.choosed_options.length > 0
+      return mcAnswer.specific_data.chosen_options.length > 0
     }
 
     if (question.answer.resource_type === 'OpenEnded') {

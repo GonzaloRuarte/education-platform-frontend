@@ -7,7 +7,7 @@ import { I_ExecutiveProfileDetail, I_ExecutiveProfileUpdateRequestData, T_School
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import { useInProgress } from '@/shared/hooks'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { sentence } from '@/shared/utils'
@@ -50,8 +50,6 @@ const ExecutiveProfileUpdateForm = ({ data }: I_Props) => {
     setInProgressStatus(true)
     update(data.id, payload)
       .then((res) => {
-        log.info('Executive edited:', res)
-
         successToast(sentence(`${SCHOOL_STAFF_PROFILE_NAME.singular} editado correctamente`))
         navToList()
       })

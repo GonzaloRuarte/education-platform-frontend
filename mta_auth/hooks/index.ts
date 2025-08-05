@@ -6,7 +6,7 @@ import { T_AllowedUserProfiles } from '@/mta_users/types'
 import pages from '@/pages'
 import { axiosPost } from '@/shared/data/axios'
 import { I_RequestSetup, T_TokenRefresher } from '@/shared/data/types'
-import log from '@/shared/log'
+
 import { handleServiceError, postService } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import { errorToast, successToast } from '@/shared/toasts'
@@ -69,13 +69,11 @@ const useAuthResources = (): I_AuthResources => {
   const refresh: T_TokenRefresher = (postMethod) => async (data) => {
     return postMethod(apiUrl('/token/refresh/'), data).then((res) => {
       storeRefreshedToken(res.access)
-      log.info('Auth Token succesfully refreshed')
       return res
     })
   }
   const handleFatal401Error = () => {
     clearAuthData()
-    log.info("Auth Token couldn't be refreshed. Destroying session")
     errorToast('Tu sesión anterior ha caducado. Ingresa nuevamente.')
   }
 

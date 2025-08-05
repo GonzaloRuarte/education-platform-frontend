@@ -28,6 +28,12 @@ const AddButton: React.FC<I_ButtonProps> = ({ ...props }) => (
   </Button>
 )
 
+const AddAllButton: React.FC<I_ButtonProps> = ({ ...props }) => (
+  <Button {...props} startIcon={<AddCircleIcon />}>
+    {sharedLabels.addAll}
+  </Button>
+)
+
 const CancelButton: React.FC<I_ButtonProps> = ({ ...props }) => (
   <Button {...props} startIcon={<CancelIcon />}>
     {sharedLabels.cancel}

@@ -12,7 +12,7 @@ import { rules } from '@/shared/forms/messages'
 import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
@@ -43,7 +43,6 @@ const OpenEndedCreateForm: T_QuestionForm<I_AnswerOpenEndedDetail> = () => {
 
     createOpenEnded(payload)
       .then(() => {
-        log.info('Question edited succesfully:')
         successToast('Pregunta editada correctamente')
         backToDetail()
       })

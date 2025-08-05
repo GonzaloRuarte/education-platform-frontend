@@ -10,6 +10,7 @@ import {
   T_AppointmentId,
   T_AppointmentList,
   I_AppointmentReschedule_RequestData,
+  T_AppointmentSchoolCards,
 } from '@/mta_schedule/types'
 import pages, { appointmentsEditStudentsPath, appointmentsProcessPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
@@ -34,7 +35,7 @@ import { I_CreationCommonResponse, T_VoidFn } from '@/shared/types'
 // Data Service
 const APPOINTMENTS_PATH = '/appointments'
 const useAppointmentList = listHook<T_AppointmentList>(APPOINTMENTS_PATH, axiosGet, useAuthResources)
-const useAppointmentListByUserSchool = listHook<T_AppointmentList>(
+const useAppointmentListByUserSchool = listHook<T_AppointmentSchoolCards>(
   `${APPOINTMENTS_PATH}/list-by-user-school`,
   axiosGet,
   useAuthResources,

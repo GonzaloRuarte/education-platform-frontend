@@ -20,7 +20,7 @@ import { rules } from '@/shared/forms/messages'
 import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { Box } from '@mui/material'
@@ -152,7 +152,6 @@ const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({
     setInProgressStatus(true)
     update(data.id, payload)
       .then(() => {
-        log.info('Question edited succesfully:')
         successToast('Pregunta editada correctamente')
         onSuccess()
       })

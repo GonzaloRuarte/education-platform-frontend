@@ -107,6 +107,11 @@ const SCHOOL_STAFF_PROFILE = '/school-staff-profiles'
 const EXECUTIVE_PROFILE = '/executive-profiles'
 const useSchoolStaffProfileList = listHook<T_SchoolStaffProfileList>(SCHOOL_STAFF_PROFILE, axiosGet, useAuthResources)
 const useExecutiveProfileList = listHook<T_ExecutiveProfileList>(EXECUTIVE_PROFILE, axiosGet, useAuthResources)
+const useExecutiveProfileListByUserSchool = listHook<T_ExecutiveProfileList>(
+  `${EXECUTIVE_PROFILE}/list-by-user-school`,
+  axiosGet,
+  useAuthResources,
+)
 const useSchoolStaffProfileBatchDelete = batchDeletionHook<T_SchoolStaffProfileId>(
   SCHOOL_STAFF_PROFILE,
   axiosDelete,
@@ -249,4 +254,5 @@ export {
   useStudentProfileUpdate,
   useStudentProfileDetail,
   useStudentProfileBatchDelete,
+  useExecutiveProfileListByUserSchool,
 }

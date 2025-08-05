@@ -39,7 +39,7 @@ const StudentProfileFormFields = ({ control, ownSchoolData }: I_Props) => {
           control={control}
           name="cohort"
           schoolId={schoolId}
-          helperText='Seleccione una de las divisiones existentes o escriba una nueva. Escribir la división en mayúsculas y sin espacios, usando guiones bajos. Ej. para 7º "B", Turno Mañana, usar: 7_B_TM'
+          helperText='Seleccione una de las divisiones existentes o escriba una nueva. Escribir la división en mayúsculas y sin espacios, usando guiones bajos. Ej. para 7º "B" del Turno Mañana, usar: 7_B_TM. Si no hay turnos mañana/tarde, puede poner 7_B sin el TM.'
           rules={{
             ...rules.required(),
             ...rules.pattern(/^[A-Z0-9_]+$/, 'Solo se permiten letras mayúsculas, números y guiones bajos'),

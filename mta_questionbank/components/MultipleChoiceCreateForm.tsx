@@ -17,7 +17,7 @@ import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
 import InputControlled from '@/shared/forms/InputControlled'
 import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
-import log from '@/shared/log'
+
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
@@ -50,7 +50,6 @@ const MultipleChoiceCreateForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = (
       }
     create(payload)
       .then((res) => {
-        log.info('Question created succesfully:')
         successToast('Pregunta de opción múltiple agregada correctamente')
         navigateToDetail({ questionId: res.question_id })
       })
