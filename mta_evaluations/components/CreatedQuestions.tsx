@@ -1,9 +1,7 @@
 
 import QuestionAccordion from '@/mta_evaluations/components/QuestionAccordion'
-import { evaluationPageLabels } from '@/mta_evaluations/labels'
 import { I_EvaluationPageDetail, T_EvaluationStatusCode } from '@/mta_evaluations/types'
 import Spacer from '@/shared/components/Spacer'
-import { H4 } from '@/shared/components/Typography'
 import { T_VoidFn } from '@/shared/types'
 import React, { FC, useState } from 'react'
 
