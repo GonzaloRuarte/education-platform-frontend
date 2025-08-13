@@ -29,7 +29,6 @@ const StripedDataGrid = styled(DataGrid)(({ theme }) => ({
           theme.palette.primary.main,
           ODD_OPACITY + theme.palette.action.selectedOpacity + theme.palette.action.hoverOpacity,
         ),
-        // Reset on touch devices, it doesn't add specificity
         '@media (hover: none)': {
           backgroundColor: alpha(theme.palette.primary.main, ODD_OPACITY + theme.palette.action.selectedOpacity),
         },
@@ -37,6 +36,64 @@ const StripedDataGrid = styled(DataGrid)(({ theme }) => ({
     },
   },
 }))
+
+/** SAFELY convert arbitrary HTML to its visible text (entities decoded, tags removed) */
+export const stripHtmlToText = (html?: string) => {
+  if (!html) return ''
+  try {
+    // Run in browser (preferred)
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      const div = document.createElement('div')
+      div.innerHTML = html
+      return (div.textContent || '').replace(/\s+/g, ' ').trim()
+    }
+  } catch {
+    // ignore and fall back below
+  }
+  // SSR/fallback (rough): strip tags & collapse whitespace
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+}
+
+/**
+ * Column factory for MUI Data Grid:
+ * - Displays your HTML (via dangerouslySetInnerHTML)
+ * - Sorts/filters by the inner text extracted from that HTML
+ *
+ * Usage:
+ *   columns: [
+ *     htmlTextColumn({ field: 'description', htmlField: 'descriptionHtml', headerName: 'Description', flex: 1 }),
+ *     ...
+ *   ]
+ */
+type HtmlTextColOpts = Omit<GridColDef, 'field' | 'renderCell' | 'valueGetter' | 'sortComparator' | 'type'> & {
+  /** key on the row holding the HTML string (e.g. 'descriptionHtml') */
+  htmlField: string
+  /** column id (can be same as htmlField) */
+  field: string
+}
+
+export const htmlTextColumn = ({ htmlField, field, ...rest }: HtmlTextColOpts): GridColDef => ({
+  field,
+  type: 'string',
+  filterable: true,
+  sortable: true,
+
+  // 1) Logical value used by sorting/filtering/quick-filter:
+  valueGetter: (_value, row) => stripHtmlToText(row?.[htmlField]),
+
+  // 2) Pretty display using your HTML:
+  renderCell: (params) => (
+    <span
+      // IMPORTANT: sanitize first if content isn't fully trusted (e.g., DOMPurify)
+      dangerouslySetInnerHTML={{ __html: String(params.row?.[htmlField] ?? '') }}
+    />
+  ),
+
+  // Optional: stable, locale-aware comparator (handles "A2" < "A10")
+  sortComparator: (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }),
+
+  ...rest,
+})
 
 type I_SelectedDataGridProps = Pick<
   DataGridProps,
@@ -90,7 +147,26 @@ const useRowSelectionModel = () => {
   const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>([])
   return { rowSelectionModel, setRowSelectionModel }
 }
+
+// Attach hooks for ergonomics
 Table.usePaginationModel = usePaginationModel
 Table.useRowSelectionModel = useRowSelectionModel
 
 export default Table
+
+/* ---------------------------
+   Example of how to define columns with HTML rendering
+   (put this next to where you build your columns)
+--------------------------------
+import { htmlTextColumn } from './Table'
+
+const columns: GridColDef[] = [
+  htmlTextColumn({
+    field: 'description',
+    htmlField: 'descriptionHtml',   // your payload key with HTML
+    headerName: 'Description',
+    flex: 1,
+  }),
+  // ...other columns
+]
+*/
