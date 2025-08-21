@@ -15,7 +15,7 @@ const DashboardLogin = () => {
         {/* <Paper style={{ padding: 30 }}> */}
         <Logo variant="color" width={logoSize.w} height={logoSize.h} />
         <Spacer />
-        <H3>Ingreso exclusivo para Administradores, Directivos y Evaluadores</H3>
+        <H3>Ingreso exclusivo para Administradores, Directivos e Itemistas</H3>
         <Spacer />
         <DashboardLoginForm />
         {/* </Paper> */}
