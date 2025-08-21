@@ -54,32 +54,33 @@ const AppointmentSchoolCard = ({ data, onRescheduled, isSchoolStaff }: I_Props) 
           <Box display="flex" flexDirection="column" gap={2}>
               {/* Show only when upcoming & approved */}
               {(data.occurrence_status === AppointmentOccurrenceStatus.upcoming || data.occurrence_status === AppointmentOccurrenceStatus.ongoing) &&
-              data.status === AppointmentStatus.approved && (
-                <>
-                  <Body1>
-                    Estudiantes: <Bold>{data.student_count}</Bold>
-                  </Body1>
+                data.status === AppointmentStatus.approved && (
+                  <>
+                    <Body1>
+                      Estudiantes: <Bold>{data.student_count}</Bold>
+                    </Body1>
 
-                  {isSchoolStaff && (
-                    <>
-                      {data.student_count === 0 ? (
-                        <Button fullWidth onClick={handleEditStudents}>
-                          Agregar estudiantes
-                        </Button>
-                      ) : (
-                        <Button fullWidth color="secondary" onClick={handleEditStudents}>
-                          Editar estudiantes
-                        </Button>
-                      )}
+                    {isSchoolStaff && (
+                      <>
+                        {data.student_count === 0 ? (
+                          <Button fullWidth onClick={handleEditStudents}>
+                            Agregar estudiantes
+                          </Button>
+                        ) : (
+                          <Button fullWidth color="secondary" onClick={handleEditStudents}>
+                            Editar estudiantes
+                          </Button>
+                        )}
 
 
-                    </>
-                  )}
-                </>
+                      </>
+                    )}
+                    <Button fullWidth color="info" onClick={() => setOpen(true)}>
+                      Reprogramar
+                    </Button>
+                  </>
               )}
-              <Button fullWidth color="info" onClick={() => setOpen(true)}>
-                Reprogramar
-              </Button>
+              
               <Button fullWidth onClick={() => navToDetail(data.id)}>
                 Ver detalle
               </Button>
