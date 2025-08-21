@@ -17,6 +17,7 @@ import OfflineIndicator from '@/shared/offline/OfflineIndicator'
 import { HorizontalRule } from '@mui/icons-material'
 import { Box } from '@mui/material'
 import {StickyPinned} from '@/shared/components/StickyPinned'
+import 'react-quill-new/dist/quill.snow.css'
 
 const ResolveEvaluationPage = () => {
   const evaluationToResolve = useResolutionEvaluationToResolve()
@@ -30,6 +31,8 @@ const ResolveEvaluationPage = () => {
 
       <Page>
         <Page.Content>
+            <div className="quill ">
+          <div className="ql-editor">
           {evaluationToResolve === null ? (
             <Spinner />
           ) : (
@@ -61,6 +64,8 @@ const ResolveEvaluationPage = () => {
               </Box>
             </>
           )}
+          </div>
+          </div>
         </Page.Content>
       </Page>
     </>

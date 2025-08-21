@@ -13,7 +13,7 @@ import { useParams } from 'next/navigation'
 import { Box} from '@mui/material'
 import React from 'react';
 import {StickyPinned} from '@/shared/components/StickyPinned'
-
+import 'react-quill-new/dist/quill.snow.css'
 
 
 
@@ -25,6 +25,7 @@ const EvaluationPreviewPage = () => {
   const { data, reload } = useEvaluationPreview({ evaluationId: Number(evaluationId) })
   const [page, setPage] = React.useState(1)
   const navToDetail = useNavigateToEvaluationContentEdit()
+
   return (
     <Page>
       <Page.Title>Vista previa de {EVALUATION_NAME.singular}</Page.Title>
@@ -36,6 +37,12 @@ const EvaluationPreviewPage = () => {
       />
       <Spacer />
       <Page.Content>
+        
+        <div className="quill ">
+          <div className="ql-editor">
+          
+        
+
         {data === undefined ? (
           <Spinner />
         ) : (
@@ -70,7 +77,10 @@ const EvaluationPreviewPage = () => {
             )}
           </>
         )}
+        </div>
+        </div>
       </Page.Content>
+      
     </Page>
   )
 }

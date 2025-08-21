@@ -34,6 +34,7 @@ import { useInProgress } from '@/shared/hooks'
 import {
   I_AppointmentListItem,
   T_AppointmentId,
+  I_AppointmentAvailable
 } from '@/mta_schedule/types'
 
 /* ───────────────────────────────────────────────────────── */
@@ -69,29 +70,37 @@ const RescheduleDialog: React.FC<Props> = ({ open, onClose, originalAppointment,
   })
 
   /* free appointments for month/year of current date */
-  const { data: freeByMonth } = useAppointmentFreeListByMonth({
-    month: watch('date').month() + 1,
-    year: watch('date').year(),
-  })
 
+  
   /* options for toggle */
-  const [options, setOptions] = useState<Array<{ value: T_AppointmentId; label: string }>>([])
-
+  const [refDate, setRefDate] = useState(dayjs())
+  const [selectedAppointmentData, setSelectedAppointmentData] = useState<I_AppointmentAvailable | null>(null)
+  const [appointmentOptions, setAppointmentOptions] = useState<Array<{ value: T_AppointmentId; label: string }>>([])
+  const { data: freeByMonth } = useAppointmentFreeListByMonth({
+    month: refDate.month() + 1,
+    year: refDate.year(),
+  })
   /* whenever date or data changes, rebuild time-slot list */
-  useEffect(() => {
-    if (!freeByMonth) return
-    const day = getValues('date').date()
-    const available = freeByMonth[day] ?? []
-    setOptions(
-      Object.entries(distinctAvailableAppointments(available)).map(
-        ([datetime, list]) => ({
-          value: list[0].id,
-          label: `${dayjs(datetime).format('HH:mm')} hs (${list.length})`,
-        }),
-      ),
-    )
-  }, [freeByMonth, watch('date')])
+  const handleDateChange = () => {
+    if (freeByMonth === undefined) return
 
+    const choosenDate = getValues().date.date()
+    const availableOptions = freeByMonth[choosenDate]
+
+    setAppointmentOptions(
+      Object.entries(distinctAvailableAppointments(availableOptions)).map(([datetime, availbleAppointments]) => ({
+        value: availbleAppointments[0].id,
+        label: `${dayjs(datetime).format('HH:mm')} hs (${availbleAppointments.length} turnos disponibles)`,
+      })),
+    )
+  }
+  useEffect(() => {
+    if (freeByMonth === undefined) return
+    const choosenDate = getValues('date').date()
+    setSelectedAppointmentData(
+      freeByMonth[choosenDate].find((appointment) => appointment.id === originalAppointment.id) || null,
+    )
+  }, [originalAppointment.id])
   /* ── submit handler ──────────────────────────────────── */
   const onSubmit = ({ appointment_id }: FormFields) => {
     if (!appointment_id) return
@@ -128,12 +137,13 @@ const RescheduleDialog: React.FC<Props> = ({ open, onClose, originalAppointment,
         {freeByMonth && (
           <>
             <DateCalendarControlled
+              onMonthChange={(newDate) => setRefDate(newDate)}
+              onYearChange={(newDate) => setRefDate(newDate)}
+              onChangeCallback={handleDateChange}
               control={control}
               name="date"
-              rules={rules.required()}
+              rules={{ ...rules.required() }}
               availableDays={availableDays(freeByMonth)}
-              onMonthChange={() => {/* hook refetches automatically */}}
-              onYearChange={() => {/* hook refetches automatically */}}
             />
             <Spacer />
 
@@ -141,7 +151,7 @@ const RescheduleDialog: React.FC<Props> = ({ open, onClose, originalAppointment,
               control={control}
               name="appointment_id"
               orientation="vertical"
-              options={options}
+              options={appointmentOptions}
               rules={rules.required()}
             />
           </>
