@@ -31,8 +31,7 @@ const ResolveEvaluationPage = () => {
 
       <Page>
         <Page.Content>
-            <div className="quill ">
-          <div className="ql-editor">
+
           {evaluationToResolve === null ? (
             <Spinner />
           ) : (
@@ -40,16 +39,22 @@ const ResolveEvaluationPage = () => {
               <Box position={'relative'}>
                 <Box width={'100%'}>
                   {currentPage === 1 ? (
+                                    <div className="quill ">
+              <div className="ql-editor">
                     <ResolutionHeader evaluationToResolve={evaluationToResolve} />
+                    </div>
+                    </div>
                   ) : (
                     <Spacer size="l" />
                   )}
                   <StickyPinned text={evaluationToResolve.pages[currentPage - 1].pinned_text} />
                   {/* <ResolutionPageIndicator /> */}
                   <Spacer size="xl" />
-
+                <div className="quill ">
+              <div className="ql-editor">
                   <ResolutionQuestions {...{ evaluationToResolve, currentPage }} />
-
+                </div>
+                </div>
                   <Spacer size="s" />
 
                   <ResolutionReviewDisclaimer />
@@ -64,8 +69,7 @@ const ResolveEvaluationPage = () => {
               </Box>
             </>
           )}
-          </div>
-          </div>
+
         </Page.Content>
       </Page>
     </>

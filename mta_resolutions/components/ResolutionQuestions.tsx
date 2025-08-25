@@ -59,13 +59,28 @@ const OpenEndedForm: FC<{ data: T_EvaluationToResolve_OpenEndedAnswer; questionI
     | undefined
   return (
     <>
-      <Input
-        type="text"
+      <textarea
         name={String(data.id)}
-        label="Respuesta"
-        value={specific_data?.value || ''}
-        onChange={(e) => {
-          updateOpenEnded(questionId, data.id, e.target.value)
+        value={specific_data?.value || ""}
+        onChange={(e) => updateOpenEnded(questionId, data.id, e.target.value)}
+        placeholder="Escribe tu respuesta…"
+        rows={4}                 // initial height; grows with content via the hook
+        style={{
+          width: "100%",
+          boxSizing: "border-box",
+          padding: "10px 12px",
+          borderRadius: 8,
+          border: "1px solid hsl(0 0% 80%)",
+          lineHeight: 1.5,
+          resize: "vertical",    // allow manual resize as well
+          outline: "none",
+        }}
+        onKeyDown={(e) => {
+          // prevent Enter from submitting if your form submits on Enter
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+            // (Optional) submit on Cmd/Ctrl+Enter instead
+            // submitLogic()
+          }
         }}
       />
     </>
