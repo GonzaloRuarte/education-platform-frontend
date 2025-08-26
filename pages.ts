@@ -8,7 +8,7 @@ type T_PagesConfig = { [key: string]: T_PageConfig }
 
 // const pages: T_PagesConfig = {
 const evaluationsEditContentPath = '/dashboard/evaluaciones/{evaluationId:number}/editar-contenido'
-const evaluationsPreviewPath = '/dashboard/evaluaciones/{evaluationId:number}/preview'
+const evaluationsPreviewPath = '/preview/{evaluationId:number}'
 const appointmentsProcessPath = '/dashboard/turnos/{appointmentId:number}/procesar'
 const appointmentsEditStudentsPath = '/dashboard/turnos/{appointmentId:number}/editar-estudiantes'
 const questionBankCreatePath = '/dashboard/banco-de-preguntas/crear'
@@ -34,6 +34,10 @@ const pages = {
         label: 'Evaluación entregada',
       },
     },
+  },
+  preview: {
+  path: evaluationsPreviewPath,
+  label: 'Editar Contenido de Evaluación',
   },
   D: {
     path: '/dashboard',
@@ -95,10 +99,7 @@ const pages = {
                 path: evaluationsEditContentPath,
                 label: 'Editar Contenido de Evaluación',
               },
-              preview: {
-                path: evaluationsPreviewPath,
-                label: 'Editar Contenido de Evaluación',
-              },
+
             },
           },
           agregar: {

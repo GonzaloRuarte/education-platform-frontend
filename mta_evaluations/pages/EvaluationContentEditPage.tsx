@@ -10,7 +10,6 @@ import {
   useEvaluationDetail,
   useEvaluationSetStatus,
   useNavigateToEvaluationList,
-  useNavigateToEvaluationPreview,
 } from '@/mta_evaluations/hooks'
 import { evaluationLabels } from '@/mta_evaluations/labels'
 import { EvaluationStatus, T_EvaluationStatusCode } from '@/mta_evaluations/types'
@@ -26,6 +25,7 @@ import { Box } from '@mui/material'
 import { useParams } from 'next/navigation'
 import { useEffect } from 'react'
 import PreviewIcon from '@mui/icons-material/Preview'
+import { evaluationsPreviewPath } from '@/pages'
 
 const EvaluationContentEditPage = () => {
   const { evaluationId } = useParams<{ evaluationId: string }>()
@@ -33,7 +33,7 @@ const EvaluationContentEditPage = () => {
   const { setIsInProgress, setIsNotInProgress } = useInProgress()
 
   const navigateToList = useNavigateToEvaluationList()
-  const navToPreview = useNavigateToEvaluationPreview()
+  const href = evaluationsPreviewPath.replace('{evaluationId:number}', String(evaluationId))
   const deleteInstance = useEvaluationDelete()
   const setStatus = useEvaluationSetStatus()
   const { ConfirmDialogComponent, showConfirm } = useConfirm()
@@ -68,7 +68,11 @@ const EvaluationContentEditPage = () => {
           right={
             data !== undefined && (
               <Box display="flex" flexDirection="row" gap={2} justifyContent={'flex-end'}>
-                <Button startIcon={<PreviewIcon />} onClick={() => navToPreview({ evaluationId: data.id })}>
+
+                <Button
+                  startIcon={<PreviewIcon />}
+                  onClick={() => window.open(href, '_blank', 'noopener,noreferrer')}
+                  >
                   Vista previa
                 </Button>
                 <EvaluationStatusSelect

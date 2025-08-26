@@ -165,8 +165,11 @@ const useResolutionResume = () => {
           errorToast(ApiError.message(err))
           return
         }
+        else {
+          logout()
+        }
 
-        errorToast('Hubo un error iniciando la evaluación. ')
+        
       })
       .finally(setIsNotInProgress)
   }, 100)

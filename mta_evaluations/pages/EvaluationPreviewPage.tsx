@@ -2,7 +2,7 @@
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { EVALUATION_NAME } from '@/mta_evaluations/constants'
-import { useEvaluationPreview, useNavigateToEvaluationContentEdit } from '@/mta_evaluations/hooks'
+import { useEvaluationPreview } from '@/mta_evaluations/hooks'
 import ResolutionQuestions from '@/mta_resolutions/components/ResolutionQuestions'
 import ResolutionHeader from '@/mta_resolutions/components/ResolutionHeader'
 import Page from '@/shared/components/Page'
@@ -22,24 +22,17 @@ import 'react-quill-new/dist/quill.snow.css'
 
 const EvaluationPreviewPage = () => {
   const { evaluationId } = useParams()
-  const { data, reload } = useEvaluationPreview({ evaluationId: Number(evaluationId) })
+  const { data } = useEvaluationPreview({ evaluationId: Number(evaluationId) })
   const [page, setPage] = React.useState(1)
-  const navToDetail = useNavigateToEvaluationContentEdit()
 
   return (
     <Page>
       <Page.Title>Vista previa de {EVALUATION_NAME.singular}</Page.Title>
-      <Page.BasicToolbar
-        reload={reload}
-        entityName={EVALUATION_NAME}
-        id={Number(evaluationId)}
-        onExit={() => navToDetail({ evaluationId: Number(evaluationId) })}
-      />
+
       <Spacer />
       <Page.Content>
         
-        <div className="quill ">
-          <div className="ql-editor">
+
           
         
 
@@ -61,7 +54,11 @@ const EvaluationPreviewPage = () => {
               {page === 1 && (
                   <>
                     {/* ── RESOLUTION HEADER ────────────────────── */}
-                    <ResolutionHeader evaluationToResolve={data} />
+                    <div className="quill ">
+                      <div className="ql-editor">
+                        <ResolutionHeader evaluationToResolve={data} />
+                      </div>
+                    </div>
                     <Spacer size="l" />
                   </>
                   )}
@@ -71,14 +68,17 @@ const EvaluationPreviewPage = () => {
 
               {/* ── SCROLLABLE QUESTIONS AREA ─────────────── */}
               <Box sx={{ flex: 1, overflowY: 'auto', py: 2 }}>
-                <ResolutionQuestions evaluationToResolve={data} currentPage={page} />
+                <div className="quill ">
+                  <div className="ql-editor">
+                    <ResolutionQuestions evaluationToResolve={data} currentPage={page} />
+                  </div>
+                </div>
               </Box>
             </>
             )}
           </>
         )}
-        </div>
-        </div>
+
       </Page.Content>
       
     </Page>
