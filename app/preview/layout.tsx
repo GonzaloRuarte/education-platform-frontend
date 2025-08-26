@@ -12,7 +12,6 @@ import { ImageSize } from '@/shared/utils'
 import AccessibilityWrapper from '@/mta_resolutions/components/AccessibilityWrapper'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid2'
-import Footer from '@/shared/layout/Footer'
 
 const logoSize = new ImageSize(262, 101, { scale: 0.5 })
 
@@ -42,7 +41,7 @@ const Header = () => {
 }
 const Main: T_FCwChildren = ({ children }) => {
   return (
-    <Container style={{ flex: 1 , background: 'white' }}>
+    <Container style={{ flex: 1, background: 'white' }} >
       <Box justifyContent={'flex-start'}>{children}</Box>
     </Container>
   )
@@ -61,7 +60,6 @@ const ResolutionLoggedInLayout: T_FCwChildren = ({ children }) => {
         <Header />
         <Box display={'flex'} flexDirection={'column'} flex={1}>
           <Main>{children}</Main>
-          <Footer />
         </Box>
       </Box>
     </AccessibilityWrapper>
