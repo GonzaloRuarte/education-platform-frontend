@@ -9,11 +9,13 @@ import { T_VoidFn } from '@/shared/types'
 import { warningToast } from '@/shared/toasts'
 import { Body1 } from '@/shared/components/Typography'
 import MagicGrid from '@/shared/components/MagicGrid'
+import { useResolutionManageUploadState } from '@/mta_resolutions/hooks/data'
 
 const ResolutionPaginator = () => {
   const { isLastPage, isFirstPage, goToPreviousPage, goToNextPage, canSubmitOrForwardPage } = useResolutionPagination()
   const { maxDurationReached } = useResolutionDurationResources()
   const submit = useResolutionManageSubmit()
+  const manageUpload = useResolutionManageUploadState() // ⟵ NEW
 
   const safePageMovement = (fn: T_VoidFn) => {
     return () => {
@@ -24,7 +26,16 @@ const ResolutionPaginator = () => {
       submit()
     }
   }
-
+  // ⟵ NEW: only used for "Siguiente"
+  // Runs upload management BEFORE moving forward; fire-and-forget; never blocks navigation.
+  const nextPageWithUpload = () => {
+    try {
+      manageUpload() // do not await
+    } catch {
+      // swallow errors to avoid distracting the student
+    }
+    goToNextPage()
+  }
   return (
     <Grid container>
       <Grid>
@@ -42,7 +53,7 @@ const ResolutionPaginator = () => {
             <Button
               disabled={!canSubmitOrForwardPage}
               endIcon={<ArrowForwardIcon />}
-              onClick={safePageMovement(goToNextPage)}
+              onClick={safePageMovement(nextPageWithUpload)}
             >
               {!maxDurationReached ? 'Siguiente' : 'Entregar'}
             </Button>

@@ -50,7 +50,7 @@ const ResolveEvaluationPage = () => {
     <>
       <OfflineIndicator />
       <ResolutionResumingManager />
-      <ResolutionUploadStateManager />
+
       <ResolutionRemaingTimeManager />
 
       <Page>

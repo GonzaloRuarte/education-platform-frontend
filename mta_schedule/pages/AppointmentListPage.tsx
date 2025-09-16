@@ -17,8 +17,7 @@ import { AppointmentOccurrenceStatus, AppointmentStatus, I_AppointmentListItem }
 import { appointmentShowPostProcessingResources } from '@/mta_schedule/utils'
 import Button from '@/shared/components/Button'
 import ListPage from '@/shared/pages/ListPage'
-// ❌ remove this: import { idExposeColumn } from '@/shared/pages/utils'
-import CalculateIcon from '@mui/icons-material/Calculate'
+
 import RuleIcon from '@mui/icons-material/Rule'
 import SchoolIcon from '@mui/icons-material/School'
 import TroubleshootIcon from '@mui/icons-material/Troubleshoot'
@@ -165,13 +164,6 @@ const columns = (a: {
 
       const items: { label: string; icon?: React.ReactNode; run: () => void }[] = []
 
-      if (appointmentShowPostProcessingResources(row) && !row.was_post_processed) {
-        items.push({
-          label: 'Procesar resultados',
-          icon: <CalculateIcon fontSize="small" />,
-          run: () => a.navToDetail(row.id),
-        })
-      }
       if (row.occurrence_status === AppointmentOccurrenceStatus.ongoing) {
         items.push({
           label: 'Monitorear',
