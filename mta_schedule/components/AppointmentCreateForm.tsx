@@ -13,6 +13,7 @@ import { handleServiceError } from '@/shared/service'
 import { Grid2 } from '@mui/material'
 import dayjs, { Dayjs } from 'dayjs'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import { MAX_APPOINTMENTS_PER_SHIFT } from '../constants'
 
 interface I_FormFields {
   date: Dayjs
@@ -83,7 +84,7 @@ const AppointmentCreateForm = () => {
             <Spacer size="m" />
 
             <H4>{appointmentLabels.quantity}</H4>
-            <CountInputControlled min={1} max={5} control={control} name="quantity" />
+            <CountInputControlled min={1} max={MAX_APPOINTMENTS_PER_SHIFT} control={control} name="quantity" />
           </Grid2>
         </Grid2>
 
