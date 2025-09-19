@@ -14,10 +14,10 @@ const ResolutionSubmittedPage = () => {
     <Page>
       <OfflineIndicator />
       <Spacer />
-      <Page.Title>Evaluación enviada correctamente</Page.Title>
+      <Page.Title> </Page.Title>
       <Page.Content>
         <H3>¡Felicitaciones!</H3>
-        <Body1>Tu evaluación fue enviada con éxito.</Body1>
+        <Body1>Tu evaluación fue enviada con éxito. Gracias por tu participación.</Body1>
         <Spacer />
         <Button onClick={exit}>Salir</Button>
       </Page.Content>
