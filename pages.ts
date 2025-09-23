@@ -83,7 +83,7 @@ const pages = {
           },
           cargarResolucionesOffline: {
             path: '/dashboard/turnos/cargar-resoluciones-offline',
-            label: 'Cargar Resoluciones offline',
+            label: 'Cargar Resoluciones Offline',
           },
         },
       },

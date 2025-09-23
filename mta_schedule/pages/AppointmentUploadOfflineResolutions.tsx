@@ -88,7 +88,7 @@ const AppointmentUploadOfflineResolutions = () => {
 
   return (
     <Page>
-      <Page.Title>Cargar {APPOINTMENT_RESOLUTION_PROCESS_NAME.plural} Offline</Page.Title>
+      <Page.Title>Cargar {APPOINTMENT_RESOLUTION_PROCESS_NAME.plural} offline</Page.Title>
       <Page.Toolbar>
         <BackButton onClick={navToAppointmentHome} />
       </Page.Toolbar>
