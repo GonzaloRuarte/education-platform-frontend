@@ -16,13 +16,15 @@ import { rules } from '@/shared/forms/messages'
 import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
-
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import { parseTags, findFirstInvalid, normalizeTagsForTransport } from '@/mta_evaluations/components/Tags'
 
-interface I_FormFields extends Omit<I_EvaluationCreateRequestData, 'subject_id'> {
+// NOTE: omit 'subject_id' AND 'tags' since tags is a string in the form
+interface I_FormFields extends Omit<I_EvaluationCreateRequestData, 'subject_id' | 'tags'> {
   subject_id: I_EvaluationCreateRequestData['subject_id'] | null
+  tags: string   // <- UI string
 }
 
 interface I_Props {
@@ -30,7 +32,7 @@ interface I_Props {
 }
 
 const EvaluationEditForm = ({ data }: I_Props) => {
-  const { title, code, header, status, subject_id, grade } = data
+  const { title, code, header, status, subject_id, grade, tags: tagsFromData } = data
   const navigateToEvaluationContentEdit = useNavigateToEvaluationContentEdit()
 
   const { handleSubmit, control } = useForm<I_FormFields>({
@@ -41,26 +43,41 @@ const EvaluationEditForm = ({ data }: I_Props) => {
       status,
       subject_id,
       grade,
+      // If backend/detail returns an array, display as a semicolon string
+      // If it already returns a string, this still works.
+      tags: Array.isArray(tagsFromData) ? tagsFromData.join(';') : (tagsFromData ?? ''),
     },
   })
 
   const { setInProgressStatus } = useInProgress()
   const evaluationUpdate = useEvaluationUpdate()
-  const onSubmit: SubmitHandler<I_FormFields> = ({ ...updatedData }) => {
+
+  const onSubmit: SubmitHandler<I_FormFields> = ({ tags, ...updatedData }) => {
     setInProgressStatus(true)
+
+    // Optional field: only parse/validate if non-empty
+    let tagsSemicolon = ''
+    try {
+      tagsSemicolon = normalizeTagsForTransport(tags)
+    } catch (err) {
+      handleServiceError(err)
+      setInProgressStatus(false)
+      return
+    }
+
     evaluationUpdate(data.id, {
       ...updatedData,
       subject_id: updatedData.subject_id as string,
+      tags: tagsSemicolon, // "" if user cleared the field
     })
-      .then((res) => {
+      .then(() => {
         successToast('Evaluación editada correctamente')
         navigateToEvaluationContentEdit({ evaluationId: data.id })
       })
       .catch(handleServiceError)
-      .finally(() => {
-        setInProgressStatus(false)
-      })
+      .finally(() => setInProgressStatus(false))
   }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
@@ -78,15 +95,34 @@ const EvaluationEditForm = ({ data }: I_Props) => {
           label={evaluationLabels.code}
           disabled
         />
-        <SubjectOptions {...{ control }} name="subject_id" />
-        <WysiwygEditorControlled
+        <InputControlled<I_FormFields>
+          {...{ control }}
+          name="tags"
+          label="Etiquetas"
+          placeholder="ej: algebra; ecuaciones; 2025"
+          title="Separá las etiquetas con ; , o espacio. Solo letras y números."
+          rules={{
+            validate: (value: string) => {
+              if (!value?.trim()) return true // optional
+              const arr = parseTags(value)
+              const bad = findFirstInvalid(arr)
+              if (bad) return `Etiqueta inválida: "${bad}". Solo letras y números.`
+              return true
+            },
+          }}
+        />
+        <SubjectOptions<I_FormFields> {...{ control }} name="subject_id" />
+        <WysiwygEditorControlled<I_FormFields>
           {...{ control }}
           label={evaluationLabels.header}
           rules={{ ...rules.required() }}
           name="header"
         />
-        <SchoolGradeSelectControlled control={control} name="grade" rules={{ ...rules.required() }} />
-
+        <SchoolGradeSelectControlled
+          control={control}
+          name="grade"
+          rules={{ ...rules.required() }}
+        />
       </MagicGrid>
       <Spacer />
       <Submit>{sharedLabels.update}</Submit>

@@ -91,6 +91,7 @@ interface I_EvaluationDetail {
   status: T_EvaluationStatusCode
   subject: string
   created_by: number
+  tags: string // <- semicolon-separated string
 }
 
 interface I_EvaluationSubject {
@@ -108,6 +109,7 @@ interface I_EvaluationCreateRequestData {
   grade: SchoolGrade
   header: string
   status: T_EvaluationStatusCode
+  tags: string
 }
 
 interface I_EvaluationPageCreateRequestData {
