@@ -19,12 +19,10 @@ import { sharedLabels } from '@/shared/labels'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
-import { parseTags, findFirstInvalid, normalizeTagsForTransport } from '@/mta_evaluations/components/Tags'
 
 // NOTE: omit 'subject_id' AND 'tags' since tags is a string in the form
 interface I_FormFields extends Omit<I_EvaluationCreateRequestData, 'subject_id' | 'tags'> {
   subject_id: I_EvaluationCreateRequestData['subject_id'] | null
-  tags: string   // <- UI string
 }
 
 interface I_Props {
@@ -32,7 +30,7 @@ interface I_Props {
 }
 
 const EvaluationEditForm = ({ data }: I_Props) => {
-  const { title, code, header, status, subject_id, grade, tags: tagsFromData } = data
+  const { title, code, header, status, subject_id, grade} = data
   const navigateToEvaluationContentEdit = useNavigateToEvaluationContentEdit()
 
   const { handleSubmit, control } = useForm<I_FormFields>({
@@ -43,32 +41,19 @@ const EvaluationEditForm = ({ data }: I_Props) => {
       status,
       subject_id,
       grade,
-      // If backend/detail returns an array, display as a semicolon string
-      // If it already returns a string, this still works.
-      tags: Array.isArray(tagsFromData) ? tagsFromData.join(';') : (tagsFromData ?? ''),
+
     },
   })
 
   const { setInProgressStatus } = useInProgress()
   const evaluationUpdate = useEvaluationUpdate()
 
-  const onSubmit: SubmitHandler<I_FormFields> = ({ tags, ...updatedData }) => {
+  const onSubmit: SubmitHandler<I_FormFields> = ({...updatedData }) => {
     setInProgressStatus(true)
-
-    // Optional field: only parse/validate if non-empty
-    let tagsSemicolon = ''
-    try {
-      tagsSemicolon = normalizeTagsForTransport(tags)
-    } catch (err) {
-      handleServiceError(err)
-      setInProgressStatus(false)
-      return
-    }
 
     evaluationUpdate(data.id, {
       ...updatedData,
       subject_id: updatedData.subject_id as string,
-      tags: tagsSemicolon, // "" if user cleared the field
     })
       .then(() => {
         successToast('Evaluación editada correctamente')
@@ -95,22 +80,7 @@ const EvaluationEditForm = ({ data }: I_Props) => {
           label={evaluationLabels.code}
           disabled
         />
-        <InputControlled<I_FormFields>
-          {...{ control }}
-          name="tags"
-          label="Etiquetas"
-          placeholder="ej: algebra; ecuaciones; 2025"
-          title="Separá las etiquetas con ; , o espacio. Solo letras y números."
-          rules={{
-            validate: (value: string) => {
-              if (!value?.trim()) return true // optional
-              const arr = parseTags(value)
-              const bad = findFirstInvalid(arr)
-              if (bad) return `Etiqueta inválida: "${bad}". Solo letras y números.`
-              return true
-            },
-          }}
-        />
+
         <SubjectOptions<I_FormFields> {...{ control }} name="subject_id" />
         <WysiwygEditorControlled<I_FormFields>
           {...{ control }}

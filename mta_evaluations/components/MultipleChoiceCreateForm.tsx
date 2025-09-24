@@ -10,7 +10,7 @@ import {
   useQuestionMultipleChoiceCreate,
 } from '@/mta_evaluations/hooks'
 import { questionLabels } from '@/mta_evaluations/labels'
-
+import InputControlled from '@/shared/forms/InputControlled'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
@@ -23,9 +23,11 @@ import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { Body1 } from '@/shared/components/Typography'
 import Button from '@/shared/components/Button'
-
+import { parseTags, findFirstInvalid, normalizeTagsForTransport } from '@/mta_evaluations/components/Tags'
 interface I_FormFields
-  extends Omit<I_QuestionCreateMultipleChoiceRequestData, 'page_id'> {}
+  extends Omit<I_QuestionCreateMultipleChoiceRequestData, 'page_id' | 'tags'> {
+    tags: string
+  }
 
 interface Props {
   page_id: T_EvaluationPageId
@@ -35,15 +37,32 @@ interface Props {
 
 const MultipleChoiceCreateForm: FC<Props> = ({ page_id, onSuccess, onCancel }) => {
   const { handleSubmit, control } = useForm<I_FormFields>({
-    defaultValues: { content: '' },
+    defaultValues: { content: '', tags: '' },
   })
 
-  const { setInProgressStatus } = useInProgress()
+  const { setInProgressStatus, setIsNotInProgress } = useInProgress()
   const create = useQuestionMultipleChoiceCreate()
 
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
     setInProgressStatus(true)
-    create({ ...data, page_id })
+    
+
+    let tagsSemicolon = ''
+    try {
+      tagsSemicolon = normalizeTagsForTransport(data.tags)
+    } catch (err) {
+      handleServiceError(err)
+      setIsNotInProgress()
+      return
+    }
+
+    const payload: I_QuestionCreateMultipleChoiceRequestData = {
+      content: data.content,
+      page_id,
+      tags: tagsSemicolon,
+    }
+
+    create(payload)
       .then(() => {
         successToast('Pregunta de opción múltiple agregada correctamente')
         onSuccess()
@@ -60,6 +79,22 @@ const MultipleChoiceCreateForm: FC<Props> = ({ page_id, onSuccess, onCancel }) =
           name="content"
           label={questionLabels.content}
           rules={{ ...rules.required() }}
+        />
+        <InputControlled<I_FormFields>
+          {...{ control }}
+          name="tags"
+          label="Etiquetas"
+          placeholder="ej: algebra; ecuaciones; 2025"
+          title="Separá las etiquetas con ; , o espacio. Solo letras y números."
+          rules={{
+            validate: (value: string) => {
+              if (!value?.trim()) return true  // allow empty
+              const tags = parseTags(value)
+              const bad = findFirstInvalid(tags)
+              if (bad) return `Etiqueta inválida: "${bad}". Solo letras y números.`
+              return true
+            }
+          }}
         />
       </MagicGrid>
 
