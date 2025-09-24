@@ -16,16 +16,19 @@ import { sharedLabels } from '@/shared/labels'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
-
-interface I_FormFields extends I_QuestionUpdateNumericRequestData {}
+import { parseTags, findFirstInvalid, normalizeTagsForTransport } from '@/mta_evaluations/components/Tags'
+interface I_FormFields extends Omit<I_QuestionUpdateNumericRequestData, 'tags'> {
+  tags: string
+}
 
 const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({ data, onSuccess, onCancel }) => {
-  const { content, answer } = data
+  const { content, answer, tags: tagsFromData } = data
 
   const { handleSubmit, control } = useForm<I_FormFields>({
     defaultValues: {
       content,
       value: answer.value,
+      tags: Array.isArray(tagsFromData) ? tagsFromData.join(';') : (tagsFromData ?? ''),
     },
   })
 
@@ -34,7 +37,17 @@ const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({ data, onSucces
   const update = useQuestionNumericUpdate()
   const onSubmit: SubmitHandler<I_FormFields> = (updatedData) => {
     setInProgressStatus(true)
-    update(data.id, { ...updatedData })
+    let tagsSemicolon = ''
+    try {
+      tagsSemicolon = normalizeTagsForTransport(updatedData.tags)
+    } catch (err) {
+      handleServiceError(err)
+      setInProgressStatus(false)
+      return
+    }
+
+
+    update(data.id, { ...updatedData, tags: tagsSemicolon })
       .then(() => {
         successToast('Pregunta numérica editada correctamente')
         onSuccess()
@@ -58,6 +71,22 @@ const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({ data, onSucces
           rules={{ ...rules.required() }}
           name="value"
           type="number"
+        />
+        <InputControlled<I_FormFields>
+          {...{ control }}
+          name="tags"
+          label="Etiquetas"
+          placeholder="ej: algebra; ecuaciones; 2025"
+          title="Separá las etiquetas con ; , o espacio. Solo letras y números."
+          rules={{
+            validate: (value: string) => {
+              if (!value?.trim()) return true // optional
+              const arr = parseTags(value)
+              const bad = findFirstInvalid(arr)
+              if (bad) return `Etiqueta inválida: "${bad}". Solo letras y números.`
+              return true
+            },
+          }}
         />
       </MagicGrid>
       <Spacer />

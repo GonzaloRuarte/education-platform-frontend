@@ -14,6 +14,7 @@ import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import Button from '@/shared/components/Button'
+import InputControlled from '@/shared/forms/InputControlled'
 import { H4 } from '@/shared/components/Typography'
 import { useDialog } from '@/shared/dialogs'
 import { rules } from '@/shared/forms/messages'
@@ -26,9 +27,11 @@ import { successToast } from '@/shared/toasts'
 import { Box } from '@mui/material'
 import { FC, useRef, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import { parseTags, findFirstInvalid, normalizeTagsForTransport } from '@/mta_evaluations/components/Tags'
 
-
-interface I_FormFields extends I_QuestionUpdateMultipleChoiceRequestData {}
+interface I_FormFields extends Omit<I_QuestionUpdateMultipleChoiceRequestData, 'tags'> {
+  tags: string
+}
 
 type LocalOption = I_AnswerMultipleChoiceDetail['options'][number]
 
@@ -93,6 +96,7 @@ interface OptionDTO {
 
 interface MultipleChoiceUpdatePayload {
   content: string
+  tags: string
   options_ops: {
     create: Array<Omit<OptionDTO, 'id'>>   // new rows (no id yet)
     update: Array<OptionDTO>               // existing rows with changes
@@ -105,7 +109,7 @@ const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({
   onSuccess,          // <-- called only when finally persisting
   onCancel,
 }) => {
-  const { content, answer } = data
+  const { content, answer, tags: tagsFromData } = data
 
   // ① Local working copy of the option list (NOT yet persisted)
   const [options, setOptions] = useState(answer.options)
@@ -114,6 +118,7 @@ const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({
   const { handleSubmit, control } = useForm<I_FormFields>({
     defaultValues: {
       content,
+      tags: Array.isArray(tagsFromData) ? tagsFromData.join(';') : (tagsFromData ?? ''),
     },
   })
 
@@ -140,9 +145,19 @@ const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({
       )
     })
 
+    let tagsSemicolon = ''
+    try {
+      tagsSemicolon = normalizeTagsForTransport(updatedData.tags)
+    } catch (err) {
+      handleServiceError(err)
+      setInProgressStatus(false)
+      return
+    }
+
     /* -------- 2. build batch payload -------- */
     const payload: MultipleChoiceUpdatePayload = {
       content: updatedData.content,
+      tags: tagsSemicolon,
       options_ops: {
         create: toCreate.map(({ id, ...rest }) => rest),
         update: toUpdate,
@@ -169,6 +184,22 @@ const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({
           label={questionLabels.content}
           rules={{ ...rules.required() }}
           name="content"
+        />
+        <InputControlled<I_FormFields>
+          {...{ control }}
+          name="tags"
+          label="Etiquetas"
+          placeholder="ej: algebra; ecuaciones; 2025"
+          title="Separá las etiquetas con ; , o espacio. Solo letras y números."
+          rules={{
+            validate: (value: string) => {
+              if (!value?.trim()) return true // optional
+              const arr = parseTags(value)
+              const bad = findFirstInvalid(arr)
+              if (bad) return `Etiqueta inválida: "${bad}". Solo letras y números.`
+              return true
+            },
+          }}
         />
       </MagicGrid>
       <Spacer />

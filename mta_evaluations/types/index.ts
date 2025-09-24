@@ -59,6 +59,7 @@ interface I_QuestionDetail {
   is_mandatory: boolean
   answer: T_AnswerPolymorphicDetail
   page_id: T_EvaluationPageId
+  tags: string
 }
 
 interface I_QuestionDetailSpecific<T_Answer extends T_AnswerPolymorphicDetail> {
@@ -68,6 +69,7 @@ interface I_QuestionDetailSpecific<T_Answer extends T_AnswerPolymorphicDetail> {
   is_mandatory: boolean
   answer: T_Answer
   page_id: T_EvaluationPageId
+  tags: string
 }
 
 interface I_EvaluationPageDetail {
@@ -91,7 +93,6 @@ interface I_EvaluationDetail {
   status: T_EvaluationStatusCode
   subject: string
   created_by: number
-  tags: string // <- semicolon-separated string
 }
 
 interface I_EvaluationSubject {
@@ -109,7 +110,6 @@ interface I_EvaluationCreateRequestData {
   grade: SchoolGrade
   header: string
   status: T_EvaluationStatusCode
-  tags: string
 }
 
 interface I_EvaluationPageCreateRequestData {
@@ -140,29 +140,35 @@ interface I_MultipleChoiceOptionEditIsTrueResponseData {
 
 interface I_QuestionUpdateMultipleChoiceRequestData {
   content: string
+  tags: string
 }
 interface I_QuestionUpdateNumericRequestData {
   content: string
   value: number
+  tags: string
 }
 
 interface I_QuestionUpdateOpenEndedRequestData {
   content: string
+  tags: string
 }
 
 interface I_QuestionCreateMultipleChoiceRequestData {
   page_id: T_EvaluationPageId
   content: string
+  tags: string
 }
 interface I_QuestionCreateNumericRequestData {
   page_id: T_EvaluationPageId
   content: string
   value: number
+  tags: string
 }
 
 interface I_QuestionCreateOpenEndedRequestData {
   page_id: T_EvaluationPageId
   content: string
+  tags: string
 }
 
 interface I_QuestionCreateResponseData {

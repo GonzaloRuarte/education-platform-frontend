@@ -22,10 +22,11 @@ import { sharedLabels } from '@/shared/labels'
 
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
-
+import { parseTags, findFirstInvalid, normalizeTagsForTransport } from '@/mta_evaluations/components/Tags'
 interface I_FormFields
-  extends Omit<I_QuestionCreateNumericRequestData, 'page_id' | 'value'> {
+  extends Omit<I_QuestionCreateNumericRequestData, 'page_id' | 'value' | 'tags'> {
   value: number | ''
+  tags: string
 }
 
 interface Props {
@@ -38,10 +39,10 @@ interface Props {
 
 const NumericCreateForm: FC<Props> = ({ page_id, onSuccess, onCancel }) => {
   const { handleSubmit, control } = useForm<I_FormFields>({
-    defaultValues: { content: '', value: '' },
+    defaultValues: { content: '', value: '', tags: '' },
   })
 
-  const { setInProgressStatus } = useInProgress()
+  const { setInProgressStatus, setIsNotInProgress } = useInProgress()
   const createNumeric = useQuestionNumericCreate()
   // even if you don’t navigate any more, leave this for legacy callers
 
@@ -49,10 +50,22 @@ const NumericCreateForm: FC<Props> = ({ page_id, onSuccess, onCancel }) => {
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
     setInProgressStatus(true)
 
+
+    
+
+    let tagsSemicolon = ''
+    try {
+      tagsSemicolon = normalizeTagsForTransport(data.tags)
+    } catch (err) {
+      handleServiceError(err)
+      setIsNotInProgress()
+      return
+    }
     const payload: I_QuestionCreateNumericRequestData = {
       content: data.content,
       value: Number(data.value),
       page_id,
+      tags: tagsSemicolon,
     }
 
     createNumeric(payload)
@@ -64,6 +77,8 @@ const NumericCreateForm: FC<Props> = ({ page_id, onSuccess, onCancel }) => {
       .finally(() => setInProgressStatus(false))
   }
 
+
+  
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
@@ -80,6 +95,22 @@ const NumericCreateForm: FC<Props> = ({ page_id, onSuccess, onCancel }) => {
           label={numericLabels.value}
           type="number"
           rules={{ ...rules.required() }}
+        />
+        <InputControlled<I_FormFields>
+          {...{ control }}
+          name="tags"
+          label="Etiquetas"
+          placeholder="ej: algebra; ecuaciones; 2025"
+          title="Separá las etiquetas con ; , o espacio. Solo letras y números."
+          rules={{
+            validate: (value: string) => {
+              if (!value?.trim()) return true  // allow empty
+              const tags = parseTags(value)
+              const bad = findFirstInvalid(tags)
+              if (bad) return `Etiqueta inválida: "${bad}". Solo letras y números.`
+              return true
+            }
+          }}
         />
       </MagicGrid>
 
