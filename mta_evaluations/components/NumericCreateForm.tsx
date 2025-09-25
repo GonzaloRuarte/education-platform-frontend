@@ -1,94 +1,45 @@
+// NumericCreateForm.tsx
 'use client'
 
 import { FC } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
-import {
-  I_QuestionCreateNumericRequestData,
-  T_EvaluationPageId,
-} from '@/mta_evaluations/types'
-import {
-  useQuestionNumericCreate,
-} from '@/mta_evaluations/hooks'
-import { numericLabels, questionLabels } from '@/mta_evaluations/labels'
-import Button from '@/shared/components/Button'
-import MagicGrid from '@/shared/components/MagicGrid'
+import { I_QuestionCreateNumericRequestData, T_EvaluationPageId } from '@/mta_evaluations/types'
+import { useQuestionNumericCreate } from '@/mta_evaluations/hooks'
+import QuestionBaseFields from '@/mta_evaluations/components/QuestionBaseFields'
+import FormActions from '@/mta_evaluations/components/FormActions'
 import Spacer from '@/shared/components/Spacer'
-import Submit from '@/shared/components/Submit'
 import InputControlled from '@/shared/forms/InputControlled'
-import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import { rules } from '@/shared/forms/messages'
-import { useInProgress } from '@/shared/hooks'
+import { numericLabels } from '@/mta_evaluations/labels'
 import { sharedLabels } from '@/shared/labels'
+import { useProgressSubmit } from '@/mta_evaluations/hooks/useProgressSubmit'
+import MagicGrid from '@/shared/components/MagicGrid'
 
-import { handleServiceError } from '@/shared/service'
-import { successToast } from '@/shared/toasts'
-import { parseTags, findFirstInvalid, normalizeTagsForTransport } from '@/mta_evaluations/components/Tags'
-interface I_FormFields
-  extends Omit<I_QuestionCreateNumericRequestData, 'page_id' | 'value' | 'tags'> {
-  value: number | ''
-  tags: string
-}
+type I_FormFields = { content: string; value: number | ''; tags: string }
 
-interface Props {
-  /** evaluation_page_id in the DB */
-  page_id: T_EvaluationPageId
-  /** optional callbacks so the parent dialog can decide UX */
-  onSuccess: () => void
-  onCancel?: () => void
-}
+const NumericCreateForm: FC<{ page_id: T_EvaluationPageId; onSuccess: () => void; onCancel?: () => void }> = ({
+  page_id,
+  onSuccess,
+  onCancel,
+}) => {
+  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues: { content: '', value: '', tags: '' } })
+  const create = useQuestionNumericCreate()
+  const submitWithTags = useProgressSubmit()
 
-const NumericCreateForm: FC<Props> = ({ page_id, onSuccess, onCancel }) => {
-  const { handleSubmit, control } = useForm<I_FormFields>({
-    defaultValues: { content: '', value: '', tags: '' },
-  })
+  const onSubmit: SubmitHandler<I_FormFields> = (data) =>
+    submitWithTags(
+      data,
+      (f) => ({ content: f.content, value: Number(f.value), page_id, tags: f.tags }),
+      (wire) => create(wire as I_QuestionCreateNumericRequestData),
+      'Pregunta numérica agregada correctamente',
+      onSuccess,
+    )
 
-  const { setInProgressStatus, setIsNotInProgress } = useInProgress()
-  const createNumeric = useQuestionNumericCreate()
-  // even if you don’t navigate any more, leave this for legacy callers
-
-
-  const onSubmit: SubmitHandler<I_FormFields> = (data) => {
-    setInProgressStatus(true)
-
-
-    
-
-    let tagsSemicolon = ''
-    try {
-      tagsSemicolon = normalizeTagsForTransport(data.tags)
-    } catch (err) {
-      handleServiceError(err)
-      setIsNotInProgress()
-      return
-    }
-    const payload: I_QuestionCreateNumericRequestData = {
-      content: data.content,
-      value: Number(data.value),
-      page_id,
-      tags: tagsSemicolon,
-    }
-
-    createNumeric(payload)
-      .then(() => {
-        successToast('Pregunta numérica agregada correctamente')
-        onSuccess()
-      })
-      .catch(handleServiceError)
-      .finally(() => setInProgressStatus(false))
-  }
-
-
-  
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
+      {/* reuse content + tags layout but with a numeric input */}
       <MagicGrid>
-        <WysiwygEditorControlled<I_FormFields>
-          {...{ control }}
-          name="content"
-          label={questionLabels.content}
-          rules={{ ...rules.required() }}
-        />
-
+        <QuestionBaseFields<I_FormFields> control={control} />
         <InputControlled<I_FormFields>
           {...{ control }}
           name="value"
@@ -96,34 +47,10 @@ const NumericCreateForm: FC<Props> = ({ page_id, onSuccess, onCancel }) => {
           type="number"
           rules={{ ...rules.required() }}
         />
-        <InputControlled<I_FormFields>
-          {...{ control }}
-          name="tags"
-          label="Etiquetas"
-          placeholder="ej: algebra; ecuaciones; 2025"
-          title="Separá las etiquetas con ; , o espacio. Solo letras y números."
-          rules={{
-            validate: (value: string) => {
-              if (!value?.trim()) return true  // allow empty
-              const tags = parseTags(value)
-              const bad = findFirstInvalid(tags)
-              if (bad) return `Etiqueta inválida: "${bad}". Solo letras y números.`
-              return true
-            }
-          }}
-        />
+        {/* Tags already included via QuestionBaseFields; remove if you prefer value to sit between */}
       </MagicGrid>
-
       <Spacer />
-
-      <MagicGrid itemSize="auto">
-        <Submit>{sharedLabels.add}</Submit>
-        {onCancel && (
-          <Button variant="text" onClick={onCancel}>
-            {sharedLabels.cancel}
-          </Button>
-        )}
-      </MagicGrid>
+      <FormActions submitLabel={sharedLabels.add} onCancel={onCancel} cancelLabel={sharedLabels.cancel} />
     </form>
   )
 }

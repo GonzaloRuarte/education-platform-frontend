@@ -31,6 +31,7 @@ type T_EvaluationList = I_PaginatedResponse<I_EvaluationListItem>
 interface I_BaseAnswerDetail {
   id: T_AnswerId
   resource_type: T_AnswerType
+  content: string
 }
 interface I_AnswerNumericDetail extends I_BaseAnswerDetail {
   value: number
@@ -46,7 +47,7 @@ interface I_AnswerMultipleChoiceDetail extends I_BaseAnswerDetail {
 }
 
 interface I_AnswerOpenEndedDetail extends I_BaseAnswerDetail {
-  content: string
+  
 }
 
 type T_AnswerPolymorphicDetail = I_AnswerNumericDetail | I_AnswerMultipleChoiceDetail | I_AnswerOpenEndedDetail
