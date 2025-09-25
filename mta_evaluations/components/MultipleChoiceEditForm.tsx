@@ -1,229 +1,90 @@
+// MultipleChoiceEditForm.tsx
 'use client'
 
+import { useRef, useState } from 'react'
+import { SubmitHandler, useForm } from 'react-hook-form'
+import { I_AnswerMultipleChoiceDetail, T_QuestionForm } from '@/mta_evaluations/types'
+import { useQuestionMultipleChoiceUpdate } from '@/mta_evaluations/hooks'
+import Spacer from '@/shared/components/Spacer'
+import QuestionBaseFields from '@/mta_evaluations/components/QuestionBaseFields'
+import FormActions from '@/mta_evaluations/components/FormActions'
+import { useProgressSubmit } from '@/mta_evaluations/hooks/useProgressSubmit'
+import { sharedLabels } from '@/shared/labels'
+import { H4 } from '@/shared/components/Typography'
+import { AddButton } from '@/shared/components/buttons'
 import MultipleChoiceOption from '@/mta_evaluations/components/MultipleChoiceOption'
 import OptionDraftForm from '@/mta_evaluations/components/OptionDraftForm'
-import { useQuestionMultipleChoiceUpdate } from '@/mta_evaluations/hooks'
-import { questionLabels } from '@/mta_evaluations/labels'
-import {
-  I_AnswerMultipleChoiceDetail,
-  I_QuestionUpdateMultipleChoiceRequestData,
-  T_QuestionForm,
-} from '@/mta_evaluations/types'
-import { AddButton } from '@/shared/components/buttons'
-import MagicGrid from '@/shared/components/MagicGrid'
-import Spacer from '@/shared/components/Spacer'
-import Submit from '@/shared/components/Submit'
-import Button from '@/shared/components/Button'
-import InputControlled from '@/shared/forms/InputControlled'
-import { H4 } from '@/shared/components/Typography'
 import { useDialog } from '@/shared/dialogs'
-import { rules } from '@/shared/forms/messages'
-import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
-import { useInProgress } from '@/shared/hooks'
-import { sharedLabels } from '@/shared/labels'
-
-import { handleServiceError } from '@/shared/service'
-import { successToast } from '@/shared/toasts'
+import SpacerCmp from '@/shared/components/Spacer'
 import { Box } from '@mui/material'
-import { FC, useRef, useState } from 'react'
-import { SubmitHandler, useForm } from 'react-hook-form'
-import { parseTags, findFirstInvalid, normalizeTagsForTransport } from '@/mta_evaluations/components/Tags'
+import { diffOptions } from '@/mta_evaluations/utils/diffOptions'
 
-interface I_FormFields extends Omit<I_QuestionUpdateMultipleChoiceRequestData, 'tags'> {
-  tags: string
-}
+type I_FormFields = { content: string; tags: string }
 
-type LocalOption = I_AnswerMultipleChoiceDetail['options'][number]
-
-interface OptionsProps {
-  options: LocalOption[]
-  addOption: (o: LocalOption) => void
-  deleteOption: (id: number) => void
-  toggleOptionTrue: (idx: number, value: boolean) => void
-}
-
-const Options: FC<OptionsProps> = ({
-  options,
-  addOption,
-  deleteOption,
-  toggleOptionTrue,
+const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({
+  data,
+  onSuccess,
+  onCancel
 }) => {
-  const { DialogComponent, componentProps, showDialog, closeDialog } = useDialog()
+  const { content, answer, tags: tagsFromData } = data
+  const [options, setOptions] = useState(answer.options)
+  const originalOptionsRef = useRef(answer.options)
 
-  // opens a tiny local form (see next file) -------------------------------
+  const { handleSubmit, control } = useForm<I_FormFields>({
+    defaultValues: { content, tags: Array.isArray(tagsFromData) ? tagsFromData.join(';') : (tagsFromData ?? '') },
+  })
+
+  const update = useQuestionMultipleChoiceUpdate()
+  const submitWithTags = useProgressSubmit()
+
+  const onSubmit: SubmitHandler<I_FormFields> = (f) => {
+    const { toCreate, toDelete, toUpdate } = diffOptions(originalOptionsRef.current, options)
+    return submitWithTags(
+      f,
+      (g) => ({
+        content: g.content,
+        tags: g.tags,
+        options_ops: {
+          create: toCreate,        // no id
+          update: toUpdate,        // with id
+          delete: toDelete,        // ids
+        },
+      }),
+      (wire) => update(data.id, wire),
+      'Pregunta editada correctamente',
+      onSuccess,
+    )
+  }
+
+  // tiny local Options UI kept as-is
+  const { DialogComponent, componentProps, showDialog, closeDialog } = useDialog()
   const handleAddOption = () =>
     showDialog({
       title: 'Agregar Opción',
-      content: (
-        <OptionDraftForm
-          onCreate={(opt) => {
-            addOption(opt)
-            closeDialog()
-          }}
-        />
-      ),
+      content: <OptionDraftForm onCreate={(opt) => { setOptions((p) => [...p, opt]); closeDialog() }} />,
       actions: [],
     })
 
   return (
-    <>
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <QuestionBaseFields<I_FormFields> control={control} />
+      <Spacer />
       <Box maxWidth="md">
-        <H4>
-          Opciones <AddButton size="small" variant="outlined" onClick={handleAddOption} />
-        </H4>
-        <Spacer />
+        <H4>Opciones <AddButton size="small" variant="outlined" onClick={handleAddOption} /></H4>
+        <SpacerCmp />
         {options.map((o, idx) => (
           <MultipleChoiceOption
             key={o.id}
             data={o}
-            onDelete={() => deleteOption(o.id)}
-            onToggleTrue={(v) => toggleOptionTrue(idx, v)}
+            onDelete={() => setOptions((prev) => prev.filter((x) => x.id !== o.id))}
+            onToggleTrue={(v) => setOptions((prev) => prev.map((x, i) => (i === idx ? { ...x, is_true: v } : x)))}
             withDelete
           />
         ))}
       </Box>
       <DialogComponent {...componentProps} />
-    </>
-  )
-}
-
-interface OptionDTO {
-  id: number
-  name: string
-  content: string
-  is_true: boolean
-}
-
-interface MultipleChoiceUpdatePayload {
-  content: string
-  tags: string
-  options_ops: {
-    create: Array<Omit<OptionDTO, 'id'>>   // new rows (no id yet)
-    update: Array<OptionDTO>               // existing rows with changes
-    delete: number[]                       // ids of rows to remove
-  }
-}
-
-const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({
-  data,
-  onSuccess,          // <-- called only when finally persisting
-  onCancel,
-}) => {
-  const { content, answer, tags: tagsFromData } = data
-
-  // ① Local working copy of the option list (NOT yet persisted)
-  const [options, setOptions] = useState(answer.options)
-  // keep the original list to diff later
-  const originalOptionsRef = useRef(answer.options)
-  const { handleSubmit, control } = useForm<I_FormFields>({
-    defaultValues: {
-      content,
-      tags: Array.isArray(tagsFromData) ? tagsFromData.join(';') : (tagsFromData ?? ''),
-    },
-  })
-
-  const { setInProgressStatus } = useInProgress()
-  const update = useQuestionMultipleChoiceUpdate()
-  const onSubmit: SubmitHandler<I_FormFields> = (updatedData) => {
-    /* -------- 1. diff the arrays -------- */
-    const original = originalOptionsRef.current
-    const originalMap = new Map(original.map((o) => [o.id, o]))
-
-    const toCreate = options.filter((o) => o.id == null || o.id < 0)
-
-    const toDelete = original
-      .filter((o) => !options.some((n) => n.id === o.id))
-      .map((o) => o.id)
-
-    const toUpdate = options.filter((o) => {
-      if (o.id == null || o.id < 0) return false
-      const orig = originalMap.get(o.id)!
-      return (
-        o.name !== orig.name ||
-        o.content !== orig.content ||
-        o.is_true !== orig.is_true
-      )
-    })
-
-    let tagsSemicolon = ''
-    try {
-      tagsSemicolon = normalizeTagsForTransport(updatedData.tags)
-    } catch (err) {
-      handleServiceError(err)
-      setInProgressStatus(false)
-      return
-    }
-
-    /* -------- 2. build batch payload -------- */
-    const payload: MultipleChoiceUpdatePayload = {
-      content: updatedData.content,
-      tags: tagsSemicolon,
-      options_ops: {
-        create: toCreate.map(({ id, ...rest }) => rest),
-        update: toUpdate,
-        delete: toDelete,
-      },
-    }
-    setInProgressStatus(true)
-    update(data.id, payload)
-      .then(() => {
-        successToast('Pregunta editada correctamente')
-        onSuccess()
-      })
-      .catch(handleServiceError)
-      .finally(() => {
-        setInProgressStatus(false)
-      })
-  }
-
-  return (
-    <form>
-      <MagicGrid>
-        <WysiwygEditorControlled<I_FormFields>
-          {...{ control }}
-          label={questionLabels.content}
-          rules={{ ...rules.required() }}
-          name="content"
-        />
-        <InputControlled<I_FormFields>
-          {...{ control }}
-          name="tags"
-          label="Etiquetas"
-          placeholder="ej: algebra; ecuaciones; 2025"
-          title="Separá las etiquetas con ; , o espacio. Solo letras y números."
-          rules={{
-            validate: (value: string) => {
-              if (!value?.trim()) return true // optional
-              const arr = parseTags(value)
-              const bad = findFirstInvalid(arr)
-              if (bad) return `Etiqueta inválida: "${bad}". Solo letras y números.`
-              return true
-            },
-          }}
-        />
-      </MagicGrid>
       <Spacer />
-
-      <Options
-        options={options}
-        addOption={(opt) => setOptions((prev) => [...prev, opt])}
-        deleteOption={(id) =>
-          setOptions((prev) => prev.filter((o) => o.id !== id))
-        }
-        toggleOptionTrue={(idx, val) =>
-          setOptions((prev) =>
-            prev.map((o, i) => (i === idx ? { ...o, is_true: val } : o)),
-          )
-        }
-      />
-      <Spacer />
-
-      <Submit onClick={handleSubmit(onSubmit)}>{sharedLabels.update}</Submit>
-        {onCancel && (
-          <Button variant="text" onClick={onCancel}>
-            {sharedLabels.cancel}
-          </Button>
-        )}
+      <FormActions submitLabel={sharedLabels.update} onCancel={onCancel} cancelLabel={sharedLabels.cancel} />
     </form>
   )
 }

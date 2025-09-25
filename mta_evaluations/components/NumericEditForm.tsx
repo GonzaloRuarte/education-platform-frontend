@@ -1,70 +1,48 @@
+// NumericEditForm.tsx
 'use client'
 
+import { SubmitHandler, useForm } from 'react-hook-form'
+import { I_AnswerNumericDetail, T_QuestionForm } from '@/mta_evaluations/types'
 import { useQuestionNumericUpdate } from '@/mta_evaluations/hooks'
-import { numericLabels, questionLabels } from '@/mta_evaluations/labels'
-import { I_AnswerNumericDetail, I_QuestionUpdateNumericRequestData, T_QuestionForm } from '@/mta_evaluations/types'
-import MagicGrid from '@/shared/components/MagicGrid'
+import QuestionBaseFields from '@/mta_evaluations/components/QuestionBaseFields'
+import FormActions from '@/mta_evaluations/components/FormActions'
 import Spacer from '@/shared/components/Spacer'
-import Submit from '@/shared/components/Submit'
-import Button from '@/shared/components/Button'
 import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
-import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
-import { useInProgress } from '@/shared/hooks'
+import { numericLabels } from '@/mta_evaluations/labels'
 import { sharedLabels } from '@/shared/labels'
+import { useProgressSubmit } from '@/mta_evaluations/hooks/useProgressSubmit'
+import MagicGrid from '@/shared/components/MagicGrid'
 
-import { handleServiceError } from '@/shared/service'
-import { successToast } from '@/shared/toasts'
-import { SubmitHandler, useForm } from 'react-hook-form'
-import { parseTags, findFirstInvalid, normalizeTagsForTransport } from '@/mta_evaluations/components/Tags'
-interface I_FormFields extends Omit<I_QuestionUpdateNumericRequestData, 'tags'> {
-  tags: string
-}
 
-const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({ data, onSuccess, onCancel }) => {
+type I_FormFields = { content: string; value: number; tags: string }
+
+const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({
+  data,
+  onSuccess,
+  onCancel
+}) => {
   const { content, answer, tags: tagsFromData } = data
-
   const { handleSubmit, control } = useForm<I_FormFields>({
-    defaultValues: {
-      content,
-      value: answer.value,
-      tags: Array.isArray(tagsFromData) ? tagsFromData.join(';') : (tagsFromData ?? ''),
-    },
+    defaultValues: { content, value: answer.value, tags: Array.isArray(tagsFromData) ? tagsFromData.join(';') : (tagsFromData ?? '') },
   })
 
-  const { setInProgressStatus } = useInProgress()
-
   const update = useQuestionNumericUpdate()
-  const onSubmit: SubmitHandler<I_FormFields> = (updatedData) => {
-    setInProgressStatus(true)
-    let tagsSemicolon = ''
-    try {
-      tagsSemicolon = normalizeTagsForTransport(updatedData.tags)
-    } catch (err) {
-      handleServiceError(err)
-      setInProgressStatus(false)
-      return
-    }
+  const submitWithTags = useProgressSubmit()
 
-
-    update(data.id, { ...updatedData, tags: tagsSemicolon })
-      .then(() => {
-        successToast('Pregunta numérica editada correctamente')
-        onSuccess()
-      })
-      .catch(handleServiceError)
-      .finally(() => setInProgressStatus(false))
-  }
+  const onSubmit: SubmitHandler<I_FormFields> = (f) =>
+    submitWithTags(
+      f,
+      (g) => ({ content: g.content, value: g.value, tags: g.tags }),
+      (wire) => update(data.id, wire),
+      'Pregunta numérica editada correctamente',
+      onSuccess,
+    )
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        <WysiwygEditorControlled<I_FormFields>
-          {...{ control }}
-          label={questionLabels.content}
-          rules={{ ...rules.required() }}
-          name="content"
-        />
+        <QuestionBaseFields<I_FormFields> control={control} />
         <InputControlled<I_FormFields>
           {...{ control }}
           label={numericLabels.value}
@@ -72,33 +50,9 @@ const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({ data, onSucces
           name="value"
           type="number"
         />
-        <InputControlled<I_FormFields>
-          {...{ control }}
-          name="tags"
-          label="Etiquetas"
-          placeholder="ej: algebra; ecuaciones; 2025"
-          title="Separá las etiquetas con ; , o espacio. Solo letras y números."
-          rules={{
-            validate: (value: string) => {
-              if (!value?.trim()) return true // optional
-              const arr = parseTags(value)
-              const bad = findFirstInvalid(arr)
-              if (bad) return `Etiqueta inválida: "${bad}". Solo letras y números.`
-              return true
-            },
-          }}
-        />
       </MagicGrid>
       <Spacer />
-
-      <MagicGrid itemSize="auto">
-        <Submit>{sharedLabels.update}</Submit>
-        {onCancel && (
-          <Button variant="text" onClick={onCancel}>
-            {sharedLabels.cancel}
-          </Button>
-        )}
-      </MagicGrid>
+      <FormActions submitLabel={sharedLabels.update} onCancel={onCancel} cancelLabel={sharedLabels.cancel} />
     </form>
   )
 }
