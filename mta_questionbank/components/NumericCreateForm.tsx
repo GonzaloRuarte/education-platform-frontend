@@ -45,7 +45,7 @@ const NumericCreateForm: T_QuestionForm<I_AnswerNumericDetail> = () => {
 
     createNumeric(payload)
       .then(() => {
-        successToast('Pregunta editada correctamente')
+        successToast('Pregunta agregada correctamente')
         backToDetail()
       })
       .catch(handleServiceError)
@@ -87,7 +87,7 @@ const NumericCreateForm: T_QuestionForm<I_AnswerNumericDetail> = () => {
       </MagicGrid>
       <Spacer />
 
-      <Submit>{sharedLabels.update}</Submit>
+      <Submit>{sharedLabels.add}</Submit>
     </form>
   )
 }
