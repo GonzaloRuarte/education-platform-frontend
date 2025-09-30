@@ -13,6 +13,7 @@ const appointmentsProcessPath = '/dashboard/turnos/{appointmentId:number}/proces
 const appointmentsEditStudentsPath = '/dashboard/turnos/{appointmentId:number}/editar-estudiantes'
 const questionBankCreatePath = '/dashboard/banco-de-preguntas/crear'
 const questionBankEditPath = '/dashboard/banco-de-preguntas/{questionId:number}'
+const reportEditPath = '/dashboard/reportes/{reportId:number}'
 
 const userChangePasswordPath = '/dashboard/usuarios/{userId:number}/cambiar-password'
 
@@ -146,7 +147,11 @@ const pages = {
         _: {
           agregar: {
             path: '/dashboard/reportes/agregar',
-            label: 'Agregar estudiante',
+            label: 'Agregar reporte',
+          },
+          editar: {
+            path: reportEditPath,
+            label: 'Editar reporte',
           },
         },
       },
@@ -222,6 +227,7 @@ export {
   evaluationsPreviewPath,
   questionBankCreatePath,
   questionBankEditPath,
+  reportEditPath,
 }
 
 export default pages

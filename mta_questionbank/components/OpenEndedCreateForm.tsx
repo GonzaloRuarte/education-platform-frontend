@@ -43,7 +43,7 @@ const OpenEndedCreateForm: T_QuestionForm<I_AnswerOpenEndedDetail> = () => {
 
     createOpenEnded(payload)
       .then(() => {
-        successToast('Pregunta editada correctamente')
+        successToast('Pregunta agregada correctamente')
         backToDetail()
       })
       .catch(handleServiceError)
@@ -79,7 +79,7 @@ const OpenEndedCreateForm: T_QuestionForm<I_AnswerOpenEndedDetail> = () => {
       </MagicGrid>
       <Spacer />
 
-      <Submit>{sharedLabels.update}</Submit>
+      <Submit>{sharedLabels.add}</Submit>
     </form>
   )
 }

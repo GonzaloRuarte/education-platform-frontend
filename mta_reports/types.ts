@@ -1,31 +1,37 @@
 import { I_PaginatedResponse } from '@/shared/data/types'
 
-export type T_ReportId = number
-export interface I_ReportListItem {
+type T_ReportId = number
+interface I_ReportListItem {
   id: T_ReportId
   school: number
   title: string
 }
-export type T_ReportList = I_PaginatedResponse<I_ReportListItem>
+type T_ReportList = I_PaginatedResponse<I_ReportListItem>
 
-export interface I_ReportDetail {
+interface I_ReportDetail {
   id: T_ReportId
   school: number
   title: string
-  power_bi_link: string
-  config: string
+  power_bi_link: string | URL
 }
 
-export interface I_ReportCreateRequestData {
+interface I_ReportCreateRequestData {
   school: number
   title: string
-  power_bi_link: string
-  config: string
+  power_bi_link: string | URL
 }
 
-export interface I_ReportUpdateRequestData {
+interface I_ReportUpdateRequestData {
   school: number
   title: string
-  power_bi_link: string
-  config: string
+  power_bi_link: string | URL
+}
+
+export type {
+  T_ReportId,
+  I_ReportListItem,
+  I_ReportDetail,
+  I_ReportCreateRequestData,
+  I_ReportUpdateRequestData,
+  T_ReportList,
 }
