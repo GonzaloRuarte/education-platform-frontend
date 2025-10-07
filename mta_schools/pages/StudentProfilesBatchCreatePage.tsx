@@ -78,9 +78,7 @@ const StudentProfilesBatchCreatePageContent = ({ ownSchoolData }: I_Props) => {
         <Grid container spacing={12}>
           <Grid size={7}>
             <Body1>
-              Se cargarán los estudiantes incluídos en el archivo Excel incluído. En caso de que ya exista uno o varios
-              de los estudiantes (comprobado por DNI), la información prexistente se actualizará con los nuevos datos
-              incluídos en el archivo.
+              Se cargarán los estudiantes incluidos en el archivo Excel. Si alguno ya existe en el sistema (identificado por su DNI), sus datos se actualizarán automáticamente con la información proporcionada en el archivo.
             </Body1>
             <Spacer />
             <form onSubmit={handleSubmit(onSubmit)} encType="multipart/form-data">
@@ -122,7 +120,7 @@ const StudentProfilesBatchCreatePageContent = ({ ownSchoolData }: I_Props) => {
               <H4>Archivo base</H4>
               <Spacer />
               <Body1>
-                Podés descargar este archivo base, el cual te servirá como plantilla para cargar nuevos alumnos.
+                Descargá este archivo: es la plantilla oficial que debés usar para cargar los datos de los nuevos alumnos. Por favor, no lo reemplaces por otro formato.
               </Body1>
               <Spacer />
               <Button LinkComponent={Link} href="/Meta--PlanillaBaseAlumnos.xlsx">
