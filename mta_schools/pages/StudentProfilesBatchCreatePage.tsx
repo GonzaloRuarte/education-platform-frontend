@@ -70,7 +70,7 @@ const StudentProfilesBatchCreatePageContent = ({ ownSchoolData }: I_Props) => {
 
   return (
     <Page>
-      <Page.Title>Agregar {STUDENT_PROFILE_NAME.singular}</Page.Title>
+      <Page.Title>Carga masiva de {STUDENT_PROFILE_NAME.plural}</Page.Title>
       <Page.Toolbar>
         <BackButton onClick={backToList} />
       </Page.Toolbar>
