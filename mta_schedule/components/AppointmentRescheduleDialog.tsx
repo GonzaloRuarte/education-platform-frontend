@@ -90,7 +90,7 @@ const RescheduleDialog: React.FC<Props> = ({ open, onClose, originalAppointment,
     setAppointmentOptions(
       Object.entries(distinctAvailableAppointments(availableOptions)).map(([datetime, availbleAppointments]) => ({
         value: availbleAppointments[0].id,
-        label: `${dayjs(datetime).format('HH:mm')} hs (${availbleAppointments.length} turnos disponibles)`,
+        label: `${dayjs(datetime).format('HH:mm')} a ${dayjs(datetime).add(300, 'minute').format('HH:mm')} hrs (${availbleAppointments.length} turnos disponibles)`,
       })),
     )
   }

@@ -16,7 +16,7 @@ const AppointmentRequestPage = () => {
     <Page>
       <Page.Title>Solicitar {APPOINTMENT_NAME.singular}</Page.Title>
       <Page.Content>
-        <Bold>CUIDADO: Dado que las evaluaciones deberían durar 80 minutos, es importante iniciarla con al menos ese tiempo previo al momento de la finalización del turno.</Bold>
+        <Bold>Cuidado: La evaluación dura 80 minutos y debe iniciarse al menos 80 minutos antes de que finalice el turno.</Bold>
         <Spacer size="l" />
         {ownSchoolData === undefined ? <Spinner /> : <AppointmentRequestForm ownSchoolData={ownSchoolData} />}
       </Page.Content>
