@@ -109,30 +109,33 @@ type I_SelectedDataGridProps = Pick<
 
 interface I_Props extends I_SelectedDataGridProps {
   paginationModel: GridPaginationModel
-  onPaginationModelChange:
-    | ((model: GridPaginationModel, details: GridCallbackDetails<'pagination'>) => void)
-    | undefined
+  onPaginationModelChange?: (m: GridPaginationModel, d: GridCallbackDetails<'pagination'>) => void
+  sortModel?: DataGridProps['sortModel']
+  onSortModelChange?: DataGridProps['onSortModelChange']
+  filterModel?: DataGridProps['filterModel']
+  onFilterModelChange?: DataGridProps['onFilterModelChange']
   data?: DataGridProps['rows']
   count?: number
   columns: Array<GridColDef>
   isLoading?: boolean
 }
 
-function Table({ isLoading = false, data, count, ...props }: I_Props) {
+function Table({ isLoading = false, data, count = 0, ...props }: I_Props) {
   return (
     <StripedDataGrid
       sx={{ background: 'white', borderRadius: 3 }}
       rows={data}
-      getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd')}
+      rowCount={count}
+      getRowClassName={(p) => (p.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd')}
       pageSizeOptions={PAGE_SIZE_OPTIONS}
       paginationMode="server"
+      filterMode="server"
+      sortingMode="server"
       loading={isLoading}
-      rowCount={count || 0}
       {...props}
     />
   )
 }
-
 const usePaginationModel = (
   defaultValues = {
     pageSize: DEFAULT_PAGE_SIZE,

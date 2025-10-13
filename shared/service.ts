@@ -13,10 +13,37 @@ import {
 import { errorToast } from '@/shared/toasts'
 import { T_BatchDeletionCommonRequestData } from '@/shared/types'
 
+const buildQueryParams = (options?: I_FetchOptions) => {
+  const params = new URLSearchParams()
+  if (!options) return params
+
+  const { page, page_size, filters, sort, externalFilters } = options
+
+  if (page != null) params.set('page', String(page))
+  if (page_size != null) params.set('page_size', String(page_size))
+  if (filters) params.set('filters', JSON.stringify(filters))
+  if (sort) params.set('sort', JSON.stringify(sort))
+
+  // pass-thru custom filters as regular params
+  if (externalFilters) {
+    for (const [k, v] of Object.entries(externalFilters)) {
+      if (v == null) continue
+      // arrays → repeated params
+      if (Array.isArray(v)) v.forEach((item) => params.append(k, String(item)))
+      else params.set(k, String(v))
+    }
+  }
+  return params
+}
+
 const listService = <T_Response>(path: string, getMethod: T_GetMethod) => {
   return (requestSetup?: I_RequestSetup, options?: I_FetchOptions) => {
     return async () => {
-      return getMethod<T_Response>({ url: apiUrl(path), requestSetup, options })
+      const base = apiUrl(path)
+      const qs = buildQueryParams(options).toString()
+      const url = qs ? `${base}?${qs}` : base
+      // options are now encoded in the URL; no need to pass them down
+      return getMethod<T_Response>({ url, requestSetup })
     }
   }
 }

@@ -34,17 +34,8 @@ const listHookV3 = <T_Path extends string, T_Response>(
     // Resolve the dynamic path with pathParams
     const resolvedPath = pathParams ? path.replace(/{(\w+):\w+}/g, (_, key) => pathParams[key]?.toString() || '') : path
 
-    // Build the query string
-    const queryString = options?.filters
-      ? '?' +
-        Object.entries(options.filters)
-          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value as string | number | boolean)}`)
-          .join('&')
-      : ''
 
-    const fullPath = `${resolvedPath}${queryString}`
-
-    const fetcher = listService<T_Response>(fullPath, getMethod)(useAuthResources(), options)
+    const fetcher = listService<T_Response>(resolvedPath, getMethod)(useAuthResources(), options)
 
     const reload = useDebouncedCallback(
       useCallback(() => {
@@ -52,7 +43,7 @@ const listHookV3 = <T_Path extends string, T_Response>(
         fetcher()
           .then((res) => setData(res))
           .finally(setIsNotInProgress)
-      }, [fullPath, options?.page, options?.page_size]),
+      }, [options?.page, options?.page_size, options?.filters, options?.sort, options?.externalFilters]),
       250,
     )
 
@@ -60,7 +51,14 @@ const listHookV3 = <T_Path extends string, T_Response>(
       setIsInProgress()
       reload.cancel()
       reload()
-    }, [fullPath, options?.page, options?.page_size])
+    }, [
+      resolvedPath,
+      options?.page,
+      options?.page_size,
+      JSON.stringify(options?.filters ?? {}),
+      JSON.stringify(options?.sort ?? []),
+      JSON.stringify(options?.externalFilters ?? {}),
+    ])
 
     return { data, reload, isLoading: isInProgress }
   }

@@ -58,9 +58,16 @@ const listHook = <T_Response>(
         .finally(() => {
           setInProgressStatus(false)
         })
-    }, [options?.page, options?.page_size, options?.filters])
+    }, [options?.page, options?.page_size, options?.filters, options?.sort, options?.externalFilters])
 
-    useEffect(debounce(reload), [path, options?.page, options?.page_size, options?.filters])
+    useEffect(debounce(reload), [
+      path,
+      options?.page,
+      options?.page_size,
+      JSON.stringify(options?.filters ?? {}),
+      JSON.stringify(options?.sort ?? []),
+      JSON.stringify(options?.externalFilters ?? {}),
+    ])
 
     return { data, reload, isLoading: isInProgress }
   }
