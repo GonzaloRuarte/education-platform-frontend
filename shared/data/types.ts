@@ -1,11 +1,14 @@
 import { T_VoidFn } from '@/shared/types'
+import { GridFilterModel, GridSortModel } from '@mui/x-data-grid'
 
 interface I_FetchPaginationOptions {
   page?: number
   page_size?: number
 }
 interface I_FetchOptions extends I_FetchPaginationOptions {
-  filters?: Record<string, any>
+  filters?: GridFilterModel        // full MUI filter model
+  sort?: GridSortModel             // array of sort descriptors
+  externalFilters?: Record<string, any> // optional, for your own custom filters
 }
 
 interface I_RefreshRequestData {

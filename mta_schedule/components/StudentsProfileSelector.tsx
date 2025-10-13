@@ -112,10 +112,15 @@ const StudentsProfileSelector = ({ schoolId, addedStudents, onAddedStudentsChang
     isLoading,
     reload,
   } = useStudentProfileListBySchool(
-    { ...paginationModelAsFetchPaginationOptions(paginationModel), filters: { search: searchCriteria } },
     {
-      schoolId,
+      ...paginationModelAsFetchPaginationOptions(paginationModel),
+      filters: {
+        items: [],                                  // no column-specific items
+        quickFilterValues: searchCriteria ? [searchCriteria] : [],
+        // linkOperator: 'and' // optional; irrelevant if items is empty
+      },
     },
+    { schoolId },
   )
   const studentsAsObject = useMemo<T_AddedStudents>(() => {
     if (students === undefined) return {}

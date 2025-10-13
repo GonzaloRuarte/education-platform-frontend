@@ -35,35 +35,41 @@ export const EvaluationSelect: React.FC<{
 }) => {
   const [options, setOptions] = useState<I_EvaluationOption[]>([])
   const [loading, setLoading] = useState(false)
-  const [filters, setFilters] = useState<object | undefined>({ status: EvaluationStatus.Published })
+
+  // simple KV filters for your API
+  const [extFilters, setExtFilters] = useState<Record<string, any>>({
+    status: EvaluationStatus.Published,
+  })
 
   useEffect(() => {
-    setFilters({
+    setExtFilters({
       ...(onlyPublished && { status: EvaluationStatus.Published }),
       ...(filterTitle && { title__contains: filterTitle }),
       ...(subject_id && { subject_id }),
       ...(grade && { grade }),
     })
-  }, [filterTitle, onlyPublished])
+  }, [filterTitle, onlyPublished, subject_id, grade]) // ← include all deps
 
   const { data, isLoading, reload } = useEvaluationList({
-    page_size: 0,
-    filters: filters,
+    page_size: 0,             // your API convention for "all"
+    externalFilters: extFilters,  // ← use externalFilters, not filters
   })
 
   useEffect(() => {
     if (data) {
       setOptions(
-        data.results.map((evaluation) => ({
-          id: String(evaluation.id),
-          title: `${evaluation.title} (${evaluation.code})`,
+        data.results.map((e) => ({
+          id: String(e.id),
+          title: `${e.title} (${e.code})`,
         })),
       )
     }
     setLoading(isLoading)
   }, [data, isLoading])
 
-  useEffect(reload, [filters])
+  useEffect(() => {
+    reload()
+  }, [reload, extFilters]) // include reload in deps
 
   return (
     <Autocomplete
