@@ -104,6 +104,14 @@ interface I_EvaluationSubject {
 
 type T_EvaluationSubjectList = Array<I_EvaluationSubject>
 
+// 👇 Define this new type to match the API response shape
+interface T_EvaluationSubjectResponse {
+  count: number
+  next: string | null
+  previous: string | null
+  results: T_EvaluationSubjectList
+}
+
 interface I_EvaluationCreateRequestData {
   title: string
   code: string
@@ -207,6 +215,7 @@ export type {
   T_EvaluationStatusCode,
   I_EvaluationCreateRequestData,
   T_EvaluationSubjectList,
+  T_EvaluationSubjectResponse,
   I_EvaluationSubject,
   T_EvaluationPageId,
   I_EvaluationPageDetail,

@@ -8,7 +8,7 @@ import {
   T_EvaluationId,
   T_EvaluationPageId,
   T_EvaluationList,
-  T_EvaluationSubjectList,
+  T_EvaluationSubjectResponse,
 } from '@/mta_evaluations/types'
 import { I_EvaluationToResolve } from '@/mta_resolutions/types'
 import pages, { evaluationsEditContentPath, evaluationsPreviewPath } from '@/pages'
@@ -53,14 +53,19 @@ const useEvaluationSetStatus = actionHook<I_EvaluationSetStatusRequestData, T_Em
 )
 const useEvaluationSubjects = () => useStore((state) => state.evaluations_subjects)
 const useRecoverAndStoreEvaluationSubjects = () => {
-  const recover = listService<T_EvaluationSubjectList>('/evaluation-subjects', axiosGet)(useAuthResources())
-  const store = useStore((state) => state.evaluations_storeSubjects)
-  return async () =>
-    recover().then((res) => {
-      store(res)
-      return res
-    })
-}
+  const recover = listService<T_EvaluationSubjectResponse>(
+    '/evaluation-subjects',
+    axiosGet
+  )(useAuthResources());
+
+  const store = useStore((s) => s.evaluations_storeSubjects);
+
+  return async () => {
+    const res = await recover();
+    store(res.results);  // store the array only
+    return res.results;
+  };
+};
 const EVALUATION_PAGE_PATH = '/evaluation-pages'
 const useEvaluationPageCreate = creationHook<I_EvaluationPageCreateRequestData, I_CreationCommonResponse>(
   EVALUATION_PAGE_PATH,
