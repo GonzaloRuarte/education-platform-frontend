@@ -60,21 +60,18 @@ const AppointmentSchoolCard = ({ data, onRescheduled, isSchoolStaff }: I_Props) 
                       Estudiantes: <Bold>{data.student_count}</Bold>
                     </Body1>
 
-                    {isSchoolStaff && (
-                      <>
-                        {data.student_count === 0 ? (
-                          <Button fullWidth onClick={handleEditStudents}>
-                            Agregar estudiantes
-                          </Button>
-                        ) : (
-                          <Button fullWidth color="secondary" onClick={handleEditStudents}>
-                            Editar estudiantes
-                          </Button>
-                        )}
 
-
-                      </>
+                    {data.student_count === 0 ? (
+                      <Button fullWidth onClick={handleEditStudents}>
+                        Agregar estudiantes
+                      </Button>
+                    ) : (
+                      <Button fullWidth color="secondary" onClick={handleEditStudents}>
+                        Editar estudiantes
+                      </Button>
                     )}
+
+
                     <Button fullWidth color="info" onClick={() => setOpen(true)}>
                       Reprogramar
                     </Button>
