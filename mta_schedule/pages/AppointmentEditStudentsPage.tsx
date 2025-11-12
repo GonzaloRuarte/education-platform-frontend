@@ -35,6 +35,6 @@ const AppointmentEditStudentsPage = () => {
 }
 
 export default withAuth(AppointmentEditStudentsPage, {
-  allowedUserProfiles: ['admin', 'school_staff'],
+  allowedUserProfiles: ['admin', 'school_staff','executive'],
   logoutDestination: 'dashboard',
 })
