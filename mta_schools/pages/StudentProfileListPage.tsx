@@ -17,11 +17,11 @@ import Button from '@/shared/components/Button'
 import Spinner from '@/shared/components/Spinner'
 import { I_FetchOptions } from '@/shared/data/types'
 import ListPage from '@/shared/pages/ListPage'
-import { idExposeColumn } from '@/shared/pages/utils'
 import { GridColDef } from '@mui/x-data-grid'
 
 const columns: Array<GridColDef> = [
-  idExposeColumn({ field: 'personal_id', headerName: 'DNI', flex: 1 }),
+  { field: 'id', headerName: 'ID', flex: 1 },
+  { field: 'personal_id', headerName: 'DNI', flex: 1 },
   {
     field: 'school',
     headerName: 'Escuela',
