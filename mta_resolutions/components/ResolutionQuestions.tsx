@@ -38,6 +38,7 @@ const NumericForm: FC<{ data: T_EvaluationToResolve_NumericAnswer; questionId: T
         type="number"
         name={String(data.id)}
         label="Respuesta"
+        placeholder="Escribí solo números (si hay decimales, usá punto)"
         value={specific_data?.value === undefined ? '' : specific_data.value}
         onChange={(e) => {
           updateNumeric(questionId, data.id, e.target.value === '' ? null : Number(e.target.value))

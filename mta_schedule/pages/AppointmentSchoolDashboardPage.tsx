@@ -45,9 +45,24 @@ const AppointmentSchoolDashboardPage = ({ isSchoolStaff }) => {
       ) : (
         <Page.Content>
           <Box>
-            <Grid2 container spacing={5} size={12}>
+            <Grid2 container spacing={5}>
               {data.results.map((appointment) => (
-                <AppointmentSchoolCard key={appointment.id} data={appointment} onRescheduled={reload} isSchoolStaff={isSchoolStaff} />
+                <Grid2
+                  key={appointment.id}
+                    size={{
+                            xs: 12,  // phones
+                            sm: 12,  // small tablets (still 1 per row)
+                            md: 12,   // 2 per row from md up
+                            lg: 6,   // 3 per row only on large desktops
+                            xl: 4,
+                          }}
+                >
+                  <AppointmentSchoolCard
+                    data={appointment}
+                    onRescheduled={reload}
+                    isSchoolStaff={isSchoolStaff}
+                  />
+                </Grid2>
               ))}
             </Grid2>
           </Box>

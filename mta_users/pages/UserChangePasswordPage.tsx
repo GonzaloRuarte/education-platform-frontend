@@ -13,6 +13,8 @@ import { successToast } from '@/shared/toasts'
 import { useParams } from 'next/navigation'
 import { useForm, useWatch } from 'react-hook-form'
 import PasswordField from '@/shared/components/PasswordField'
+import { useNavigateToExecutiveProfileList } from '@/mta_schools/hooks'
+import { useUserProfilesResources } from '@/mta_auth/hooks'
 
 interface I_FormFields {
   // old_password: string
@@ -21,7 +23,18 @@ interface I_FormFields {
 }
 const UserChangePasswordPage = () => {
   const { userId } = useParams()
-  const navToList = useNavigateToUserList()
+  const { isAdmin, isSchoolStaff, isExecutive } = useUserProfilesResources()
+  const navigateToUserList = useNavigateToUserList()
+  const navigateToExecutiveList = useNavigateToExecutiveProfileList()
+
+  let navToList: () => void = () => {}
+
+  if (isAdmin) {
+    navToList = navigateToUserList
+  } else if (isSchoolStaff) {
+    navToList = navigateToExecutiveList
+  }
+
 
   const { executeAction: changePassword } = useUserChangePassword({ id: Number(userId) }, useInProgress)
   const { handleSubmit, control } = useForm<I_FormFields>({
@@ -62,7 +75,7 @@ const UserChangePasswordPage = () => {
                     'Debe contener al menos una letra y un número',
                   ),
                 }}
-                label="Nueva Contraseña"
+                label="Nueva contraseña"
               />
               <PasswordField<I_FormFields>
                 control={control}
@@ -83,4 +96,4 @@ const UserChangePasswordPage = () => {
   )
 }
 
-export default withAuth(UserChangePasswordPage, { logoutDestination: 'dashboard', allowedUserProfiles: ['admin'] })
+export default withAuth(UserChangePasswordPage, { logoutDestination: 'dashboard', allowedUserProfiles: ['admin', 'school_staff'] })
