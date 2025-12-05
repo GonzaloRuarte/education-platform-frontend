@@ -201,15 +201,14 @@ function useExportAppointments(list: any) {
         // 2) Ask backend about status (GET → .../export-status/?job_id=...)
         const st = await checkStatus(job_id)
 
-        if (st.status === 'DONE' && st.download_url) {
-          // 3) Browser goes to export-download URL and downloads the file
-          // Download with auth
+        if (st.status === 'DONE') {
+          const downloadUrl = apiUrl(`${APPOINTMENTS_PATH}/export-download`) + `/?job_id=${job_id}`;
+
           const blob = await axiosGetBlob({
-            url: st.download_url,
-            requestSetup: auth,   // must include accessToken, refresh, etc.
+            url: downloadUrl,
+            requestSetup: auth,   // from useAuthResources()
           });
 
-          // Convert blob to downloadable file
           const blobUrl = window.URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = blobUrl;
@@ -218,8 +217,9 @@ function useExportAppointments(list: any) {
           a.click();
           a.remove();
           window.URL.revokeObjectURL(blobUrl);
-          stop()
-          setExporting(false)
+
+          stop();
+          setExporting(false);
         } else if (st.status === 'FAILED') {
           stop()
           setExporting(false)
