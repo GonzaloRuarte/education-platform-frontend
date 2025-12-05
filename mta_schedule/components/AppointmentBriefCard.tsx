@@ -45,20 +45,49 @@ const AppointmentBriefCard = ({
 }: I_Props) => {
   return (
     <Box bgcolor={LIGHT_BG_COLOR} borderRadius={2} padding={2}>
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <TodayIcon />
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        flexWrap="wrap"            // stack on small screens
+        rowGap={1}
+      >
+        {/* Left side: icon + label */}
+        <Box display="flex" alignItems="center" gap={1}>
+          <TodayIcon fontSize="small" />
+          <Body1>Estado del turno:</Body1>
+        </Box>
+
+        {/* Right side: chips */}
         {(status !== undefined || occurrence_status !== undefined) && (
-          <Box display="flex" justifyContent="space-between" alignItems="center" gap={1}>
-            <Body1>Estado del turno:</Body1>
-            {status !== undefined && <AppointmentStatusChip style={{ background: '#FFFFFFAA' }} status={status} />}
-            {occurrence_status !== undefined && <AppointmentOccurrenceStatusChip status={occurrence_status} />}
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={1}
+            flexWrap="wrap"
+            mt={{ xs: 1, sm: 0 }}   // small top margin only when wrapped
+          >
+            {status !== undefined && (
+              <AppointmentStatusChip
+                style={{ background: '#FFFFFFAA' }}
+                status={status}
+              />
+            )}
+            {occurrence_status !== undefined && (
+              <AppointmentOccurrenceStatusChip status={occurrence_status} />
+            )}
           </Box>
         )}
       </Box>
-      <Grid2 container spacing={5}>
-        <Grid2 size={8}>
+
+      {title !== undefined && (
+        <Box mb={1}>
+          <H4 sx={{ textAlign: 'center' }}>{title}</H4>
+        </Box>
+      )}
+      <Grid2 container spacing={{ xs: 2, md: 5 }}>
+        <Grid2 size={{ xs: 12, md: 8 }}>
           <MagicGrid spacing={1}>
-            {title !== undefined && <H4>{title}</H4>}
             <MagicGrid itemSize="auto">
               <Body1>{appointmentFormattedStringDate(begins_at)}</Body1>
               <Chip sx={{ opacity: 0.4 }} size="small" label={`ID: ${appointmentId}`} />
@@ -95,14 +124,27 @@ const AppointmentBriefCard = ({
           </MagicGrid>
         </Grid2>
         {pin !== undefined && (
-          <Grid2 size={4} justifyContent={'flex-end'} display="flex" textAlign={'right'} alignItems={'flex-end'}>
-            <Box>
-              <Body1>PIN</Body1>
-              <H1 fontSize={50} fontWeight="bold" fontFamily="monospace">
-                {pin}
-              </H1>
-            </Box>
-          </Grid2>
+            <Grid2
+              size={{ xs: 12, md: 4 }}
+              display="flex"
+              justifyContent={{ xs: 'flex-start', md: 'flex-end' }}
+              textAlign={{ xs: 'left', md: 'right' }}
+              alignItems="flex-end"
+              mt={{ xs: 2, md: 0 }}   // small top margin when stacked
+            >
+              <Box>
+                <Body1>PIN</Body1>
+                <H1
+                  sx={{
+                    fontSize: { xs: '2rem', sm: '2.5rem', md: '3.125rem' }, // 32 / 40 / 50 px
+                    fontWeight: 'bold',
+                    fontFamily: 'monospace',
+                  }}
+                >
+                  {pin}
+                </H1>
+              </Box>
+            </Grid2>
         )}
       </Grid2>
     </Box>

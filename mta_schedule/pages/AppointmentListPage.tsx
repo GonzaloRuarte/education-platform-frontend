@@ -12,6 +12,7 @@ import {
   useNavigateToAppointmentEditStudents,
   useNavigateToAppointmentProcess,
   useNavigateToAppointmentUploadOfflineStates,
+  useExportAppointments
 } from '@/mta_schedule/hooks'
 import { AppointmentOccurrenceStatus, AppointmentStatus, I_AppointmentListItem } from '@/mta_schedule/types'
 import { appointmentShowPostProcessingResources } from '@/mta_schedule/utils'
@@ -28,6 +29,9 @@ import dayjs from 'dayjs'
 import React, { useState } from 'react'
 import RescheduleDialog from '@/mta_schedule/components/AppointmentRescheduleDialog'
 import { IconButton, Menu, MenuItem, Box } from '@mui/material'
+import DownloadIcon from '@mui/icons-material/Download'
+import Stack from '@mui/material/Stack';
+
 
 /* ─ helpers for labels & sorting ─ */
 
@@ -239,6 +243,9 @@ const AppointmentListPage = () => {
 
   const useList = useAppointmentList
 
+  const list = useAppointmentList()
+  const { startExport, exporting } = useExportAppointments(list)
+
   const [target, setTarget] = useState<I_AppointmentListItem | null>(null)
   const openReschedule = (row: I_AppointmentListItem) => setTarget(row)
   const closeReschedule = () => setTarget(null)
@@ -257,9 +264,21 @@ const AppointmentListPage = () => {
         useBatchDelete={useAppointmentBatchDelete}
         onRowClick={ListPage.mapNavToOnRowClick(navToDetail)}
         customButtons={
-          <Button startIcon={<UploadIcon />} onClick={navToUploadOfflineStates}>
-            Cargar Resoluciones Offline
-          </Button>
+          
+          <Stack direction="row" spacing={2}>
+            <Button startIcon={<UploadIcon />} onClick={navToUploadOfflineStates}>
+              Cargar Resoluciones Offline
+            </Button>
+
+            <Button
+              startIcon={<DownloadIcon />}
+              variant="outlined"
+              disabled={exporting}
+              onClick={startExport}
+            >
+              {exporting ? "Preparando XLSX…" : "Descargar XLSX"}
+            </Button>
+          </Stack>
         }
       />
 

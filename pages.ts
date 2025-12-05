@@ -24,11 +24,11 @@ const pages = {
     _: {
       login: {
         path: '/login',
-        label: 'Login Estudiante',
+        label: 'Login estudiante',
       },
       resolverEvaluacion: {
         path: '/resolver-evaluacion',
-        label: 'Resolver Evaluación',
+        label: 'Resolver evaluación',
       },
       resolucionEntregada: {
         path: '/evaluacion-entregada',
@@ -76,7 +76,7 @@ const pages = {
           },
           procesar: {
             path: appointmentsProcessPath,
-            label: 'Procesar Turno',
+            label: 'Procesar turno',
           },
           editarEstudiantes: {
             path: appointmentsEditStudentsPath,
@@ -84,7 +84,7 @@ const pages = {
           },
           cargarResolucionesOffline: {
             path: '/dashboard/turnos/cargar-resoluciones-offline',
-            label: 'Cargar Resoluciones Offline',
+            label: 'Cargar resoluciones offline',
           },
         },
       },
@@ -94,11 +94,11 @@ const pages = {
         _: {
           editar: {
             path: '/dashboard/evaluaciones/{id:number}',
-            label: 'Editar Evaluación',
+            label: 'Editar evaluación',
             _: {
               editarContenido: {
                 path: evaluationsEditContentPath,
-                label: 'Editar Contenido de Evaluación',
+                label: 'Editar contenido de evaluación',
               },
 
             },
@@ -169,17 +169,17 @@ const pages = {
           },
           responsableEjecutivo: {
             path: '/dashboard/usuarios/responsables-ejecutivos',
-            label: 'Responsables Ejecutivos',
+            label: 'Responsables ejecutivos',
             _: {
               agregar: {
                 path: '/dashboard/usuarios/responsables-ejecutivos/agregar',
-                label: 'Agregar Responsable Ejecutivo',
+                label: 'Agregar responsable ejecutivo',
               },
             },
           },
           responsableInstitucional: {
             path: '/dashboard/usuarios/responsables-institucionales',
-            label: 'Responsables Institucionales',
+            label: 'Responsables institucionales',
             _: {
               agregar: {
                 path: '/dashboard/usuarios/responsables-institucionales/agregar',
@@ -193,7 +193,7 @@ const pages = {
             _: {
               agregar: {
                 path: '/dashboard/usuarios/itemistas/agregar',
-                label: 'Agregar Itemista',
+                label: 'Agregar itemista',
               },
             },
           },
@@ -203,7 +203,7 @@ const pages = {
             _: {
               agregar: {
                 path: '/dashboard/usuarios/administradores/agregar',
-                label: 'Agregar Administrador',
+                label: 'Agregar administrador',
               },
             },
           },
