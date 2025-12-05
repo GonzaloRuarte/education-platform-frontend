@@ -135,4 +135,18 @@ const axiosDelete: T_DeleteMethod = with401Handling(
   },
 )
 
-export { axiosGet, axiosPost, axiosDelete, axiosPatch }
+const axiosGetBlob = with401Handling(
+  async (args: { url: string; requestSetup?: I_RequestSetup }) => {
+    return axios
+      .get(args.url, {
+        responseType: "blob",
+        headers: {
+          ..._axiosBaseHeaders(args.requestSetup),
+        },
+      })
+      .then((response) => response.data)
+      .catch(_handledAxiosError);
+  }
+);
+
+export { axiosGet, axiosPost, axiosDelete, axiosPatch, axiosGetBlob };

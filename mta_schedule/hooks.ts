@@ -13,7 +13,7 @@ import {
   T_AppointmentSchoolCards,
 } from '@/mta_schedule/types'
 import pages, { appointmentsEditStudentsPath, appointmentsProcessPath } from '@/pages'
-import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
+import { axiosDelete, axiosGet, axiosPatch, axiosPost, axiosGetBlob } from '@/shared/data/axios'
 import {
   actionHook,
   batchDeletionHook,
@@ -165,7 +165,7 @@ export const useAppointmentExportStatus = () => {
 function useExportAppointments(list: any) {
   const [exporting, setExporting] = useState(false)
   const pollRef = useRef<number | null>(null)
-
+  const auth = useAuthResources();
   const startExportRequest = useAppointmentExport()
   const checkStatus = useAppointmentExportStatus()
 
@@ -203,7 +203,21 @@ function useExportAppointments(list: any) {
 
         if (st.status === 'DONE' && st.download_url) {
           // 3) Browser goes to export-download URL and downloads the file
-          window.location.href = st.download_url
+          // Download with auth
+          const blob = await axiosGetBlob({
+            url: st.download_url,
+            requestSetup: auth,   // must include accessToken, refresh, etc.
+          });
+
+          // Convert blob to downloadable file
+          const blobUrl = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = blobUrl;
+          a.download = `turnos_${job_id}.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(blobUrl);
           stop()
           setExporting(false)
         } else if (st.status === 'FAILED') {
