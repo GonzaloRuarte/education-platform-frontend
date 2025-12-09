@@ -53,6 +53,7 @@ interface I_SchoolDetail {
   district: string
   contact_email: string
   max_executives: number
+  meta_id: number
   staff: Array<I_SchoolStaffListItem>
 }
 
@@ -61,6 +62,7 @@ interface I_SchoolUpdateRequestData {
   district: string
   contact_email: string
   max_executives: number
+  meta_id: number
 }
 
 interface I_StudentProfileListItem {
