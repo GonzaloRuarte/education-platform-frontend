@@ -17,36 +17,34 @@ import { H4 } from '@/shared/components/Typography'
 import { useDialog } from '@/shared/dialogs'
 import { rules } from '@/shared/forms/messages'
 import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
-import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
 import InputControlled from '@/shared/forms/InputControlled'
 import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
-
-import { handleServiceError } from '@/shared/service'
-import { successToast } from '@/shared/toasts'
-import { T_VoidFn } from '@/shared/types'
 import { Box } from '@mui/material'
 import { FC } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
-interface I_FormFields extends I_QuestionUpdateMultipleChoiceRequestData {}
+// NEW: import the tags-aware helper
+import { useProgressSubmit } from '@/mta_evaluations/hooks/useProgressSubmit'
 
-const Options: FC<{ data: I_AnswerMultipleChoiceDetail; reload: T_VoidFn }> = ({ data, reload }) => {
+// Extend the form to include tags as a string
+interface I_FormFields extends Omit<I_QuestionUpdateMultipleChoiceRequestData, 'tags'> {
+  tags: string
+}
+
+const Options: FC<{ data: I_AnswerMultipleChoiceDetail; reload: () => void }> = ({ data, reload }) => {
   const { DialogComponent, componentProps, showDialog, closeDialog } = useDialog()
   const handleReloadAfterCreate = () => {
     closeDialog()
     reload()
   }
+
   const handleAddOption = () => {
     showDialog({
       title: 'Agregar Opción',
       content: <OptionCreateForm multipleChoiceId={data.id} reload={handleReloadAfterCreate} />,
       actions: [
-        {
-          buttonLabel: sharedLabels.cancel,
-          onPress: closeDialog,
-          key: 'close',
-        },
+        { buttonLabel: sharedLabels.cancel, onPress: closeDialog, key: 'close' },
       ],
     })
   }
@@ -58,7 +56,6 @@ const Options: FC<{ data: I_AnswerMultipleChoiceDetail; reload: T_VoidFn }> = ({
           Opciones <AddButton onClick={handleAddOption} size="small" variant="outlined" />
         </H4>
         <Spacer />
-
         {data.options.map((option) => (
           <MultipleChoiceOption key={option.id} data={option} reload={reload} withDelete />
         ))}
@@ -69,62 +66,75 @@ const Options: FC<{ data: I_AnswerMultipleChoiceDetail; reload: T_VoidFn }> = ({
 }
 
 const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({ data, reload }) => {
-  const { content, difficulty, subject_id} = data
+  const { content, difficulty, subject_id, tags: tagsFromData } = data
 
   const { handleSubmit, control } = useForm<I_FormFields>({
-        defaultValues: {
+    defaultValues: {
       content,
-      subject_id: subject_id,
-      difficulty: difficulty
+      subject_id,
+      difficulty,
+      tags: Array.isArray(tagsFromData) ? tagsFromData.join(';') : (tagsFromData ?? '')
     },
   })
 
-  const { setInProgressStatus } = useInProgress()
-  const backToDetail = useNavigateToQuestionBankList()
+  const submitWithTags = useProgressSubmit()
   const update = useQuestionMultipleChoiceUpdate()
-  const onSubmit: SubmitHandler<I_FormFields> = (updatedData) => {
-    setInProgressStatus(true)
-    update(data.id, { ...updatedData })
-      .then(() => {
-        successToast('Pregunta editada correctamente')
-        backToDetail()
-      })
-      .catch(handleServiceError)
-      .finally(() => {
-        setInProgressStatus(false)
-      })
-  }
+  const backToList = useNavigateToQuestionBankList()
+
+  const onSubmit: SubmitHandler<I_FormFields> = (formData) =>
+    submitWithTags(
+      formData,
+      (f) => ({
+        content: f.content,
+        subject_id: f.subject_id!,
+        difficulty: Number(f.difficulty),
+        tags: f.tags,        // hook will normalize into semicolon format
+      }),
+      (wire) => update(data.id, wire),
+      'Pregunta editada correctamente',
+      () => backToList()
+    )
 
   return (
-    <form>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
         <InputControlled<I_FormFields>
           control={control}
           name="difficulty"
           label="Dificultad (1-5)"
           type="number"
-          rules={{ 
-            ...rules.required(), 
-            min: { value: 1, message: 'Mínimo 1' }, 
-            max: { value: 5, message: 'Máximo 5' } 
+          rules={{
+            ...rules.required(),
+            min: { value: 1, message: 'Mínimo 1' },
+            max: { value: 5, message: 'Máximo 5' },
           }}
           inputProps={{ min: 1, max: 5 }}
         />
 
         <SubjectOptions<I_FormFields> {...{ control }} name="subject_id" />
+
         <WysiwygEditorControlled<I_FormFields>
           {...{ control }}
           label={questionLabels.content}
           rules={{ ...rules.required() }}
           name="content"
         />
+
+        {/* NEW TAG INPUT */}
+        <InputControlled<I_FormFields>
+          control={control}
+          name="tags"
+          label="Etiquetas"
+        />
       </MagicGrid>
-      <Spacer />
-          
-      <Options data={data.answer} reload={reload} />
+
       <Spacer />
 
-      <Submit onClick={handleSubmit(onSubmit)}>{sharedLabels.update}</Submit>
+      <Options data={data.answer} reload={reload} />
+
+      <Spacer />
+
+      <Submit>{sharedLabels.update}</Submit>
     </form>
   )
 }

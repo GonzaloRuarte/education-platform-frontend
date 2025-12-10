@@ -41,6 +41,11 @@ export const columns: Array<GridColDef> = [
     headerAlign: 'center',
     renderCell: ({ value }) => (value),
   },
+  {field: 'tags',
+    headerName: 'Etiquetas',
+    flex: 1,
+    renderCell: ({ value }) => (value),
+  },
   {
     field: 'answerType',
     headerName: 'Tipo de respuesta',
