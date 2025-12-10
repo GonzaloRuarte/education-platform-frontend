@@ -50,6 +50,11 @@ const ImportFromBankDialog: FC<I_Props> = ({ evaluationPageId }) => {
     headerAlign: 'center',
     renderCell: ({ value }) => (value),
   },
+  {field: 'tags',
+    headerName: 'Etiquetas',
+    flex: 1,
+    renderCell: ({ value }) => (value),
+  },
   {
     field: 'answerType',
     headerName: 'Tipo de respuesta',

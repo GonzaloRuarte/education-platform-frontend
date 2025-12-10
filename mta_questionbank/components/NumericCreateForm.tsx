@@ -10,14 +10,16 @@ import InputControlled from '@/shared/forms/InputControlled'
 import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
 import { rules } from '@/shared/forms/messages'
 import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
-import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
-
-import { handleServiceError } from '@/shared/service'
-import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
-interface I_FormFields extends Omit<I_QuestionCreateNumericRequestData, 'subject_id'> {
+
+// ✅ use the shared tags + progress helper
+import { useProgressSubmit } from '@/mta_evaluations/hooks/useProgressSubmit'
+
+interface I_FormFields
+  extends Omit<I_QuestionCreateNumericRequestData, 'subject_id' | 'tags'> {
   subject_id: I_QuestionCreateNumericRequestData['subject_id'] | null
+  tags: string
 }
 
 const NumericCreateForm: T_QuestionForm<I_AnswerNumericDetail> = () => {
@@ -26,33 +28,29 @@ const NumericCreateForm: T_QuestionForm<I_AnswerNumericDetail> = () => {
       content: '',
       value: 0,
       subject_id: null,
-      difficulty: 1
+      difficulty: 1,
+      tags: '',
     },
   })
 
-  const { setInProgressStatus } = useInProgress()
   const backToDetail = useNavigateToQuestionBankList()
   const createNumeric = useQuestionNumericCreate()
-  const onSubmit: SubmitHandler<I_FormFields> = (data) => {
-    setInProgressStatus(true)
-    const payload = {
-      content: data.content,
-      value: Number(data.value),
-      subject_id: data.subject_id as string,
-      difficulty: Number(data.difficulty),
+  const submitWithTags = useProgressSubmit()
 
-    }
-
-    createNumeric(payload)
-      .then(() => {
-        successToast('Pregunta agregada correctamente')
-        backToDetail()
-      })
-      .catch(handleServiceError)
-      .finally(() => {
-        setInProgressStatus(false)
-      })
-  }
+  const onSubmit: SubmitHandler<I_FormFields> = (data) =>
+    submitWithTags(
+      data,
+      (f) => ({
+        content: f.content,
+        value: Number(f.value),
+        subject_id: f.subject_id as string,
+        difficulty: Number(f.difficulty),
+        tags: f.tags, // will be normalized by useProgressSubmit
+      }),
+      (wire) => createNumeric(wire),
+      'Pregunta agregada correctamente',
+      backToDetail,
+    )
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -62,21 +60,23 @@ const NumericCreateForm: T_QuestionForm<I_AnswerNumericDetail> = () => {
           name="difficulty"
           label="Dificultad (1-5)"
           type="number"
-          rules={{ 
-            ...rules.required(), 
-            min: { value: 1, message: 'Mínimo 1' }, 
-            max: { value: 5, message: 'Máximo 5' } 
+          rules={{
+            ...rules.required(),
+            min: { value: 1, message: 'Mínimo 1' },
+            max: { value: 5, message: 'Máximo 5' },
           }}
           inputProps={{ min: 1, max: 5 }}
         />
 
         <SubjectOptions<I_FormFields> {...{ control }} name="subject_id" />
+
         <WysiwygEditorControlled<I_FormFields>
           {...{ control }}
           label={questionLabels.content}
           rules={{ ...rules.required() }}
           name="content"
         />
+
         <InputControlled<I_FormFields>
           {...{ control }}
           label={numericLabels.value}
@@ -84,7 +84,15 @@ const NumericCreateForm: T_QuestionForm<I_AnswerNumericDetail> = () => {
           name="value"
           type="number"
         />
+
+        {/* ✅ New tags field */}
+        <InputControlled<I_FormFields>
+          control={control}
+          name="tags"
+          label="Etiquetas"
+        />
       </MagicGrid>
+
       <Spacer />
 
       <Submit>{sharedLabels.add}</Submit>

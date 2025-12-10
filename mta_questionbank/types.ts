@@ -55,6 +55,7 @@ interface I_QuestionDetail {
   difficulty: number
   subject_id: string
   answer: T_AnswerPolymorphicDetail
+  tags: string
 }
 
 interface I_QuestionDetailSpecific<
@@ -65,6 +66,7 @@ interface I_QuestionDetailSpecific<
   difficulty: number
   subject_id: string
   answer: T_Answer
+  tags: string
 }
 
 /* Paginated list
@@ -98,12 +100,14 @@ interface I_QuestionUpdateMultipleChoiceRequestData {
   content: string
   difficulty: number
   subject_id: string
+  tags: string
 }
 
 interface I_QuestionUpdateOpenEndedRequestData {
   content: string
   difficulty: number
   subject_id: string
+  tags: string
 }
 
 interface I_QuestionUpdateNumericRequestData {
@@ -111,18 +115,21 @@ interface I_QuestionUpdateNumericRequestData {
   value: number
   difficulty: number
   subject_id: string
+  tags: string
 }
 
 interface I_QuestionCreateMultipleChoiceRequestData {
   content: string
   difficulty: number
   subject_id: T_EvaluationSubjectId
+  tags: string
 }
 
 interface I_QuestionCreateOpenEndedRequestData {
   content: string
   difficulty: number
   subject_id: T_EvaluationSubjectId
+  tags: string
 }
 
 
@@ -131,6 +138,7 @@ interface I_QuestionCreateNumericRequestData {
   value: number
   difficulty: number
   subject_id: T_EvaluationSubjectId
+  tags: string
 }
 
 interface I_QuestionCreateResponseData {

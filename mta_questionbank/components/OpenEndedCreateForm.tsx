@@ -10,14 +10,16 @@ import InputControlled from '@/shared/forms/InputControlled'
 import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
 import { rules } from '@/shared/forms/messages'
 import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
-import { useInProgress } from '@/shared/hooks'
 import { sharedLabels } from '@/shared/labels'
-
-import { handleServiceError } from '@/shared/service'
-import { successToast } from '@/shared/toasts'
 import { SubmitHandler, useForm } from 'react-hook-form'
-interface I_FormFields extends Omit<I_QuestionCreateOpenEndedRequestData, 'subject_id'> {
+
+// 🔥 Tags + progress logic
+import { useProgressSubmit } from '@/mta_evaluations/hooks/useProgressSubmit'
+
+interface I_FormFields
+  extends Omit<I_QuestionCreateOpenEndedRequestData, 'subject_id' | 'tags'> {
   subject_id: I_QuestionCreateOpenEndedRequestData['subject_id'] | null
+  tags: string
 }
 
 const OpenEndedCreateForm: T_QuestionForm<I_AnswerOpenEndedDetail> = () => {
@@ -25,32 +27,28 @@ const OpenEndedCreateForm: T_QuestionForm<I_AnswerOpenEndedDetail> = () => {
     defaultValues: {
       content: '',
       subject_id: null,
-      difficulty: 1
+      difficulty: 1,
+      tags: '', // you will adjust if needed
     },
   })
 
-  const { setInProgressStatus } = useInProgress()
   const backToDetail = useNavigateToQuestionBankList()
   const createOpenEnded = useQuestionOpenEndedCreate()
-  const onSubmit: SubmitHandler<I_FormFields> = (data) => {
-    setInProgressStatus(true)
-    const payload = {
-      content: data.content,
-      subject_id: data.subject_id as string,
-      difficulty: Number(data.difficulty),
+  const submitWithTags = useProgressSubmit()
 
-    }
-
-    createOpenEnded(payload)
-      .then(() => {
-        successToast('Pregunta agregada correctamente')
-        backToDetail()
-      })
-      .catch(handleServiceError)
-      .finally(() => {
-        setInProgressStatus(false)
-      })
-  }
+  const onSubmit: SubmitHandler<I_FormFields> = (data) =>
+    submitWithTags(
+      data,
+      (f) => ({
+        content: f.content,
+        subject_id: f.subject_id as string,
+        difficulty: Number(f.difficulty),
+        tags: f.tags,
+      }),
+      (wire) => createOpenEnded(wire),
+      'Pregunta agregada correctamente',
+      backToDetail,
+    )
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -60,15 +58,16 @@ const OpenEndedCreateForm: T_QuestionForm<I_AnswerOpenEndedDetail> = () => {
           name="difficulty"
           label="Dificultad (1-5)"
           type="number"
-          rules={{ 
-            ...rules.required(), 
-            min: { value: 1, message: 'Mínimo 1' }, 
-            max: { value: 5, message: 'Máximo 5' } 
+          rules={{
+            ...rules.required(),
+            min: { value: 1, message: 'Mínimo 1' },
+            max: { value: 5, message: 'Máximo 5' },
           }}
           inputProps={{ min: 1, max: 5 }}
         />
 
         <SubjectOptions<I_FormFields> {...{ control }} name="subject_id" />
+
         <WysiwygEditorControlled<I_FormFields>
           {...{ control }}
           label={questionLabels.content}
@@ -76,7 +75,15 @@ const OpenEndedCreateForm: T_QuestionForm<I_AnswerOpenEndedDetail> = () => {
           name="content"
         />
 
+        {/* ⭐ New tags field */}
+        <InputControlled<I_FormFields>
+          control={control}
+          name="tags"
+          label="Etiquetas"
+          placeholder="ej: historia; lectura crítica"
+        />
       </MagicGrid>
+
       <Spacer />
 
       <Submit>{sharedLabels.add}</Submit>

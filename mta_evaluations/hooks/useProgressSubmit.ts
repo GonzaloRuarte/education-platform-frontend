@@ -17,7 +17,7 @@ export function useProgressSubmit() {
     makePayload: MakePayload<any, TWire>,
     mutate: MutFn<TWire>,
     onSuccessMsg: string,
-    onAfterSuccess: () => void,
+    onAfterSuccess: (result: any) => void, // <-- now receives result
   ) {
     setInProgressStatus(true)
     let tagsSemicolon = ''
@@ -28,11 +28,12 @@ export function useProgressSubmit() {
       setIsNotInProgress()
       return
     }
+
     try {
       const wire = makePayload({ ...form, tags: tagsSemicolon })
-      await mutate(wire)
+      const result = await mutate(wire)         // <-- capture result
       successToast(onSuccessMsg)
-      onAfterSuccess()
+      onAfterSuccess(result)                    // <-- pass it on
     } catch (err) {
       handleServiceError(err)
     } finally {
