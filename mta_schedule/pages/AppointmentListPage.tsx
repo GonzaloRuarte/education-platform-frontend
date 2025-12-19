@@ -270,14 +270,7 @@ const AppointmentListPage = () => {
               Cargar Resoluciones Offline
             </Button>
 
-            <Button
-              startIcon={<DownloadIcon />}
-              variant="outlined"
-              disabled={exporting}
-              onClick={startExport}
-            >
-              {exporting ? "Preparando XLSX…" : "Descargar XLSX"}
-            </Button>
+
           </Stack>
         }
       />
