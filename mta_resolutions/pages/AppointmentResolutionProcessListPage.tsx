@@ -8,16 +8,19 @@ import Spinner from '@/shared/components/Spinner'
 import ListPage from '@/shared/pages/ListPage'
 import { idExposeColumn } from '@/shared/pages/utils'
 import { GridColDef } from '@mui/x-data-grid'
+import dayjs from 'dayjs'
 
 const columns: Array<GridColDef> = [
-  idExposeColumn({ field: 'name', headerName: 'Turno', flex: 2 }),
+  idExposeColumn({ field: 'appointment', headerName: 'Turno', flex: 2}),
   {
     field: 'created_at',
     headerName: 'Fecha Procesamiento',
     flex: 1,
-    type: 'dateTime',
-    valueGetter: (value) => new Date(value),
-  },
+    valueGetter: (_value, row) => dayjs(row.created_at).format('DD/MM/YYYY'),
+      renderCell: ({ value }) => <>{value}</>,
+      sortComparator: (a, b) =>
+        dayjs(String(a), 'DD/MM/YYYY').valueOf() - dayjs(String(b), 'DD/MM/YYYY').valueOf(),
+    },
 ]
 
 const AppointmentResolutionProcessListPage = () => {
