@@ -77,6 +77,9 @@ interface I_AppointmentListItem {
   pin: number
   was_post_processed: boolean
   comments: string
+  subject: string
+  grade: null | SchoolGrade
+  division: string
 }
 
 interface I_AppointmentSchoolCardItem {
@@ -100,6 +103,9 @@ interface I_AppointmentSchoolCardItem {
   pin: number
   was_post_processed: boolean
   comments: string
+  subject: string
+  grade: null | SchoolGrade
+  division: string
 }
 type T_AppointmentSchoolCards = I_PaginatedResponse<I_AppointmentSchoolCardItem>
 type T_AppointmentList = I_PaginatedResponse<I_AppointmentListItem>
