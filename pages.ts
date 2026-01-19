@@ -15,6 +15,10 @@ const questionBankCreatePath = '/dashboard/banco-de-preguntas/crear'
 const questionBankEditPath = '/dashboard/banco-de-preguntas/{questionId:number}'
 const reportEditPath = '/dashboard/reportes/{reportId:number}'
 
+// META report bundles (computed artifacts)
+const metaReportsListPath = '/dashboard/reportes/meta'
+const metaReportsDetailPath = '/dashboard/reportes/meta/{bundleId:number}'
+
 const userChangePasswordPath = '/dashboard/usuarios/{userId:number}/cambiar-password'
 
 const pages = {
@@ -153,6 +157,16 @@ const pages = {
             path: reportEditPath,
             label: 'Editar reporte',
           },
+          meta: {
+            path: metaReportsListPath,
+            label: 'Reportes META',
+            _: {
+              detalle: {
+                path: metaReportsDetailPath,
+                label: 'Detalle Reporte META',
+              },
+            },
+          },
         },
       },
       comisiones: {
@@ -228,6 +242,8 @@ export {
   questionBankCreatePath,
   questionBankEditPath,
   reportEditPath,
+  metaReportsListPath,
+  metaReportsDetailPath,
 }
 
 export default pages
