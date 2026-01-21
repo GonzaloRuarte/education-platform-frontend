@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import type {
   GridColDef,
   GridFilterModel,
+  GridPaginationModel,
   GridRowParams,
   GridRowSelectionModel,
   GridSortModel,
@@ -18,10 +19,25 @@ import ReplayIcon from '@mui/icons-material/Replay'
 import { useConfirm } from '@/shared/confirm'
 import { paginationModelAsFetchPaginationOptions } from '@/shared/pages/utils'
 import { EntityName } from '@/shared/utils'
+import type { T_PageSizeOptions } from '@/config'
+import { usePathname } from 'next/navigation'
+
+// ----------------------------
+// Cache types / config
+// ----------------------------
+type T_ListPageCache = {
+  ts: number
+  paginationModel: GridPaginationModel
+  sortModel: GridSortModel
+  filterModel: GridFilterModel
+}
+
+const LISTPAGE_TTL_MS = 3 * 60 * 1000 // 3 minutes
+
 // ----------------------------
 // Props
 // ----------------------------
-interface I_Props<T_Id, T_Response extends I_PaginatedResponse, T_Filters = object> {
+interface I_Props<T_Id, T_Response extends I_PaginatedResponse, T_Filters extends Record<string, any> = Record<string, any>> {
   columns: Array<GridColDef>
   useList: T_ListServiceHook<T_Response>
   entityName: EntityName
@@ -32,6 +48,13 @@ interface I_Props<T_Id, T_Response extends I_PaginatedResponse, T_Filters = obje
   filtersComponents?: React.ReactNode
   filtersData?: T_Filters
   singleSelectionButtons?: (id: T_Id) => React.ReactNode
+  /** Initial page size (defaults to 100) */
+  initialPageSize?: T_PageSizeOptions
+  /**
+   * Optional: use this to scope cache per "variant" of the same list (e.g. different external filters).
+   * If omitted, we fall back to JSON.stringify(filtersData) best-effort.
+   */
+  stateKey?: string
 }
 
 // ----------------------------
@@ -68,9 +91,25 @@ function BatchDeleteAction<T_Id>(p: {
 // ----------------------------
 // List Page Component
 // ----------------------------
-function ListPage<T_Id, T_Response extends I_PaginatedResponse>(p: I_Props<T_Id, T_Response>) {
+function ListPage<T_Id, T_Response extends I_PaginatedResponse, T_Filters extends Record<string, any> = Record<string, any>>(p: I_Props<T_Id, T_Response, T_Filters>) {
+  const pathname = usePathname()
+
+  // Best-effort: if filtersData is stable/serializable, include it; otherwise use stateKey.
+  const derivedStateKey = (() => {
+    if (p.stateKey) return p.stateKey
+    try {
+      return JSON.stringify(p.filtersData ?? {})
+    } catch {
+      return 'nofilters'
+    }
+  })()
+
+  const storageKey = `listpage:${pathname}:${p.entityName.plural}:${derivedStateKey}`
+
   // pagination & selection models from the Table hooks
-  const { paginationModel, setPaginationModel } = Table.usePaginationModel()
+  const { paginationModel, setPaginationModel } = Table.usePaginationModel({
+    pageSize: p.initialPageSize ?? 100,
+  })
   const { rowSelectionModel, setRowSelectionModel } = Table.useRowSelectionModel()
 
   // Enable selection if batch delete or single-selection buttons exist
@@ -80,10 +119,61 @@ function ListPage<T_Id, T_Response extends I_PaginatedResponse>(p: I_Props<T_Id,
   const [sortModel, setSortModel] = useState<GridSortModel>([])
   const [filterModel, setFilterModel] = useState<GridFilterModel>({ items: [], quickFilterValues: [] })
 
-  // Reset to first page on filter/sort changes
+  const hydratedRef = useRef(false)
+
+  // ✅ HYDRATE on mount + refresh TTL on access
   useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    try {
+      const raw = sessionStorage.getItem(storageKey)
+
+      if (raw) {
+        const cached = JSON.parse(raw) as T_ListPageCache
+        const isFresh = typeof cached?.ts === 'number' && Date.now() - cached.ts <= LISTPAGE_TTL_MS
+
+        if (isFresh) {
+          if (cached.paginationModel) setPaginationModel(cached.paginationModel)
+          if (cached.sortModel) setSortModel(cached.sortModel)
+          if (cached.filterModel) setFilterModel(cached.filterModel)
+
+          // refresh TTL on access
+          sessionStorage.setItem(storageKey, JSON.stringify({ ...cached, ts: Date.now() } satisfies T_ListPageCache))
+        } else {
+          sessionStorage.removeItem(storageKey)
+        }
+      }
+    } catch {
+      sessionStorage.removeItem(storageKey)
+    } finally {
+      hydratedRef.current = true
+    }
+  }, [storageKey, setPaginationModel])
+
+  // ✅ PERSIST on changes (skip until hydrated)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!hydratedRef.current) return
+
+    const payload: T_ListPageCache = {
+      ts: Date.now(),
+      paginationModel,
+      sortModel,
+      filterModel,
+    }
+    sessionStorage.setItem(storageKey, JSON.stringify(payload))
+  }, [storageKey, paginationModel, sortModel, filterModel])
+
+  // ✅ reset to first page when user changes filters/sorts (not during hydrate)
+  const handleSortModelChange = (m: GridSortModel) => {
+    setSortModel(m)
     setPaginationModel((prev) => ({ ...prev, page: 0 }))
-  }, [JSON.stringify(filterModel), JSON.stringify(sortModel)])
+  }
+
+  const handleFilterModelChange = (m: GridFilterModel) => {
+    setFilterModel(m)
+    setPaginationModel((prev) => ({ ...prev, page: 0 }))
+  }
 
   // Fetch paginated data from the server
   const { data, isLoading, reload } = p.useList({
@@ -137,9 +227,9 @@ function ListPage<T_Id, T_Response extends I_PaginatedResponse>(p: I_Props<T_Id,
           paginationModel={paginationModel}
           onPaginationModelChange={setPaginationModel}
           sortModel={sortModel}
-          onSortModelChange={setSortModel}
+          onSortModelChange={handleSortModelChange}
           filterModel={filterModel}
-          onFilterModelChange={setFilterModel}
+          onFilterModelChange={handleFilterModelChange}
           onRowSelectionModelChange={setRowSelectionModel}
           rowSelectionModel={rowSelectionModel}
           checkboxSelection={enableRowSelection}

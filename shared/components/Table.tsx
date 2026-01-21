@@ -121,13 +121,14 @@ interface I_Props extends I_SelectedDataGridProps {
 }
 
 function Table({ isLoading = false, data, count = 0, ...props }: I_Props) {
+  const pageSizeOptions = Array.from(new Set([...PAGE_SIZE_OPTIONS, props.paginationModel.pageSize]))
   return (
     <StripedDataGrid
       sx={{ background: 'white', borderRadius: 3 }}
       rows={data}
       rowCount={count}
       getRowClassName={(p) => (p.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd')}
-      pageSizeOptions={PAGE_SIZE_OPTIONS}
+      pageSizeOptions={pageSizeOptions}
       paginationMode="server"
       filterMode="server"
       sortingMode="server"
@@ -136,13 +137,12 @@ function Table({ isLoading = false, data, count = 0, ...props }: I_Props) {
     />
   )
 }
-const usePaginationModel = (
-  defaultValues = {
-    pageSize: DEFAULT_PAGE_SIZE,
+const usePaginationModel = (initial?: Partial<GridPaginationModel>) => {
+  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
-  },
-) => {
-  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>(defaultValues)
+    pageSize: DEFAULT_PAGE_SIZE,
+    ...initial,
+  })
   return { paginationModel, setPaginationModel }
 }
 

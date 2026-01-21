@@ -1,21 +1,18 @@
 import SubmitEvaluation from '@/mta_resolutions/components/SubmitEvaluationButton'
 import { useResolutionManageSubmit, useResolutionPagination } from '@/mta_resolutions/hooks'
-import Button from '@/shared/components/Button'
-import Grid from '@mui/material/Grid2'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import { useResolutionDurationResources } from '@/mta_resolutions/hooks/duration'
+import { useResolutionManageUploadState } from '@/mta_resolutions/hooks/data'
 import { T_VoidFn } from '@/shared/types'
 import { warningToast } from '@/shared/toasts'
 import { Body1 } from '@/shared/components/Typography'
-import MagicGrid from '@/shared/components/MagicGrid'
-import { useResolutionManageUploadState } from '@/mta_resolutions/hooks/data'
+
+import ResolutionPaginatorView from '@/mta_resolutions/components/ResolutionPaginatorView'
 
 const ResolutionPaginator = () => {
   const { isLastPage, isFirstPage, goToPreviousPage, goToNextPage, canSubmitOrForwardPage } = useResolutionPagination()
   const { maxDurationReached } = useResolutionDurationResources()
   const submit = useResolutionManageSubmit()
-  const manageUpload = useResolutionManageUploadState() // ⟵ NEW
+  const manageUpload = useResolutionManageUploadState()
 
   const safePageMovement = (fn: T_VoidFn) => {
     return () => {
@@ -26,46 +23,33 @@ const ResolutionPaginator = () => {
       submit()
     }
   }
-  // ⟵ NEW: only used for "Siguiente"
-  // Runs upload management BEFORE moving forward; fire-and-forget; never blocks navigation.
+
   const nextPageWithUpload = () => {
     try {
-      manageUpload() // do not await
+      manageUpload() // fire-and-forget
     } catch {
-      // swallow errors to avoid distracting the student
+      // swallow
     }
     goToNextPage()
   }
+
   return (
-    <Grid container>
-      <Grid>
-        {!isFirstPage && (
-          <Button variant="outlined" onClick={safePageMovement(goToPreviousPage)} startIcon={<ArrowBackIcon />}>
-            Anterior
-          </Button>
-        )}
-      </Grid>
-      <Grid size="grow"></Grid>
-      <Grid>
-        {!isLastPage ? (
-          <MagicGrid itemSize="auto">
-            {!canSubmitOrForwardPage && <Body1>Para avanzar necesitas completar todas las preguntas</Body1>}
-            <Button
-              disabled={!canSubmitOrForwardPage}
-              endIcon={<ArrowForwardIcon />}
-              onClick={safePageMovement(nextPageWithUpload)}
-            >
-              {!maxDurationReached ? 'Siguiente' : 'Entregar'}
-            </Button>
-          </MagicGrid>
-        ) : (
-          <MagicGrid itemSize="auto">
-            {!canSubmitOrForwardPage && <Body1>Para entregar necesitas completar todas las preguntas</Body1>}
-            <SubmitEvaluation disabled={!canSubmitOrForwardPage} />
-          </MagicGrid>
-        )}
-      </Grid>
-    </Grid>
+    <ResolutionPaginatorView
+      isFirstPage={isFirstPage}
+      isLastPage={isLastPage}
+      canForward={canSubmitOrForwardPage}
+      onPrev={safePageMovement(goToPreviousPage)}
+      onNext={safePageMovement(nextPageWithUpload)}
+      nextLabel={!maxDurationReached ? 'Siguiente' : 'Entregar'}
+      cantForwardText="Para avanzar necesitas completar todas las preguntas"
+      renderLast={
+        <>
+          {!canSubmitOrForwardPage && <Body1>Para entregar necesitas completar todas las preguntas</Body1>}
+          <SubmitEvaluation disabled={!canSubmitOrForwardPage} />
+        </>
+      }
+    />
   )
 }
+
 export default ResolutionPaginator

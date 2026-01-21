@@ -10,7 +10,6 @@ import { useResolutionDurationResources } from '@/mta_resolutions/hooks/duration
 import { useResolutionEvaluationToResolve } from '@/mta_resolutions/hooks/data'
 import ResolutionRemaingTimeManager from '@/mta_resolutions/services/ResolutionRemaingTimeManager'
 import ResolutionResumingManager from '@/mta_resolutions/services/ResolutionResumingManager'
-import ResolutionUploadStateManager from '@/mta_resolutions/services/ResolutionUploadStateManager'
 import Page from '@/shared/components/Page'
 import Spacer from '@/shared/components/Spacer'
 import Spinner from '@/shared/components/Spinner'
@@ -70,7 +69,8 @@ const ResolveEvaluationPage = () => {
                   ) : (
                     <Spacer size="l" />
                   )}
-
+                  <ResolutionPaginator />
+                  <Spacer size="s" />
                   <StickyPinned text={evaluationToResolve.pages[currentPage - 1].pinned_text} />
                   <Spacer size="xl" />
 

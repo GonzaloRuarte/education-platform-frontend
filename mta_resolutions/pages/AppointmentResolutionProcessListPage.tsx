@@ -8,16 +8,71 @@ import Spinner from '@/shared/components/Spinner'
 import ListPage from '@/shared/pages/ListPage'
 import { idExposeColumn } from '@/shared/pages/utils'
 import { GridColDef } from '@mui/x-data-grid'
+import { dateFromDatetimeColumn, timeFromDatetimeColumn } from '@/shared/components/DateTimeColumns'
 
 const columns: Array<GridColDef> = [
-  idExposeColumn({ field: 'name', headerName: 'Turno', flex: 2 }),
+  idExposeColumn({ field: 'id', headerName: 'ID', flex: 0.5 }),
+
+  dateFromDatetimeColumn({
+    field: 'begins_at_date',      // ✅ virtual column name sent to backend
+    datetimeField: 'begins_at',   // ✅ raw datetime from API
+    headerName: 'Fecha Turno',
+  }),
+
+  timeFromDatetimeColumn({
+    field: 'begins_at_time',      // ✅ virtual column name sent to backend
+    datetimeField: 'begins_at',
+    headerName: 'Hora Turno',
+  }),
+
   {
-    field: 'created_at',
-    headerName: 'Fecha Procesamiento',
-    flex: 1,
-    type: 'dateTime',
-    valueGetter: (value) => new Date(value),
+    field: 'evaluation_title',
+    headerName: 'Evaluación',
+    flex: 2,
+    filterable: true,
+    sortable: true,
   },
+
+  {
+    field: 'school',
+    headerName: 'Escuela',
+    flex: 2,
+    filterable: true,
+    sortable: true,
+  },
+
+  {
+    field: 'subject',
+    headerName: 'Materia',
+    flex: 1.5,
+    filterable: true,
+    sortable: true,
+  },
+
+  {
+    field: 'grade',
+    headerName: 'Año',
+    flex: 0.8,
+    valueGetter: (_v, row) => (row.grade ? `${row.grade}º` : ''),
+    filterable: true,
+    sortable: true,
+  },
+
+  {
+    field: 'division',
+    headerName: 'División',
+    flex: 1.2,
+    filterable: true,
+    sortable: true,
+  },
+
+  // you already have this working (Option 1)
+  // (this assumes your dateFromDatetimeColumn uses date operators)
+  dateFromDatetimeColumn({
+    field: 'created_at',
+    datetimeField: 'created_at',
+    headerName: 'Fecha Procesamiento',
+  }),
 ]
 
 const AppointmentResolutionProcessListPage = () => {
@@ -25,6 +80,7 @@ const AppointmentResolutionProcessListPage = () => {
   const { isAdmin } = useUserProfilesResources()
 
   if (isAdmin === undefined) return <Spinner />
+
   return (
     <ListPage
       columns={columns}
@@ -36,6 +92,6 @@ const AppointmentResolutionProcessListPage = () => {
 }
 
 export default withAuth(AppointmentResolutionProcessListPage, {
-  allowedUserProfiles: ['admin', 'school_staff','executive'],
+  allowedUserProfiles: ['admin', 'school_staff', 'executive'],
   logoutDestination: 'dashboard',
 })

@@ -2,9 +2,10 @@ import { useResolutionAccessibility, useResolutionDownloadState, useResolutionPi
 import Button from '@/shared/components/Button'
 import MagicGrid from '@/shared/components/MagicGrid'
 import { H4 } from '@/shared/components/Typography'
+import Typography from '@mui/material/Typography'
 import Input from '@/shared/forms/Input'
 import { useTheme } from '@/shared/hooks'
-import { Box, FormControlLabel, FormGroup, IconButton, Popover, Switch, ToggleButton } from '@mui/material'
+import { Box, FormControlLabel, FormGroup, IconButton, Popover, Switch} from '@mui/material'
 import React from 'react'
 import DownloadIcon from '@mui/icons-material/Download'
 import Spacer from '@/shared/components/Spacer'
@@ -76,6 +77,11 @@ const TeachersPinMenu = () => {
         </Box>
       </Popover>
       <form onSubmit={handleSubmit}>
+      <Box display="flex" flexDirection="column" gap={0.5}>
+        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,.8)' }}>
+          Solo uso docente
+        </Typography>
+
         <Box display="flex" alignItems="center" justifyContent="space-between" gap={1}>
           <Input
             name="pin"
@@ -96,6 +102,7 @@ const TeachersPinMenu = () => {
             <ArrowForwardIosIcon />
           </IconButton>
         </Box>
+      </Box>
       </form>
     </Box>
   )

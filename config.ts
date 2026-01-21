@@ -1,5 +1,5 @@
 // Tables
-type T_PageSizeOptions = 10 | 25 | 50 | 100
+export type T_PageSizeOptions = 10 | 25 | 50 | 100
 const PAGE_SIZE_OPTIONS: Array<T_PageSizeOptions> = [10, 25, 50, 100]
 const DEFAULT_PAGE_SIZE: T_PageSizeOptions = 10
 /**

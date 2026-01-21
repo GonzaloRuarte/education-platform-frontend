@@ -110,7 +110,17 @@ const Menu = () => {
           <MenuItem Icon={BadgeIcon} label={P.D._.usuarios._.responsableEjecutivo.label} href={P.D._.usuarios._.responsableEjecutivo.path} />
         </RRCC>
         <RRCC allowedProfiles={['admin', 'school_staff', 'executive']}>
-          <MenuItem Icon={QueryStatsIcon} label={P.D._.reportes.label} href={P.D._.reportes.path} />
+          <MenuItem
+            Icon={QueryStatsIcon}
+            label={P.D._.reportes.label}
+            href={P.D._.reportes.path}
+            subMenu={
+              <MenuBlock isSubMenu>
+                <MenuItem label={'Reportes Power BI'} href={P.D._.reportes.path} />
+                <MenuItem label={P.D._.reportes._.meta.label} href={P.D._.reportes._.meta.path} />
+              </MenuBlock>
+            }
+          />
         </RRCC>
         <RRCC allowedProfiles={['superuser']}>
           <MenuItem Icon={DeveloperBoardIcon} label={P.D._.devPanel.label} href={P.D._.devPanel.path} />

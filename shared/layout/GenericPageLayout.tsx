@@ -3,7 +3,7 @@ import { Box } from '@mui/material'
 
 const GenericPageLayout: T_FCwChildren = ({ children }) => {
   return (
-    <Box width="95%" maxWidth="1366px" sx={{ overflowX: 'auto' }} margin="0 auto">
+    <Box sx={{ width: '100%', overflowX: 'auto' }}>
       {children}
     </Box>
   )
