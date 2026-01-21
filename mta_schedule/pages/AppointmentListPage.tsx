@@ -271,7 +271,11 @@ const AppointmentListPage = () => {
             <Button startIcon={<UploadIcon />} onClick={navToUploadOfflineStates}>
               Cargar Resoluciones Offline
             </Button>
-
+            <Button
+              startIcon={<DownloadIcon />}
+              onClick={startExport}>
+              {exporting ? 'Exportando...' : 'Exportar turnos'}
+            </Button>
 
           </Stack>
         }
