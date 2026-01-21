@@ -13,12 +13,12 @@ interface I_FetchingDataHookResources<T_Data> {
 }
 interface I_ActionHookResources<T_RequestData, T_ResponseData> {
   isInProgress: boolean
-  executeAction: (data: T_RequestData) => Promise<T_ResponseData>
+  executeAction: (data?: T_RequestData) => Promise<T_ResponseData>
 }
 
 type T_ListServiceHook<T_Response> = (options?: I_FetchOptions) => I_FetchingDataHookResources<T_Response>
 type T_CreateServiceHook<T_RequestData, T_Response> = () => (data: T_RequestData) => Promise<T_Response>
-type T_ActionServiceHook<T_RequestData, T_Response> = () => (data: T_RequestData) => Promise<T_Response>
+type T_ActionServiceHook<T_RequestData, T_Response> = () => (data?: T_RequestData) => Promise<T_Response>
 type T_UpdateServiceHook<T_Id, T_RequestData, T_Response> = () => (id: T_Id, data: T_RequestData) => Promise<T_Response>
 type T_DetailServiceHook<T_Id, T_Response> = (id: T_Id) => I_FetchingDataHookResources<T_Response>
 type T_DeletionServiceHook<T_Id, T_Response> = () => (id: T_Id) => Promise<T_Response>
