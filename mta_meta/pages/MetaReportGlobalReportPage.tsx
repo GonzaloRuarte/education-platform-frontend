@@ -82,6 +82,7 @@ const MetaReportGlobalReportPage = () => {
 
   const [bundle, setBundle] = useState<any>(undefined)
   const [topError, setTopError] = useState<string | null>(null)
+  const [isGeneratingAll, setIsGeneratingAll] = useState(false)
 
   const bundleId = bundle?.id ? Number(bundle.id) : 0
 
@@ -301,12 +302,16 @@ const MetaReportGlobalReportPage = () => {
 
   const regenerateAll = async () => {
     setTopError(null)
+    setIsGeneratingAll(true)
     try {
-      await generateAll.executeAction({ force_new_version: true })
+      // generateAll comes from actionHook(), which returns the action function directly
+      await generateAll({ force_new_version: true })
       successToast('Generación de bundles globales encolada')
     } catch (e: any) {
       handleServiceError(e)
       setTopError(e?.message ?? 'Error encolando generación global')
+    } finally {
+      setIsGeneratingAll(false)
     }
   }
 
@@ -339,7 +344,7 @@ const MetaReportGlobalReportPage = () => {
   return (
     <Page>
       <H3>Reporte META (Global)</H3>
-      <Spacer y={2} />
+      <Spacer size="s" />
 
       {topError && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -380,7 +385,7 @@ const MetaReportGlobalReportPage = () => {
         </Button>
 
         {isAdmin && (
-          <Button variant="contained" onClick={regenerateAll} disabled={generateAll.isInProgress}>
+          <Button variant="contained" onClick={regenerateAll} disabled={isGeneratingAll}>
             Regenerar global (todas)
           </Button>
         )}
@@ -394,7 +399,7 @@ const MetaReportGlobalReportPage = () => {
         )}
       </Box>
 
-      <Spacer y={2} />
+      <Spacer size="s" />
 
       {isLoading && <Spinner />}
 
@@ -416,7 +421,7 @@ const MetaReportGlobalReportPage = () => {
             <Tab value="chat" label="Chat" />
           </Tabs>
 
-          <Spacer y={2} />
+          <Spacer size="s" />
 
           {!ready && (
             <Alert severity="info">El bundle global aún no está listo (estado: {statusLabel(bundle.status)}).</Alert>
@@ -427,7 +432,7 @@ const MetaReportGlobalReportPage = () => {
               <Button variant="outlined" onClick={loadManifest} disabled={manifestLoading}>
                 Cargar manifest
               </Button>
-              <Spacer y={2} />
+              <Spacer size="s" />
               <JsonPanel data={manifest} />
             </>
           )}
@@ -437,7 +442,7 @@ const MetaReportGlobalReportPage = () => {
               <Button variant="outlined" onClick={loadSummaries} disabled={summariesLoading}>
                 Cargar resumen
               </Button>
-              <Spacer y={2} />
+              <Spacer size="s" />
               <JsonPanel data={summaries} />
             </>
           )}
@@ -447,7 +452,7 @@ const MetaReportGlobalReportPage = () => {
               <Button variant="outlined" onClick={loadQuestionsStats} disabled={questionsLoading}>
                 Cargar preguntas
               </Button>
-              <Spacer y={2} />
+              <Spacer size="s" />
               <JsonPanel data={questionsStats} />
             </>
           )}
@@ -457,7 +462,7 @@ const MetaReportGlobalReportPage = () => {
               <Button variant="outlined" onClick={loadStudentsStats} disabled={studentsLoading}>
                 Cargar estudiantes
               </Button>
-              <Spacer y={2} />
+              <Spacer size="s" />
               <JsonPanel data={studentsStats} />
             </>
           )}
@@ -467,7 +472,7 @@ const MetaReportGlobalReportPage = () => {
               <Button variant="outlined" onClick={loadFullData} disabled={fullDataLoading}>
                 Cargar full_data_2
               </Button>
-              <Spacer y={2} />
+              <Spacer size="s" />
               <JsonPanel data={fullData} />
             </>
           )}
@@ -535,7 +540,7 @@ const MetaReportGlobalReportPage = () => {
                 </Button>
               </Box>
 
-              <Spacer y={2} />
+              <Spacer size="s" />
 
               <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }} gap={2}>
                 <Box>
@@ -581,7 +586,7 @@ const MetaReportGlobalReportPage = () => {
                 )}
               </Box>
 
-              <Spacer y={2} />
+              <Spacer size="s" />
 
               <Box display="flex" gap={2} alignItems="center">
                 <TextField
