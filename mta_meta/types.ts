@@ -27,6 +27,27 @@ interface I_MetaReportBundleListItem {
 
 type T_MetaReportBundleList = I_PaginatedResponse<I_MetaReportBundleListItem>
 
+// ---------
+// Global bundles
+// ---------
+type T_MetaReportGlobalBundleId = number
+
+interface I_MetaReportGlobalBundleListItem {
+  id: T_MetaReportGlobalBundleId
+  scope_key: string
+  school_id?: number | null
+  status: T_MetaReportBundleStatus
+  version: number
+  storage_prefix?: string
+  manifest_path?: string
+  generated_at?: string | null
+  error_message?: string
+  created_at?: string
+  updated_at?: string
+
+  [key: string]: any
+}
+
 type T_MetaReportManifest = {
   arp_id: number
   storage_prefix: string
@@ -49,4 +70,6 @@ export type {
   I_MetaReportBundleListItem,
   T_MetaReportBundleList,
   T_MetaReportManifest,
+  T_MetaReportGlobalBundleId,
+  I_MetaReportGlobalBundleListItem,
 }

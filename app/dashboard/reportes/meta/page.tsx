@@ -1,1 +1,1 @@
-export { default } from '@/mta_meta/pages/MetaReportBundleListPage'
+export { default } from '@/mta_meta/pages/MetaReportGlobalReportPage'
