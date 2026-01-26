@@ -16,63 +16,13 @@ import {
   T_MetaReportBundleId,
   T_MetaReportBundleList,
   I_MetaReportGlobalBundleListItem,
+  T_MetaReportGlobalBundleId,
 } from '@/mta_meta/types'
 
+// ----------------------------
+// Micro bundles (legacy)
+// ----------------------------
 const META_REPORTS_PATH = '/meta-reports'
-const META_REPORTS_GLOBAL_PATH = '/meta-reports-global'
-
-// -----------------
-// Global report hooks
-// -----------------
-// Latest DONE global bundle
-const useMetaReportGlobalLatestAction = actionHookV3<
-  `${typeof META_REPORTS_GLOBAL_PATH}/latest`,
-  undefined,
-  I_MetaReportGlobalBundleListItem
->(`${META_REPORTS_GLOBAL_PATH}/latest`, axiosGet, useAuthResources)
-
-const useMetaReportGlobalLatestBySchoolIdAction = actionHookV3<
-  `${typeof META_REPORTS_GLOBAL_PATH}/latest?school_id={schoolId:number}`,
-  undefined,
-  I_MetaReportGlobalBundleListItem
->(`${META_REPORTS_GLOBAL_PATH}/latest?school_id={schoolId:number}`, axiosGet, useAuthResources)
-
-// Manual GET actions (manifest/artifacts/datasets)
-const useMetaReportGlobalManifestAction = actionHookV3<
-  `${typeof META_REPORTS_GLOBAL_PATH}/{bundleId:number}/manifest`,
-  undefined,
-  any
->(`${META_REPORTS_GLOBAL_PATH}/{bundleId:number}/manifest`, axiosGet, useAuthResources)
-
-const useMetaReportGlobalArtifactAction = actionHookV3<
-  `${typeof META_REPORTS_GLOBAL_PATH}/{bundleId:number}/artifact?name={name:string}`,
-  undefined,
-  any
->(`${META_REPORTS_GLOBAL_PATH}/{bundleId:number}/artifact?name={name:string}`, axiosGet, useAuthResources)
-
-const useMetaReportGlobalDatasetAction = actionHookV3<
-  `${typeof META_REPORTS_GLOBAL_PATH}/{bundleId:number}/dataset?grade={grade:number}&subjects={subjects:string}&name={name:string}`,
-  undefined,
-  any
->(
-  `${META_REPORTS_GLOBAL_PATH}/{bundleId:number}/dataset?grade={grade:number}&subjects={subjects:string}&name={name:string}`,
-  axiosGet,
-  useAuthResources,
-)
-
-// Chat (POST)
-const useMetaReportGlobalChatAction = actionHookV3<
-  `${typeof META_REPORTS_GLOBAL_PATH}/{bundleId:number}/chat`,
-  { message: string; filters?: any },
-  any
->(`${META_REPORTS_GLOBAL_PATH}/{bundleId:number}/chat`, axiosPost, useAuthResources)
-
-// Generate all (POST)
-const useMetaReportGlobalGenerateAll = actionHook<{ force_new_version?: boolean; grades?: number[] }, any>(
-  `${META_REPORTS_GLOBAL_PATH}/generate-all`,
-  axiosPost,
-  useAuthResources,
-)
 
 // Lists
 const useMetaReportBundleList = listHook<T_MetaReportBundleList>(META_REPORTS_PATH, axiosGet, useAuthResources)
@@ -129,9 +79,61 @@ const useMetaReportListHook = () => {
   return isAdmin ? useMetaReportBundleList : useMetaReportBundleListByUserSchool
 }
 
+// ----------------------------
+// Global bundles (new)
+// ----------------------------
+const META_REPORTS_GLOBAL_PATH = '/meta-reports-global'
+
+// Latest snapshot
+const useMetaReportGlobalLatestAction = actionHookV3<
+  `${typeof META_REPORTS_GLOBAL_PATH}/latest`,
+  undefined,
+  I_MetaReportGlobalBundleListItem
+>(`${META_REPORTS_GLOBAL_PATH}/latest`, axiosGet, useAuthResources)
+
+const useMetaReportGlobalLatestBySchoolIdAction = actionHookV3<
+  `${typeof META_REPORTS_GLOBAL_PATH}/latest?school_id={school_id:number}`,
+  undefined,
+  I_MetaReportGlobalBundleListItem
+>(`${META_REPORTS_GLOBAL_PATH}/latest?school_id={school_id:number}`, axiosGet, useAuthResources)
+
+// Manifest & artifacts
+const useMetaReportGlobalManifestAction = actionHookV3<
+  `${typeof META_REPORTS_GLOBAL_PATH}/{bundleId:number}/manifest`,
+  undefined,
+  any
+>(`${META_REPORTS_GLOBAL_PATH}/{bundleId:number}/manifest`, axiosGet, useAuthResources)
+
+const useMetaReportGlobalArtifactAction = actionHookV3<
+  `${typeof META_REPORTS_GLOBAL_PATH}/{bundleId:number}/artifact?name={name:string}`,
+  undefined,
+  any
+>(`${META_REPORTS_GLOBAL_PATH}/{bundleId:number}/artifact?name={name:string}`, axiosGet, useAuthResources)
+
+const useMetaReportGlobalDatasetAction = actionHookV3<
+  `${typeof META_REPORTS_GLOBAL_PATH}/{bundleId:number}/dataset?grade={grade:number}&subjects={subjects:string}&name={name:string}`,
+  undefined,
+  any
+>(
+  `${META_REPORTS_GLOBAL_PATH}/{bundleId:number}/dataset?grade={grade:number}&subjects={subjects:string}&name={name:string}`,
+  axiosGet,
+  useAuthResources,
+)
+
+const useMetaReportGlobalChatAction = actionHookV3<
+  `${typeof META_REPORTS_GLOBAL_PATH}/{bundleId:number}/chat`,
+  { message: string; filters?: Record<string, any> },
+  { response: string }
+>(`${META_REPORTS_GLOBAL_PATH}/{bundleId:number}/chat`, axiosPost, useAuthResources)
+
+// Regeneration (admin)
+const useMetaReportGlobalGenerateAll = actionHook<
+  { force_new_version?: boolean; grades?: number[] },
+  any
+>(`${META_REPORTS_GLOBAL_PATH}/generate-all`, axiosPost, useAuthResources)
+
 export {
   META_REPORTS_PATH,
-  META_REPORTS_GLOBAL_PATH,
   useMetaReportBundleList,
   useMetaReportBundleListByUserSchool,
   useMetaReportBundleDetail,
@@ -142,7 +144,9 @@ export {
   useNavigateToMetaReportList,
   useNavigateToMetaReportDetail,
   useMetaReportListHook,
+
   // Global
+  META_REPORTS_GLOBAL_PATH,
   useMetaReportGlobalLatestAction,
   useMetaReportGlobalLatestBySchoolIdAction,
   useMetaReportGlobalManifestAction,
