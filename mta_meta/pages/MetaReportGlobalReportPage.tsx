@@ -69,7 +69,13 @@ const buildDatasetOptions = (manifest: any): T_DatasetOption[] => {
     return raw
       .map((d: any) => {
         const grade = Number(d.grade ?? d.grade_id)
-        const subjects = String(d.subjects ?? d.dataset_id ?? d.id ?? '')
+        // IMPORTANT:
+        // Backend global bundles expose datasets with:
+        //   { grade, dataset_id, subjects: ['L'|'M'...], graph, data, cluster_summary }
+        // The dataset endpoint expects the query param `subjects` to be the dataset_id.
+        // If we stringify `subjects` (the array), we'll end up sending "L" or "L,M",
+        // which causes the backend to return: "Dataset not found".
+        const subjects = String(d.dataset_id ?? d.id ?? '')
         if (!Number.isFinite(grade) || !subjects) return null
         return {
           grade,
@@ -402,6 +408,22 @@ const MetaReportGlobalReportPage = () => {
 
   useEffect(() => {
     if (!bundleId) return
+
+    // When we switch bundles (e.g. admin selecting another school),
+    // clear all derived UI state so the page reloads data from the
+    // new manifest instead of showing stale tabs from the previous bundle.
+    setManifest(null)
+    setSummaries(null)
+    setQuestionsStats(null)
+    setStudentsStats(null)
+    setClusterSummary(null)
+    setGraph(null)
+    setDatasetData(null)
+    setSelectedGrade('')
+    setSelectedSubjects('')
+    setMessages([])
+    setChatText('')
+
     loadManifest()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bundleId])
