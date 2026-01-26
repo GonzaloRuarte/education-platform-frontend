@@ -16,6 +16,7 @@ const _handledAxiosError = (error: AxiosError<{ message?: string, detail?:string
   throw new ApiError<AxiosError>({
     message: (error.response?.data.message ??
     error.response?.data.detail ??
+    error.response?.data.error ??
     SERVER_ERROR),
     status: error.response?.status || -1,
     rawError: error,
