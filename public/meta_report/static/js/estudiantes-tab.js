@@ -173,7 +173,7 @@
    * Create tooltip element
    */
   function createTooltip() {
-    tooltip = d3.select('body')
+    tooltip = d3.select('#meta-report')
       .append('div')
       .attr('class', 'tooltip');
   }
