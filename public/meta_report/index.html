@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reporte META+</title>
+    <script>
+      (function () {
+        const parentWin = window.parent;
+        const apiBase = parentWin && parentWin.__metaReportApiBase ? String(parentWin.__metaReportApiBase) : '';
+        const parentFetch = parentWin && typeof parentWin.__metaReportFetchParent === 'function' ? parentWin.__metaReportFetchParent : null;
+
+        function isMetaPath(u) {
+          if (typeof u !== 'string') return false;
+          return (
+            u.startsWith('/config') ||
+            u.startsWith('/summaries') ||
+            u.startsWith('/questions_stats') ||
+            u.startsWith('/students_stats') ||
+            u.startsWith('/datasets') ||
+            u.startsWith('/chat')
+          );
+        }
+
+        const originalFetch = window.fetch.bind(window);
+
+        window.fetch = function (input, init) {
+          try {
+            let urlStr = null;
+            if (typeof input === 'string') {
+              urlStr = input;
+            } else if (input && typeof input === 'object' && 'url' in input) {
+              urlStr = String(input.url);
+            }
+
+            if (urlStr && isMetaPath(urlStr) && apiBase) {
+              let newUrl = apiBase.replace(/\/+$/, '') + urlStr;
+              if (!newUrl.endsWith('/')) newUrl += '/';
+
+              if (input instanceof Request) {
+                const newReq = new Request(newUrl, input);
+                return parentFetch ? parentFetch(newReq, init) : originalFetch(newReq, init);
+              }
+
+              return parentFetch ? parentFetch(newUrl, init) : originalFetch(newUrl, init);
+            }
+          } catch (e) {
+            // Fall back to original fetch
+          }
+          return originalFetch(input, init);
+        };
+      })();
+    </script>
+
+    <!-- External styles -->
+    <link rel="stylesheet" href="static/css/styles.css" />
+    <!-- Load D3 first, then our app scripts. Use defer so scripts execute after parsing and keep order. -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js" defer></script>
+    <script src="static/js/tabs.js" defer></script>
+    <script src="static/js/estadisticas-tab.js" defer></script>
+    <script src="static/js/preguntas-tab.js" defer></script>
+    <script src="static/js/estudiantes-tab.js" defer></script>
+    <script src="static/js/agrupamiento-tab.js" defer></script>
+    <script src="static/js/graph-tab.js" defer></script>
+    <script src="static/js/chat-tab.js" defer></script>
+  </head>
+  <body>
+    <header class="app-header">
+      <h1 class="app-title">Reporte META+</h1>
+      <nav class="tab-nav">
+        <button class="tab-button active" data-tab="estadisticas">Estadísticas</button>
+        <button class="tab-button" data-tab="preguntas">Preguntas</button>
+        <button class="tab-button" data-tab="estudiantes">Estudiantes</button>
+        <button class="tab-button" data-tab="agrupamiento">Agrupamiento</button>
+        <button class="tab-button" data-tab="graph">Red</button>
+        <button class="tab-button" data-tab="chat">Chat</button>
+      </nav>
+    </header>
+
+    <!-- Tab: Estadísticas -->
+    <div class="tab-content active" data-tab-content="estadisticas">
+      <main class="stats-layout">
+        <div class="stats-container">
+          <section class="stats-summary">
+            <h2>Estadísticas Totales</h2>
+            <div id="total-stats" class="stats-cards">
+              <div class="stat-card">
+                <span class="stat-label">Total de Respuestas</span>
+                <span class="stat-value" id="stat-total-responses">—</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-label">Total de Preguntas</span>
+                <span class="stat-value" id="stat-total-questions">—</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-label">Total de Estudiantes</span>
+                <span class="stat-value" id="stat-total-students">—</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-label">Total de Escuelas</span>
+                <span class="stat-value" id="stat-total-schools">—</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-label">KR-20 Total</span>
+                <span class="stat-value" id="stat-total-kr20">—</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-label">Promedio Total</span>
+                <span class="stat-value" id="stat-total-mean">—</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="stats-table-section">
+            <h2>Datos por Grado, Escuela y Materia</h2>
+            <div class="table-controls">
+              <div class="filter-controls" id="filter-controls"></div>
+            </div>
+            <div class="table-wrapper">
+              <table id="stats-table">
+                <thead>
+                  <tr>
+                    <th data-column="evaluation_grade">
+                      Grado
+                      <button class="sort-btn" data-sort="evaluation_grade" aria-label="Ordenar por grado">↕</button>
+                    </th>
+                    <th data-column="school_id">
+                      Escuela
+                      <button class="sort-btn" data-sort="school_id" aria-label="Ordenar por escuela">↕</button>
+                    </th>
+                    <th data-column="subject_id">
+                      Materia
+                      <button class="sort-btn" data-sort="subject_id" aria-label="Ordenar por materia">↕</button>
+                    </th>
+                    <th data-column="n_students">
+                      N° Estudiantes
+                      <button class="sort-btn" data-sort="n_students" aria-label="Ordenar por estudiantes">↕</button>
+                    </th>
+                   
+                    <th data-column="mean_score">
+                      Promedio
+                      <button class="sort-btn" data-sort="mean_score" aria-label="Ordenar por promedio">↕</button>
+                    </th>
+                    <th data-column="std_score">
+                      Desv. Estándar
+                      <button class="sort-btn" data-sort="std_score" aria-label="Ordenar por desviación">↕</button>
+                    </th>
+                     <th data-column="standard_error">
+                      Error Estándar
+                      <button class="sort-btn" data-sort="standard_error" aria-label="Ordenar por error">↕</button>
+                    </th>
+                     <th data-column="kr20">
+                      KR-20
+                      <button class="sort-btn" data-sort="kr20" aria-label="Ordenar por KR-20">↕</button>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="stats-table-body">
+                  <tr>
+                    <td colspan="8" class="loading-message">Cargando datos...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- Tab: Preguntas -->
+    <div class="tab-content" data-tab-content="preguntas">
+      <main class="questions-layout">
+        <div class="questions-container">
+          <section class="questions-controls">
+            <h2>Estadísticas de Preguntas</h2>
+            
+            <div class="questions-controls-grid">
+              <!-- Filtros -->
+              <div class="filter-section-questions">
+                <h3>Filtros</h3>
+                <div class="filter-controls-questions">
+                  <div class="filter-control">
+                    <label for="filter-question-subject">Materia:</label>
+                    <select id="filter-question-subject">
+                      <option value="">Todas</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Panel de Detalles -->
+              <div class="questions-detail-panel">
+                <h3>Detalles de la Pregunta</h3>
+                <div id="question-detail-content">
+                  <p class="no-selection">Haz click en una barra para ver los detalles</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Leyenda de Colores -->
+            <div class="questions-color-legend">
+              <div id="questions-legend-content"></div>
+            </div>
+          </section>
+
+          <section class="questions-chart">
+            <div id="questions-chart-container"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- Tab: Estudiantes -->
+    <div class="tab-content" data-tab-content="estudiantes">
+      <main class="students-layout">
+        <div class="students-container">
+          <section class="students-controls">
+            <h2>Semáforo de Rendimiento</h2>
+            
+            <div class="controls-grid">
+              <!-- Filtros -->
+              <div class="filter-section">
+                <h3>Filtros</h3>
+                <div class="filter-controls-students">
+                  <div class="filter-control">
+                    <label for="filter-grade">Grado:</label>
+                    <select id="filter-grade">
+                      <option value="">Todos</option>
+                    </select>
+                  </div>
+                  <div class="filter-control">
+                    <label for="filter-school">Escuela:</label>
+                    <select id="filter-school">
+                      <option value="">Todas</option>
+                    </select>
+                  </div>
+                  <div class="filter-control">
+                    <label for="filter-subject">Materia:</label>
+                    <select id="filter-subject">
+                      <option value="">Todas</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Panel de Detalles del Estudiante -->
+              <div class="students-detail-panel">
+                <h3>Detalles del Estudiante</h3>
+                <div id="student-detail-content">
+                  <p class="no-selection">Haz click en una barra para ver los detalles</p>
+                </div>
+              </div>
+
+              <!-- Umbrales -->
+              <div class="threshold-section" hidden>
+                <h3>Umbrales</h3>
+                <div class="threshold-controls">
+                  <div class="threshold-slider-container">
+                    <label>
+                      Límites: 
+                      <span class="threshold-value" id="threshold-red-yellow-value">0.50</span>
+                      -
+                      <span class="threshold-value" id="threshold-yellow-green-value">0.70</span>
+                    </label>
+                    <div class="dual-range-slider">
+                      <input 
+                        type="range" 
+                        id="threshold-red-yellow" 
+                        min="0" 
+                        max="1" 
+                        step="0.01" 
+                        value="0.50"
+                        aria-label="Red to yellow threshold"
+                        class="range-thumb range-thumb-lower"
+                      />
+                      <input 
+                        type="range" 
+                        id="threshold-yellow-green" 
+                        min="0" 
+                        max="1" 
+                        step="0.01" 
+                        value="0.70"
+                        aria-label="Yellow to green threshold"
+                        class="range-thumb range-thumb-upper"
+                      />
+                      <div class="slider-track"></div>
+                    </div>
+                  </div>
+                  <div class="color-counts">
+                    <div class="color-count color-count-red">
+                      <span class="color-indicator"></span>
+                      <span class="color-label">Rojo:</span>
+                      <span class="color-value" id="count-red">0</span>
+                    </div>
+                    <div class="color-count color-count-yellow">
+                      <span class="color-indicator"></span>
+                      <span class="color-label">Amarillo:</span>
+                      <span class="color-value" id="count-yellow">0</span>
+                    </div>
+                    <div class="color-count color-count-green">
+                      <span class="color-indicator"></span>
+                      <span class="color-label">Verde:</span>
+                      <span class="color-value" id="count-green">0</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          
+          <section class="students-chart">
+            <div id="students-chart-container"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- Tab: Agrupamiento -->
+    <div class="tab-content" data-tab-content="agrupamiento">
+      <main class="agrupamiento-layout">
+        <aside class="agrupamiento-sidebar">
+          <div class="agrupamiento-controls">
+            <h2>Configuración</h2>
+            
+            <div class="control-group">
+              <label for="agrupamiento-grade-select">Grado:</label>
+              <select id="agrupamiento-grade-select" aria-label="Select grade">
+                <option value="">Seleccionar...</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <label for="agrupamiento-subject-select">Materia:</label>
+              <select id="agrupamiento-subject-select" aria-label="Select subject">
+                <option value="">Seleccionar...</option>
+              </select>
+            </div>
+          </div>
+        </aside>
+
+        <section class="agrupamiento-main-content">
+          <div id="agrupamiento-clusters-container" class="clusters-container">
+            <p class="agrupamiento-placeholder">Seleccione un grado y una materia para ver los clusters</p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Tab: Graph -->
+    <div class="tab-content" data-tab-content="graph">
+      <main class="main-layout">
+      <aside class="sidebar">
+        <h2>Configuración</h2>
+        
+        <div class="sidebar-section data-select">
+          <label for="grade-select">Grado:</label>
+          <select id="grade-select" aria-label="Seleccionar grado"></select>
+        </div>
+
+        <div class="sidebar-section data-select">
+          <label for="data-select">Conjunto de datos:</label>
+          <select id="data-select" aria-label="Seleccionar conjunto de datos"></select>
+        </div>
+
+        <div id="force-controls" class="sidebar-section">
+          <header class="collapsible-header">
+            <span>Controles Grafo</span>
+            <button class="toggle-btn" id="toggle-force-controls" aria-label="Mostrar u ocultar controles">
+              <span class="toggle-icon">▼</span>
+            </button>
+          </header>
+
+          <div class="collapsible-content" id="force-controls-content" style="display: none;">
+          <div class="control-group">
+            <label for="min-size-filter">Tamaño mínimo</label>
+            <div class="control-slider">
+              <input
+                id="min-size-filter"
+                type="range"
+                min="1"
+                max="80"
+                step="1"
+                data-setting="minSizeFilter"
+                aria-label="Tamaño mínimo"
+              />
+              <div class="control-value" data-setting-display="minSizeFilter">1</div>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label for="link-distance-base">Distancia base</label>
+            <div class="control-slider">
+              <input
+                id="link-distance-base"
+                type="range"
+                min="0"
+                max="200"
+                step="1"
+                data-setting="linkDistanceBase"
+                aria-label="Distancia base"
+              />
+              <div class="control-value" data-setting-display="linkDistanceBase">20</div>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label for="link-distance-scale">Escala de distancia</label>
+            <div class="control-slider">
+              <input
+                id="link-distance-scale"
+                type="range"
+                min="0.5"
+                max="5"
+                step="0.1"
+                data-setting="linkDistanceScale"
+                aria-label="Escala de distancia"
+              />
+              <div class="control-value" data-setting-display="linkDistanceScale">2.5</div>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label for="link-strength">Fuerza del enlace</label>
+            <div class="control-slider">
+              <input
+                id="link-strength"
+                type="range"
+                min="0"
+                max="2"
+                step="0.05"
+                data-setting="linkStrength"
+                aria-label="Fuerza del enlace"
+              />
+              <div class="control-value" data-setting-display="linkStrength">0.45</div>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label for="charge-strength">Fuerza de repulsión</label>
+            <div class="control-slider">
+              <input
+                id="charge-strength"
+                type="range"
+                min="-600"
+                max="0"
+                step="10"
+                data-setting="chargeStrength"
+                aria-label="Fuerza de repulsión"
+              />
+              <div class="control-value" data-setting-display="chargeStrength">-180</div>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label for="collision-padding">Separación mínima</label>
+            <div class="control-slider">
+              <input
+                id="collision-padding"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                data-setting="collisionPadding"
+                aria-label="Separación mínima"
+              />
+              <div class="control-value" data-setting-display="collisionPadding">8</div>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label for="node-size-multiplier">Tamaño de nodos</label>
+            <div class="control-slider">
+              <input
+                id="node-size-multiplier"
+                type="range"
+                min="1"
+                max="8"
+                step="0.1"
+                data-setting="nodeSizeMultiplier"
+                aria-label="Tamaño de nodos"
+              />
+              <div class="control-value" data-setting-display="nodeSizeMultiplier">3.5</div>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label for="font-size-multiplier">Tamaño de texto</label>
+            <div class="control-slider">
+              <input
+                id="font-size-multiplier"
+                type="range"
+                min="0.5"
+                max="10"
+                step="0.1"
+                data-setting="fontSizeMultiplier"
+                aria-label="Tamaño de texto"
+              />
+              <div class="control-value" data-setting-display="fontSizeMultiplier">1</div>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label for="size-range-factor">Rango de tamaño</label>
+            <div class="control-slider">
+              <input
+                id="size-range-factor"
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                data-setting="sizeRangeFactor"
+                aria-label="Rango de tamaño"
+              />
+              <div class="control-value" data-setting-display="sizeRangeFactor">0.2</div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="main-content">
+        <div class="viz-area">
+          <div class="viz-canvas">
+            <div id="viz-container"></div>
+          </div>
+
+          <aside class="viz-side-panel">
+            <div id="legend" class="legend">
+              <h2>Leyenda</h2>
+              <div class="legend-controls">
+                <button id="color-mode-toggle" class="color-mode-btn">
+                  Color por: <span id="color-mode-label">Puntaje</span>
+                </button>
+              </div>
+              <canvas id="legend-canvas"></canvas>
+              <div class="legend-footer">
+                <span id="legend-min" class="tag-pill"><span class="tag-pill-value">mín</span></span>
+                <span id="legend-max" class="tag-pill"><span class="tag-pill-value">máx</span></span>
+              </div>
+            </div>
+
+            <div id="histogram" class="histogram">
+              <h3 class="histogram-title">Histograma</h3>
+              <svg id="histogram-svg" width="180" height="110"></svg>
+              <p id="histogram-message" class="histogram-message"></p>
+            </div>
+          </aside>
+        </div>
+
+        <div class="table-panel">
+          <h2 id="table-title">Nodo seleccionado</h2>
+          <div id="table-content" class="table-content"></div>
+        </div>
+      </section>
+    </main>
+    </div>
+
+    <!-- Tab: Chat -->
+    <div class="tab-content" data-tab-content="chat">
+      <main class="chat-layout">
+        <div class="chat-container">
+          <div class="chat-messages" id="chat-messages">
+            <div class="chat-message chat-message-assistant">
+              <div class="chat-message-content">
+                <p>Hola! Soy tu asistente para analizar los datos de META+. ¿En qué puedo ayudarte?</p>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-container">
+            <form id="chat-form" class="chat-form">
+              <input 
+                type="text" 
+                id="chat-input" 
+                class="chat-input" 
+                placeholder="Escribe tu pregunta aquí..."
+                autocomplete="off"
+              />
+              <button type="submit" class="chat-submit" id="chat-submit">
+                <span class="chat-submit-icon">➤</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
