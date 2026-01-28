@@ -1,915 +1,2179 @@
 'use client'
 
+import * as d3 from 'd3'
+import { apiUrl } from '@/config'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
-import { useUserProfilesResources } from '@/mta_auth/hooks'
-import {
-  useMetaReportGlobalArtifactAction,
-  useMetaReportGlobalChatAction,
-  useMetaReportGlobalDatasetAction,
-  useMetaReportGlobalGenerateAll,
-  useMetaReportGlobalLatestAction,
-  useMetaReportGlobalLatestBySchoolIdAction,
-  useMetaReportGlobalManifestAction,
-} from '@/mta_meta/hooks'
 import Page from '@/shared/components/Page'
-import Spacer from '@/shared/components/Spacer'
-import Spinner from '@/shared/components/Spinner'
-import Button from '@/shared/components/Button'
-import { H3, H4 } from '@/shared/components/Typography'
-import { handleServiceError } from '@/shared/service'
-import { successToast } from '@/shared/toasts'
-import Alert from '@mui/material/Alert'
-import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import MenuItem from '@mui/material/MenuItem'
-import Tab from '@mui/material/Tab'
-import Tabs from '@mui/material/Tabs'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
-import { DataGrid, GridColDef } from '@mui/x-data-grid'
-import { useSchoolAllNames } from '@/mta_schools/hooks'
-import { useEffect, useMemo, useState } from 'react'
+import { useStore } from '@/shared/state'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Alert, Box, Button, Card, CardContent, Paper, Stack, Tab, Tabs, TextField, Typography, Grid2 } from '@mui/material'
 
-type T_Tab = 'resumen' | 'preguntas' | 'estudiantes' | 'agrupamiento' | 'red' | 'chat'
+// -----------------------------------------------------------------------------
+// Auth-aware fetch (same refresh semantics as the rest of the app)
+// -----------------------------------------------------------------------------
 
-type T_DatasetOption = { grade: number; subjects: string; label: string }
+const buildAuthedRequest = (input: RequestInfo | URL, init: RequestInit | undefined, token?: string) => {
+  const baseHeaders = input instanceof Request ? new Headers(input.headers) : new Headers()
+  const initHeaders = init?.headers ? new Headers(init.headers as any) : new Headers()
 
-type T_GraphJson = {
-  nodes: Array<{ id: string; is_leaf?: boolean; score?: number | null; cluster_label?: string | null; pos?: [number, number] }>
-  links: Array<{ source: string; target: string }>
+  initHeaders.forEach((v, k) => baseHeaders.set(k, v))
+  if (token && !baseHeaders.has('Authorization')) {
+    baseHeaders.set('Authorization', `Bearer ${token}`)
+  }
+
+  if (input instanceof Request) {
+    const mergedInit: RequestInit = {
+      method: init?.method ?? input.method,
+      body: init?.body ?? (input as any).body,
+      mode: init?.mode ?? input.mode,
+      credentials: init?.credentials ?? input.credentials,
+      cache: init?.cache ?? input.cache,
+      redirect: init?.redirect ?? input.redirect,
+      referrer: init?.referrer ?? input.referrer,
+      referrerPolicy: init?.referrerPolicy ?? input.referrerPolicy,
+      integrity: init?.integrity ?? input.integrity,
+      keepalive: init?.keepalive ?? (input as any).keepalive,
+      signal: init?.signal ?? input.signal,
+      headers: baseHeaders,
+    }
+    return new Request(input.url, mergedInit)
+  }
+
+  return new Request(String(input), { ...init, headers: baseHeaders })
 }
 
-const statusLabel = (s?: string) => {
-  if (s === 'P') return 'Pendiente'
-  if (s === 'R') return 'Procesando'
-  if (s === 'D') return 'Listo'
-  if (s === 'F') return 'Falló'
-  return s ?? '—'
-}
+const metaReportFetch: typeof fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+  const state = useStore.getState()
+  const accessToken = state.auth_accessToken
+  const refreshToken = state.auth_refreshToken
 
-const normalizeDatasetLabel = (subjects: string) => {
-  return subjects
-    .replace(/_/g, ' ')
-    .replace(/y/g, 'y')
-    .replace(/Lenguage/g, 'Lenguaje')
-}
+  const doFetch = async (token?: string) => {
+    const req = buildAuthedRequest(input, init, token)
+    return fetch(req)
+  }
 
-const safeNum = (v: any) => {
-  const n = typeof v === 'number' ? v : Number(v)
-  return Number.isFinite(n) ? n : null
-}
+  let res = await doFetch(accessToken)
 
-const buildDatasetOptions = (manifest: any): T_DatasetOption[] => {
-  const raw = manifest?.files?.datasets
-  if (!raw) return []
-
-  // 1) New format: [{ grade, subjects, label, ... }]
-  if (Array.isArray(raw) && raw.length > 0 && typeof raw[0] === 'object') {
-    return raw
-      .map((d: any) => {
-        const grade = Number(d.grade ?? d.grade_id)
-        const subjects = String(d.subjects ?? d.dataset_id ?? d.id ?? '')
-        if (!Number.isFinite(grade) || !subjects) return null
-        return {
-          grade,
-          subjects,
-          label: String(d.label ?? normalizeDatasetLabel(subjects)),
-        } as T_DatasetOption
+  // Try refresh once on 401
+  if (res.status === 401 && refreshToken) {
+    try {
+      const refreshRes = await fetch(apiUrl('/token/refresh/'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: refreshToken }),
       })
-      .filter(Boolean) as T_DatasetOption[]
-  }
 
-  // 2) Legacy format: ["<prefix>/<grade>/<subjects>/<file>.json", ...]
-  if (Array.isArray(raw) && raw.length > 0 && typeof raw[0] === 'string') {
-    const out = new Map<string, T_DatasetOption>()
-    for (const p of raw as string[]) {
-      const s = String(p)
-      const parts = s.split('/').filter(Boolean)
-      // Find first numeric segment as grade
-      let gradeIdx = parts.findIndex((x) => /^\d+$/.test(x))
-      if (gradeIdx < 0) continue
-      const grade = Number(parts[gradeIdx])
-      const subjects = parts[gradeIdx + 1]
-      if (!Number.isFinite(grade) || !subjects) continue
-      const key = `${grade}|${subjects}`
-      if (!out.has(key)) {
-        out.set(key, { grade, subjects, label: normalizeDatasetLabel(subjects) })
+      if (refreshRes.ok) {
+        const data: any = await refreshRes.json()
+        if (data?.access) {
+          useStore.getState().auth_storeRefreshedToken(String(data.access))
+          res = await doFetch(String(data.access))
+        }
+      } else {
+        useStore.getState().auth_clearAuthData()
       }
+    } catch {
+      useStore.getState().auth_clearAuthData()
     }
-    return Array.from(out.values()).sort((a, b) => a.grade - b.grade || a.label.localeCompare(b.label))
   }
 
-  return []
+  return res
 }
 
-const SummaryCards = ({ summary }: { summary: any }) => {
-  if (!summary) return null
+// -----------------------------------------------------------------------------
+// Small utilities
+// -----------------------------------------------------------------------------
 
-  const cards: Array<{ label: string; value: any }> = [
-    { label: 'Respuestas', value: summary.total_answers },
-    { label: 'Preguntas', value: summary.total_questions },
-    { label: 'Estudiantes', value: summary.total_students },
-    { label: 'Escuelas', value: summary.total_schools },
-    { label: 'Promedio', value: safeNum(summary.total_avg_score)?.toFixed(3) },
-    { label: 'Desvío', value: safeNum(summary.total_std_score)?.toFixed(3) },
-    { label: 'Kr-20', value: safeNum(summary.total_kr20)?.toFixed(3) },
-  ]
-
-  return (
-    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 2 }}>
-      {cards.map((c) => (
-        <Card key={c.label} sx={{ borderRadius: 2 }}>
-          <CardContent>
-            <Typography variant="caption" color="text.secondary">
-              {c.label}
-            </Typography>
-            <Typography variant="h6" sx={{ mt: 0.5 }}>
-              {c.value ?? '—'}
-            </Typography>
-          </CardContent>
-        </Card>
-      ))}
-    </Box>
-  )
+function safeJsonParse<T>(value: string | null, fallback: T): T {
+  if (!value) return fallback
+  try {
+    return JSON.parse(value) as T
+  } catch {
+    return fallback
+  }
 }
 
-const ClusterCards = ({ cluster }: { cluster: any }) => {
-  if (!cluster) return null
-
-  const clusterIds = Object.keys(cluster.scores_mean ?? {}).sort((a, b) => Number(a) - Number(b))
-  if (clusterIds.length === 0) {
-    return <Alert severity="info">No hay clusters disponibles para este dataset.</Alert>
-  }
-
-  return (
-    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 2 }}>
-      {clusterIds.map((cid) => {
-        const mean = safeNum(cluster?.scores_mean?.[cid])
-        const nStudents = cluster?.n_students?.[cid] ?? cluster?.n_students?.[String(cid)]
-        const students = cluster?.student_ids?.[cid] ?? []
-
-        return (
-          <Card key={cid} sx={{ borderRadius: 2 }}>
-            <CardContent>
-              <Typography variant="subtitle2">Cluster {cid}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                Puntaje medio: {mean === null ? '—' : mean.toFixed(3)}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Estudiantes: {nStudents ?? students?.length ?? '—'}
-              </Typography>
-
-              {Array.isArray(students) && students.length > 0 && (
-                <Box sx={{ mt: 1 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    Ejemplo de IDs:
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                    {students.slice(0, 12).join(', ')}{students.length > 12 ? '…' : ''}
-                  </Typography>
-                </Box>
-              )}
-            </CardContent>
-          </Card>
-        )
-      })}
-    </Box>
-  )
-}
-
-
-const MetaReportGlobalReportPage = () => {
-  const { isAdmin } = useUserProfilesResources()
-
-  const { data: schoolsRaw } = useSchoolAllNames()
-  const schools = Array.isArray(schoolsRaw) ? schoolsRaw : []
-
-  const [selectedSchoolId, setSelectedSchoolId] = useState<number | ''>('')
-
-  const [bundle, setBundle] = useState<any>(null)
-  const bundleId = bundle?.id ? Number(bundle.id) : 0
-
-  const { executeAction: fetchLatest, isInProgress: latestLoading } = useMetaReportGlobalLatestAction()
-  const { executeAction: fetchLatestBySchool, isInProgress: latestBySchoolLoading } =
-    useMetaReportGlobalLatestBySchoolIdAction({ school_id: selectedSchoolId === '' ? 0 : selectedSchoolId })
-
-  const { executeAction: fetchManifest, isInProgress: manifestLoading } = useMetaReportGlobalManifestAction({
-    bundleId,
-  })
-
-  const { executeAction: fetchSummaries, isInProgress: summariesLoading } = useMetaReportGlobalArtifactAction({
-    bundleId,
-    name: 'summaries',
-  })
-  const { executeAction: fetchQuestionsStats, isInProgress: questionsLoading } = useMetaReportGlobalArtifactAction({
-    bundleId,
-    name: 'questions_stats',
-  })
-  const { executeAction: fetchStudentsStats, isInProgress: studentsLoading } = useMetaReportGlobalArtifactAction({
-    bundleId,
-    name: 'students_stats',
-  })
-
-  const generateAll = useMetaReportGlobalGenerateAll()
-
-  const [manifest, setManifest] = useState<any>(null)
-  const [summaries, setSummaries] = useState<any>(null)
-  const [questionsStats, setQuestionsStats] = useState<any>(null)
-  const [studentsStats, setStudentsStats] = useState<any>(null)
-
-  const [tab, setTab] = useState<T_Tab>('resumen')
-  const [topError, setTopError] = useState<string | null>(null)
-
-  // Dataset selection (clusters + graph)
-  const datasetOptions = useMemo(() => buildDatasetOptions(manifest), [manifest])
-  const [selectedGrade, setSelectedGrade] = useState<number | ''>('')
-  const [selectedSubjects, setSelectedSubjects] = useState<string>('')
-
-  const { executeAction: fetchClusterSummary, isInProgress: clusterLoading } = useMetaReportGlobalDatasetAction({
-    bundleId,
-    grade: selectedGrade === '' ? 0 : selectedGrade,
-    subjects: selectedSubjects || 'Lenguage',
-    name: 'cluster_summary',
-  })
-
-  const { executeAction: fetchGraph, isInProgress: graphLoading } = useMetaReportGlobalDatasetAction({
-    bundleId,
-    grade: selectedGrade === '' ? 0 : selectedGrade,
-    subjects: selectedSubjects || 'Lenguage',
-    name: 'graph',
-  })
-
-  const { executeAction: fetchData, isInProgress: dataLoading } = useMetaReportGlobalDatasetAction({
-    bundleId,
-    grade: selectedGrade === '' ? 0 : selectedGrade,
-    subjects: selectedSubjects || 'Lenguage',
-    name: 'data',
-  })
-
-  const { executeAction: chatAction, isInProgress: chatLoading } = useMetaReportGlobalChatAction({ bundleId })
-
-  const [clusterSummary, setClusterSummary] = useState<any>(null)
-  const [graph, setGraph] = useState<T_GraphJson | null>(null)
-  const [datasetData, setDatasetData] = useState<any>(null)
-
-  const [chatText, setChatText] = useState('')
-  const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([])
-
-  const ready = bundle?.status === 'D'
-
-  const loadLatestBundle = async () => {
-    setTopError(null)
-    try {
-      const data = isAdmin && selectedSchoolId !== '' ? await fetchLatestBySchool() : await fetchLatest()
-      setBundle(data)
-    } catch (e: any) {
-      handleServiceError(e)
-      setBundle(null)
-      setTopError(e?.message ?? 'No se pudo cargar el reporte global')
-    }
-  }
-
-  const loadManifest = async () => {
-    if (!bundleId) return
-    setTopError(null)
-    try {
-      const data = await fetchManifest()
-      setManifest(data)
-
-      // Set defaults for dataset selectors
-      const options = buildDatasetOptions(data)
-      if (options.length > 0) {
-        if (selectedGrade === '') setSelectedGrade(options[0].grade)
-        if (!selectedSubjects) setSelectedSubjects(options[0].subjects)
-      }
-    } catch (e: any) {
-      handleServiceError(e)
-      setTopError(e?.message ?? 'Error cargando manifest')
-    }
-  }
-
-  const loadSummaries = async () => {
-    if (!bundleId || !ready) return
-    setTopError(null)
-    try {
-      const data = await fetchSummaries()
-      setSummaries(data)
-    } catch (e: any) {
-      handleServiceError(e)
-      setTopError(e?.message ?? 'Error cargando resumen')
-    }
-  }
-
-  const loadQuestions = async () => {
-    if (!bundleId || !ready) return
-    setTopError(null)
-    try {
-      const data = await fetchQuestionsStats()
-      setQuestionsStats(data)
-    } catch (e: any) {
-      handleServiceError(e)
-      setTopError(e?.message ?? 'Error cargando preguntas')
-    }
-  }
-
-  const loadStudents = async () => {
-    if (!bundleId || !ready) return
-    setTopError(null)
-    try {
-      const data = await fetchStudentsStats()
-      setStudentsStats(data)
-    } catch (e: any) {
-      handleServiceError(e)
-      setTopError(e?.message ?? 'Error cargando estudiantes')
-    }
-  }
-
-  const loadCluster = async () => {
-    if (!bundleId || !ready || selectedGrade === '' || !selectedSubjects) return
-    setTopError(null)
-    try {
-      const data = await fetchClusterSummary()
-      setClusterSummary(data)
-    } catch (e: any) {
-      handleServiceError(e)
-      setTopError(e?.message ?? 'Error cargando clustering')
-    }
-  }
-
-  const loadGraph = async () => {
-    if (!bundleId || !ready || selectedGrade === '' || !selectedSubjects) return
-    setTopError(null)
-    try {
-      const data = await fetchGraph()
-      setGraph(data)
-    } catch (e: any) {
-      handleServiceError(e)
-      setTopError(e?.message ?? 'Error cargando red')
-    }
-  }
-
-  const loadDatasetData = async () => {
-    if (!bundleId || !ready || selectedGrade === '' || !selectedSubjects) return
-    setTopError(null)
-    try {
-      const data = await fetchData()
-      setDatasetData(data)
-    } catch (e: any) {
-      handleServiceError(e)
-      setTopError(e?.message ?? 'Error cargando datos de dataset')
-    }
-  }
-
-  const regenerateAll = async () => {
-    setTopError(null)
-    try {
-      await generateAll({ force_new_version: true })
-      successToast('Generación del reporte global encolada')
-      loadLatestBundle()
-    } catch (e: any) {
-      handleServiceError(e)
-      setTopError(e?.message ?? 'No se pudo encolar la regeneración')
-    }
-  }
-
-  const sendChat = async () => {
-    if (!chatText.trim()) return
-    const userMsg = chatText.trim()
-    setChatText('')
-    setMessages((m) => [...m, { role: 'user', content: userMsg }])
-
-    try {
-      const res = await chatAction({ message: userMsg, filters: { grade: selectedGrade, subjects: selectedSubjects } })
-      const text = (res as any)?.response ?? (res as any)?.answer ?? ''
-      setMessages((m) => [...m, { role: 'assistant', content: text || '—' }])
-    } catch (e: any) {
-      handleServiceError(e)
-      setMessages((m) => [...m, { role: 'assistant', content: 'Error al consultar el chat.' }])
-    }
-  }
+function useResizeObserver<T extends HTMLElement>() {
+  const ref = useRef<T | null>(null)
+  const [rect, setRect] = useState<{ width: number; height: number }>({ width: 0, height: 0 })
 
   useEffect(() => {
-    loadLatestBundle()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (!ref.current) return
+    const el = ref.current
+    const obs = new ResizeObserver((entries) => {
+      const cr = entries[0]?.contentRect
+      if (!cr) return
+      setRect({ width: cr.width, height: cr.height })
+    })
+    obs.observe(el)
+    return () => obs.disconnect()
   }, [])
 
-  useEffect(() => {
-    if (!isAdmin) return
-    loadLatestBundle()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSchoolId])
+  return { ref, rect }
+}
 
-  useEffect(() => {
-    if (!bundleId) return
-    loadManifest()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bundleId])
+const subjectNames: Record<string, string> = { L: 'Lengua', M: 'Matemática' }
+const formatPct = (v: any) => (v === null || v === undefined || Number.isNaN(Number(v)) ? '—' : `${(Number(v) * 100).toFixed(1)}%`)
+const StatCard = ({ label, value }: { label: string; value: React.ReactNode }) => (
+  <Grid2 size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+    <Card variant="outlined">
+      <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+        <Typography variant="overline" color="text.secondary">
+          {label}
+        </Typography>
+        <Typography variant="h5">{value}</Typography>
+      </CardContent>
+    </Card>
+  </Grid2>
+)
 
-  useEffect(() => {
-    if (!ready) return
-    if (tab === 'resumen' && !summaries && !summariesLoading) loadSummaries()
-    if (tab === 'preguntas' && !questionsStats && !questionsLoading) loadQuestions()
-    if (tab === 'estudiantes' && !studentsStats && !studentsLoading) loadStudents()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, ready])
 
-  useEffect(() => {
-    if (!ready) return
-    if (!selectedGrade || !selectedSubjects) return
-    // Preload clustering+graph when switching tabs
-    if (tab === 'agrupamiento' && !clusterSummary && !clusterLoading) loadCluster()
-    if (tab === 'red' && !graph && !graphLoading) loadGraph()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, selectedGrade, selectedSubjects, ready])
 
-  const questionsRows = useMemo(() => {
-    if (!questionsStats || typeof questionsStats !== 'object') return []
-    return Object.entries(questionsStats).map(([qid, v]: any, idx) => {
-      return {
-        id: qid,
-        qid,
-        count: safeNum(v?.count),
-        mean: safeNum(v?.mean),
-        competencia: v?.competencia ?? '',
-        question: v?.question ?? '',
-        contenido: v?.contenido ?? '',
+// -----------------------------------------------------------------------------
+// API hook
+// -----------------------------------------------------------------------------
+
+const useMetaReportApi = () => {
+  const apiBase = useMemo(() => apiUrl('/meta-reports-global/flask'), [])
+
+  const getJson = useCallback(
+    async <T,>(path: string): Promise<T> => {
+      const url = `${apiBase}${path}`
+      const res = await metaReportFetch(url, { cache: 'no-store' })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(`HTTP ${res.status} ${res.statusText} (${url}) ${text}`)
       }
+      return (await res.json()) as T
+    },
+    [apiBase],
+  )
+
+  const postJson = useCallback(
+    async <TResponse, TBody extends object>(path: string, body: TBody): Promise<TResponse> => {
+      const url = `${apiBase}${path}`
+      const res = await metaReportFetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(`HTTP ${res.status} ${res.statusText} (${url}) ${text}`)
+      }
+      return (await res.json()) as TResponse
+    },
+    [apiBase],
+  )
+
+  return { apiBase, getJson, postJson }
+}
+
+// -----------------------------------------------------------------------------
+// Estadísticas tab
+// -----------------------------------------------------------------------------
+
+type T_SummariesRow = {
+  evaluation_grade: number | string
+  school_id: number | string
+  subject_id: string
+  n_students: number
+  mean_score: number
+  std_score: number
+  standard_error: number
+  kr20: number | null
+  [k: string]: any
+}
+
+type T_SummariesResponse = {
+  total_responses?: number
+  total_questions?: number
+  total_students?: number
+  total_schools?: number
+  total_kr20_lengua?: number | null
+  total_mean_score?: number | null
+  data?: T_SummariesRow[]
+  [k: string]: any
+}
+
+const EstadisticasTab = ({ active }: { active: boolean }) => {
+  const { getJson } = useMetaReportApi()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [summaries, setSummaries] = useState<T_SummariesResponse | null>(null)
+
+  const STORAGE_PREFIX = 'reporteMeta.estadisticas.'
+  const STORAGE_KEY_FILTERS = STORAGE_PREFIX + 'filters'
+  const STORAGE_KEY_SORT = STORAGE_PREFIX + 'sort'
+
+  const [filters, setFilters] = useState<{ grade: string; school: string; subject: string }>(() =>
+    safeJsonParse(localStorage.getItem(STORAGE_KEY_FILTERS), { grade: '', school: '', subject: '' }),
+  )
+  const [sort, setSort] = useState<{ column: string | null; direction: 'asc' | 'desc' }>(() =>
+    safeJsonParse(localStorage.getItem(STORAGE_KEY_SORT), { column: null, direction: 'asc' }),
+  )
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(filters))
+    } catch { }
+  }, [filters])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_SORT, JSON.stringify(sort))
+    } catch { }
+  }, [sort])
+
+  useEffect(() => {
+    if (!active) return
+    if (summaries) return
+    setLoading(true)
+    setError(null)
+    getJson<T_SummariesResponse>('/summaries/')
+      .then((data) => setSummaries(data))
+      .catch((e) => setError(String(e?.message ?? e)))
+      .finally(() => setLoading(false))
+  }, [active, summaries, getJson])
+
+  const rows = summaries?.data ?? []
+  const options = useMemo(() => {
+    const grades = new Set<string>()
+    const schools = new Set<string>()
+    const subjects = new Set<string>()
+    rows.forEach((r) => {
+      grades.add(String(r.evaluation_grade))
+      schools.add(String(r.school_id))
+      subjects.add(String(r.subject_id))
     })
-  }, [questionsStats])
+    return {
+      grades: Array.from(grades).sort((a, b) => Number(a) - Number(b)),
+      schools: Array.from(schools).sort((a, b) => Number(a) - Number(b)),
+      subjects: Array.from(subjects).sort(),
+    }
+  }, [rows])
 
-  const questionColumns: Array<GridColDef> = [
-    { field: 'qid', headerName: 'Pregunta', flex: 1 },
-    { field: 'mean', headerName: 'Promedio', flex: 0.7, valueFormatter: ({ value }) => (value == null ? '—' : Number(value).toFixed(3)) },
-    { field: 'count', headerName: 'N', flex: 0.5 },
-    { field: 'competencia', headerName: 'Competencia', flex: 1 },
-    { field: 'question', headerName: 'Enunciado', flex: 2 },
-  ]
-
-  const studentsRows = useMemo(() => {
-    if (!studentsStats || typeof studentsStats !== 'object') return []
-    return Object.entries(studentsStats).map(([k, v]: any) => {
-      // Key can be: "(student_id, grade, school, 'L')"
-      let student_id: number | null = null
-      let grade: number | null = null
-      let school_id: number | null = null
-      let subject: string | null = null
-
-      if (typeof k === 'string' && k.startsWith('(')) {
-        const m = k.match(/\((\d+),\s*(\d+),\s*(\d+),\s*'([^']+)'\)/)
-        if (m) {
-          student_id = Number(m[1])
-          grade = Number(m[2])
-          school_id = Number(m[3])
-          subject = m[4]
-        }
-      }
-
-      return {
-        id: k,
-        student_id: student_id ?? k,
-        grade,
-        school_id,
-        subject,
-        count: safeNum(v?.count),
-        mean: safeNum(v?.mean),
-      }
+  const filtered = useMemo(() => {
+    return rows.filter((r) => {
+      if (filters.grade && String(r.evaluation_grade) !== filters.grade) return false
+      if (filters.school && String(r.school_id) !== filters.school) return false
+      if (filters.subject && String(r.subject_id) !== filters.subject) return false
+      return true
     })
-  }, [studentsStats])
+  }, [rows, filters])
 
-  const studentColumns: Array<GridColDef> = [
-    { field: 'student_id', headerName: 'Estudiante', flex: 1 },
-    { field: 'grade', headerName: 'Año', flex: 0.6 },
-    { field: 'school_id', headerName: 'Escuela', flex: 0.8 },
-    { field: 'subject', headerName: 'Materia', flex: 0.8 },
-    { field: 'mean', headerName: 'Promedio', flex: 0.7, valueFormatter: ({ value }) => (value == null ? '—' : Number(value).toFixed(3)) },
-    { field: 'count', headerName: 'N', flex: 0.5 },
-  ]
+  const sorted = useMemo(() => {
+    if (!sort.column) return filtered
+    const col = sort.column
+    const dir = sort.direction
+    const copy = [...filtered]
+    copy.sort((a: any, b: any) => {
+      const av = a?.[col]
+      const bv = b?.[col]
+      if (av === bv) return 0
+      if (av === null || av === undefined) return 1
+      if (bv === null || bv === undefined) return -1
+      if (typeof av === 'number' && typeof bv === 'number') return dir === 'asc' ? av - bv : bv - av
+      return dir === 'asc' ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av))
+    })
+    return copy
+  }, [filtered, sort])
 
-  const gradeOptions = useMemo(() => {
-    const grades = Array.from(new Set(datasetOptions.map((d) => d.grade))).sort((a, b) => a - b)
-    return grades
-  }, [datasetOptions])
-
-  const subjectsOptions = useMemo(() => {
-    if (selectedGrade === '') return []
-    return datasetOptions.filter((d) => d.grade === selectedGrade)
-  }, [datasetOptions, selectedGrade])
+  const toggleSort = (column: string) => {
+    setSort((s) => {
+      if (s.column !== column) return { column, direction: 'asc' }
+      return { column, direction: s.direction === 'asc' ? 'desc' : 'asc' }
+    })
+  }
 
   return (
-    <Page>
-      <H3>Reporte META (Global)</H3>
+    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="estadisticas">
+      <h2>Estadísticas</h2>
 
-      {topError && (
-        <Alert severity="error" sx={{ mt: 2 }}>
-          {topError}
+      {loading && <p className="loading-message">Cargando datos...</p>}
+      {error && <p className="error-message">{error}</p>}
+
+      {summaries && (
+        <>
+          <Grid2 container spacing={2} sx={{ mb: 2 }}>
+            <StatCard label="Respuestas" value={summaries.total_responses ?? '—'} />
+            <StatCard label="Preguntas" value={summaries.total_questions ?? '—'} />
+            <StatCard label="Estudiantes" value={summaries.total_students ?? '—'} />
+            <StatCard label="Escuelas" value={summaries.total_schools ?? '—'} />
+            <StatCard
+              label="KR-20"
+              value={
+                summaries.total_kr20_lengua === null || summaries.total_kr20_lengua === undefined
+                  ? '—'
+                  : Number(summaries.total_kr20_lengua).toFixed(3)
+              }
+            />
+            <StatCard
+              label="Promedio"
+              value={
+                summaries.total_mean_score === null || summaries.total_mean_score === undefined
+                  ? '—'
+                  : `${(Number(summaries.total_mean_score) * 100).toFixed(1)}%`
+              }
+            />
+          </Grid2>
+
+          <div className="filters-panel">
+            <div className="filters-row">
+              <div className="filter-group">
+                <label className="filter-label">Grado</label>
+                <select
+                  className="filter-select"
+                  value={filters.grade}
+                  onChange={(e) => setFilters((f) => ({ ...f, grade: e.target.value }))}
+                >
+                  <option value="">Todos</option>
+                  {options.grades.map((g) => (
+                    <option key={g} value={g}>
+                      {g}°
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="filter-group">
+                <label className="filter-label">Escuela</label>
+                <select
+                  className="filter-select"
+                  value={filters.school}
+                  onChange={(e) => setFilters((f) => ({ ...f, school: e.target.value }))}
+                >
+                  <option value="">Todas</option>
+                  {options.schools.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="filter-group">
+                <label className="filter-label">Materia</label>
+                <select
+                  className="filter-select"
+                  value={filters.subject}
+                  onChange={(e) => setFilters((f) => ({ ...f, subject: e.target.value }))}
+                >
+                  <option value="">Todas</option>
+                  {options.subjects.map((s) => (
+                    <option key={s} value={s}>
+                      {subjectNames[s] ?? s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                className="filter-clear-btn"
+                onClick={() => {
+                  setFilters({ grade: '', school: '', subject: '' })
+                  setSort({ column: null, direction: 'asc' })
+                }}
+                type="button"
+              >
+                Limpiar
+              </button>
+            </div>
+          </div>
+
+          <div className="table-panel">
+            <table id="stats-table">
+              <thead>
+                <tr>
+                  {[
+                    ['evaluation_grade', 'Grado'],
+                    ['school_id', 'Escuela'],
+                    ['subject_id', 'Materia'],
+                    ['n_students', 'Estudiantes'],
+                    ['mean_score', 'Promedio'],
+                    ['std_score', 'Std'],
+                    ['standard_error', 'Error Std'],
+                    ['kr20', 'KR-20'],
+                  ].map(([key, label]) => (
+                    <th key={key}>
+                      <button className="sort-btn" type="button" onClick={() => toggleSort(key)}>
+                        {label}{' '}
+                        {sort.column === key ? (sort.direction === 'asc' ? '▲' : '▼') : '↕'}
+                      </button>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map((r, idx) => (
+                  <tr key={`${r.evaluation_grade}-${r.school_id}-${r.subject_id}-${idx}`}>
+                    <td>{String(r.evaluation_grade)}</td>
+                    <td>{String(r.school_id)}</td>
+                    <td>{subjectNames[String(r.subject_id)] ?? String(r.subject_id)}</td>
+                    <td>{r.n_students}</td>
+                    <td>{formatPct(r.mean_score)}</td>
+                    <td>{formatPct(r.std_score)}</td>
+                    <td>{formatPct(r.standard_error)}</td>
+                    <td>{r.kr20 === null || r.kr20 === undefined ? '—' : Number(r.kr20).toFixed(3)}</td>
+                  </tr>
+                ))}
+                {!sorted.length && (
+                  <tr>
+                    <td colSpan={8} style={{ textAlign: 'center', padding: '1rem', color: '#64748b' }}>
+                      No hay datos con los filtros seleccionados
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// Preguntas tab
+// -----------------------------------------------------------------------------
+
+type T_QuestionsStatsResponse = Record<
+  string,
+  {
+    mean?: number
+    count?: number
+    question?: string
+    competencia?: string | null
+    contenido?: string | null
+  }
+>
+
+const PreguntasTab = ({ active }: { active: boolean }) => {
+  const { getJson } = useMetaReportApi()
+  const STORAGE_PREFIX = 'reporteMeta.preguntas.'
+  const STORAGE_KEY_FILTERS = STORAGE_PREFIX + 'filters'
+
+  const [filters, setFilters] = useState<{ subject: string; competencia: string; contenido: string }>(() =>
+    safeJsonParse(localStorage.getItem(STORAGE_KEY_FILTERS), { subject: '', competencia: '', contenido: '' }),
+  )
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<T_QuestionsStatsResponse | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const tooltipRef = useRef<HTMLDivElement | null>(null)
+
+  const { ref: containerRef, rect } = useResizeObserver<HTMLDivElement>()
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(filters))
+    } catch { }
+  }, [filters])
+
+  useEffect(() => {
+    if (!active) return
+    if (data) return
+    setLoading(true)
+    setError(null)
+    getJson<T_QuestionsStatsResponse>('/questions_stats/')
+      .then((d) => setData(d))
+      .catch((e) => setError(String(e?.message ?? e)))
+      .finally(() => setLoading(false))
+  }, [active, data, getJson])
+
+  const options = useMemo(() => {
+    const subjects = new Set<string>()
+    const competencias = new Set<string>()
+    const contenidos = new Set<string>()
+    if (!data) return { subjects: [], competencias: [], contenidos: [] }
+    Object.entries(data).forEach(([qid, v]) => {
+      const m = qid.match(/^([LM])_/)?.[1]
+      if (m) subjects.add(m)
+      if (v.competencia) competencias.add(v.competencia)
+      if (v.contenido) contenidos.add(v.contenido)
+    })
+    return {
+      subjects: Array.from(subjects).sort(),
+      competencias: Array.from(competencias).sort((a, b) => a.localeCompare(b)),
+      contenidos: Array.from(contenidos).sort((a, b) => a.localeCompare(b)),
+    }
+  }, [data])
+
+  const filteredEntries = useMemo(() => {
+    if (!data) return [] as Array<[string, any]>
+    return Object.entries(data).filter(([qid, v]) => {
+      const subj = qid.match(/^([LM])_/)?.[1] ?? ''
+      if (filters.subject && subj !== filters.subject) return false
+      if (filters.competencia && String(v.competencia ?? '') !== filters.competencia) return false
+      if (filters.contenido && String(v.contenido ?? '') !== filters.contenido) return false
+      return true
+    })
+  }, [data, filters])
+
+  const colorByCompetencia = useMemo(() => {
+    const palette = [
+      '#1f3a93',
+      '#2a9d8f',
+      '#e76f51',
+      '#6d28d9',
+      '#0ea5e9',
+      '#f59e0b',
+      '#22c55e',
+      '#ef4444',
+      '#14b8a6',
+      '#a855f7',
+    ]
+    const map = new Map<string, string>()
+    options.competencias.forEach((c, i) => map.set(c, palette[i % palette.length]))
+    return map
+  }, [options.competencias])
+
+  const darker = (hex: string) => {
+    const c = d3.color(hex)
+    if (!c) return hex
+    c.opacity = 1
+    const rgb = c.rgb()
+    return d3.rgb(Math.max(0, rgb.r - 30), Math.max(0, rgb.g - 30), Math.max(0, rgb.b - 30)).formatHex()
+  }
+
+  useEffect(() => {
+    if (!active) return
+    if (!data) return
+    if (!containerRef.current) return
+
+    const container = d3.select(containerRef.current)
+    container.selectAll('*').remove()
+
+    const entries = filteredEntries
+    if (!entries.length) {
+      container
+        .append('div')
+        .style('padding', '2rem')
+        .style('text-align', 'center')
+        .style('color', '#64748b')
+        .text('No hay datos de preguntas para los filtros seleccionados')
+      return
+    }
+
+    const questionsArray = entries
+      .map(([qid, v]) => ({
+        id: qid,
+        mean: Number(v.mean ?? 0),
+        count: Number(v.count ?? 0),
+        question: String(v.question ?? ''),
+        competencia: v.competencia ?? null,
+        contenido: v.contenido ?? null,
+      }))
+      .sort((a, b) => a.mean - b.mean)
+
+    const minMean = d3.min(questionsArray, (d) => d.mean) ?? 0
+    const maxMean = d3.max(questionsArray, (d) => d.mean) ?? 0
+    const normalize = (value: number) => {
+      if (maxMean === minMean) return 0.5
+      return (value - minMean) / (maxMean - minMean)
+    }
+    questionsArray.forEach((d: any) => (d.normalizedMean = normalize(d.mean)))
+
+    const width = Math.max(300, rect.width || containerRef.current.getBoundingClientRect().width)
+    const height = Math.max(360, rect.height || containerRef.current.getBoundingClientRect().height)
+    const margin = { top: 20, right: 30, bottom: 60, left: 60 }
+    const chartWidth = width - margin.left - margin.right
+    const chartHeight = height - margin.top - margin.bottom
+
+    const svg = container.append('svg').attr('width', width).attr('height', height)
+    const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
+
+    const xScale = d3
+      .scaleBand<string>()
+      .domain(questionsArray.map((d) => d.id))
+      .range([0, chartWidth])
+      .padding(0)
+
+    const yScale = d3.scaleLinear().domain([0, 1]).range([chartHeight, 0])
+
+    const xAxis = g
+      .append('g')
+      .attr('transform', `translate(0,${chartHeight})`)
+      .call(d3.axisBottom(xScale).tickValues([] as any))
+
+    const yAxis = g
+      .append('g')
+      .call(d3.axisLeft(yScale).ticks(10).tickFormat((d: any) => (Number(d) * 100).toFixed(0) + '%'))
+
+    yAxis.selectAll('text').style('font-size', '0.85rem').style('fill', '#64748b')
+    yAxis.selectAll('line').style('stroke', '#e2e8f0')
+    xAxis.selectAll('line').style('stroke', '#e2e8f0')
+    g.selectAll('.domain').style('stroke', '#cbd5e1')
+
+    g.append('g')
+      .attr('class', 'grid')
+      .call(d3.axisLeft(yScale).ticks(10).tickSize(-chartWidth).tickFormat(() => ''))
+      .style('stroke', '#f1f5f9')
+      .style('stroke-opacity', 0.7)
+      .selectAll('.domain')
+      .remove()
+
+    const getBarColor = (d: any) => {
+      const c = d.competencia ? colorByCompetencia.get(String(d.competencia)) : null
+      const fallback = '#1f3a93'
+      return c ?? fallback
+    }
+
+    const showTooltip = (event: any, d: any) => {
+      const el = tooltipRef.current
+      if (!el) return
+      const rect = (event.currentTarget as Element).getBoundingClientRect()
+      const pageX = event.clientX
+      const pageY = event.clientY
+      el.innerHTML = `
+        <div class="tooltip-id">Pregunta: ${d.id}</div>
+        <div class="tooltip-score">Promedio: ${(d.normalizedMean * 100).toFixed(1)}%</div>
+        <div class="tooltip-count">Respuestas: ${d.count}</div>
+      `
+      el.style.left = `${pageX + 10}px`
+      el.style.top = `${pageY - 28}px`
+      el.classList.add('visible')
+    }
+    const hideTooltip = () => {
+      const el = tooltipRef.current
+      if (!el) return
+      el.classList.remove('visible')
+    }
+
+    g.selectAll('.bar')
+      .data(questionsArray as any)
+      .enter()
+      .append('rect')
+      .attr('class', 'bar')
+      .attr('x', (d: any) => (xScale(d.id) ?? 0) - 0.5)
+      .attr('y', (d: any) => yScale(d.normalizedMean))
+      .attr('width', xScale.bandwidth() + 1)
+      .attr('height', (d: any) => chartHeight - yScale(d.normalizedMean))
+      .attr('fill', (d: any) => (selectedId === d.id ? darker(getBarColor(d)) : getBarColor(d)))
+      .attr('stroke', (d: any) => (selectedId === d.id ? '#1f3a93' : 'none'))
+      .attr('stroke-width', (d: any) => (selectedId === d.id ? 2 : 0))
+      .style('cursor', 'pointer')
+      .on('click', (_event: any, d: any) => {
+        setSelectedId(d.id)
+      })
+      .on('mouseover', function (event: any, d: any) {
+        showTooltip(event, d)
+        d3.select(this).attr('fill', darker(getBarColor(d)))
+      })
+      .on('mousemove', function (event: any, d: any) {
+        showTooltip(event, d)
+      })
+      .on('mouseout', function (event: any, d: any) {
+        hideTooltip()
+        const isSelected = selectedId === d.id
+        d3.select(this).attr('fill', isSelected ? darker(getBarColor(d)) : getBarColor(d))
+      })
+
+    svg
+      .append('text')
+      .attr('transform', 'rotate(-90)')
+      .attr('x', -(height / 2))
+      .attr('y', 15)
+      .style('text-anchor', 'middle')
+      .style('font-size', '0.9rem')
+      .style('fill', '#475569')
+      .style('font-weight', '600')
+      .text('Promedio de Aciertos')
+
+    svg
+      .append('text')
+      .attr('x', width / 2)
+      .attr('y', height - 10)
+      .style('text-anchor', 'middle')
+      .style('font-size', '0.9rem')
+      .style('fill', '#475569')
+      .style('font-weight', '600')
+      .text(`Preguntas (${questionsArray.length} total)`) // matches Flask
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, data, filteredEntries, rect.width, rect.height, selectedId, colorByCompetencia])
+
+  const selected = useMemo(() => {
+    if (!data || !selectedId) return null
+    const v = data[selectedId]
+    if (!v) return null
+    const mean = Number(v.mean ?? 0)
+    return {
+      id: selectedId,
+      normalizedMean: mean, // raw, normalized is chart-relative
+      mean,
+      count: Number(v.count ?? 0),
+      question: String(v.question ?? ''),
+      competencia: v.competencia ?? null,
+      contenido: v.contenido ?? null,
+    }
+  }, [data, selectedId])
+
+  const detail = useMemo(() => {
+    if (!selected) return null
+    const subj = selected.id.match(/^([LM])_/)?.[1]
+    return {
+      ...selected,
+      subject: subj ? subjectNames[subj] ?? subj : 'No especificada',
+    }
+  }, [selected])
+
+  return (
+    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="preguntas">
+      <h2>Preguntas</h2>
+
+      {loading && <p className="loading-message">Cargando datos...</p>}
+      {error && <p className="error-message">{error}</p>}
+
+      <div className="filters-panel">
+        <div className="filters-row">
+          <div className="filter-group">
+            <label className="filter-label">Materia</label>
+            <select
+              className="filter-select"
+              value={filters.subject}
+              onChange={(e) => setFilters((f) => ({ ...f, subject: e.target.value }))}
+            >
+              <option value="">Todas</option>
+              {options.subjects.map((s) => (
+                <option key={s} value={s}>
+                  {subjectNames[s] ?? s}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-group">
+            <label className="filter-label">Competencia</label>
+            <select
+              className="filter-select"
+              value={filters.competencia}
+              onChange={(e) => setFilters((f) => ({ ...f, competencia: e.target.value }))}
+            >
+              <option value="">Todas</option>
+              {options.competencias.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-group">
+            <label className="filter-label">Contenido</label>
+            <select
+              className="filter-select"
+              value={filters.contenido}
+              onChange={(e) => setFilters((f) => ({ ...f, contenido: e.target.value }))}
+            >
+              <option value="">Todos</option>
+              {options.contenidos.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            className="filter-clear-btn"
+            type="button"
+            onClick={() => {
+              setFilters({ subject: '', competencia: '', contenido: '' })
+              setSelectedId(null)
+            }}
+          >
+            Limpiar
+          </button>
+        </div>
+      </div>
+
+      <div className="questions-layout">
+        <div className="questions-chart">
+          <div className="chart-container" ref={containerRef} id="questions-chart-container" />
+          <div ref={tooltipRef} className="tooltip" />
+        </div>
+        <div className="questions-detail">
+          <h3>Detalle</h3>
+          {!detail ? (
+            <p className="no-selection">Selecciona una barra para ver el detalle.</p>
+          ) : (
+            <div id="question-detail-content">
+              <div className="detail-item detail-item-stats">
+                <div className="stat-row">
+                  <span className="detail-label">Texto</span>
+                  <span className="detail-value question-text">{detail.question || 'Sin texto disponible'}</span>
+                </div>
+                <div className="stat-row">
+                  <span className="detail-label">Respuestas</span>
+                  <span className="detail-value">{detail.count}</span>
+                </div>
+                <div className="stat-row">
+                  <span className="detail-label">Promedio</span>
+                  <span className="detail-value large">{formatPct(detail.mean)}</span>
+                </div>
+              </div>
+              <div className="detail-item detail-item-stats">
+                <div className="stat-row">
+                  <span className="detail-label">Materia</span>
+                  <span className="detail-value">{detail.subject}</span>
+                </div>
+                <div className="stat-row">
+                  <span className="detail-label">Competencia</span>
+                  <span className="detail-value">{detail.competencia || 'No especificada'}</span>
+                </div>
+                <div className="stat-row">
+                  <span className="detail-label">Contenido</span>
+                  <span className="detail-value">{detail.contenido || 'No especificado'}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// Estudiantes tab
+// -----------------------------------------------------------------------------
+
+type T_StudentsStatsResponse = Record<string, { mean?: number; count?: number }>
+
+const parseStudentKey = (key: string) => {
+  const match = key.match(/\((\d+),\s*(\d+),\s*(\d+),\s*'([LM])'\)/)
+  if (!match) return null
+  return {
+    studentId: Number(match[1]),
+    grade: Number(match[2]),
+    school: Number(match[3]),
+    subject: String(match[4]),
+  }
+}
+
+const EstudiantesTab = ({ active }: { active: boolean }) => {
+  const { getJson } = useMetaReportApi()
+  const STORAGE_PREFIX = 'reporteMeta.estudiantes.'
+  const STORAGE_KEY_FILTERS = STORAGE_PREFIX + 'filters'
+  const STORAGE_KEY_THRESHOLDS = STORAGE_PREFIX + 'thresholds'
+
+  const [filters, setFilters] = useState<{ grade: string; school: string; subject: string }>(() =>
+    safeJsonParse(localStorage.getItem(STORAGE_KEY_FILTERS), { grade: '', school: '', subject: '' }),
+  )
+  const [thresholds, setThresholds] = useState<{ redYellow: number; yellowGreen: number }>(() =>
+    safeJsonParse(localStorage.getItem(STORAGE_KEY_THRESHOLDS), { redYellow: 0.4, yellowGreen: 0.6 }),
+  )
+
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<T_StudentsStatsResponse | null>(null)
+  const [selectedKey, setSelectedKey] = useState<string | null>(null)
+  const tooltipRef = useRef<HTMLDivElement | null>(null)
+  const { ref: containerRef, rect } = useResizeObserver<HTMLDivElement>()
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(filters))
+    } catch { }
+  }, [filters])
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_THRESHOLDS, JSON.stringify(thresholds))
+    } catch { }
+  }, [thresholds])
+
+  useEffect(() => {
+    if (!active) return
+    if (data) return
+    setLoading(true)
+    setError(null)
+    getJson<T_StudentsStatsResponse>('/students_stats/')
+      .then((d) => setData(d))
+      .catch((e) => setError(String(e?.message ?? e)))
+      .finally(() => setLoading(false))
+  }, [active, data, getJson])
+
+  const options = useMemo(() => {
+    const grades = new Set<number>()
+    const schools = new Set<number>()
+    const subjects = new Set<string>()
+    if (!data) return { grades: [], schools: [], subjects: [] }
+    Object.keys(data).forEach((k) => {
+      const p = parseStudentKey(k)
+      if (!p) return
+      grades.add(p.grade)
+      schools.add(p.school)
+      subjects.add(p.subject)
+    })
+    return {
+      grades: Array.from(grades).sort((a, b) => a - b),
+      schools: Array.from(schools).sort((a, b) => a - b),
+      subjects: Array.from(subjects).sort(),
+    }
+  }, [data])
+
+  const filteredEntries = useMemo(() => {
+    if (!data) return [] as Array<[string, { mean?: number; count?: number }]>
+    return Object.entries(data).filter(([key]) => {
+      const p = parseStudentKey(key)
+      if (!p) return false
+      if (filters.grade && p.grade !== Number(filters.grade)) return false
+      if (filters.school && p.school !== Number(filters.school)) return false
+      if (filters.subject && p.subject !== filters.subject) return false
+      return true
+    })
+  }, [data, filters])
+
+  const getBarColor = (score01: number) => {
+    if (score01 < thresholds.redYellow) return '#ef4444'
+    if (score01 < thresholds.yellowGreen) return '#f59e0b'
+    return '#22c55e'
+  }
+  const darkerColor = (hex: string) => {
+    const c = d3.color(hex)
+    if (!c) return hex
+    const rgb = c.rgb()
+    return d3.rgb(Math.max(0, rgb.r - 30), Math.max(0, rgb.g - 30), Math.max(0, rgb.b - 30)).formatHex()
+  }
+
+  const counts = useMemo(() => {
+    if (!data || !filteredEntries.length) return { red: 0, yellow: 0, green: 0 }
+    const arr = filteredEntries.map(([k, v]) => ({ k, mean: Number(v.mean ?? 0) }))
+    const min = d3.min(arr, (d) => d.mean) ?? 0
+    const max = d3.max(arr, (d) => d.mean) ?? 0
+    const norm = (val: number) => (max === min ? 0.5 : (val - min) / (max - min))
+    let red = 0,
+      yellow = 0,
+      green = 0
+    arr.forEach((d) => {
+      const c = getBarColor(norm(d.mean))
+      if (c === '#ef4444') red++
+      else if (c === '#f59e0b') yellow++
+      else green++
+    })
+    return { red, yellow, green }
+  }, [data, filteredEntries, thresholds.redYellow, thresholds.yellowGreen])
+
+  const selectedDetail = useMemo(() => {
+    if (!data || !selectedKey) return null
+    const parsed = parseStudentKey(selectedKey)
+    if (!parsed) return null
+    const lenguaKey = `(${parsed.studentId}, ${parsed.grade}, ${parsed.school}, 'L')`
+    const matemKey = `(${parsed.studentId}, ${parsed.grade}, ${parsed.school}, 'M')`
+    const lengua = data[lenguaKey]
+    const matem = data[matemKey]
+    return {
+      studentId: parsed.studentId,
+      grade: parsed.grade,
+      school: parsed.school,
+      lengua: lengua ? { mean: Number(lengua.mean ?? 0), count: Number(lengua.count ?? 0) } : null,
+      matematica: matem ? { mean: Number(matem.mean ?? 0), count: Number(matem.count ?? 0) } : null,
+    }
+  }, [data, selectedKey])
+
+  useEffect(() => {
+    if (!active) return
+    if (!data) return
+    if (!containerRef.current) return
+
+    const container = d3.select(containerRef.current)
+    container.selectAll('*').remove()
+
+    const entries = filteredEntries
+    if (!entries.length) {
+      container
+        .append('div')
+        .style('padding', '2rem')
+        .style('text-align', 'center')
+        .style('color', '#64748b')
+        .text('No hay datos de estudiantes para los filtros seleccionados')
+      return
+    }
+
+    const studentsArray = entries
+      .map(([id, v]) => ({ id, mean: Number(v.mean ?? 0), count: Number(v.count ?? 0) }))
+      .sort((a, b) => a.mean - b.mean)
+
+    const minMean = d3.min(studentsArray, (d) => d.mean) ?? 0
+    const maxMean = d3.max(studentsArray, (d) => d.mean) ?? 0
+    const normalize = (value: number) => (maxMean === minMean ? 0.5 : (value - minMean) / (maxMean - minMean))
+    studentsArray.forEach((d: any) => (d.normalizedMean = normalize(d.mean)))
+
+    const width = Math.max(300, rect.width || containerRef.current.getBoundingClientRect().width)
+    const height = Math.max(360, rect.height || containerRef.current.getBoundingClientRect().height)
+    const margin = { top: 20, right: 30, bottom: 60, left: 60 }
+    const chartWidth = width - margin.left - margin.right
+    const chartHeight = height - margin.top - margin.bottom
+
+    const svg = container.append('svg').attr('width', width).attr('height', height)
+    const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
+
+    const xScale = d3
+      .scaleBand<string>()
+      .domain(studentsArray.map((d) => d.id))
+      .range([0, chartWidth])
+      .padding(0)
+
+    const yScale = d3.scaleLinear().domain([0, 1]).range([chartHeight, 0])
+
+    const xAxis = g
+      .append('g')
+      .attr('transform', `translate(0,${chartHeight})`)
+      .call(d3.axisBottom(xScale).tickValues([] as any))
+
+    const yAxis = g
+      .append('g')
+      .call(d3.axisLeft(yScale).ticks(10).tickFormat((d: any) => (Number(d) * 100).toFixed(0) + '%'))
+
+    yAxis.selectAll('text').style('font-size', '0.85rem').style('fill', '#64748b')
+    yAxis.selectAll('line').style('stroke', '#e2e8f0')
+    xAxis.selectAll('line').style('stroke', '#e2e8f0')
+    g.selectAll('.domain').style('stroke', '#cbd5e1')
+
+    g.append('g')
+      .attr('class', 'grid')
+      .call(d3.axisLeft(yScale).ticks(10).tickSize(-chartWidth).tickFormat(() => ''))
+      .style('stroke', '#f1f5f9')
+      .style('stroke-opacity', 0.7)
+      .selectAll('.domain')
+      .remove()
+
+    const showTooltip = (event: any, d: any) => {
+      const el = tooltipRef.current
+      if (!el) return
+      const parsed = parseStudentKey(d.id)
+      const studentId = parsed ? parsed.studentId : d.id
+      el.innerHTML = `
+        <div class="tooltip-id">Estudiante: ${studentId}</div>
+        <div class="tooltip-score">Puntaje: ${(d.normalizedMean * 100).toFixed(1)}%</div>
+      `
+      el.style.left = `${event.clientX + 10}px`
+      el.style.top = `${event.clientY - 28}px`
+      el.classList.add('visible')
+    }
+    const hideTooltip = () => {
+      const el = tooltipRef.current
+      if (!el) return
+      el.classList.remove('visible')
+    }
+
+    g.selectAll('.bar')
+      .data(studentsArray as any)
+      .enter()
+      .append('rect')
+      .attr('class', 'bar')
+      .attr('x', (d: any) => (xScale(d.id) ?? 0) - 0.5)
+      .attr('y', (d: any) => yScale(d.normalizedMean))
+      .attr('width', xScale.bandwidth() + 1)
+      .attr('height', (d: any) => chartHeight - yScale(d.normalizedMean))
+      .attr('fill', (d: any) => {
+        const base = getBarColor(d.normalizedMean)
+        return selectedKey === d.id ? darkerColor(base) : base
+      })
+      .attr('stroke', (d: any) => (selectedKey === d.id ? '#1f3a93' : 'none'))
+      .attr('stroke-width', (d: any) => (selectedKey === d.id ? 2 : 0))
+      .style('cursor', 'pointer')
+      .on('click', (_event: any, d: any) => setSelectedKey(d.id))
+      .on('mouseover', function (event: any, d: any) {
+        showTooltip(event, d)
+        d3.select(this).attr('fill', darkerColor(getBarColor(d.normalizedMean)))
+      })
+      .on('mousemove', function (event: any, d: any) {
+        showTooltip(event, d)
+      })
+      .on('mouseout', function (event: any, d: any) {
+        hideTooltip()
+        const isSelected = selectedKey === d.id
+        const base = getBarColor(d.normalizedMean)
+        d3.select(this).attr('fill', isSelected ? darkerColor(base) : base)
+      })
+
+    svg
+      .append('text')
+      .attr('transform', 'rotate(-90)')
+      .attr('x', -(height / 2))
+      .attr('y', 15)
+      .style('text-anchor', 'middle')
+      .style('font-size', '0.9rem')
+      .style('fill', '#475569')
+      .style('font-weight', '600')
+      .text('Puntaje Promedio')
+
+    svg
+      .append('text')
+      .attr('x', width / 2)
+      .attr('y', height - 10)
+      .style('text-anchor', 'middle')
+      .style('font-size', '0.9rem')
+      .style('fill', '#475569')
+      .style('font-weight', '600')
+      .text(`Estudiantes (${studentsArray.length} total)`)
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, data, filteredEntries, rect.width, rect.height, thresholds.redYellow, thresholds.yellowGreen, selectedKey])
+
+  return (
+    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="estudiantes">
+      <h2>Estudiantes</h2>
+
+      {loading && <p className="loading-message">Cargando datos...</p>}
+      {error && <p className="error-message">{error}</p>}
+
+      <div className="filters-panel">
+        <div className="filters-row">
+          <div className="filter-group">
+            <label className="filter-label">Grado</label>
+            <select
+              className="filter-select"
+              value={filters.grade}
+              onChange={(e) => setFilters((f) => ({ ...f, grade: e.target.value }))}
+            >
+              <option value="">Todos</option>
+              {options.grades.map((g) => (
+                <option key={g} value={String(g)}>
+                  {g}°
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-group">
+            <label className="filter-label">Escuela</label>
+            <select
+              className="filter-select"
+              value={filters.school}
+              onChange={(e) => setFilters((f) => ({ ...f, school: e.target.value }))}
+            >
+              <option value="">Todas</option>
+              {options.schools.map((s) => (
+                <option key={s} value={String(s)}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-group">
+            <label className="filter-label">Materia</label>
+            <select
+              className="filter-select"
+              value={filters.subject}
+              onChange={(e) => setFilters((f) => ({ ...f, subject: e.target.value }))}
+            >
+              <option value="">Todas</option>
+              {options.subjects.map((s) => (
+                <option key={s} value={s}>
+                  {subjectNames[s] ?? s}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            className="filter-clear-btn"
+            type="button"
+            onClick={() => {
+              setFilters({ grade: '', school: '', subject: '' })
+              setSelectedKey(null)
+            }}
+          >
+            Limpiar
+          </button>
+        </div>
+      </div>
+
+      <div className="thresholds-panel">
+        <div className="threshold">
+          <label className="threshold-label">
+            Rojo → Amarillo: <span className="threshold-value">{Math.round(thresholds.redYellow * 100)}%</span>
+          </label>
+          <input
+            id="threshold-red-yellow"
+            className="threshold-slider"
+            type="range"
+            min={0}
+            max={0.95}
+            step={0.01}
+            value={thresholds.redYellow}
+            onChange={(e) =>
+              setThresholds((t) => ({
+                ...t,
+                redYellow: Math.min(Number(e.target.value), t.yellowGreen - 0.01),
+              }))
+            }
+          />
+        </div>
+        <div className="threshold">
+          <label className="threshold-label">
+            Amarillo → Verde: <span className="threshold-value">{Math.round(thresholds.yellowGreen * 100)}%</span>
+          </label>
+          <input
+            id="threshold-yellow-green"
+            className="threshold-slider"
+            type="range"
+            min={0.05}
+            max={1}
+            step={0.01}
+            value={thresholds.yellowGreen}
+            onChange={(e) =>
+              setThresholds((t) => ({
+                ...t,
+                yellowGreen: Math.max(Number(e.target.value), t.redYellow + 0.01),
+              }))
+            }
+          />
+        </div>
+        <div className="traffic-counts">
+          <div className="traffic-count traffic-count-red">
+            <span className="traffic-dot" />
+            <span id="count-red">{counts.red}</span>
+          </div>
+          <div className="traffic-count traffic-count-yellow">
+            <span className="traffic-dot" />
+            <span id="count-yellow">{counts.yellow}</span>
+          </div>
+          <div className="traffic-count traffic-count-green">
+            <span className="traffic-dot" />
+            <span id="count-green">{counts.green}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="students-layout">
+        <div className="students-chart">
+          <div className="chart-container" ref={containerRef} id="students-chart-container" />
+          <div ref={tooltipRef} className="tooltip" />
+        </div>
+        <div className="students-detail">
+          <h3>Detalle</h3>
+          {!selectedDetail ? (
+            <p className="no-selection">Selecciona una barra para ver el detalle.</p>
+          ) : (
+            <div id="student-detail-content">
+              <div className="detail-item detail-item-stats">
+                <div className="stat-row">
+                  <span className="detail-label">ID Estudiante</span>
+                  <span className="detail-value">{selectedDetail.studentId}</span>
+                </div>
+                <div className="stat-row">
+                  <span className="detail-label">Escuela</span>
+                  <span className="detail-value">{selectedDetail.school}</span>
+                </div>
+                <div className="stat-row">
+                  <span className="detail-label">Grado</span>
+                  <span className="detail-value">{selectedDetail.grade}°</span>
+                </div>
+              </div>
+              <div className="detail-item detail-item-stats">
+                <div className="stat-row">
+                  <span className="detail-label">Lengua - Puntaje</span>
+                  <span className="detail-value">{selectedDetail.lengua ? formatPct(selectedDetail.lengua.mean) : 'N/A'}</span>
+                </div>
+                <div className="stat-row">
+                  <span className="detail-label">Lengua - Preguntas</span>
+                  <span className="detail-value">{selectedDetail.lengua ? selectedDetail.lengua.count : 'N/A'}</span>
+                </div>
+              </div>
+              <div className="detail-item detail-item-stats">
+                <div className="stat-row">
+                  <span className="detail-label">Matemática - Puntaje</span>
+                  <span className="detail-value">
+                    {selectedDetail.matematica ? formatPct(selectedDetail.matematica.mean) : 'N/A'}
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="detail-label">Matemática - Preguntas</span>
+                  <span className="detail-value">{selectedDetail.matematica ? selectedDetail.matematica.count : 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// Agrupamiento tab
+// -----------------------------------------------------------------------------
+
+type T_DatasetsResponse = {
+  grades?: Array<{ id: string; label: string; datasets: Array<{ id: string; label: string; graph_url: string; data_url: string }> }>
+  datasets?: Array<{ grade_id: string; id: string; label: string } & any>
+}
+
+const AgrupamientoTab = ({ active }: { active: boolean }) => {
+  const { getJson } = useMetaReportApi()
+  const STORAGE_PREFIX = 'reporteMeta.agrupamiento.'
+  const STORAGE_KEY_GRADE = STORAGE_PREFIX + 'grade'
+  const STORAGE_KEY_SUBJECT = STORAGE_PREFIX + 'subject'
+
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [datasets, setDatasets] = useState<T_DatasetsResponse | null>(null)
+  const [grade, setGrade] = useState<string>(() => localStorage.getItem(STORAGE_KEY_GRADE) || '')
+  const [subject, setSubject] = useState<string>(() => localStorage.getItem(STORAGE_KEY_SUBJECT) || '')
+  const [cluster, setCluster] = useState<any | null>(null)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_GRADE, grade)
+      localStorage.setItem(STORAGE_KEY_SUBJECT, subject)
+    } catch { }
+  }, [grade, subject])
+
+  useEffect(() => {
+    if (!active) return
+    if (datasets) return
+    setLoading(true)
+    setError(null)
+    getJson<T_DatasetsResponse>('/datasets/')
+      .then((d) => setDatasets(d))
+      .catch((e) => setError(String(e?.message ?? e)))
+      .finally(() => setLoading(false))
+  }, [active, datasets, getJson])
+
+  const gradeOptions = useMemo(() => datasets?.grades ?? [], [datasets])
+  const subjectOptions = useMemo(() => {
+    const list = datasets?.datasets ?? []
+    if (!grade) return [] as Array<{ id: string; label: string }>
+    const filtered = list.filter((d) => String(d.grade_id) === String(grade))
+    const map = new Map<string, string>()
+    filtered.forEach((d) => map.set(String(d.id), String(d.label)))
+    return Array.from(map.entries())
+      .map(([id, label]) => ({ id, label }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }, [datasets, grade])
+
+  useEffect(() => {
+    setCluster(null)
+    if (!active) return
+    if (!grade || !subject) return
+    setLoading(true)
+    setError(null)
+    getJson<any>(`/datasets/${grade}/${subject}/cluster_summary/`)
+      .then((d) => setCluster(d))
+      .catch((e) => setError(String(e?.message ?? e)))
+      .finally(() => setLoading(false))
+  }, [active, grade, subject, getJson])
+
+  const clusterIds = useMemo(() => {
+    if (!cluster) return [] as string[]
+    return Object.keys(cluster?.scores_mean ?? {}).sort((a, b) => Number(a) - Number(b))
+  }, [cluster])
+
+  const formatCompetenciaName = (name: string) =>
+    name
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+
+  const downloadStudentIds = (clusterId: string, studentIds: any[]) => {
+    if (!studentIds?.length) return
+    const csv = 'student_id\n' + studentIds.join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `cluster_${clusterId}_grade_${grade}_${subject}_students.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  return (
+    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="agrupamiento">
+      <h2>Agrupamiento</h2>
+
+      {loading && <p className="loading-message">Cargando datos...</p>}
+      {error && <p className="error-message">{error}</p>}
+
+      <div className="filters-panel">
+        <div className="filters-row">
+          <div className="filter-group">
+            <label className="filter-label">Grado</label>
+            <select
+              id="agrupamiento-grade-select"
+              className="filter-select"
+              value={grade}
+              onChange={(e) => {
+                setGrade(e.target.value)
+                setSubject('')
+              }}
+            >
+              <option value="">Seleccionar...</option>
+              {gradeOptions.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-group">
+            <label className="filter-label">Materia</label>
+            <select
+              id="agrupamiento-subject-select"
+              className="filter-select"
+              value={subject}
+              disabled={!grade}
+              onChange={(e) => setSubject(e.target.value)}
+            >
+              <option value="">Seleccionar...</option>
+              {subjectOptions.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="agrupamiento-clusters-container" className="clusters-container">
+        {!grade || !subject ? (
+          <p className="agrupamiento-placeholder">Seleccione un grado y una materia para ver los clusters</p>
+        ) : !cluster ? (
+          <p className="agrupamiento-placeholder">Cargando datos...</p>
+        ) : !clusterIds.length ? (
+          <p className="agrupamiento-placeholder" style={{ color: '#ef4444' }}>
+            No hay datos de clusters disponibles
+          </p>
+        ) : (
+          <>
+            {clusterIds.map((clusterId) => {
+              const nStudents = cluster?.n_students?.[clusterId] ?? 0
+              const scoresMean = cluster?.scores_mean?.[clusterId] ?? 0
+              const studentIds = cluster?.student_ids?.[clusterId] ?? []
+              const competencias: Array<{ name: string; value: any }> = []
+              Object.keys(cluster).forEach((key) => {
+                if (['scores_mean', 'n_students', 'student_ids'].includes(key)) return
+                if (cluster?.[key]?.[clusterId] === undefined) return
+                competencias.push({ name: formatCompetenciaName(key), value: cluster[key][clusterId] })
+              })
+              return (
+                <div key={clusterId} className="cluster-panel" data-cluster={clusterId}>
+                  <div className="cluster-panel-header">
+                    <h3 className="cluster-panel-title">Grupo {clusterId}</h3>
+                    <span className="cluster-panel-count tag-pill">
+                      {nStudents} estudiante{nStudents !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  <div className="cluster-panel-body">
+                    <div className="cluster-metric">
+                      <span className="cluster-metric-label">Promedio Global</span>
+                      <span className="cluster-metric-value tag-pill">
+                        <span className="tag-pill-value">{formatPct(scoresMean)}</span>
+                      </span>
+                    </div>
+                    {competencias.map((c) => (
+                      <div key={c.name} className="cluster-metric">
+                        <span className="cluster-metric-label">{c.name}</span>
+                        <span className="cluster-metric-value tag-pill">
+                          <span className="tag-pill-value">{formatPct(c.value)}</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="cluster-panel-footer">
+                    <button
+                      className="cluster-download-btn"
+                      type="button"
+                      onClick={() => downloadStudentIds(clusterId, studentIds)}
+                    >
+                      <span>⬇</span>
+                      <span>Descargar IDs de Estudiantes</span>
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// Graph tab (ported from Flask's graph-tab.js, embedded as D3 inside React)
+// -----------------------------------------------------------------------------
+
+const GraphTab = ({ active }: { active: boolean }) => {
+  const { apiBase, getJson } = useMetaReportApi()
+  const mountedRef = useRef(false)
+
+  useEffect(() => {
+    if (!active) return
+    if (mountedRef.current) return
+    mountedRef.current = true
+
+    // Most of this code mirrors the original graph-tab.js (D3 force graph).
+    // It renders entirely within the DOM subtree of this React component.
+
+    const STORAGE_PREFIX = 'reporteMeta.graph.'
+    const STORAGE_KEY_GRADE = STORAGE_PREFIX + 'grade'
+    const STORAGE_KEY_DATASET = STORAGE_PREFIX + 'dataset'
+
+    const gradeSelect = document.getElementById('grade-select') as HTMLSelectElement | null
+    const dataSelect = document.getElementById('data-select') as HTMLSelectElement | null
+    const container = d3.select('#viz-container')
+    const status = d3.select('#status')
+    const legendCanvas = document.getElementById('legend-canvas') as HTMLCanvasElement | null
+    const legendCtx = legendCanvas?.getContext('2d') ?? null
+    const legendMinLabel = d3.select('#legend-min')
+    const legendMaxLabel = d3.select('#legend-max')
+    const tableTitle = d3.select('#table-title')
+    const tableContent = d3.select('#table-content')
+    const histogramSvg = d3.select('#histogram-svg')
+    const histogramMessage = d3.select('#histogram-message')
+
+    const histogramWidth = Number(histogramSvg.attr('width')) || 180
+    const histogramHeight = Number(histogramSvg.attr('height')) || 110
+    histogramSvg
+      .attr('viewBox', `0 0 ${histogramWidth} ${histogramHeight}`)
+      .attr('preserveAspectRatio', 'xMidYMid meet')
+
+    if (!histogramMessage.empty()) {
+      histogramMessage.text('Los puntajes de hojas aparecen cuando se carga un conjunto de datos.')
+    }
+
+    type NormalizedDataset = {
+      id: string
+      label: string
+      gradeId: string
+      gradeLabel: string
+      graphUrl: string
+      dataUrl: string
+    }
+    type NormalizedGrade = { id: string; label: string; datasets: NormalizedDataset[] }
+
+    const titleCase = (value: string) =>
+      value.replace(/\w\S*/g, (segment) => segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase())
+
+    const formatGradeLabel = (gradeId: string) => {
+      const trimmed = String(gradeId ?? '').trim()
+      if (!trimmed) return 'Grado'
+      if (/^\d+$/.test(trimmed)) return `Grado ${trimmed}`
+      const normalized = trimmed.replace(/[_\-]+/g, ' ').replace(/\s+/g, ' ').trim() || trimmed
+      if (normalized.toLowerCase() === 'all') return 'Todos'
+      return titleCase(normalized)
+    }
+
+    const normalizeDataset = (entry: any, gradeId: string, gradeLabel: string): NormalizedDataset | null => {
+      const id = typeof entry?.id === 'string' && entry.id.trim() ? entry.id.trim() : null
+      let graphUrl = typeof entry?.graph_url === 'string' && entry.graph_url.trim() ? entry.graph_url.trim() : null
+      let dataUrl = typeof entry?.data_url === 'string' && entry.data_url.trim() ? entry.data_url.trim() : null
+      if (!id || !graphUrl || !dataUrl) return null
+      if (!graphUrl.startsWith('/')) graphUrl = '/' + graphUrl.replace(/^\/+/, '')
+      if (!dataUrl.startsWith('/')) dataUrl = '/' + dataUrl.replace(/^\/+/, '')
+      const label = typeof entry?.label === 'string' && entry.label.trim() ? entry.label.trim() : titleCase(id)
+      return { id, label, gradeId, gradeLabel, graphUrl, dataUrl }
+    }
+
+    const normalizeGrade = (entry: any): NormalizedGrade | null => {
+      const id = typeof entry?.id === 'string' && entry.id.trim() ? entry.id.trim() : null
+      if (!id) return null
+      const label = typeof entry?.label === 'string' && entry.label.trim() ? entry.label.trim() : formatGradeLabel(id)
+      const rawDatasets = Array.isArray(entry?.datasets) ? entry.datasets : []
+      const datasets = rawDatasets
+        .map((d: any) => normalizeDataset(d, id, label))
+        .filter((d: any) => d !== null) as NormalizedDataset[]
+      if (!datasets.length) return null
+      return { id, label, datasets }
+    }
+
+    // Authed JSON loader
+    const authedJson = async (pathOrUrl: string) => {
+      const url = pathOrUrl.startsWith('http') ? pathOrUrl : `${apiBase}${pathOrUrl}`
+      const res = await metaReportFetch(url, { cache: 'no-store' })
+      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText} (${url})`)
+      return res.json()
+    }
+
+    const gradeFallbackOrder = ['10', '7']
+    const datasetFallbackOrder = [
+      'lengua_sid',
+      'matematica_sid',
+      'lengua_pid',
+      'matematica_pid',
+      'lengua_sid_umap',
+      'matematica_sid_umap',
+    ]
+
+    let grades: NormalizedGrade[] = []
+    let currentGradeId: string | null = null
+    let currentDatasetId: string | null = null
+    let dfCatData: any[] | null = null
+    let currentGraphData: any | null = null
+    let currentRootNode: any | null = null
+    let currentSimulation: d3.Simulation<any, any> | null = null
+    let highlightedNodeId: string | null = null
+    let currentColorScale: any = null
+    let clusterColorScale: any = null
+    type ColorMode = 'score' | 'cluster';
+    const [colorMode, setColorMode] = useState<ColorMode>('score');
+
+    const clearViz = () => {
+      container.selectAll('*').remove()
+      tableTitle.text('')
+      tableContent.html('')
+      histogramSvg.selectAll('*').remove()
+      if (!histogramMessage.empty()) histogramMessage.text('')
+    }
+
+    const setStatus = (msg: string) => {
+      status.text(msg)
+    }
+
+    const populateGradeSelect = () => {
+      if (!gradeSelect) return
+      gradeSelect.innerHTML = ''
+      grades.forEach((g) => {
+        const opt = document.createElement('option')
+        opt.value = g.id
+        opt.textContent = g.label
+        gradeSelect.appendChild(opt)
+      })
+    }
+
+    const populateDatasetSelect = () => {
+      if (!dataSelect || !currentGradeId) return
+      const g = grades.find((x) => x.id === currentGradeId)
+      dataSelect.innerHTML = ''
+        ; (g?.datasets ?? []).forEach((ds) => {
+          const opt = document.createElement('option')
+          opt.value = ds.id
+          opt.textContent = ds.label
+          dataSelect.appendChild(opt)
+        })
+    }
+
+    const chooseDefault = () => {
+      const savedGrade = localStorage.getItem(STORAGE_KEY_GRADE)
+      const savedDataset = localStorage.getItem(STORAGE_KEY_DATASET)
+      const gradeCandidates = [savedGrade, ...gradeFallbackOrder].filter(Boolean) as string[]
+      currentGradeId = gradeCandidates.find((g) => grades.some((x) => x.id === g)) ?? grades[0]?.id ?? null
+      if (!currentGradeId) return
+      const g = grades.find((x) => x.id === currentGradeId)
+      const datasetCandidates = [savedDataset, ...datasetFallbackOrder].filter(Boolean) as string[]
+      currentDatasetId = datasetCandidates.find((d) => (g?.datasets ?? []).some((x) => x.id === d)) ?? g?.datasets?.[0]?.id ?? null
+    }
+
+    const persistSelection = () => {
+      try {
+        if (currentGradeId) localStorage.setItem(STORAGE_KEY_GRADE, currentGradeId)
+        if (currentDatasetId) localStorage.setItem(STORAGE_KEY_DATASET, currentDatasetId)
+      } catch { }
+    }
+
+    const renderLegend = (min: number, max: number) => {
+      if (!legendCtx || !legendCanvas) return
+      const w = legendCanvas.width
+      const h = legendCanvas.height
+      const grd = legendCtx.createLinearGradient(0, 0, w, 0)
+      const colors = ['#ef4444', '#f59e0b', '#22c55e']
+      grd.addColorStop(0, colors[0])
+      grd.addColorStop(0.5, colors[1])
+      grd.addColorStop(1, colors[2])
+      legendCtx.clearRect(0, 0, w, h)
+      legendCtx.fillStyle = grd
+      legendCtx.fillRect(0, 0, w, h)
+      legendMinLabel.text(`${Math.round(min * 100)}%`)
+      legendMaxLabel.text(`${Math.round(max * 100)}%`)
+    }
+
+    const renderHistogram = (scores: number[]) => {
+      histogramSvg.selectAll('*').remove()
+      if (!scores.length) {
+        histogramMessage.text('No hay puntajes para mostrar.')
+        return
+      }
+      histogramMessage.text('')
+      const bins = d3.bin().domain([0, 1]).thresholds(12)(scores)
+      const x = d3
+        .scaleBand()
+        .domain(bins.map((b) => String(b.x0)))
+        .range([6, histogramWidth - 6])
+        .padding(0.1)
+      const y = d3
+        .scaleLinear()
+        .domain([0, d3.max(bins, (b) => b.length) ?? 1])
+        .range([histogramHeight - 22, 8])
+      histogramSvg
+        .selectAll('rect')
+        .data(bins)
+        .enter()
+        .append('rect')
+        .attr('x', (d) => x(String(d.x0)) ?? 0)
+        .attr('y', (d) => y(d.length))
+        .attr('width', x.bandwidth())
+        .attr('height', (d) => histogramHeight - 22 - y(d.length))
+        .attr('fill', '#1f3a93')
+        .attr('opacity', 0.45)
+      histogramSvg
+        .append('g')
+        .attr('transform', `translate(0,${histogramHeight - 22})`)
+        .call(d3.axisBottom(x).tickValues([] as any))
+        .selectAll('path,line')
+        .attr('stroke', '#cbd5e1')
+    }
+
+    const scoreToColor = (score: number) => {
+      if (!currentColorScale) {
+        currentColorScale = d3.scaleSequential(d3.interpolateRdYlGn).domain([0, 1])
+      }
+      return currentColorScale(score)
+    }
+
+    const nodeLabel = (node: any) => {
+      if (!node) return ''
+      if (node.name) return String(node.name)
+      if (node.id) return String(node.id)
+      return ''
+    }
+
+    const updateTable = (node: any) => {
+      if (!node) {
+        tableTitle.text('')
+        tableContent.html('')
+        return
+      }
+      const label = nodeLabel(node)
+      tableTitle.text(label)
+      const rows: Array<[string, any]> = []
+      if (node.score_mean !== undefined) rows.push(['Promedio', formatPct(node.score_mean)])
+      if (node.n_students !== undefined) rows.push(['Estudiantes', node.n_students])
+      if (node.depth !== undefined) rows.push(['Nivel', node.depth])
+      const html = `
+        <table class="node-table">
+          <tbody>
+            ${rows.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      `
+      tableContent.html(html)
+    }
+
+    const stopSimulation = () => {
+      if (currentSimulation) {
+        currentSimulation.stop()
+        currentSimulation = null
+      }
+    }
+
+    const renderGraph = () => {
+      if (!currentGraphData) return
+      clearViz()
+
+      const width = Math.max(600, (document.getElementById('viz-container')?.clientWidth ?? 600))
+      const height = Math.max(520, (document.getElementById('viz-container')?.clientHeight ?? 520))
+      const svg = container
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height)
+        .attr('viewBox', `0 0 ${width} ${height}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+
+      const zoomLayer = svg.append('g').attr('class', 'zoom-layer')
+      const linkLayer = zoomLayer.append('g').attr('class', 'links')
+      const nodeLayer = zoomLayer.append('g').attr('class', 'nodes')
+
+      const root = d3.hierarchy(currentGraphData)
+      currentRootNode = root
+
+      const nodes = root.descendants().map((d) => {
+        // Ensure D3 force has x/y
+        ; (d as any).x = (d as any).x ?? width / 2 + (Math.random() - 0.5) * 40
+          ; (d as any).y = (d as any).y ?? height / 2 + (Math.random() - 0.5) * 40
+        return d
+      })
+      const links = root.links()
+
+      const leafScores = nodes
+        .filter((n) => !n.children || n.children.length === 0)
+        .map((n: any) => Number(n.data?.score_mean ?? n.data?.score ?? 0))
+        .filter((v) => Number.isFinite(v))
+        .map((v) => Math.max(0, Math.min(1, v)))
+      renderHistogram(leafScores)
+      renderLegend(0, 1)
+
+      clusterColorScale = d3.scaleOrdinal(d3.schemeTableau10)
+      const nodeColor = (n: any) => {
+        if (colorMode === 'cluster') {
+          const cid = n.data?.cluster_id ?? n.data?.cluster ?? n.data?.id ?? n.data?.name
+          return clusterColorScale(String(cid))
+        }
+        const s = Number(n.data?.score_mean ?? n.data?.score ?? 0)
+        return scoreToColor(Math.max(0, Math.min(1, s)))
+      }
+
+      const link = linkLayer
+        .selectAll('line')
+        .data(links as any)
+        .enter()
+        .append('line')
+        .attr('stroke', '#cbd5e1')
+        .attr('stroke-opacity', 0.6)
+        .attr('stroke-width', 1)
+
+      const node = nodeLayer
+        .selectAll('circle')
+        .data(nodes as any)
+        .enter()
+        .append('circle')
+        .attr('r', (d: any) => (d.children ? 8 : 5))
+        .attr('fill', (d: any) => nodeColor(d))
+        .attr('stroke', '#0f172a')
+        .attr('stroke-width', (d: any) => (highlightedNodeId && nodeLabel(d.data) === highlightedNodeId ? 2 : 0))
+        .style('cursor', 'pointer')
+        .on('click', (_ev: any, d: any) => {
+          highlightedNodeId = nodeLabel(d.data)
+          updateTable(d.data)
+          node.attr('stroke-width', (n: any) => (nodeLabel(n.data) === highlightedNodeId ? 2 : 0))
+        })
+        .call(
+          d3
+            .drag<any, any>()
+            .on('start', (event: any, d: any) => {
+              if (!event.active && currentSimulation) currentSimulation.alphaTarget(0.3).restart()
+              d.fx = d.x
+              d.fy = d.y
+            })
+            .on('drag', (event: any, d: any) => {
+              d.fx = event.x
+              d.fy = event.y
+            })
+            .on('end', (event: any, d: any) => {
+              if (!event.active && currentSimulation) currentSimulation.alphaTarget(0)
+              d.fx = null
+              d.fy = null
+            }),
+        )
+
+      const zoom = d3
+        .zoom<any, any>()
+        .scaleExtent([0.15, 2.5])
+        .on('zoom', (event: any) => {
+          zoomLayer.attr('transform', event.transform)
+        })
+
+      svg.call(zoom as any)
+
+      stopSimulation()
+      currentSimulation = d3
+        .forceSimulation(nodes as any)
+        .force(
+          'link',
+          d3
+            .forceLink(links as any)
+            .id((d: any) => d)
+            .distance((l: any) => (l.source.depth === 0 ? 110 : 70)),
+        )
+        .force('charge', d3.forceManyBody().strength(-120))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('collision', d3.forceCollide().radius((d: any) => (d.children ? 12 : 7)))
+        .on('tick', () => {
+          link
+            .attr('x1', (d: any) => d.source.x)
+            .attr('y1', (d: any) => d.source.y)
+            .attr('x2', (d: any) => d.target.x)
+            .attr('y2', (d: any) => d.target.y)
+          node.attr('cx', (d: any) => d.x).attr('cy', (d: any) => d.y)
+        })
+    }
+
+    const loadDataset = async () => {
+      if (!currentGradeId || !currentDatasetId) return
+      const g = grades.find((x) => x.id === currentGradeId)
+      const ds = g?.datasets.find((x) => x.id === currentDatasetId)
+      if (!ds) return
+
+      setStatus('Cargando conjunto de datos...')
+      try {
+        const graph = await authedJson(ds.graphUrl + (ds.graphUrl.endsWith('/') ? '' : '/'))
+        const df = await authedJson(ds.dataUrl + (ds.dataUrl.endsWith('/') ? '' : '/'))
+        currentGraphData = graph
+        dfCatData = df
+        persistSelection()
+        setStatus('')
+        renderGraph()
+      } catch (e: any) {
+        console.error(e)
+        setStatus('Error al cargar los datos.')
+      }
+    }
+
+    const handleGradeChange = () => {
+      currentGradeId = gradeSelect?.value ?? null
+      currentDatasetId = null
+      populateDatasetSelect()
+      currentDatasetId = dataSelect?.value ?? null
+      loadDataset()
+    }
+
+    const handleDatasetChange = () => {
+      currentDatasetId = dataSelect?.value ?? null
+      loadDataset()
+    }
+
+    const init = async () => {
+      try {
+        setStatus('Cargando conjuntos de datos...')
+        const dsResp = await getJson<T_DatasetsResponse>('/datasets/')
+        grades = (dsResp.grades ?? []).map((g: any) => normalizeGrade(g)).filter(Boolean) as any
+        if (!grades.length) {
+          setStatus('No hay conjuntos de datos disponibles.')
+          return
+        }
+        populateGradeSelect()
+        chooseDefault()
+        if (gradeSelect && currentGradeId) gradeSelect.value = currentGradeId
+        populateDatasetSelect()
+        if (dataSelect && currentDatasetId) dataSelect.value = currentDatasetId
+
+        gradeSelect?.addEventListener('change', handleGradeChange)
+        dataSelect?.addEventListener('change', handleDatasetChange)
+
+        await loadDataset()
+        setStatus('')
+      } catch (e: any) {
+        console.error(e)
+        setStatus('Error al cargar los conjuntos de datos.')
+      }
+    }
+
+    init()
+    return () => {
+      gradeSelect?.removeEventListener('change', handleGradeChange)
+      dataSelect?.removeEventListener('change', handleDatasetChange)
+      stopSimulation()
+    }
+  }, [active, apiBase, getJson])
+
+  return (
+    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="graph">
+      <h2>Gráfico</h2>
+      <div className="graph-controls">
+        <div className="filter-group">
+          <label className="filter-label">Grado</label>
+          <select id="grade-select" className="filter-select" />
+        </div>
+        <div className="filter-group">
+          <label className="filter-label">Conjunto de datos</label>
+          <select id="data-select" className="filter-select" />
+        </div>
+        <div id="status" className="graph-status" />
+      </div>
+
+      <div className="graph-layout">
+        <div id="viz-container" className="viz-container" />
+        <div className="graph-side">
+          <div className="legend">
+            <div className="legend-title">Puntaje</div>
+            <div className="legend-row">
+              <span id="legend-min">0%</span>
+              <canvas id="legend-canvas" width={160} height={10} />
+              <span id="legend-max">100%</span>
+            </div>
+          </div>
+
+          <div className="histogram" id="histogram">
+            <div className="histogram-title">Distribución</div>
+            <svg id="histogram-svg" width={180} height={110} />
+            <div id="histogram-message" className="histogram-message" />
+          </div>
+
+          <div className="table-panel">
+            <div id="table-title" className="table-title" />
+            <div id="table-content" className="table-content" />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// Chat tab
+// -----------------------------------------------------------------------------
+
+const ChatTab = ({ active, enabled }: { active: boolean; enabled: boolean }) => {
+  const { postJson } = useMetaReportApi()
+  const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; text: string }>>([
+    { role: 'assistant', text: 'Hola. Podés preguntarme sobre el reporte.' },
+  ])
+  const [value, setValue] = useState('')
+  const [waiting, setWaiting] = useState(false)
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!active) return
+    // scroll to bottom when activating tab
+    setTimeout(() => {
+      const el = scrollRef.current
+      if (el) el.scrollTop = el.scrollHeight
+    }, 0)
+  }, [active])
+
+  const send = async () => {
+    const text = value.trim()
+    if (!text || waiting) return
+    setMessages((m) => [...m, { role: 'user', text }])
+    setValue('')
+    setWaiting(true)
+    try {
+      const resp = await postJson<{ response?: string }, { message: string }>('/chat/', { message: text })
+      setMessages((m) => [...m, { role: 'assistant', text: resp?.response || '—' }])
+    } catch {
+      setMessages((m) => [
+        ...m,
+        { role: 'assistant', text: 'Lo siento, hubo un error al procesar tu mensaje. Por favor, intenta nuevamente.' },
+      ])
+    } finally {
+      setWaiting(false)
+      setTimeout(() => {
+        const el = scrollRef.current
+        if (el) el.scrollTop = el.scrollHeight
+      }, 0)
+    }
+  }
+
+  if (!enabled) {
+    return (
+      <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="chat">
+        <h2>Chat</h2>
+        <p className="loading-message">Chat deshabilitado.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="chat">
+      <h2>Chat</h2>
+      <div className="chat-container">
+        <div id="chat-messages" className="chat-messages" ref={scrollRef}>
+          {messages.map((m, idx) => (
+            <div key={idx} className={`chat-message chat-message-${m.role === 'user' ? 'user' : 'assistant'}`}>
+              <div className="chat-message-content">
+                <p>{m.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <Box
+          component="form"
+          id="chat-form"
+          className="chat-form"
+          onSubmit={(e) => {
+            e.preventDefault()
+            send()
+          }}
+          sx={{ display: 'flex', gap: 1, mt: 1 }}
+        >
+          <TextField
+            id="chat-input"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            disabled={waiting}
+            placeholder="Escribí una pregunta..."
+            size="small"
+            fullWidth
+          />
+          <Button
+            id="chat-submit"
+            type="submit"
+            variant="contained"
+            disabled={waiting || !value.trim()}
+          >
+            {waiting ? 'Enviando...' : 'Enviar'}
+          </Button>
+        </Box>
+      </div>
+    </div>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// Main app component (tabs)
+// -----------------------------------------------------------------------------
+
+type T_TabId = 'estadisticas' | 'preguntas' | 'estudiantes' | 'agrupamiento' | 'graph' | 'chat'
+
+const MetaReportApp = () => {
+  const { getJson } = useMetaReportApi()
+  const [activeTab, setActiveTab] = useState<T_TabId>('estadisticas')
+  const [chatEnabled, setChatEnabled] = useState<boolean>(false)
+  const [configLoaded, setConfigLoaded] = useState(false)
+  const [configError, setConfigError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setConfigError(null)
+    getJson<{ chat_enabled?: boolean }>('/config/')
+      .then((c) => {
+        setChatEnabled(Boolean(c?.chat_enabled))
+        setConfigLoaded(true)
+      })
+      .catch((e) => {
+        setConfigError(String(e?.message ?? e))
+        setConfigLoaded(true)
+      })
+  }, [getJson])
+
+  const tabs: Array<{ id: T_TabId; label: string; visible?: boolean }> = useMemo(
+    () => [
+      { id: 'estadisticas', label: 'Estadísticas' },
+      { id: 'preguntas', label: 'Preguntas' },
+      { id: 'estudiantes', label: 'Estudiantes' },
+      { id: 'agrupamiento', label: 'Agrupamiento' },
+      { id: 'graph', label: 'Gráfico' },
+      { id: 'chat', label: 'Chat', visible: chatEnabled },
+    ],
+    [chatEnabled],
+  )
+
+  const visibleTabs = tabs.filter((t) => t.visible !== false)
+
+  // if chat is hidden and currently selected, snap back
+  useEffect(() => {
+    if (activeTab === 'chat' && !chatEnabled) setActiveTab('estadisticas')
+  }, [activeTab, chatEnabled])
+
+  return (
+    <div id="meta-report">
+      <Box sx={{ mb: 2 }}>
+        <Tabs value={activeTab} onChange={(_e, v) => setActiveTab(v)} variant="scrollable" scrollButtons="auto">
+          {visibleTabs.map((t) => (
+            <Tab key={t.id} value={t.id} label={t.label} />
+          ))}
+        </Tabs>
+      </Box>
+
+      {!configLoaded && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Cargando configuración...
+        </Alert>
+      )}
+      {configError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {configError}
         </Alert>
       )}
 
-      <Spacer size="s" />
-
-      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-        <Typography variant="body2" color="text.secondary">
-          Estado: <b>{statusLabel(bundle?.status)}</b>
-        </Typography>
-
-        <Typography variant="body2" color="text.secondary">
-          Versión: <b>{bundle?.version ?? '—'}</b>
-        </Typography>
-
-        {isAdmin && (
-          <TextField
-            size="small"
-            select
-            label="Escuela"
-            value={selectedSchoolId}
-            onChange={(e) => setSelectedSchoolId(e.target.value === '' ? '' : Number(e.target.value))}
-            sx={{ minWidth: 260 }}
-          >
-            <MenuItem value="">(Todas)</MenuItem>
-            {schools.map((s: any) => (
-              <MenuItem key={s.id} value={s.id}>
-                {s.name}
-              </MenuItem>
-            ))}
-          </TextField>
-        )}
-
-        <Button onClick={loadLatestBundle} disabled={latestLoading || latestBySchoolLoading}>
-          Refrescar
-        </Button>
-
-        {isAdmin && (
-          <Button variant="contained" onClick={regenerateAll}>
-            Regenerar global
-          </Button>
-        )}
+      <Box className="app-main">
+        <EstadisticasTab active={activeTab === 'estadisticas'} />
+        <PreguntasTab active={activeTab === 'preguntas'} />
+        <EstudiantesTab active={activeTab === 'estudiantes'} />
+        <AgrupamientoTab active={activeTab === 'agrupamiento'} />
+        <GraphTab active={activeTab === 'graph'} />
+        <ChatTab active={activeTab === 'chat'} enabled={chatEnabled} />
       </Box>
-
-      <Spacer size="default" />
-
-      {!bundle && (latestLoading || latestBySchoolLoading) && <Spinner />}
-
-      {!bundle && !(latestLoading || latestBySchoolLoading) && (
-        <Alert severity="info">No hay un reporte global disponible todavía.</Alert>
-      )}
-
-      {!!bundle && (
-        <>
-          <Tabs
-            value={tab}
-            onChange={(_e, v) => setTab(v)}
-            sx={{ borderBottom: '1px solid rgba(0,0,0,0.12)' }}
-          >
-            <Tab label="Resumen" value="resumen" />
-            <Tab label="Preguntas" value="preguntas" />
-            <Tab label="Estudiantes" value="estudiantes" />
-            <Tab label="Agrupamiento" value="agrupamiento" />
-            <Tab label="Red" value="red" />
-            <Tab label="Chat" value="chat" />
-          </Tabs>
-
-          <Spacer size="s" />
-
-          {/* Dataset selectors for clustering + graph */}
-          {(tab === 'agrupamiento' || tab === 'red' || tab === 'chat') && (
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-              <TextField
-                size="small"
-                select
-                label="Año"
-                value={selectedGrade}
-                onChange={(e) => {
-                  const g = e.target.value === '' ? '' : Number(e.target.value)
-                  setSelectedGrade(g)
-                  const first = datasetOptions.find((d) => d.grade === g)
-                  if (first) setSelectedSubjects(first.subjects)
-                  setClusterSummary(null)
-                  setGraph(null)
-                }}
-                sx={{ minWidth: 160 }}
-              >
-                <MenuItem value="">Seleccionar…</MenuItem>
-                {gradeOptions.map((g) => (
-                  <MenuItem key={g} value={g}>
-                    {g}º
-                  </MenuItem>
-                ))}
-              </TextField>
-
-              <TextField
-                size="small"
-                select
-                label="Dataset"
-                value={selectedSubjects}
-                onChange={(e) => {
-                  setSelectedSubjects(String(e.target.value))
-                  setClusterSummary(null)
-                  setGraph(null)
-                }}
-                sx={{ minWidth: 280 }}
-                disabled={selectedGrade === ''}
-              >
-                <MenuItem value="">Seleccionar…</MenuItem>
-                {subjectsOptions.map((d) => (
-                  <MenuItem key={`${d.grade}|${d.subjects}`} value={d.subjects}>
-                    {d.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-
-              {tab === 'agrupamiento' && (
-                <Button onClick={loadCluster} disabled={clusterLoading || selectedGrade === '' || !selectedSubjects}>
-                  Cargar agrupamiento
-                </Button>
-              )}
-
-              {tab === 'red' && (
-                <Button onClick={loadGraph} disabled={graphLoading || selectedGrade === '' || !selectedSubjects}>
-                  Cargar red
-                </Button>
-              )}
-            </Box>
-          )}
-
-          <Spacer size="s" />
-
-          {tab === 'resumen' && (
-            <>
-              {summariesLoading && <Spinner />}
-              {!summariesLoading && summaries && (
-                <>
-                  <SummaryCards summary={summaries} />
-
-                  <Spacer size="default" />
-
-                  <H4>Detalle por año</H4>
-                  <Box sx={{ display: 'grid', gap: 1 }}>
-                    {Object.entries(summaries?.by_grade ?? {}).map(([g, v]: any) => (
-                      <Card key={g} sx={{ borderRadius: 2 }}>
-                        <CardContent>
-                          <Typography variant="subtitle2">{g}º</Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Promedio: {safeNum(v?.total_avg_score)?.toFixed(3) ?? '—'} | Kr-20:{' '}
-                            {safeNum(v?.total_kr20)?.toFixed(3) ?? '—'}
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </Box>
-                </>
-              )}
-
-              {!summariesLoading && !summaries && (
-                <Alert severity="info">Todavía no hay resumen disponible para este reporte.</Alert>
-              )}
-            </>
-          )}
-
-          {tab === 'preguntas' && (
-            <>
-              {questionsLoading && <Spinner />}
-              {!questionsLoading && questionsRows.length === 0 && (
-                <Alert severity="info">No hay estadísticas de preguntas disponibles.</Alert>
-              )}
-              {questionsRows.length > 0 && (
-                <Box sx={{ height: 560, width: '100%' }}>
-                  <DataGrid
-                    rows={questionsRows}
-                    columns={questionColumns}
-                    disableRowSelectionOnClick
-                    pageSizeOptions={[25, 50, 100]}
-                    initialState={{ pagination: { paginationModel: { pageSize: 25, page: 0 } } }}
-                  />
-                </Box>
-              )}
-            </>
-          )}
-
-          {tab === 'estudiantes' && (
-            <>
-              {studentsLoading && <Spinner />}
-              {!studentsLoading && studentsRows.length === 0 && (
-                <Alert severity="info">No hay estadísticas de estudiantes disponibles.</Alert>
-              )}
-              {studentsRows.length > 0 && (
-                <Box sx={{ height: 560, width: '100%' }}>
-                  <DataGrid
-                    rows={studentsRows}
-                    columns={studentColumns}
-                    disableRowSelectionOnClick
-                    pageSizeOptions={[25, 50, 100]}
-                    initialState={{ pagination: { paginationModel: { pageSize: 25, page: 0 } } }}
-                  />
-                </Box>
-              )}
-            </>
-          )}
-
-          {tab === 'agrupamiento' && (
-            <>
-              {clusterLoading && <Spinner />}
-              {!clusterLoading && clusterSummary && <ClusterCards cluster={clusterSummary} />}
-              {!clusterLoading && !clusterSummary && (
-                <Alert severity="info">Seleccioná año y dataset y luego “Cargar agrupamiento”.</Alert>
-              )}
-            </>
-          )}
-
-          {tab === 'red' && (
-            <>
-              {graphLoading && <Spinner />}
-              {!graphLoading && graph && (
-                <Card sx={{ borderRadius: 2 }}>
-                  <CardContent>
-                    <Typography variant="subtitle2">Red / Grafo</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      (Vista simplificada) — para inspección rápida de clusters y puntajes.
-                    </Typography>
-                    <Spacer size="s" />
-                    <Box sx={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 2, overflow: 'hidden' }}>
-                      <SimpleGraphSvg graph={graph} />
-                    </Box>
-                  </CardContent>
-                </Card>
-              )}
-              {!graphLoading && !graph && (
-                <Alert severity="info">Seleccioná año y dataset y luego “Cargar red”.</Alert>
-              )}
-            </>
-          )}
-
-          {tab === 'chat' && (
-            <>
-              <Alert severity="info" sx={{ mb: 2 }}>
-                El chat responde con contexto del reporte global (según tus permisos).
-              </Alert>
-
-              <Box
-                sx={{
-                  border: '1px solid rgba(0,0,0,0.12)',
-                  borderRadius: 2,
-                  p: 2,
-                  minHeight: 260,
-                  maxHeight: 420,
-                  overflowY: 'auto',
-                  backgroundColor: 'rgba(0,0,0,0.02)',
-                }}
-              >
-                {messages.length === 0 && (
-                  <Typography variant="body2" color="text.secondary">
-                    Hacé una pregunta para empezar (ej: “¿Qué competencias tienen más dificultades en 10º Lenguaje?”)
-                  </Typography>
-                )}
-                {messages.map((m, idx) => (
-                  <Box key={idx} sx={{ mb: 1.5 }}>
-                    <Typography variant="caption" color="text.secondary">
-                      {m.role === 'user' ? 'Vos' : 'META'}
-                    </Typography>
-                    <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                      {m.content}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-
-              <Spacer size="s" />
-
-              <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Mensaje"
-                  value={chatText}
-                  onChange={(e) => setChatText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault()
-                      sendChat()
-                    }
-                  }}
-                />
-                <Button variant="contained" onClick={sendChat} disabled={chatLoading || !chatText.trim()}>
-                  Enviar
-                </Button>
-              </Box>
-            </>
-          )}
-
-          {(manifestLoading || !manifest) && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="caption" color="text.secondary">
-                {manifestLoading ? 'Cargando manifest…' : ''}
-              </Typography>
-            </Box>
-          )}
-        </>
-      )}
-    </Page>
+    </div>
   )
 }
 
-// --- Simple SVG graph renderer (fast + no dependencies) ---
-
-const SimpleGraphSvg = ({ graph }: { graph: T_GraphJson }) => {
-  const width = 980
-  const height = 560
-
-  const nodes = graph?.nodes ?? []
-  const links = graph?.links ?? []
-
-  const nodeById = useMemo(() => {
-    const m = new Map<string, any>()
-    nodes.forEach((n) => m.set(String(n.id), n))
-    return m
-  }, [nodes])
-
-  const pts = useMemo(() => {
-    const out: Array<[number, number]> = []
-    nodes.forEach((n) => {
-      if (Array.isArray(n.pos) && n.pos.length === 2) out.push([Number(n.pos[0]), Number(n.pos[1])])
-    })
-    return out
-  }, [nodes])
-
-  const bounds = useMemo(() => {
-    if (pts.length === 0) return { minX: -1, maxX: 1, minY: -1, maxY: 1 }
-    const xs = pts.map((p) => p[0])
-    const ys = pts.map((p) => p[1])
-    const minX = Math.min(...xs)
-    const maxX = Math.max(...xs)
-    const minY = Math.min(...ys)
-    const maxY = Math.max(...ys)
-    return { minX, maxX, minY, maxY }
-  }, [pts])
-
-  const scale = (p: [number, number]) => {
-    const { minX, maxX, minY, maxY } = bounds
-    const pad = 40
-    const sx = (p[0] - minX) / (maxX - minX || 1)
-    const sy = (p[1] - minY) / (maxY - minY || 1)
-    const x = pad + sx * (width - 2 * pad)
-    const y = pad + (1 - sy) * (height - 2 * pad)
-    return [x, y]
-  }
-
-  const colorFor = (n: any) => {
-    const s = safeNum(n?.score)
-    if (s == null) return 'rgba(30,30,30,0.45)'
-    // grayscale-ish based on score; keep it simple
-    const v = Math.max(0, Math.min(1, s))
-    const c = Math.round(220 - v * 180)
-    return `rgb(${c},${c},${c})`
-  }
-
-  const renderedNodes = nodes.filter((n) => Array.isArray(n.pos) && n.pos.length === 2)
-
+const MetaReportGlobalReportPage = () => {
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} width="100%" height="560" style={{ display: 'block' }}>
-      {/* links */}
-      <g>
-        {links.map((l, idx) => {
-          const a = nodeById.get(String(l.source))
-          const b = nodeById.get(String(l.target))
-          if (!a?.pos || !b?.pos) return null
-          const [x1, y1] = scale([a.pos[0], a.pos[1]])
-          const [x2, y2] = scale([b.pos[0], b.pos[1]])
-          return (
-            <line
-              key={idx}
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              stroke="rgba(0,0,0,0.12)"
-              strokeWidth={1}
-            />
-          )
-        })}
-      </g>
-
-      {/* nodes */}
-      <g>
-        {renderedNodes.map((n) => {
-          const [x, y] = scale([n.pos![0], n.pos![1]])
-          const r = n.is_leaf ? 3.5 : 2.2
-          return (
-            <circle
-              key={String(n.id)}
-              cx={x}
-              cy={y}
-              r={r}
-              fill={colorFor(n)}
-              opacity={n.is_leaf ? 0.95 : 0.35}
-            >
-              <title>
-                {`id: ${n.id}\nleaf: ${n.is_leaf ? 'sí' : 'no'}\nscore: ${safeNum(n.score) ?? '—'}\ncluster: ${n.cluster_label ?? '—'}`}
-              </title>
-            </circle>
-          )
-        })}
-      </g>
-    </svg>
+    <Page>
+      <Page.Title disableMarginBottom>Reporte META+</Page.Title>
+      <Page.Content>
+        <MetaReportApp />
+      </Page.Content>
+    </Page>
   )
 }
 
