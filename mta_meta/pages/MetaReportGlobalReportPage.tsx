@@ -216,13 +216,13 @@ const EstadisticasTab = ({ active }: { active: boolean }) => {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(filters))
-    } catch {}
+    } catch { }
   }, [filters])
 
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY_SORT, JSON.stringify(sort))
-    } catch {}
+    } catch { }
   }, [sort])
 
   useEffect(() => {
@@ -464,7 +464,7 @@ const PreguntasTab = ({ active }: { active: boolean }) => {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(filters))
-    } catch {}
+    } catch { }
   }, [filters])
 
   useEffect(() => {
@@ -869,12 +869,12 @@ const EstudiantesTab = ({ active }: { active: boolean }) => {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(filters))
-    } catch {}
+    } catch { }
   }, [filters])
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY_THRESHOLDS, JSON.stringify(thresholds))
-    } catch {}
+    } catch { }
   }, [thresholds])
 
   useEffect(() => {
@@ -1312,7 +1312,7 @@ const AgrupamientoTab = ({ active }: { active: boolean }) => {
     try {
       localStorage.setItem(STORAGE_KEY_GRADE, grade)
       localStorage.setItem(STORAGE_KEY_SUBJECT, subject)
-    } catch {}
+    } catch { }
   }, [grade, subject])
 
   useEffect(() => {
@@ -1605,7 +1605,8 @@ const GraphTab = ({ active }: { active: boolean }) => {
     let highlightedNodeId: string | null = null
     let currentColorScale: any = null
     let clusterColorScale: any = null
-    let colorMode: 'score' | 'cluster' = 'score'
+    type ColorMode = 'score' | 'cluster';
+    const [colorMode, setColorMode] = useState<ColorMode>('score');
 
     const clearViz = () => {
       container.selectAll('*').remove()
@@ -1634,12 +1635,12 @@ const GraphTab = ({ active }: { active: boolean }) => {
       if (!dataSelect || !currentGradeId) return
       const g = grades.find((x) => x.id === currentGradeId)
       dataSelect.innerHTML = ''
-      ;(g?.datasets ?? []).forEach((ds) => {
-        const opt = document.createElement('option')
-        opt.value = ds.id
-        opt.textContent = ds.label
-        dataSelect.appendChild(opt)
-      })
+        ; (g?.datasets ?? []).forEach((ds) => {
+          const opt = document.createElement('option')
+          opt.value = ds.id
+          opt.textContent = ds.label
+          dataSelect.appendChild(opt)
+        })
     }
 
     const chooseDefault = () => {
@@ -1657,7 +1658,7 @@ const GraphTab = ({ active }: { active: boolean }) => {
       try {
         if (currentGradeId) localStorage.setItem(STORAGE_KEY_GRADE, currentGradeId)
         if (currentDatasetId) localStorage.setItem(STORAGE_KEY_DATASET, currentDatasetId)
-      } catch {}
+      } catch { }
     }
 
     const renderLegend = (min: number, max: number) => {
@@ -1777,8 +1778,8 @@ const GraphTab = ({ active }: { active: boolean }) => {
 
       const nodes = root.descendants().map((d) => {
         // Ensure D3 force has x/y
-        ;(d as any).x = (d as any).x ?? width / 2 + (Math.random() - 0.5) * 40
-        ;(d as any).y = (d as any).y ?? height / 2 + (Math.random() - 0.5) * 40
+        ; (d as any).x = (d as any).x ?? width / 2 + (Math.random() - 0.5) * 40
+          ; (d as any).y = (d as any).y ?? height / 2 + (Math.random() - 0.5) * 40
         return d
       })
       const links = root.links()
