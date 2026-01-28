@@ -1,528 +1,26 @@
 'use client'
 
+import * as d3 from 'd3'
 import { apiUrl } from '@/config'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import Page from '@/shared/components/Page'
 import { useStore } from '@/shared/state'
-import { useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Alert, Box, Button, Card, CardContent, Paper, Stack, Tab, Tabs, TextField, Typography, Grid2 } from '@mui/material'
 
-declare global {
-  interface Window {
-    __metaReportFlaskRoot?: HTMLDivElement
-    __metaReportFlaskHiddenHost?: HTMLDivElement
-    __metaReportFlaskScriptsLoaded?: boolean
-    __metaReportFlaskFetchPatched?: boolean
-    __metaReportFlaskOriginalFetch?: typeof fetch
-  }
-}
-
-// Body markup from the original Flask UI (public/meta_report/index.html), without <html>/<head>.
-// We keep it as raw HTML so the legacy D3/tab scripts can bind 1:1.
-const FLASK_UI_BODY_HTML = String.raw`
-<header class="app-header">
-  <h1 class="app-title">Reporte META+</h1>
-  <nav class="tab-nav">
-    <button class="tab-button active" data-tab="estadisticas">Estadísticas</button>
-    <button class="tab-button" data-tab="preguntas">Preguntas</button>
-    <button class="tab-button" data-tab="estudiantes">Estudiantes</button>
-    <button class="tab-button" data-tab="agrupamiento">Agrupamiento</button>
-    <button class="tab-button" data-tab="graph">Red</button>
-    <button class="tab-button" data-tab="chat">Chat</button>
-  </nav>
-</header>
-
-<!-- Tab: Estadísticas -->
-<div class="tab-content active" data-tab-content="estadisticas">
-  <main class="stats-layout">
-    <div class="stats-container">
-      <section class="stats-summary">
-        <h2>Estadísticas Totales</h2>
-        <div id="total-stats" class="stats-cards">
-          <div class="stat-card">
-            <span class="stat-label">Total de Respuestas</span>
-            <span class="stat-value" id="stat-total-responses">—</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Total de Preguntas</span>
-            <span class="stat-value" id="stat-total-questions">—</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Total de Estudiantes</span>
-            <span class="stat-value" id="stat-total-students">—</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Total de Escuelas</span>
-            <span class="stat-value" id="stat-total-schools">—</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">KR-20 Total</span>
-            <span class="stat-value" id="stat-total-kr20">—</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Promedio Total</span>
-            <span class="stat-value" id="stat-total-mean">—</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="stats-table-section">
-        <h2>Datos por Grado, Escuela y Materia</h2>
-        <div class="table-controls">
-          <div class="filter-controls" id="filter-controls"></div>
-        </div>
-        <div class="table-wrapper">
-          <table id="stats-table">
-            <thead>
-              <tr>
-                <th class="sortable" data-sort="grade">
-                  <div class="th-label">Grado</div>
-                  <div class="th-sort-indicator" aria-hidden="true"></div>
-                </th>
-                <th class="sortable" data-sort="school">
-                  <div class="th-label">Escuela</div>
-                  <div class="th-sort-indicator" aria-hidden="true"></div>
-                </th>
-                <th class="sortable" data-sort="subject">
-                  <div class="th-label">Materia</div>
-                  <div class="th-sort-indicator" aria-hidden="true"></div>
-                </th>
-                <th class="sortable" data-sort="total_responses">
-                  <div class="th-label">Respuestas</div>
-                  <div class="th-sort-indicator" aria-hidden="true"></div>
-                </th>
-                <th class="sortable" data-sort="n_students">
-                  <div class="th-label">Estudiantes</div>
-                  <div class="th-sort-indicator" aria-hidden="true"></div>
-                </th>
-                <th class="sortable" data-sort="n_schools">
-                  <div class="th-label">Escuelas</div>
-                  <div class="th-sort-indicator" aria-hidden="true"></div>
-                </th>
-                <th class="sortable" data-sort="mean">
-                  <div class="th-label">Promedio</div>
-                  <div class="th-sort-indicator" aria-hidden="true"></div>
-                </th>
-                <th class="sortable" data-sort="kr_20">
-                  <div class="th-label">KR-20</div>
-                  <div class="th-sort-indicator" aria-hidden="true"></div>
-                </th>
-              </tr>
-            </thead>
-            <tbody id="table-body">
-              <!-- Table rows will be injected by JS -->
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
-  </main>
-</div>
-
-<!-- Tab: Preguntas -->
-<div class="tab-content" data-tab-content="preguntas">
-  <main class="questions-layout">
-    <div class="controls-container">
-      <label for="questions-subject-select">Materia:</label>
-      <select id="questions-subject-select">
-        <option value="all">Todas</option>
-        <option value="L">Lengua</option>
-        <option value="M">Matemática</option>
-      </select>
-    </div>
-
-    <section class="questions-content">
-      <div class="chart-panel">
-        <h2>Promedio por Pregunta</h2>
-        <div id="questions-chart" class="chart-container"></div>
-        <div class="chart-legend">
-          <span class="legend-item">
-            <span class="legend-color" style="background: #ef4444"></span>
-            Bajo (&lt; 0.4)
-          </span>
-          <span class="legend-item">
-            <span class="legend-color" style="background: #fbbf24"></span>
-            Medio (0.4 - 0.6)
-          </span>
-          <span class="legend-item">
-            <span class="legend-color" style="background: #10b981"></span>
-            Alto (&gt; 0.6)
-          </span>
-        </div>
-      </div>
-
-      <div class="detail-panel">
-        <h2>Detalles de la Pregunta</h2>
-        <div id="question-details" class="detail-content">
-          <p class="placeholder">Haga clic en una barra para ver detalles</p>
-        </div>
-      </div>
-    </section>
-  </main>
-</div>
-
-<!-- Tab: Estudiantes -->
-<div class="tab-content" data-tab-content="estudiantes">
-  <main class="students-layout">
-    <div class="controls-container">
-      <div class="filter-row">
-        <div class="filter-control">
-          <label for="students-grade-select">Grado:</label>
-          <select id="students-grade-select">
-            <option value="all">Todos</option>
-          </select>
-        </div>
-
-        <div class="filter-control">
-          <label for="students-school-select">Escuela:</label>
-          <select id="students-school-select">
-            <option value="all">Todas</option>
-          </select>
-        </div>
-
-        <div class="filter-control">
-          <label for="students-subject-select">Materia:</label>
-          <select id="students-subject-select">
-            <option value="all">Todas</option>
-            <option value="L">Lengua</option>
-            <option value="M">Matemática</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Hidden thresholds (still supported by JS) -->
-      <div class="threshold-controls" id="threshold-controls" hidden>
-        <h3>Umbrales</h3>
-        <div class="threshold-row">
-          <div class="threshold-control">
-            <label for="low-threshold">Bajo:</label>
-            <input type="number" id="low-threshold" min="0" max="1" step="0.01" value="0.4" />
-          </div>
-          <div class="threshold-control">
-            <label for="high-threshold">Alto:</label>
-            <input type="number" id="high-threshold" min="0" max="1" step="0.01" value="0.6" />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <section class="students-content">
-      <div class="chart-panel">
-        <h2>Promedio por Estudiante</h2>
-        <div id="students-chart" class="chart-container"></div>
-        <div class="chart-legend">
-          <span class="legend-item">
-            <span class="legend-color" style="background: #ef4444"></span>
-            Bajo (&lt; 0.4)
-          </span>
-          <span class="legend-item">
-            <span class="legend-color" style="background: #fbbf24"></span>
-            Medio (0.4 - 0.6)
-          </span>
-          <span class="legend-item">
-            <span class="legend-color" style="background: #10b981"></span>
-            Alto (&gt; 0.6)
-          </span>
-        </div>
-      </div>
-
-      <div class="detail-panel">
-        <h2>Detalles del Estudiante</h2>
-        <div id="student-details" class="detail-content">
-          <p class="placeholder">Haga clic en una barra para ver detalles</p>
-        </div>
-      </div>
-    </section>
-  </main>
-</div>
-
-<!-- Tab: Agrupamiento -->
-<div class="tab-content" data-tab-content="agrupamiento">
-  <main class="agrupamiento-layout">
-    <div class="controls-container">
-      <div class="filter-row">
-        <div class="filter-control">
-          <label for="agrupamiento-grade-select">Grado:</label>
-          <select id="agrupamiento-grade-select">
-            <option value="">Seleccione un grado</option>
-          </select>
-        </div>
-
-        <div class="filter-control">
-          <label for="agrupamiento-subject-select">Materia:</label>
-          <select id="agrupamiento-subject-select">
-            <option value="">Seleccione una materia</option>
-            <option value="L">Lengua</option>
-            <option value="M">Matemática</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <section class="agrupamiento-content">
-      <div id="agrupamiento-clusters-container" class="clusters-container">
-        <p class="agrupamiento-placeholder">Seleccione un grado y una materia para ver los clusters</p>
-      </div>
-    </section>
-  </main>
-</div>
-
-<!-- Tab: Graph -->
-<div class="tab-content" data-tab-content="graph">
-  <main class="graph-layout">
-    <div class="graph-header">
-      <div class="graph-title-group">
-        <h2>Visualización de Red</h2>
-        <p id="graph-subtitle">Selección de conjunto de datos</p>
-      </div>
-
-      <div class="graph-controls">
-        <div class="graph-control">
-          <label for="grade-select">Grado</label>
-          <select id="grade-select"></select>
-        </div>
-
-        <div class="graph-control">
-          <label for="dataset-select">Conjunto</label>
-          <select id="dataset-select"></select>
-        </div>
-
-        <div class="graph-control">
-          <label for="graph-view-select">Vista</label>
-          <select id="graph-view-select">
-            <option value="clusters">Clusters</option>
-            <option value="force">Red</option>
-            <option value="heatmap">Calor</option>
-          </select>
-        </div>
-
-        <div class="graph-control">
-          <label for="filter-input">Filtro</label>
-          <input id="filter-input" type="search" placeholder="Buscar..." />
-        </div>
-
-        <button id="download-members" class="graph-button" type="button">Descargar miembros</button>
-      </div>
-    </div>
-
-    <div id="graph-status" class="graph-status">Cargando...</div>
-
-    <section class="graph-content">
-      <div class="graph-panel">
-        <div class="graph-canvas-header">
-          <h3 id="graph-panel-title">Red</h3>
-          <div class="graph-canvas-actions">
-            <button id="reset-zoom" class="graph-button ghost" type="button">Reiniciar zoom</button>
-            <button id="toggle-labels" class="graph-button ghost" type="button">Etiquetas</button>
-          </div>
-        </div>
-
-        <div class="graph-canvas-container">
-          <svg id="graph-svg" class="graph-svg"></svg>
-          <canvas id="heatmap-canvas" class="heatmap-canvas"></canvas>
-        </div>
-
-        <div class="graph-metrics">
-          <div class="metric">
-            <span class="metric-label">Nodos</span>
-            <span class="metric-value" id="metric-nodes">0</span>
-          </div>
-          <div class="metric">
-            <span class="metric-label">Enlaces</span>
-            <span class="metric-value" id="metric-links">0</span>
-          </div>
-          <div class="metric">
-            <span class="metric-label">Miembros</span>
-            <span class="metric-value" id="metric-members">0</span>
-          </div>
-        </div>
-      </div>
-
-      <section class="graph-side-panel">
-        <div class="graph-side-section">
-          <h3>Configuración</h3>
-
-          <div class="settings-grid">
-            <label class="setting">
-              <span>Mostrar etiquetas</span>
-              <input id="labels-checkbox" type="checkbox" />
-            </label>
-
-            <label class="setting">
-              <span>Mostrar IDs</span>
-              <input id="ids-checkbox" type="checkbox" />
-            </label>
-
-            <label class="setting">
-              <span>Mostrar nodos aislados</span>
-              <input id="isolates-checkbox" type="checkbox" />
-            </label>
-
-            <label class="setting">
-              <span>Clusters por tamaño</span>
-              <input id="cluster-size-checkbox" type="checkbox" />
-            </label>
-          </div>
-
-          <div class="setting-group">
-            <label for="min-size-filter">Tamaño mínimo</label>
-            <input id="min-size-filter" type="range" min="1" max="25" step="1" />
-            <div class="setting-hint" id="min-size-display">1</div>
-          </div>
-
-          <div class="setting-group">
-            <label for="link-strength">Fuerza de enlace</label>
-            <input id="link-strength" type="range" min="0.05" max="1" step="0.05" />
-            <div class="setting-hint" id="link-strength-display">0.45</div>
-          </div>
-
-          <div class="setting-group">
-            <label for="charge-strength">Repulsión</label>
-            <input id="charge-strength" type="range" min="-80" max="0" step="1" />
-            <div class="setting-hint" id="charge-strength-display">-10</div>
-          </div>
-
-          <div class="setting-group">
-            <label for="node-size">Tamaño nodo</label>
-            <input id="node-size" type="range" min="1" max="8" step="0.25" />
-            <div class="setting-hint" id="node-size-display">3.5</div>
-          </div>
-
-          <div class="setting-group">
-            <label for="font-size">Tamaño fuente</label>
-            <input id="font-size" type="range" min="0.5" max="2" step="0.05" />
-            <div class="setting-hint" id="font-size-display">1</div>
-          </div>
-
-          <div class="setting-group">
-            <label for="collision-padding">Colisión</label>
-            <input id="collision-padding" type="range" min="0" max="30" step="1" />
-            <div class="setting-hint" id="collision-padding-display">8</div>
-          </div>
-        </div>
-
-        <div class="graph-side-section">
-          <h3>Panel</h3>
-          <div id="selection-panel" class="selection-panel"></div>
-        </div>
-
-        <div class="table-panel">
-          <h2 id="table-title">Nodo seleccionado</h2>
-          <div id="table-content" class="table-content"></div>
-        </div>
-      </section>
-    </section>
-  </main>
-  </div>
-
-<!-- Tab: Chat -->
-<div class="tab-content" data-tab-content="chat">
-  <main class="chat-layout">
-    <div class="chat-container">
-      <div class="chat-messages" id="chat-messages">
-        <div class="chat-message chat-message-assistant">
-          <div class="chat-message-content">
-            <p>Hola! Soy tu asistente para analizar los datos de META+. ¿En qué puedo ayudarte?</p>
-          </div>
-        </div>
-      </div>
-      <div class="chat-input-container">
-        <form id="chat-form" class="chat-form">
-          <input
-            type="text"
-            id="chat-input"
-            class="chat-input"
-            placeholder="Escribe tu pregunta aquí..."
-            autocomplete="off"
-          />
-          <button type="submit" class="chat-submit" id="chat-submit">
-            <span class="chat-submit-icon">➤</span>
-          </button>
-        </form>
-      </div>
-    </div>
-  </main>
-</div>
-`
-
-const SCRIPT_SOURCES = [
-  'https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js',
-  '/meta_report/static/js/tabs.js',
-  '/meta_report/static/js/estadisticas-tab.js',
-  '/meta_report/static/js/preguntas-tab.js',
-  '/meta_report/static/js/estudiantes-tab.js',
-  '/meta_report/static/js/agrupamiento-tab.js',
-  '/meta_report/static/js/graph-tab.js',
-  '/meta_report/static/js/chat-tab.js',
-]
-
-const META_API_BASE = apiUrl('/meta-reports-global/flask')
-
-function ensureTrailingSlash(path: string) {
-  if (path.includes('?')) {
-    const [p, q] = path.split('?', 2)
-    return ensureTrailingSlash(p) + '?' + q
-  }
-  return path.endsWith('/') ? path : path + '/'
-}
-
-function isMetaReportPath(pathname: string) {
-  const core = ['config', 'summaries', 'questions_stats', 'students_stats', 'datasets', 'chat']
-  if (pathname.startsWith('/datasets') || pathname.includes('/datasets/')) return true
-  const last = pathname.split('/').filter(Boolean).pop() || ''
-  if (core.includes(last)) return true
-  return false
-}
-
-function rewriteMetaUrl(urlStr: string): string | null {
-  try {
-    const url = new URL(urlStr, window.location.href)
-    const apiBaseUrl = new URL(META_API_BASE, window.location.origin)
-
-    // Already pointing at the correct API base
-    if (url.origin === apiBaseUrl.origin && url.pathname.startsWith(apiBaseUrl.pathname)) {
-      return ensureTrailingSlash(url.pathname + url.search)
-    }
-
-    // Extract a meta path from either absolute root (/datasets/..) or nested route (/dashboard/.../datasets)
-    const pathname = url.pathname
-    let subPath: string | null = null
-
-    const idxDatasets = pathname.lastIndexOf('/datasets')
-    if (idxDatasets !== -1) {
-      subPath = pathname.slice(idxDatasets)
-    } else {
-      const core = ['config', 'summaries', 'questions_stats', 'students_stats', 'chat']
-      for (const name of core) {
-        const idx = pathname.lastIndexOf('/' + name)
-        if (idx !== -1 && idx + name.length + 1 === pathname.length) {
-          subPath = '/' + name
-          break
-        }
-      }
-    }
-
-    if (!subPath) return null
-    if (!isMetaReportPath(subPath)) return null
-
-    const newPath = ensureTrailingSlash(apiBaseUrl.pathname.replace(/\/+$/, '') + subPath)
-    return newPath + url.search
-  } catch {
-    return null
-  }
-}
+// -----------------------------------------------------------------------------
+// Auth-aware fetch (same refresh semantics as the rest of the app)
+// -----------------------------------------------------------------------------
 
 const buildAuthedRequest = (input: RequestInfo | URL, init: RequestInit | undefined, token?: string) => {
   const baseHeaders = input instanceof Request ? new Headers(input.headers) : new Headers()
   const initHeaders = init?.headers ? new Headers(init.headers as any) : new Headers()
 
-  // merge init headers over base
   initHeaders.forEach((v, k) => baseHeaders.set(k, v))
-
   if (token && !baseHeaders.has('Authorization')) {
     baseHeaders.set('Authorization', `Bearer ${token}`)
   }
 
-  // If input is a Request, clone it to allow header override.
   if (input instanceof Request) {
     const mergedInit: RequestInit = {
       method: init?.method ?? input.method,
@@ -544,154 +42,2135 @@ const buildAuthedRequest = (input: RequestInfo | URL, init: RequestInit | undefi
   return new Request(String(input), { ...init, headers: baseHeaders })
 }
 
-async function loadScript(src: string): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector(`script[data-meta-report-src="${src}"]`) as HTMLScriptElement | null
-    if (existing) {
-      // Already loaded
-      resolve()
+const metaReportFetch: typeof fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+  const state = useStore.getState()
+  const accessToken = state.auth_accessToken
+  const refreshToken = state.auth_refreshToken
+
+  const doFetch = async (token?: string) => {
+    const req = buildAuthedRequest(input, init, token)
+    return fetch(req)
+  }
+
+  let res = await doFetch(accessToken)
+
+  // Try refresh once on 401
+  if (res.status === 401 && refreshToken) {
+    try {
+      const refreshRes = await fetch(apiUrl('/token/refresh/'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: refreshToken }),
+      })
+
+      if (refreshRes.ok) {
+        const data: any = await refreshRes.json()
+        if (data?.access) {
+          useStore.getState().auth_storeRefreshedToken(String(data.access))
+          res = await doFetch(String(data.access))
+        }
+      } else {
+        useStore.getState().auth_clearAuthData()
+      }
+    } catch {
+      useStore.getState().auth_clearAuthData()
+    }
+  }
+
+  return res
+}
+
+// -----------------------------------------------------------------------------
+// Small utilities
+// -----------------------------------------------------------------------------
+
+function safeJsonParse<T>(value: string | null, fallback: T): T {
+  if (!value) return fallback
+  try {
+    return JSON.parse(value) as T
+  } catch {
+    return fallback
+  }
+}
+
+function useResizeObserver<T extends HTMLElement>() {
+  const ref = useRef<T | null>(null)
+  const [rect, setRect] = useState<{ width: number; height: number }>({ width: 0, height: 0 })
+
+  useEffect(() => {
+    if (!ref.current) return
+    const el = ref.current
+    const obs = new ResizeObserver((entries) => {
+      const cr = entries[0]?.contentRect
+      if (!cr) return
+      setRect({ width: cr.width, height: cr.height })
+    })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
+  return { ref, rect }
+}
+
+const subjectNames: Record<string, string> = { L: 'Lengua', M: 'Matemática' }
+const formatPct = (v: any) => (v === null || v === undefined || Number.isNaN(Number(v)) ? '—' : `${(Number(v) * 100).toFixed(1)}%`)
+const StatCard = ({ label, value }: { label: string; value: React.ReactNode }) => (
+  <Grid2 size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+    <Card variant="outlined">
+      <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+        <Typography variant="overline" color="text.secondary">
+          {label}
+        </Typography>
+        <Typography variant="h5">{value}</Typography>
+      </CardContent>
+    </Card>
+  </Grid2>
+)
+
+
+
+// -----------------------------------------------------------------------------
+// API hook
+// -----------------------------------------------------------------------------
+
+const useMetaReportApi = () => {
+  const apiBase = useMemo(() => apiUrl('/meta-reports-global/flask'), [])
+
+  const getJson = useCallback(
+    async <T,>(path: string): Promise<T> => {
+      const url = `${apiBase}${path}`
+      const res = await metaReportFetch(url, { cache: 'no-store' })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(`HTTP ${res.status} ${res.statusText} (${url}) ${text}`)
+      }
+      return (await res.json()) as T
+    },
+    [apiBase],
+  )
+
+  const postJson = useCallback(
+    async <TResponse, TBody extends object>(path: string, body: TBody): Promise<TResponse> => {
+      const url = `${apiBase}${path}`
+      const res = await metaReportFetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(`HTTP ${res.status} ${res.statusText} (${url}) ${text}`)
+      }
+      return (await res.json()) as TResponse
+    },
+    [apiBase],
+  )
+
+  return { apiBase, getJson, postJson }
+}
+
+// -----------------------------------------------------------------------------
+// Estadísticas tab
+// -----------------------------------------------------------------------------
+
+type T_SummariesRow = {
+  evaluation_grade: number | string
+  school_id: number | string
+  subject_id: string
+  n_students: number
+  mean_score: number
+  std_score: number
+  standard_error: number
+  kr20: number | null
+  [k: string]: any
+}
+
+type T_SummariesResponse = {
+  total_responses?: number
+  total_questions?: number
+  total_students?: number
+  total_schools?: number
+  total_kr20_lengua?: number | null
+  total_mean_score?: number | null
+  data?: T_SummariesRow[]
+  [k: string]: any
+}
+
+const EstadisticasTab = ({ active }: { active: boolean }) => {
+  const { getJson } = useMetaReportApi()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [summaries, setSummaries] = useState<T_SummariesResponse | null>(null)
+
+  const STORAGE_PREFIX = 'reporteMeta.estadisticas.'
+  const STORAGE_KEY_FILTERS = STORAGE_PREFIX + 'filters'
+  const STORAGE_KEY_SORT = STORAGE_PREFIX + 'sort'
+
+  const [filters, setFilters] = useState<{ grade: string; school: string; subject: string }>(() =>
+    safeJsonParse(localStorage.getItem(STORAGE_KEY_FILTERS), { grade: '', school: '', subject: '' }),
+  )
+  const [sort, setSort] = useState<{ column: string | null; direction: 'asc' | 'desc' }>(() =>
+    safeJsonParse(localStorage.getItem(STORAGE_KEY_SORT), { column: null, direction: 'asc' }),
+  )
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(filters))
+    } catch {}
+  }, [filters])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_SORT, JSON.stringify(sort))
+    } catch {}
+  }, [sort])
+
+  useEffect(() => {
+    if (!active) return
+    if (summaries) return
+    setLoading(true)
+    setError(null)
+    getJson<T_SummariesResponse>('/summaries/')
+      .then((data) => setSummaries(data))
+      .catch((e) => setError(String(e?.message ?? e)))
+      .finally(() => setLoading(false))
+  }, [active, summaries, getJson])
+
+  const rows = summaries?.data ?? []
+  const options = useMemo(() => {
+    const grades = new Set<string>()
+    const schools = new Set<string>()
+    const subjects = new Set<string>()
+    rows.forEach((r) => {
+      grades.add(String(r.evaluation_grade))
+      schools.add(String(r.school_id))
+      subjects.add(String(r.subject_id))
+    })
+    return {
+      grades: Array.from(grades).sort((a, b) => Number(a) - Number(b)),
+      schools: Array.from(schools).sort((a, b) => Number(a) - Number(b)),
+      subjects: Array.from(subjects).sort(),
+    }
+  }, [rows])
+
+  const filtered = useMemo(() => {
+    return rows.filter((r) => {
+      if (filters.grade && String(r.evaluation_grade) !== filters.grade) return false
+      if (filters.school && String(r.school_id) !== filters.school) return false
+      if (filters.subject && String(r.subject_id) !== filters.subject) return false
+      return true
+    })
+  }, [rows, filters])
+
+  const sorted = useMemo(() => {
+    if (!sort.column) return filtered
+    const col = sort.column
+    const dir = sort.direction
+    const copy = [...filtered]
+    copy.sort((a: any, b: any) => {
+      const av = a?.[col]
+      const bv = b?.[col]
+      if (av === bv) return 0
+      if (av === null || av === undefined) return 1
+      if (bv === null || bv === undefined) return -1
+      if (typeof av === 'number' && typeof bv === 'number') return dir === 'asc' ? av - bv : bv - av
+      return dir === 'asc' ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av))
+    })
+    return copy
+  }, [filtered, sort])
+
+  const toggleSort = (column: string) => {
+    setSort((s) => {
+      if (s.column !== column) return { column, direction: 'asc' }
+      return { column, direction: s.direction === 'asc' ? 'desc' : 'asc' }
+    })
+  }
+
+  return (
+    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="estadisticas">
+      <h2>Estadísticas</h2>
+
+      {loading && <p className="loading-message">Cargando datos...</p>}
+      {error && <p className="error-message">{error}</p>}
+
+      {summaries && (
+        <>
+          <Grid2 container spacing={2} sx={{ mb: 2 }}>
+            <StatCard label="Respuestas" value={summaries.total_responses ?? '—'} />
+            <StatCard label="Preguntas" value={summaries.total_questions ?? '—'} />
+            <StatCard label="Estudiantes" value={summaries.total_students ?? '—'} />
+            <StatCard label="Escuelas" value={summaries.total_schools ?? '—'} />
+            <StatCard
+              label="KR-20"
+              value={
+                summaries.total_kr20_lengua === null || summaries.total_kr20_lengua === undefined
+                  ? '—'
+                  : Number(summaries.total_kr20_lengua).toFixed(3)
+              }
+            />
+            <StatCard
+              label="Promedio"
+              value={
+                summaries.total_mean_score === null || summaries.total_mean_score === undefined
+                  ? '—'
+                  : `${(Number(summaries.total_mean_score) * 100).toFixed(1)}%`
+              }
+            />
+          </Grid2>
+
+          <div className="filters-panel">
+            <div className="filters-row">
+              <div className="filter-group">
+                <label className="filter-label">Grado</label>
+                <select
+                  className="filter-select"
+                  value={filters.grade}
+                  onChange={(e) => setFilters((f) => ({ ...f, grade: e.target.value }))}
+                >
+                  <option value="">Todos</option>
+                  {options.grades.map((g) => (
+                    <option key={g} value={g}>
+                      {g}°
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="filter-group">
+                <label className="filter-label">Escuela</label>
+                <select
+                  className="filter-select"
+                  value={filters.school}
+                  onChange={(e) => setFilters((f) => ({ ...f, school: e.target.value }))}
+                >
+                  <option value="">Todas</option>
+                  {options.schools.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="filter-group">
+                <label className="filter-label">Materia</label>
+                <select
+                  className="filter-select"
+                  value={filters.subject}
+                  onChange={(e) => setFilters((f) => ({ ...f, subject: e.target.value }))}
+                >
+                  <option value="">Todas</option>
+                  {options.subjects.map((s) => (
+                    <option key={s} value={s}>
+                      {subjectNames[s] ?? s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                className="filter-clear-btn"
+                onClick={() => {
+                  setFilters({ grade: '', school: '', subject: '' })
+                  setSort({ column: null, direction: 'asc' })
+                }}
+                type="button"
+              >
+                Limpiar
+              </button>
+            </div>
+          </div>
+
+          <div className="table-panel">
+            <table id="stats-table">
+              <thead>
+                <tr>
+                  {[
+                    ['evaluation_grade', 'Grado'],
+                    ['school_id', 'Escuela'],
+                    ['subject_id', 'Materia'],
+                    ['n_students', 'Estudiantes'],
+                    ['mean_score', 'Promedio'],
+                    ['std_score', 'Std'],
+                    ['standard_error', 'Error Std'],
+                    ['kr20', 'KR-20'],
+                  ].map(([key, label]) => (
+                    <th key={key}>
+                      <button className="sort-btn" type="button" onClick={() => toggleSort(key)}>
+                        {label}{' '}
+                        {sort.column === key ? (sort.direction === 'asc' ? '▲' : '▼') : '↕'}
+                      </button>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map((r, idx) => (
+                  <tr key={`${r.evaluation_grade}-${r.school_id}-${r.subject_id}-${idx}`}>
+                    <td>{String(r.evaluation_grade)}</td>
+                    <td>{String(r.school_id)}</td>
+                    <td>{subjectNames[String(r.subject_id)] ?? String(r.subject_id)}</td>
+                    <td>{r.n_students}</td>
+                    <td>{formatPct(r.mean_score)}</td>
+                    <td>{formatPct(r.std_score)}</td>
+                    <td>{formatPct(r.standard_error)}</td>
+                    <td>{r.kr20 === null || r.kr20 === undefined ? '—' : Number(r.kr20).toFixed(3)}</td>
+                  </tr>
+                ))}
+                {!sorted.length && (
+                  <tr>
+                    <td colSpan={8} style={{ textAlign: 'center', padding: '1rem', color: '#64748b' }}>
+                      No hay datos con los filtros seleccionados
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// Preguntas tab
+// -----------------------------------------------------------------------------
+
+type T_QuestionsStatsResponse = Record<
+  string,
+  {
+    mean?: number
+    count?: number
+    question?: string
+    competencia?: string | null
+    contenido?: string | null
+  }
+>
+
+const PreguntasTab = ({ active }: { active: boolean }) => {
+  const { getJson } = useMetaReportApi()
+  const STORAGE_PREFIX = 'reporteMeta.preguntas.'
+  const STORAGE_KEY_FILTERS = STORAGE_PREFIX + 'filters'
+
+  const [filters, setFilters] = useState<{ subject: string; competencia: string; contenido: string }>(() =>
+    safeJsonParse(localStorage.getItem(STORAGE_KEY_FILTERS), { subject: '', competencia: '', contenido: '' }),
+  )
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<T_QuestionsStatsResponse | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const tooltipRef = useRef<HTMLDivElement | null>(null)
+
+  const { ref: containerRef, rect } = useResizeObserver<HTMLDivElement>()
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(filters))
+    } catch {}
+  }, [filters])
+
+  useEffect(() => {
+    if (!active) return
+    if (data) return
+    setLoading(true)
+    setError(null)
+    getJson<T_QuestionsStatsResponse>('/questions_stats/')
+      .then((d) => setData(d))
+      .catch((e) => setError(String(e?.message ?? e)))
+      .finally(() => setLoading(false))
+  }, [active, data, getJson])
+
+  const options = useMemo(() => {
+    const subjects = new Set<string>()
+    const competencias = new Set<string>()
+    const contenidos = new Set<string>()
+    if (!data) return { subjects: [], competencias: [], contenidos: [] }
+    Object.entries(data).forEach(([qid, v]) => {
+      const m = qid.match(/^([LM])_/)?.[1]
+      if (m) subjects.add(m)
+      if (v.competencia) competencias.add(v.competencia)
+      if (v.contenido) contenidos.add(v.contenido)
+    })
+    return {
+      subjects: Array.from(subjects).sort(),
+      competencias: Array.from(competencias).sort((a, b) => a.localeCompare(b)),
+      contenidos: Array.from(contenidos).sort((a, b) => a.localeCompare(b)),
+    }
+  }, [data])
+
+  const filteredEntries = useMemo(() => {
+    if (!data) return [] as Array<[string, any]>
+    return Object.entries(data).filter(([qid, v]) => {
+      const subj = qid.match(/^([LM])_/)?.[1] ?? ''
+      if (filters.subject && subj !== filters.subject) return false
+      if (filters.competencia && String(v.competencia ?? '') !== filters.competencia) return false
+      if (filters.contenido && String(v.contenido ?? '') !== filters.contenido) return false
+      return true
+    })
+  }, [data, filters])
+
+  const colorByCompetencia = useMemo(() => {
+    const palette = [
+      '#1f3a93',
+      '#2a9d8f',
+      '#e76f51',
+      '#6d28d9',
+      '#0ea5e9',
+      '#f59e0b',
+      '#22c55e',
+      '#ef4444',
+      '#14b8a6',
+      '#a855f7',
+    ]
+    const map = new Map<string, string>()
+    options.competencias.forEach((c, i) => map.set(c, palette[i % palette.length]))
+    return map
+  }, [options.competencias])
+
+  const darker = (hex: string) => {
+    const c = d3.color(hex)
+    if (!c) return hex
+    c.opacity = 1
+    const rgb = c.rgb()
+    return d3.rgb(Math.max(0, rgb.r - 30), Math.max(0, rgb.g - 30), Math.max(0, rgb.b - 30)).formatHex()
+  }
+
+  useEffect(() => {
+    if (!active) return
+    if (!data) return
+    if (!containerRef.current) return
+
+    const container = d3.select(containerRef.current)
+    container.selectAll('*').remove()
+
+    const entries = filteredEntries
+    if (!entries.length) {
+      container
+        .append('div')
+        .style('padding', '2rem')
+        .style('text-align', 'center')
+        .style('color', '#64748b')
+        .text('No hay datos de preguntas para los filtros seleccionados')
       return
     }
-    const s = document.createElement('script')
-    s.src = src
-    s.async = false
-    s.defer = false
-    s.dataset.metaReportSrc = src
-    s.onload = () => resolve()
-    s.onerror = () => reject(new Error(`Failed to load script: ${src}`))
-    document.head.appendChild(s)
-  })
+
+    const questionsArray = entries
+      .map(([qid, v]) => ({
+        id: qid,
+        mean: Number(v.mean ?? 0),
+        count: Number(v.count ?? 0),
+        question: String(v.question ?? ''),
+        competencia: v.competencia ?? null,
+        contenido: v.contenido ?? null,
+      }))
+      .sort((a, b) => a.mean - b.mean)
+
+    const minMean = d3.min(questionsArray, (d) => d.mean) ?? 0
+    const maxMean = d3.max(questionsArray, (d) => d.mean) ?? 0
+    const normalize = (value: number) => {
+      if (maxMean === minMean) return 0.5
+      return (value - minMean) / (maxMean - minMean)
+    }
+    questionsArray.forEach((d: any) => (d.normalizedMean = normalize(d.mean)))
+
+    const width = Math.max(300, rect.width || containerRef.current.getBoundingClientRect().width)
+    const height = Math.max(360, rect.height || containerRef.current.getBoundingClientRect().height)
+    const margin = { top: 20, right: 30, bottom: 60, left: 60 }
+    const chartWidth = width - margin.left - margin.right
+    const chartHeight = height - margin.top - margin.bottom
+
+    const svg = container.append('svg').attr('width', width).attr('height', height)
+    const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
+
+    const xScale = d3
+      .scaleBand<string>()
+      .domain(questionsArray.map((d) => d.id))
+      .range([0, chartWidth])
+      .padding(0)
+
+    const yScale = d3.scaleLinear().domain([0, 1]).range([chartHeight, 0])
+
+    const xAxis = g
+      .append('g')
+      .attr('transform', `translate(0,${chartHeight})`)
+      .call(d3.axisBottom(xScale).tickValues([] as any))
+
+    const yAxis = g
+      .append('g')
+      .call(d3.axisLeft(yScale).ticks(10).tickFormat((d: any) => (Number(d) * 100).toFixed(0) + '%'))
+
+    yAxis.selectAll('text').style('font-size', '0.85rem').style('fill', '#64748b')
+    yAxis.selectAll('line').style('stroke', '#e2e8f0')
+    xAxis.selectAll('line').style('stroke', '#e2e8f0')
+    g.selectAll('.domain').style('stroke', '#cbd5e1')
+
+    g.append('g')
+      .attr('class', 'grid')
+      .call(d3.axisLeft(yScale).ticks(10).tickSize(-chartWidth).tickFormat(() => ''))
+      .style('stroke', '#f1f5f9')
+      .style('stroke-opacity', 0.7)
+      .selectAll('.domain')
+      .remove()
+
+    const getBarColor = (d: any) => {
+      const c = d.competencia ? colorByCompetencia.get(String(d.competencia)) : null
+      const fallback = '#1f3a93'
+      return c ?? fallback
+    }
+
+    const showTooltip = (event: any, d: any) => {
+      const el = tooltipRef.current
+      if (!el) return
+      const rect = (event.currentTarget as Element).getBoundingClientRect()
+      const pageX = event.clientX
+      const pageY = event.clientY
+      el.innerHTML = `
+        <div class="tooltip-id">Pregunta: ${d.id}</div>
+        <div class="tooltip-score">Promedio: ${(d.normalizedMean * 100).toFixed(1)}%</div>
+        <div class="tooltip-count">Respuestas: ${d.count}</div>
+      `
+      el.style.left = `${pageX + 10}px`
+      el.style.top = `${pageY - 28}px`
+      el.classList.add('visible')
+    }
+    const hideTooltip = () => {
+      const el = tooltipRef.current
+      if (!el) return
+      el.classList.remove('visible')
+    }
+
+    g.selectAll('.bar')
+      .data(questionsArray as any)
+      .enter()
+      .append('rect')
+      .attr('class', 'bar')
+      .attr('x', (d: any) => (xScale(d.id) ?? 0) - 0.5)
+      .attr('y', (d: any) => yScale(d.normalizedMean))
+      .attr('width', xScale.bandwidth() + 1)
+      .attr('height', (d: any) => chartHeight - yScale(d.normalizedMean))
+      .attr('fill', (d: any) => (selectedId === d.id ? darker(getBarColor(d)) : getBarColor(d)))
+      .attr('stroke', (d: any) => (selectedId === d.id ? '#1f3a93' : 'none'))
+      .attr('stroke-width', (d: any) => (selectedId === d.id ? 2 : 0))
+      .style('cursor', 'pointer')
+      .on('click', (_event: any, d: any) => {
+        setSelectedId(d.id)
+      })
+      .on('mouseover', function (event: any, d: any) {
+        showTooltip(event, d)
+        d3.select(this).attr('fill', darker(getBarColor(d)))
+      })
+      .on('mousemove', function (event: any, d: any) {
+        showTooltip(event, d)
+      })
+      .on('mouseout', function (event: any, d: any) {
+        hideTooltip()
+        const isSelected = selectedId === d.id
+        d3.select(this).attr('fill', isSelected ? darker(getBarColor(d)) : getBarColor(d))
+      })
+
+    svg
+      .append('text')
+      .attr('transform', 'rotate(-90)')
+      .attr('x', -(height / 2))
+      .attr('y', 15)
+      .style('text-anchor', 'middle')
+      .style('font-size', '0.9rem')
+      .style('fill', '#475569')
+      .style('font-weight', '600')
+      .text('Promedio de Aciertos')
+
+    svg
+      .append('text')
+      .attr('x', width / 2)
+      .attr('y', height - 10)
+      .style('text-anchor', 'middle')
+      .style('font-size', '0.9rem')
+      .style('fill', '#475569')
+      .style('font-weight', '600')
+      .text(`Preguntas (${questionsArray.length} total)`) // matches Flask
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, data, filteredEntries, rect.width, rect.height, selectedId, colorByCompetencia])
+
+  const selected = useMemo(() => {
+    if (!data || !selectedId) return null
+    const v = data[selectedId]
+    if (!v) return null
+    const mean = Number(v.mean ?? 0)
+    return {
+      id: selectedId,
+      normalizedMean: mean, // raw, normalized is chart-relative
+      mean,
+      count: Number(v.count ?? 0),
+      question: String(v.question ?? ''),
+      competencia: v.competencia ?? null,
+      contenido: v.contenido ?? null,
+    }
+  }, [data, selectedId])
+
+  const detail = useMemo(() => {
+    if (!selected) return null
+    const subj = selected.id.match(/^([LM])_/)?.[1]
+    return {
+      ...selected,
+      subject: subj ? subjectNames[subj] ?? subj : 'No especificada',
+    }
+  }, [selected])
+
+  return (
+    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="preguntas">
+      <h2>Preguntas</h2>
+
+      {loading && <p className="loading-message">Cargando datos...</p>}
+      {error && <p className="error-message">{error}</p>}
+
+      <div className="filters-panel">
+        <div className="filters-row">
+          <div className="filter-group">
+            <label className="filter-label">Materia</label>
+            <select
+              className="filter-select"
+              value={filters.subject}
+              onChange={(e) => setFilters((f) => ({ ...f, subject: e.target.value }))}
+            >
+              <option value="">Todas</option>
+              {options.subjects.map((s) => (
+                <option key={s} value={s}>
+                  {subjectNames[s] ?? s}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-group">
+            <label className="filter-label">Competencia</label>
+            <select
+              className="filter-select"
+              value={filters.competencia}
+              onChange={(e) => setFilters((f) => ({ ...f, competencia: e.target.value }))}
+            >
+              <option value="">Todas</option>
+              {options.competencias.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-group">
+            <label className="filter-label">Contenido</label>
+            <select
+              className="filter-select"
+              value={filters.contenido}
+              onChange={(e) => setFilters((f) => ({ ...f, contenido: e.target.value }))}
+            >
+              <option value="">Todos</option>
+              {options.contenidos.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            className="filter-clear-btn"
+            type="button"
+            onClick={() => {
+              setFilters({ subject: '', competencia: '', contenido: '' })
+              setSelectedId(null)
+            }}
+          >
+            Limpiar
+          </button>
+        </div>
+      </div>
+
+      <div className="questions-layout">
+        <div className="questions-chart">
+          <div className="chart-container" ref={containerRef} id="questions-chart-container" />
+          <div ref={tooltipRef} className="tooltip" />
+        </div>
+        <div className="questions-detail">
+          <h3>Detalle</h3>
+          {!detail ? (
+            <p className="no-selection">Selecciona una barra para ver el detalle.</p>
+          ) : (
+            <div id="question-detail-content">
+              <div className="detail-item detail-item-stats">
+                <div className="stat-row">
+                  <span className="detail-label">Texto</span>
+                  <span className="detail-value question-text">{detail.question || 'Sin texto disponible'}</span>
+                </div>
+                <div className="stat-row">
+                  <span className="detail-label">Respuestas</span>
+                  <span className="detail-value">{detail.count}</span>
+                </div>
+                <div className="stat-row">
+                  <span className="detail-label">Promedio</span>
+                  <span className="detail-value large">{formatPct(detail.mean)}</span>
+                </div>
+              </div>
+              <div className="detail-item detail-item-stats">
+                <div className="stat-row">
+                  <span className="detail-label">Materia</span>
+                  <span className="detail-value">{detail.subject}</span>
+                </div>
+                <div className="stat-row">
+                  <span className="detail-label">Competencia</span>
+                  <span className="detail-value">{detail.competencia || 'No especificada'}</span>
+                </div>
+                <div className="stat-row">
+                  <span className="detail-label">Contenido</span>
+                  <span className="detail-value">{detail.contenido || 'No especificado'}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// Estudiantes tab
+// -----------------------------------------------------------------------------
+
+type T_StudentsStatsResponse = Record<string, { mean?: number; count?: number }>
+
+const parseStudentKey = (key: string) => {
+  const match = key.match(/\((\d+),\s*(\d+),\s*(\d+),\s*'([LM])'\)/)
+  if (!match) return null
+  return {
+    studentId: Number(match[1]),
+    grade: Number(match[2]),
+    school: Number(match[3]),
+    subject: String(match[4]),
+  }
+}
+
+const EstudiantesTab = ({ active }: { active: boolean }) => {
+  const { getJson } = useMetaReportApi()
+  const STORAGE_PREFIX = 'reporteMeta.estudiantes.'
+  const STORAGE_KEY_FILTERS = STORAGE_PREFIX + 'filters'
+  const STORAGE_KEY_THRESHOLDS = STORAGE_PREFIX + 'thresholds'
+
+  const [filters, setFilters] = useState<{ grade: string; school: string; subject: string }>(() =>
+    safeJsonParse(localStorage.getItem(STORAGE_KEY_FILTERS), { grade: '', school: '', subject: '' }),
+  )
+  const [thresholds, setThresholds] = useState<{ redYellow: number; yellowGreen: number }>(() =>
+    safeJsonParse(localStorage.getItem(STORAGE_KEY_THRESHOLDS), { redYellow: 0.4, yellowGreen: 0.6 }),
+  )
+
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<T_StudentsStatsResponse | null>(null)
+  const [selectedKey, setSelectedKey] = useState<string | null>(null)
+  const tooltipRef = useRef<HTMLDivElement | null>(null)
+  const { ref: containerRef, rect } = useResizeObserver<HTMLDivElement>()
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(filters))
+    } catch {}
+  }, [filters])
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_THRESHOLDS, JSON.stringify(thresholds))
+    } catch {}
+  }, [thresholds])
+
+  useEffect(() => {
+    if (!active) return
+    if (data) return
+    setLoading(true)
+    setError(null)
+    getJson<T_StudentsStatsResponse>('/students_stats/')
+      .then((d) => setData(d))
+      .catch((e) => setError(String(e?.message ?? e)))
+      .finally(() => setLoading(false))
+  }, [active, data, getJson])
+
+  const options = useMemo(() => {
+    const grades = new Set<number>()
+    const schools = new Set<number>()
+    const subjects = new Set<string>()
+    if (!data) return { grades: [], schools: [], subjects: [] }
+    Object.keys(data).forEach((k) => {
+      const p = parseStudentKey(k)
+      if (!p) return
+      grades.add(p.grade)
+      schools.add(p.school)
+      subjects.add(p.subject)
+    })
+    return {
+      grades: Array.from(grades).sort((a, b) => a - b),
+      schools: Array.from(schools).sort((a, b) => a - b),
+      subjects: Array.from(subjects).sort(),
+    }
+  }, [data])
+
+  const filteredEntries = useMemo(() => {
+    if (!data) return [] as Array<[string, { mean?: number; count?: number }]>
+    return Object.entries(data).filter(([key]) => {
+      const p = parseStudentKey(key)
+      if (!p) return false
+      if (filters.grade && p.grade !== Number(filters.grade)) return false
+      if (filters.school && p.school !== Number(filters.school)) return false
+      if (filters.subject && p.subject !== filters.subject) return false
+      return true
+    })
+  }, [data, filters])
+
+  const getBarColor = (score01: number) => {
+    if (score01 < thresholds.redYellow) return '#ef4444'
+    if (score01 < thresholds.yellowGreen) return '#f59e0b'
+    return '#22c55e'
+  }
+  const darkerColor = (hex: string) => {
+    const c = d3.color(hex)
+    if (!c) return hex
+    const rgb = c.rgb()
+    return d3.rgb(Math.max(0, rgb.r - 30), Math.max(0, rgb.g - 30), Math.max(0, rgb.b - 30)).formatHex()
+  }
+
+  const counts = useMemo(() => {
+    if (!data || !filteredEntries.length) return { red: 0, yellow: 0, green: 0 }
+    const arr = filteredEntries.map(([k, v]) => ({ k, mean: Number(v.mean ?? 0) }))
+    const min = d3.min(arr, (d) => d.mean) ?? 0
+    const max = d3.max(arr, (d) => d.mean) ?? 0
+    const norm = (val: number) => (max === min ? 0.5 : (val - min) / (max - min))
+    let red = 0,
+      yellow = 0,
+      green = 0
+    arr.forEach((d) => {
+      const c = getBarColor(norm(d.mean))
+      if (c === '#ef4444') red++
+      else if (c === '#f59e0b') yellow++
+      else green++
+    })
+    return { red, yellow, green }
+  }, [data, filteredEntries, thresholds.redYellow, thresholds.yellowGreen])
+
+  const selectedDetail = useMemo(() => {
+    if (!data || !selectedKey) return null
+    const parsed = parseStudentKey(selectedKey)
+    if (!parsed) return null
+    const lenguaKey = `(${parsed.studentId}, ${parsed.grade}, ${parsed.school}, 'L')`
+    const matemKey = `(${parsed.studentId}, ${parsed.grade}, ${parsed.school}, 'M')`
+    const lengua = data[lenguaKey]
+    const matem = data[matemKey]
+    return {
+      studentId: parsed.studentId,
+      grade: parsed.grade,
+      school: parsed.school,
+      lengua: lengua ? { mean: Number(lengua.mean ?? 0), count: Number(lengua.count ?? 0) } : null,
+      matematica: matem ? { mean: Number(matem.mean ?? 0), count: Number(matem.count ?? 0) } : null,
+    }
+  }, [data, selectedKey])
+
+  useEffect(() => {
+    if (!active) return
+    if (!data) return
+    if (!containerRef.current) return
+
+    const container = d3.select(containerRef.current)
+    container.selectAll('*').remove()
+
+    const entries = filteredEntries
+    if (!entries.length) {
+      container
+        .append('div')
+        .style('padding', '2rem')
+        .style('text-align', 'center')
+        .style('color', '#64748b')
+        .text('No hay datos de estudiantes para los filtros seleccionados')
+      return
+    }
+
+    const studentsArray = entries
+      .map(([id, v]) => ({ id, mean: Number(v.mean ?? 0), count: Number(v.count ?? 0) }))
+      .sort((a, b) => a.mean - b.mean)
+
+    const minMean = d3.min(studentsArray, (d) => d.mean) ?? 0
+    const maxMean = d3.max(studentsArray, (d) => d.mean) ?? 0
+    const normalize = (value: number) => (maxMean === minMean ? 0.5 : (value - minMean) / (maxMean - minMean))
+    studentsArray.forEach((d: any) => (d.normalizedMean = normalize(d.mean)))
+
+    const width = Math.max(300, rect.width || containerRef.current.getBoundingClientRect().width)
+    const height = Math.max(360, rect.height || containerRef.current.getBoundingClientRect().height)
+    const margin = { top: 20, right: 30, bottom: 60, left: 60 }
+    const chartWidth = width - margin.left - margin.right
+    const chartHeight = height - margin.top - margin.bottom
+
+    const svg = container.append('svg').attr('width', width).attr('height', height)
+    const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
+
+    const xScale = d3
+      .scaleBand<string>()
+      .domain(studentsArray.map((d) => d.id))
+      .range([0, chartWidth])
+      .padding(0)
+
+    const yScale = d3.scaleLinear().domain([0, 1]).range([chartHeight, 0])
+
+    const xAxis = g
+      .append('g')
+      .attr('transform', `translate(0,${chartHeight})`)
+      .call(d3.axisBottom(xScale).tickValues([] as any))
+
+    const yAxis = g
+      .append('g')
+      .call(d3.axisLeft(yScale).ticks(10).tickFormat((d: any) => (Number(d) * 100).toFixed(0) + '%'))
+
+    yAxis.selectAll('text').style('font-size', '0.85rem').style('fill', '#64748b')
+    yAxis.selectAll('line').style('stroke', '#e2e8f0')
+    xAxis.selectAll('line').style('stroke', '#e2e8f0')
+    g.selectAll('.domain').style('stroke', '#cbd5e1')
+
+    g.append('g')
+      .attr('class', 'grid')
+      .call(d3.axisLeft(yScale).ticks(10).tickSize(-chartWidth).tickFormat(() => ''))
+      .style('stroke', '#f1f5f9')
+      .style('stroke-opacity', 0.7)
+      .selectAll('.domain')
+      .remove()
+
+    const showTooltip = (event: any, d: any) => {
+      const el = tooltipRef.current
+      if (!el) return
+      const parsed = parseStudentKey(d.id)
+      const studentId = parsed ? parsed.studentId : d.id
+      el.innerHTML = `
+        <div class="tooltip-id">Estudiante: ${studentId}</div>
+        <div class="tooltip-score">Puntaje: ${(d.normalizedMean * 100).toFixed(1)}%</div>
+      `
+      el.style.left = `${event.clientX + 10}px`
+      el.style.top = `${event.clientY - 28}px`
+      el.classList.add('visible')
+    }
+    const hideTooltip = () => {
+      const el = tooltipRef.current
+      if (!el) return
+      el.classList.remove('visible')
+    }
+
+    g.selectAll('.bar')
+      .data(studentsArray as any)
+      .enter()
+      .append('rect')
+      .attr('class', 'bar')
+      .attr('x', (d: any) => (xScale(d.id) ?? 0) - 0.5)
+      .attr('y', (d: any) => yScale(d.normalizedMean))
+      .attr('width', xScale.bandwidth() + 1)
+      .attr('height', (d: any) => chartHeight - yScale(d.normalizedMean))
+      .attr('fill', (d: any) => {
+        const base = getBarColor(d.normalizedMean)
+        return selectedKey === d.id ? darkerColor(base) : base
+      })
+      .attr('stroke', (d: any) => (selectedKey === d.id ? '#1f3a93' : 'none'))
+      .attr('stroke-width', (d: any) => (selectedKey === d.id ? 2 : 0))
+      .style('cursor', 'pointer')
+      .on('click', (_event: any, d: any) => setSelectedKey(d.id))
+      .on('mouseover', function (event: any, d: any) {
+        showTooltip(event, d)
+        d3.select(this).attr('fill', darkerColor(getBarColor(d.normalizedMean)))
+      })
+      .on('mousemove', function (event: any, d: any) {
+        showTooltip(event, d)
+      })
+      .on('mouseout', function (event: any, d: any) {
+        hideTooltip()
+        const isSelected = selectedKey === d.id
+        const base = getBarColor(d.normalizedMean)
+        d3.select(this).attr('fill', isSelected ? darkerColor(base) : base)
+      })
+
+    svg
+      .append('text')
+      .attr('transform', 'rotate(-90)')
+      .attr('x', -(height / 2))
+      .attr('y', 15)
+      .style('text-anchor', 'middle')
+      .style('font-size', '0.9rem')
+      .style('fill', '#475569')
+      .style('font-weight', '600')
+      .text('Puntaje Promedio')
+
+    svg
+      .append('text')
+      .attr('x', width / 2)
+      .attr('y', height - 10)
+      .style('text-anchor', 'middle')
+      .style('font-size', '0.9rem')
+      .style('fill', '#475569')
+      .style('font-weight', '600')
+      .text(`Estudiantes (${studentsArray.length} total)`)
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, data, filteredEntries, rect.width, rect.height, thresholds.redYellow, thresholds.yellowGreen, selectedKey])
+
+  return (
+    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="estudiantes">
+      <h2>Estudiantes</h2>
+
+      {loading && <p className="loading-message">Cargando datos...</p>}
+      {error && <p className="error-message">{error}</p>}
+
+      <div className="filters-panel">
+        <div className="filters-row">
+          <div className="filter-group">
+            <label className="filter-label">Grado</label>
+            <select
+              className="filter-select"
+              value={filters.grade}
+              onChange={(e) => setFilters((f) => ({ ...f, grade: e.target.value }))}
+            >
+              <option value="">Todos</option>
+              {options.grades.map((g) => (
+                <option key={g} value={String(g)}>
+                  {g}°
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-group">
+            <label className="filter-label">Escuela</label>
+            <select
+              className="filter-select"
+              value={filters.school}
+              onChange={(e) => setFilters((f) => ({ ...f, school: e.target.value }))}
+            >
+              <option value="">Todas</option>
+              {options.schools.map((s) => (
+                <option key={s} value={String(s)}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-group">
+            <label className="filter-label">Materia</label>
+            <select
+              className="filter-select"
+              value={filters.subject}
+              onChange={(e) => setFilters((f) => ({ ...f, subject: e.target.value }))}
+            >
+              <option value="">Todas</option>
+              {options.subjects.map((s) => (
+                <option key={s} value={s}>
+                  {subjectNames[s] ?? s}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            className="filter-clear-btn"
+            type="button"
+            onClick={() => {
+              setFilters({ grade: '', school: '', subject: '' })
+              setSelectedKey(null)
+            }}
+          >
+            Limpiar
+          </button>
+        </div>
+      </div>
+
+      <div className="thresholds-panel">
+        <div className="threshold">
+          <label className="threshold-label">
+            Rojo → Amarillo: <span className="threshold-value">{Math.round(thresholds.redYellow * 100)}%</span>
+          </label>
+          <input
+            id="threshold-red-yellow"
+            className="threshold-slider"
+            type="range"
+            min={0}
+            max={0.95}
+            step={0.01}
+            value={thresholds.redYellow}
+            onChange={(e) =>
+              setThresholds((t) => ({
+                ...t,
+                redYellow: Math.min(Number(e.target.value), t.yellowGreen - 0.01),
+              }))
+            }
+          />
+        </div>
+        <div className="threshold">
+          <label className="threshold-label">
+            Amarillo → Verde: <span className="threshold-value">{Math.round(thresholds.yellowGreen * 100)}%</span>
+          </label>
+          <input
+            id="threshold-yellow-green"
+            className="threshold-slider"
+            type="range"
+            min={0.05}
+            max={1}
+            step={0.01}
+            value={thresholds.yellowGreen}
+            onChange={(e) =>
+              setThresholds((t) => ({
+                ...t,
+                yellowGreen: Math.max(Number(e.target.value), t.redYellow + 0.01),
+              }))
+            }
+          />
+        </div>
+        <div className="traffic-counts">
+          <div className="traffic-count traffic-count-red">
+            <span className="traffic-dot" />
+            <span id="count-red">{counts.red}</span>
+          </div>
+          <div className="traffic-count traffic-count-yellow">
+            <span className="traffic-dot" />
+            <span id="count-yellow">{counts.yellow}</span>
+          </div>
+          <div className="traffic-count traffic-count-green">
+            <span className="traffic-dot" />
+            <span id="count-green">{counts.green}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="students-layout">
+        <div className="students-chart">
+          <div className="chart-container" ref={containerRef} id="students-chart-container" />
+          <div ref={tooltipRef} className="tooltip" />
+        </div>
+        <div className="students-detail">
+          <h3>Detalle</h3>
+          {!selectedDetail ? (
+            <p className="no-selection">Selecciona una barra para ver el detalle.</p>
+          ) : (
+            <div id="student-detail-content">
+              <div className="detail-item detail-item-stats">
+                <div className="stat-row">
+                  <span className="detail-label">ID Estudiante</span>
+                  <span className="detail-value">{selectedDetail.studentId}</span>
+                </div>
+                <div className="stat-row">
+                  <span className="detail-label">Escuela</span>
+                  <span className="detail-value">{selectedDetail.school}</span>
+                </div>
+                <div className="stat-row">
+                  <span className="detail-label">Grado</span>
+                  <span className="detail-value">{selectedDetail.grade}°</span>
+                </div>
+              </div>
+              <div className="detail-item detail-item-stats">
+                <div className="stat-row">
+                  <span className="detail-label">Lengua - Puntaje</span>
+                  <span className="detail-value">{selectedDetail.lengua ? formatPct(selectedDetail.lengua.mean) : 'N/A'}</span>
+                </div>
+                <div className="stat-row">
+                  <span className="detail-label">Lengua - Preguntas</span>
+                  <span className="detail-value">{selectedDetail.lengua ? selectedDetail.lengua.count : 'N/A'}</span>
+                </div>
+              </div>
+              <div className="detail-item detail-item-stats">
+                <div className="stat-row">
+                  <span className="detail-label">Matemática - Puntaje</span>
+                  <span className="detail-value">
+                    {selectedDetail.matematica ? formatPct(selectedDetail.matematica.mean) : 'N/A'}
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="detail-label">Matemática - Preguntas</span>
+                  <span className="detail-value">{selectedDetail.matematica ? selectedDetail.matematica.count : 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// Agrupamiento tab
+// -----------------------------------------------------------------------------
+
+type T_DatasetsResponse = {
+  grades?: Array<{ id: string; label: string; datasets: Array<{ id: string; label: string; graph_url: string; data_url: string }> }>
+  datasets?: Array<{ grade_id: string; id: string; label: string } & any>
+}
+
+const AgrupamientoTab = ({ active }: { active: boolean }) => {
+  const { getJson } = useMetaReportApi()
+  const STORAGE_PREFIX = 'reporteMeta.agrupamiento.'
+  const STORAGE_KEY_GRADE = STORAGE_PREFIX + 'grade'
+  const STORAGE_KEY_SUBJECT = STORAGE_PREFIX + 'subject'
+
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [datasets, setDatasets] = useState<T_DatasetsResponse | null>(null)
+  const [grade, setGrade] = useState<string>(() => localStorage.getItem(STORAGE_KEY_GRADE) || '')
+  const [subject, setSubject] = useState<string>(() => localStorage.getItem(STORAGE_KEY_SUBJECT) || '')
+  const [cluster, setCluster] = useState<any | null>(null)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_GRADE, grade)
+      localStorage.setItem(STORAGE_KEY_SUBJECT, subject)
+    } catch {}
+  }, [grade, subject])
+
+  useEffect(() => {
+    if (!active) return
+    if (datasets) return
+    setLoading(true)
+    setError(null)
+    getJson<T_DatasetsResponse>('/datasets/')
+      .then((d) => setDatasets(d))
+      .catch((e) => setError(String(e?.message ?? e)))
+      .finally(() => setLoading(false))
+  }, [active, datasets, getJson])
+
+  const gradeOptions = useMemo(() => datasets?.grades ?? [], [datasets])
+  const subjectOptions = useMemo(() => {
+    const list = datasets?.datasets ?? []
+    if (!grade) return [] as Array<{ id: string; label: string }>
+    const filtered = list.filter((d) => String(d.grade_id) === String(grade))
+    const map = new Map<string, string>()
+    filtered.forEach((d) => map.set(String(d.id), String(d.label)))
+    return Array.from(map.entries())
+      .map(([id, label]) => ({ id, label }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }, [datasets, grade])
+
+  useEffect(() => {
+    setCluster(null)
+    if (!active) return
+    if (!grade || !subject) return
+    setLoading(true)
+    setError(null)
+    getJson<any>(`/datasets/${grade}/${subject}/cluster_summary/`)
+      .then((d) => setCluster(d))
+      .catch((e) => setError(String(e?.message ?? e)))
+      .finally(() => setLoading(false))
+  }, [active, grade, subject, getJson])
+
+  const clusterIds = useMemo(() => {
+    if (!cluster) return [] as string[]
+    return Object.keys(cluster?.scores_mean ?? {}).sort((a, b) => Number(a) - Number(b))
+  }, [cluster])
+
+  const formatCompetenciaName = (name: string) =>
+    name
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+
+  const downloadStudentIds = (clusterId: string, studentIds: any[]) => {
+    if (!studentIds?.length) return
+    const csv = 'student_id\n' + studentIds.join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `cluster_${clusterId}_grade_${grade}_${subject}_students.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  return (
+    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="agrupamiento">
+      <h2>Agrupamiento</h2>
+
+      {loading && <p className="loading-message">Cargando datos...</p>}
+      {error && <p className="error-message">{error}</p>}
+
+      <div className="filters-panel">
+        <div className="filters-row">
+          <div className="filter-group">
+            <label className="filter-label">Grado</label>
+            <select
+              id="agrupamiento-grade-select"
+              className="filter-select"
+              value={grade}
+              onChange={(e) => {
+                setGrade(e.target.value)
+                setSubject('')
+              }}
+            >
+              <option value="">Seleccionar...</option>
+              {gradeOptions.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-group">
+            <label className="filter-label">Materia</label>
+            <select
+              id="agrupamiento-subject-select"
+              className="filter-select"
+              value={subject}
+              disabled={!grade}
+              onChange={(e) => setSubject(e.target.value)}
+            >
+              <option value="">Seleccionar...</option>
+              {subjectOptions.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="agrupamiento-clusters-container" className="clusters-container">
+        {!grade || !subject ? (
+          <p className="agrupamiento-placeholder">Seleccione un grado y una materia para ver los clusters</p>
+        ) : !cluster ? (
+          <p className="agrupamiento-placeholder">Cargando datos...</p>
+        ) : !clusterIds.length ? (
+          <p className="agrupamiento-placeholder" style={{ color: '#ef4444' }}>
+            No hay datos de clusters disponibles
+          </p>
+        ) : (
+          <>
+            {clusterIds.map((clusterId) => {
+              const nStudents = cluster?.n_students?.[clusterId] ?? 0
+              const scoresMean = cluster?.scores_mean?.[clusterId] ?? 0
+              const studentIds = cluster?.student_ids?.[clusterId] ?? []
+              const competencias: Array<{ name: string; value: any }> = []
+              Object.keys(cluster).forEach((key) => {
+                if (['scores_mean', 'n_students', 'student_ids'].includes(key)) return
+                if (cluster?.[key]?.[clusterId] === undefined) return
+                competencias.push({ name: formatCompetenciaName(key), value: cluster[key][clusterId] })
+              })
+              return (
+                <div key={clusterId} className="cluster-panel" data-cluster={clusterId}>
+                  <div className="cluster-panel-header">
+                    <h3 className="cluster-panel-title">Grupo {clusterId}</h3>
+                    <span className="cluster-panel-count tag-pill">
+                      {nStudents} estudiante{nStudents !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  <div className="cluster-panel-body">
+                    <div className="cluster-metric">
+                      <span className="cluster-metric-label">Promedio Global</span>
+                      <span className="cluster-metric-value tag-pill">
+                        <span className="tag-pill-value">{formatPct(scoresMean)}</span>
+                      </span>
+                    </div>
+                    {competencias.map((c) => (
+                      <div key={c.name} className="cluster-metric">
+                        <span className="cluster-metric-label">{c.name}</span>
+                        <span className="cluster-metric-value tag-pill">
+                          <span className="tag-pill-value">{formatPct(c.value)}</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="cluster-panel-footer">
+                    <button
+                      className="cluster-download-btn"
+                      type="button"
+                      onClick={() => downloadStudentIds(clusterId, studentIds)}
+                    >
+                      <span>⬇</span>
+                      <span>Descargar IDs de Estudiantes</span>
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// Graph tab (ported from Flask's graph-tab.js, embedded as D3 inside React)
+// -----------------------------------------------------------------------------
+
+const GraphTab = ({ active }: { active: boolean }) => {
+  const { apiBase, getJson } = useMetaReportApi()
+  const mountedRef = useRef(false)
+
+  useEffect(() => {
+    if (!active) return
+    if (mountedRef.current) return
+    mountedRef.current = true
+
+    // Most of this code mirrors the original graph-tab.js (D3 force graph).
+    // It renders entirely within the DOM subtree of this React component.
+
+    const STORAGE_PREFIX = 'reporteMeta.graph.'
+    const STORAGE_KEY_GRADE = STORAGE_PREFIX + 'grade'
+    const STORAGE_KEY_DATASET = STORAGE_PREFIX + 'dataset'
+
+    const gradeSelect = document.getElementById('grade-select') as HTMLSelectElement | null
+    const dataSelect = document.getElementById('data-select') as HTMLSelectElement | null
+    const container = d3.select('#viz-container')
+    const status = d3.select('#status')
+    const legendCanvas = document.getElementById('legend-canvas') as HTMLCanvasElement | null
+    const legendCtx = legendCanvas?.getContext('2d') ?? null
+    const legendMinLabel = d3.select('#legend-min')
+    const legendMaxLabel = d3.select('#legend-max')
+    const tableTitle = d3.select('#table-title')
+    const tableContent = d3.select('#table-content')
+    const histogramSvg = d3.select('#histogram-svg')
+    const histogramMessage = d3.select('#histogram-message')
+
+    const histogramWidth = Number(histogramSvg.attr('width')) || 180
+    const histogramHeight = Number(histogramSvg.attr('height')) || 110
+    histogramSvg
+      .attr('viewBox', `0 0 ${histogramWidth} ${histogramHeight}`)
+      .attr('preserveAspectRatio', 'xMidYMid meet')
+
+    if (!histogramMessage.empty()) {
+      histogramMessage.text('Los puntajes de hojas aparecen cuando se carga un conjunto de datos.')
+    }
+
+    type NormalizedDataset = {
+      id: string
+      label: string
+      gradeId: string
+      gradeLabel: string
+      graphUrl: string
+      dataUrl: string
+    }
+    type NormalizedGrade = { id: string; label: string; datasets: NormalizedDataset[] }
+
+    const titleCase = (value: string) =>
+      value.replace(/\w\S*/g, (segment) => segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase())
+
+    const formatGradeLabel = (gradeId: string) => {
+      const trimmed = String(gradeId ?? '').trim()
+      if (!trimmed) return 'Grado'
+      if (/^\d+$/.test(trimmed)) return `Grado ${trimmed}`
+      const normalized = trimmed.replace(/[_\-]+/g, ' ').replace(/\s+/g, ' ').trim() || trimmed
+      if (normalized.toLowerCase() === 'all') return 'Todos'
+      return titleCase(normalized)
+    }
+
+    const normalizeDataset = (entry: any, gradeId: string, gradeLabel: string): NormalizedDataset | null => {
+      const id = typeof entry?.id === 'string' && entry.id.trim() ? entry.id.trim() : null
+      let graphUrl = typeof entry?.graph_url === 'string' && entry.graph_url.trim() ? entry.graph_url.trim() : null
+      let dataUrl = typeof entry?.data_url === 'string' && entry.data_url.trim() ? entry.data_url.trim() : null
+      if (!id || !graphUrl || !dataUrl) return null
+      if (!graphUrl.startsWith('/')) graphUrl = '/' + graphUrl.replace(/^\/+/, '')
+      if (!dataUrl.startsWith('/')) dataUrl = '/' + dataUrl.replace(/^\/+/, '')
+      const label = typeof entry?.label === 'string' && entry.label.trim() ? entry.label.trim() : titleCase(id)
+      return { id, label, gradeId, gradeLabel, graphUrl, dataUrl }
+    }
+
+    const normalizeGrade = (entry: any): NormalizedGrade | null => {
+      const id = typeof entry?.id === 'string' && entry.id.trim() ? entry.id.trim() : null
+      if (!id) return null
+      const label = typeof entry?.label === 'string' && entry.label.trim() ? entry.label.trim() : formatGradeLabel(id)
+      const rawDatasets = Array.isArray(entry?.datasets) ? entry.datasets : []
+      const datasets = rawDatasets
+        .map((d: any) => normalizeDataset(d, id, label))
+        .filter((d: any) => d !== null) as NormalizedDataset[]
+      if (!datasets.length) return null
+      return { id, label, datasets }
+    }
+
+    // Authed JSON loader
+    const authedJson = async (pathOrUrl: string) => {
+      const url = pathOrUrl.startsWith('http') ? pathOrUrl : `${apiBase}${pathOrUrl}`
+      const res = await metaReportFetch(url, { cache: 'no-store' })
+      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText} (${url})`)
+      return res.json()
+    }
+
+    const gradeFallbackOrder = ['10', '7']
+    const datasetFallbackOrder = [
+      'lengua_sid',
+      'matematica_sid',
+      'lengua_pid',
+      'matematica_pid',
+      'lengua_sid_umap',
+      'matematica_sid_umap',
+    ]
+
+    let grades: NormalizedGrade[] = []
+    let currentGradeId: string | null = null
+    let currentDatasetId: string | null = null
+    let dfCatData: any[] | null = null
+    let currentGraphData: any | null = null
+    let currentRootNode: any | null = null
+    let currentSimulation: d3.Simulation<any, any> | null = null
+    let highlightedNodeId: string | null = null
+    let currentColorScale: any = null
+    let clusterColorScale: any = null
+    let colorMode: 'score' | 'cluster' = 'score'
+
+    const clearViz = () => {
+      container.selectAll('*').remove()
+      tableTitle.text('')
+      tableContent.html('')
+      histogramSvg.selectAll('*').remove()
+      if (!histogramMessage.empty()) histogramMessage.text('')
+    }
+
+    const setStatus = (msg: string) => {
+      status.text(msg)
+    }
+
+    const populateGradeSelect = () => {
+      if (!gradeSelect) return
+      gradeSelect.innerHTML = ''
+      grades.forEach((g) => {
+        const opt = document.createElement('option')
+        opt.value = g.id
+        opt.textContent = g.label
+        gradeSelect.appendChild(opt)
+      })
+    }
+
+    const populateDatasetSelect = () => {
+      if (!dataSelect || !currentGradeId) return
+      const g = grades.find((x) => x.id === currentGradeId)
+      dataSelect.innerHTML = ''
+      ;(g?.datasets ?? []).forEach((ds) => {
+        const opt = document.createElement('option')
+        opt.value = ds.id
+        opt.textContent = ds.label
+        dataSelect.appendChild(opt)
+      })
+    }
+
+    const chooseDefault = () => {
+      const savedGrade = localStorage.getItem(STORAGE_KEY_GRADE)
+      const savedDataset = localStorage.getItem(STORAGE_KEY_DATASET)
+      const gradeCandidates = [savedGrade, ...gradeFallbackOrder].filter(Boolean) as string[]
+      currentGradeId = gradeCandidates.find((g) => grades.some((x) => x.id === g)) ?? grades[0]?.id ?? null
+      if (!currentGradeId) return
+      const g = grades.find((x) => x.id === currentGradeId)
+      const datasetCandidates = [savedDataset, ...datasetFallbackOrder].filter(Boolean) as string[]
+      currentDatasetId = datasetCandidates.find((d) => (g?.datasets ?? []).some((x) => x.id === d)) ?? g?.datasets?.[0]?.id ?? null
+    }
+
+    const persistSelection = () => {
+      try {
+        if (currentGradeId) localStorage.setItem(STORAGE_KEY_GRADE, currentGradeId)
+        if (currentDatasetId) localStorage.setItem(STORAGE_KEY_DATASET, currentDatasetId)
+      } catch {}
+    }
+
+    const renderLegend = (min: number, max: number) => {
+      if (!legendCtx || !legendCanvas) return
+      const w = legendCanvas.width
+      const h = legendCanvas.height
+      const grd = legendCtx.createLinearGradient(0, 0, w, 0)
+      const colors = ['#ef4444', '#f59e0b', '#22c55e']
+      grd.addColorStop(0, colors[0])
+      grd.addColorStop(0.5, colors[1])
+      grd.addColorStop(1, colors[2])
+      legendCtx.clearRect(0, 0, w, h)
+      legendCtx.fillStyle = grd
+      legendCtx.fillRect(0, 0, w, h)
+      legendMinLabel.text(`${Math.round(min * 100)}%`)
+      legendMaxLabel.text(`${Math.round(max * 100)}%`)
+    }
+
+    const renderHistogram = (scores: number[]) => {
+      histogramSvg.selectAll('*').remove()
+      if (!scores.length) {
+        histogramMessage.text('No hay puntajes para mostrar.')
+        return
+      }
+      histogramMessage.text('')
+      const bins = d3.bin().domain([0, 1]).thresholds(12)(scores)
+      const x = d3
+        .scaleBand()
+        .domain(bins.map((b) => String(b.x0)))
+        .range([6, histogramWidth - 6])
+        .padding(0.1)
+      const y = d3
+        .scaleLinear()
+        .domain([0, d3.max(bins, (b) => b.length) ?? 1])
+        .range([histogramHeight - 22, 8])
+      histogramSvg
+        .selectAll('rect')
+        .data(bins)
+        .enter()
+        .append('rect')
+        .attr('x', (d) => x(String(d.x0)) ?? 0)
+        .attr('y', (d) => y(d.length))
+        .attr('width', x.bandwidth())
+        .attr('height', (d) => histogramHeight - 22 - y(d.length))
+        .attr('fill', '#1f3a93')
+        .attr('opacity', 0.45)
+      histogramSvg
+        .append('g')
+        .attr('transform', `translate(0,${histogramHeight - 22})`)
+        .call(d3.axisBottom(x).tickValues([] as any))
+        .selectAll('path,line')
+        .attr('stroke', '#cbd5e1')
+    }
+
+    const scoreToColor = (score: number) => {
+      if (!currentColorScale) {
+        currentColorScale = d3.scaleSequential(d3.interpolateRdYlGn).domain([0, 1])
+      }
+      return currentColorScale(score)
+    }
+
+    const nodeLabel = (node: any) => {
+      if (!node) return ''
+      if (node.name) return String(node.name)
+      if (node.id) return String(node.id)
+      return ''
+    }
+
+    const updateTable = (node: any) => {
+      if (!node) {
+        tableTitle.text('')
+        tableContent.html('')
+        return
+      }
+      const label = nodeLabel(node)
+      tableTitle.text(label)
+      const rows: Array<[string, any]> = []
+      if (node.score_mean !== undefined) rows.push(['Promedio', formatPct(node.score_mean)])
+      if (node.n_students !== undefined) rows.push(['Estudiantes', node.n_students])
+      if (node.depth !== undefined) rows.push(['Nivel', node.depth])
+      const html = `
+        <table class="node-table">
+          <tbody>
+            ${rows.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      `
+      tableContent.html(html)
+    }
+
+    const stopSimulation = () => {
+      if (currentSimulation) {
+        currentSimulation.stop()
+        currentSimulation = null
+      }
+    }
+
+    const renderGraph = () => {
+      if (!currentGraphData) return
+      clearViz()
+
+      const width = Math.max(600, (document.getElementById('viz-container')?.clientWidth ?? 600))
+      const height = Math.max(520, (document.getElementById('viz-container')?.clientHeight ?? 520))
+      const svg = container
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height)
+        .attr('viewBox', `0 0 ${width} ${height}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+
+      const zoomLayer = svg.append('g').attr('class', 'zoom-layer')
+      const linkLayer = zoomLayer.append('g').attr('class', 'links')
+      const nodeLayer = zoomLayer.append('g').attr('class', 'nodes')
+
+      const root = d3.hierarchy(currentGraphData)
+      currentRootNode = root
+
+      const nodes = root.descendants().map((d) => {
+        // Ensure D3 force has x/y
+        ;(d as any).x = (d as any).x ?? width / 2 + (Math.random() - 0.5) * 40
+        ;(d as any).y = (d as any).y ?? height / 2 + (Math.random() - 0.5) * 40
+        return d
+      })
+      const links = root.links()
+
+      const leafScores = nodes
+        .filter((n) => !n.children || n.children.length === 0)
+        .map((n: any) => Number(n.data?.score_mean ?? n.data?.score ?? 0))
+        .filter((v) => Number.isFinite(v))
+        .map((v) => Math.max(0, Math.min(1, v)))
+      renderHistogram(leafScores)
+      renderLegend(0, 1)
+
+      clusterColorScale = d3.scaleOrdinal(d3.schemeTableau10)
+      const nodeColor = (n: any) => {
+        if (colorMode === 'cluster') {
+          const cid = n.data?.cluster_id ?? n.data?.cluster ?? n.data?.id ?? n.data?.name
+          return clusterColorScale(String(cid))
+        }
+        const s = Number(n.data?.score_mean ?? n.data?.score ?? 0)
+        return scoreToColor(Math.max(0, Math.min(1, s)))
+      }
+
+      const link = linkLayer
+        .selectAll('line')
+        .data(links as any)
+        .enter()
+        .append('line')
+        .attr('stroke', '#cbd5e1')
+        .attr('stroke-opacity', 0.6)
+        .attr('stroke-width', 1)
+
+      const node = nodeLayer
+        .selectAll('circle')
+        .data(nodes as any)
+        .enter()
+        .append('circle')
+        .attr('r', (d: any) => (d.children ? 8 : 5))
+        .attr('fill', (d: any) => nodeColor(d))
+        .attr('stroke', '#0f172a')
+        .attr('stroke-width', (d: any) => (highlightedNodeId && nodeLabel(d.data) === highlightedNodeId ? 2 : 0))
+        .style('cursor', 'pointer')
+        .on('click', (_ev: any, d: any) => {
+          highlightedNodeId = nodeLabel(d.data)
+          updateTable(d.data)
+          node.attr('stroke-width', (n: any) => (nodeLabel(n.data) === highlightedNodeId ? 2 : 0))
+        })
+        .call(
+          d3
+            .drag<any, any>()
+            .on('start', (event: any, d: any) => {
+              if (!event.active && currentSimulation) currentSimulation.alphaTarget(0.3).restart()
+              d.fx = d.x
+              d.fy = d.y
+            })
+            .on('drag', (event: any, d: any) => {
+              d.fx = event.x
+              d.fy = event.y
+            })
+            .on('end', (event: any, d: any) => {
+              if (!event.active && currentSimulation) currentSimulation.alphaTarget(0)
+              d.fx = null
+              d.fy = null
+            }),
+        )
+
+      const zoom = d3
+        .zoom<any, any>()
+        .scaleExtent([0.15, 2.5])
+        .on('zoom', (event: any) => {
+          zoomLayer.attr('transform', event.transform)
+        })
+
+      svg.call(zoom as any)
+
+      stopSimulation()
+      currentSimulation = d3
+        .forceSimulation(nodes as any)
+        .force(
+          'link',
+          d3
+            .forceLink(links as any)
+            .id((d: any) => d)
+            .distance((l: any) => (l.source.depth === 0 ? 110 : 70)),
+        )
+        .force('charge', d3.forceManyBody().strength(-120))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('collision', d3.forceCollide().radius((d: any) => (d.children ? 12 : 7)))
+        .on('tick', () => {
+          link
+            .attr('x1', (d: any) => d.source.x)
+            .attr('y1', (d: any) => d.source.y)
+            .attr('x2', (d: any) => d.target.x)
+            .attr('y2', (d: any) => d.target.y)
+          node.attr('cx', (d: any) => d.x).attr('cy', (d: any) => d.y)
+        })
+    }
+
+    const loadDataset = async () => {
+      if (!currentGradeId || !currentDatasetId) return
+      const g = grades.find((x) => x.id === currentGradeId)
+      const ds = g?.datasets.find((x) => x.id === currentDatasetId)
+      if (!ds) return
+
+      setStatus('Cargando conjunto de datos...')
+      try {
+        const graph = await authedJson(ds.graphUrl + (ds.graphUrl.endsWith('/') ? '' : '/'))
+        const df = await authedJson(ds.dataUrl + (ds.dataUrl.endsWith('/') ? '' : '/'))
+        currentGraphData = graph
+        dfCatData = df
+        persistSelection()
+        setStatus('')
+        renderGraph()
+      } catch (e: any) {
+        console.error(e)
+        setStatus('Error al cargar los datos.')
+      }
+    }
+
+    const handleGradeChange = () => {
+      currentGradeId = gradeSelect?.value ?? null
+      currentDatasetId = null
+      populateDatasetSelect()
+      currentDatasetId = dataSelect?.value ?? null
+      loadDataset()
+    }
+
+    const handleDatasetChange = () => {
+      currentDatasetId = dataSelect?.value ?? null
+      loadDataset()
+    }
+
+    const init = async () => {
+      try {
+        setStatus('Cargando conjuntos de datos...')
+        const dsResp = await getJson<T_DatasetsResponse>('/datasets/')
+        grades = (dsResp.grades ?? []).map((g: any) => normalizeGrade(g)).filter(Boolean) as any
+        if (!grades.length) {
+          setStatus('No hay conjuntos de datos disponibles.')
+          return
+        }
+        populateGradeSelect()
+        chooseDefault()
+        if (gradeSelect && currentGradeId) gradeSelect.value = currentGradeId
+        populateDatasetSelect()
+        if (dataSelect && currentDatasetId) dataSelect.value = currentDatasetId
+
+        gradeSelect?.addEventListener('change', handleGradeChange)
+        dataSelect?.addEventListener('change', handleDatasetChange)
+
+        await loadDataset()
+        setStatus('')
+      } catch (e: any) {
+        console.error(e)
+        setStatus('Error al cargar los conjuntos de datos.')
+      }
+    }
+
+    init()
+    return () => {
+      gradeSelect?.removeEventListener('change', handleGradeChange)
+      dataSelect?.removeEventListener('change', handleDatasetChange)
+      stopSimulation()
+    }
+  }, [active, apiBase, getJson])
+
+  return (
+    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="graph">
+      <h2>Gráfico</h2>
+      <div className="graph-controls">
+        <div className="filter-group">
+          <label className="filter-label">Grado</label>
+          <select id="grade-select" className="filter-select" />
+        </div>
+        <div className="filter-group">
+          <label className="filter-label">Conjunto de datos</label>
+          <select id="data-select" className="filter-select" />
+        </div>
+        <div id="status" className="graph-status" />
+      </div>
+
+      <div className="graph-layout">
+        <div id="viz-container" className="viz-container" />
+        <div className="graph-side">
+          <div className="legend">
+            <div className="legend-title">Puntaje</div>
+            <div className="legend-row">
+              <span id="legend-min">0%</span>
+              <canvas id="legend-canvas" width={160} height={10} />
+              <span id="legend-max">100%</span>
+            </div>
+          </div>
+
+          <div className="histogram" id="histogram">
+            <div className="histogram-title">Distribución</div>
+            <svg id="histogram-svg" width={180} height={110} />
+            <div id="histogram-message" className="histogram-message" />
+          </div>
+
+          <div className="table-panel">
+            <div id="table-title" className="table-title" />
+            <div id="table-content" className="table-content" />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// Chat tab
+// -----------------------------------------------------------------------------
+
+const ChatTab = ({ active, enabled }: { active: boolean; enabled: boolean }) => {
+  const { postJson } = useMetaReportApi()
+  const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; text: string }>>([
+    { role: 'assistant', text: 'Hola. Podés preguntarme sobre el reporte.' },
+  ])
+  const [value, setValue] = useState('')
+  const [waiting, setWaiting] = useState(false)
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!active) return
+    // scroll to bottom when activating tab
+    setTimeout(() => {
+      const el = scrollRef.current
+      if (el) el.scrollTop = el.scrollHeight
+    }, 0)
+  }, [active])
+
+  const send = async () => {
+    const text = value.trim()
+    if (!text || waiting) return
+    setMessages((m) => [...m, { role: 'user', text }])
+    setValue('')
+    setWaiting(true)
+    try {
+      const resp = await postJson<{ response?: string }, { message: string }>('/chat/', { message: text })
+      setMessages((m) => [...m, { role: 'assistant', text: resp?.response || '—' }])
+    } catch {
+      setMessages((m) => [
+        ...m,
+        { role: 'assistant', text: 'Lo siento, hubo un error al procesar tu mensaje. Por favor, intenta nuevamente.' },
+      ])
+    } finally {
+      setWaiting(false)
+      setTimeout(() => {
+        const el = scrollRef.current
+        if (el) el.scrollTop = el.scrollHeight
+      }, 0)
+    }
+  }
+
+  if (!enabled) {
+    return (
+      <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="chat">
+        <h2>Chat</h2>
+        <p className="loading-message">Chat deshabilitado.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="chat">
+      <h2>Chat</h2>
+      <div className="chat-container">
+        <div id="chat-messages" className="chat-messages" ref={scrollRef}>
+          {messages.map((m, idx) => (
+            <div key={idx} className={`chat-message chat-message-${m.role === 'user' ? 'user' : 'assistant'}`}>
+              <div className="chat-message-content">
+                <p>{m.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <Box
+          component="form"
+          id="chat-form"
+          className="chat-form"
+          onSubmit={(e) => {
+            e.preventDefault()
+            send()
+          }}
+          sx={{ display: 'flex', gap: 1, mt: 1 }}
+        >
+          <TextField
+            id="chat-input"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            disabled={waiting}
+            placeholder="Escribí una pregunta..."
+            size="small"
+            fullWidth
+          />
+          <Button
+            id="chat-submit"
+            type="submit"
+            variant="contained"
+            disabled={waiting || !value.trim()}
+          >
+            {waiting ? 'Enviando...' : 'Enviar'}
+          </Button>
+        </Box>
+      </div>
+    </div>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// Main app component (tabs)
+// -----------------------------------------------------------------------------
+
+type T_TabId = 'estadisticas' | 'preguntas' | 'estudiantes' | 'agrupamiento' | 'graph' | 'chat'
+
+const MetaReportApp = () => {
+  const { getJson } = useMetaReportApi()
+  const [activeTab, setActiveTab] = useState<T_TabId>('estadisticas')
+  const [chatEnabled, setChatEnabled] = useState<boolean>(false)
+  const [configLoaded, setConfigLoaded] = useState(false)
+  const [configError, setConfigError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setConfigError(null)
+    getJson<{ chat_enabled?: boolean }>('/config/')
+      .then((c) => {
+        setChatEnabled(Boolean(c?.chat_enabled))
+        setConfigLoaded(true)
+      })
+      .catch((e) => {
+        setConfigError(String(e?.message ?? e))
+        setConfigLoaded(true)
+      })
+  }, [getJson])
+
+  const tabs: Array<{ id: T_TabId; label: string; visible?: boolean }> = useMemo(
+    () => [
+      { id: 'estadisticas', label: 'Estadísticas' },
+      { id: 'preguntas', label: 'Preguntas' },
+      { id: 'estudiantes', label: 'Estudiantes' },
+      { id: 'agrupamiento', label: 'Agrupamiento' },
+      { id: 'graph', label: 'Gráfico' },
+      { id: 'chat', label: 'Chat', visible: chatEnabled },
+    ],
+    [chatEnabled],
+  )
+
+  const visibleTabs = tabs.filter((t) => t.visible !== false)
+
+  // if chat is hidden and currently selected, snap back
+  useEffect(() => {
+    if (activeTab === 'chat' && !chatEnabled) setActiveTab('estadisticas')
+  }, [activeTab, chatEnabled])
+
+  return (
+    <div id="meta-report">
+      <Box sx={{ mb: 2 }}>
+        <Tabs value={activeTab} onChange={(_e, v) => setActiveTab(v)} variant="scrollable" scrollButtons="auto">
+          {visibleTabs.map((t) => (
+            <Tab key={t.id} value={t.id} label={t.label} />
+          ))}
+        </Tabs>
+      </Box>
+
+      {!configLoaded && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Cargando configuración...
+        </Alert>
+      )}
+      {configError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {configError}
+        </Alert>
+      )}
+
+      <Box className="app-main">
+        <EstadisticasTab active={activeTab === 'estadisticas'} />
+        <PreguntasTab active={activeTab === 'preguntas'} />
+        <EstudiantesTab active={activeTab === 'estudiantes'} />
+        <AgrupamientoTab active={activeTab === 'agrupamiento'} />
+        <GraphTab active={activeTab === 'graph'} />
+        <ChatTab active={activeTab === 'chat'} enabled={chatEnabled} />
+      </Box>
+    </div>
+  )
 }
 
 const MetaReportGlobalReportPage = () => {
-  const mountRef = useRef<HTMLDivElement | null>(null)
-
-  useEffect(() => {
-    if (!mountRef.current) return
-
-    // 1) Create (or reuse) a persistent root node so legacy scripts keep their DOM references.
-    if (!window.__metaReportFlaskHiddenHost) {
-      const hidden = document.createElement('div')
-      hidden.id = 'meta-report-hidden-host'
-      hidden.style.display = 'none'
-      document.body.appendChild(hidden)
-      window.__metaReportFlaskHiddenHost = hidden
-    }
-
-    if (!window.__metaReportFlaskRoot) {
-      const root = document.createElement('div')
-      root.id = 'meta-report'
-      root.innerHTML = FLASK_UI_BODY_HTML
-      root.style.height = '100%'
-      window.__metaReportFlaskRoot = root
-      window.__metaReportFlaskHiddenHost.appendChild(root)
-    }
-
-    const rootEl = window.__metaReportFlaskRoot
-    rootEl.style.display = ''
-
-    // Move into page container
-    mountRef.current.innerHTML = ''
-    mountRef.current.appendChild(rootEl)
-
-    // 2) Patch fetch once: rewrite legacy endpoints to Django + attach auth.
-    if (!window.__metaReportFlaskFetchPatched) {
-      const originalFetch = window.fetch.bind(window)
-      window.__metaReportFlaskOriginalFetch = originalFetch
-
-      window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-        try {
-          // Determine URL string
-          let urlStr: string | null = null
-          if (typeof input === 'string') urlStr = input
-          else if (input instanceof Request) urlStr = input.url
-          else if (input && typeof input === 'object' && 'toString' in (input as any)) urlStr = String(input)
-
-          if (urlStr) {
-            const rewritten = rewriteMetaUrl(urlStr)
-            if (rewritten) {
-              const state = useStore.getState()
-              const accessToken = state.auth_accessToken
-              const refreshToken = state.auth_refreshToken
-
-              const doFetch = async (token?: string) => {
-                const req = buildAuthedRequest(rewritten, init, token)
-                return originalFetch(req)
-              }
-
-              let res = await doFetch(accessToken)
-
-              if (res.status === 401 && refreshToken) {
-                try {
-                  const refreshRes = await originalFetch(apiUrl('/token/refresh/'), {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ refresh: refreshToken }),
-                  })
-
-                  if (refreshRes.ok) {
-                    const data: any = await refreshRes.json()
-                    if (data?.access) {
-                      useStore.getState().auth_storeRefreshedToken(String(data.access))
-                      res = await doFetch(String(data.access))
-                    }
-                  } else {
-                    useStore.getState().auth_clearAuthData()
-                  }
-                } catch {
-                  useStore.getState().auth_clearAuthData()
-                }
-              }
-
-              return res
-            }
-          }
-        } catch {
-          // fall through
-        }
-
-        return window.__metaReportFlaskOriginalFetch!(input as any, init)
-      }
-
-      window.__metaReportFlaskFetchPatched = true
-    }
-
-    // 3) Load legacy scripts once.
-    const loadAll = async () => {
-      if (window.__metaReportFlaskScriptsLoaded) return
-      for (const src of SCRIPT_SOURCES) {
-        await loadScript(src)
-      }
-      window.__metaReportFlaskScriptsLoaded = true
-    }
-
-    void loadAll()
-
-    return () => {
-      // Keep the persistent root around for fast re-entry; just hide it.
-      // (This prevents legacy scripts from losing their cached element references.)
-      if (window.__metaReportFlaskHiddenHost && window.__metaReportFlaskRoot) {
-        window.__metaReportFlaskRoot.style.display = 'none'
-        try {
-          window.__metaReportFlaskHiddenHost.appendChild(window.__metaReportFlaskRoot)
-        } catch {
-          // ignore
-        }
-      }
-
-      if (mountRef.current) {
-        mountRef.current.innerHTML = ''
-      }
-    }
-  }, [])
-
   return (
     <Page>
       <Page.Title disableMarginBottom>Reporte META+</Page.Title>
       <Page.Content>
-        <div style={{ width: '100%', height: 'calc(100vh - 120px)' }}>
-          <div ref={mountRef} style={{ width: '100%', height: '100%' }} />
-        </div>
+        <MetaReportApp />
       </Page.Content>
     </Page>
   )
