@@ -907,8 +907,13 @@ const PreguntasTab = ({ active }: { active: boolean }) => {
         anchorReference="anchorPosition"
         anchorPosition={{ top: tooltip.y, left: tooltip.x }}
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-        PaperProps={{ sx: { p: 1.25, maxWidth: 320 } }}
+        disableScrollLock
+        disableAutoFocus
+        disableEnforceFocus
+        disableRestoreFocus
+        PaperProps={{ sx: { p: 1.25, maxWidth: 320, pointerEvents: 'none' } }}
       >
+
         <Typography variant="subtitle2">Pregunta: {tooltip.id}</Typography>
         <Typography variant="body2" color="text.secondary">
           Promedio: {(tooltip.pct * 100).toFixed(1)}% • Respuestas: {tooltip.count}
@@ -1424,7 +1429,11 @@ const EstudiantesTab = ({ active }: { active: boolean }) => {
         anchorReference="anchorPosition"
         anchorPosition={{ top: tooltip.y, left: tooltip.x }}
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-        PaperProps={{ sx: { p: 1.25 } }}
+        disableScrollLock
+        disableAutoFocus
+        disableEnforceFocus
+        disableRestoreFocus
+        PaperProps={{ sx: { p: 1.25, pointerEvents: 'none' } }}
       >
         <Typography variant="subtitle2">Estudiante: {tooltip.studentId}</Typography>
         <Typography variant="body2" color="text.secondary">
@@ -1958,154 +1967,163 @@ const GraphTab = ({ active }: { active: boolean }) => {
       if (!currentGraphData) return
       clearViz()
 
-      const width = Math.max(600, (document.getElementById('viz-container')?.clientWidth ?? 600))
-      const height = Math.max(520, (document.getElementById('viz-container')?.clientHeight ?? 520))
+      const host = document.getElementById('viz-container')
+      const width = Math.max(700, host?.clientWidth ?? 700)
+      const height = Math.max(560, host?.clientHeight ?? 560)
+      const padding = 28
+
       const svg = container
         .append('svg')
         .attr('width', width)
         .attr('height', height)
         .attr('viewBox', `0 0 ${width} ${height}`)
         .attr('preserveAspectRatio', 'xMidYMid meet')
+        .style('display', 'block')
 
       const zoomLayer = svg.append('g').attr('class', 'zoom-layer')
       const linkLayer = zoomLayer.append('g').attr('class', 'links')
       const nodeLayer = zoomLayer.append('g').attr('class', 'nodes')
 
-      const root = d3.hierarchy(currentGraphData)
-      currentRootNode = root
+      // ---- parse node-link graph ----
+      const nodes: any[] = Array.isArray(currentGraphData.nodes) ? currentGraphData.nodes.map((n: any) => ({ ...n })) : []
+      const edges: any[] = Array.isArray(currentGraphData.edges)
+        ? currentGraphData.edges
+        : Array.isArray(currentGraphData.links)
+          ? currentGraphData.links
+          : []
 
-      const nodes = root.descendants().map((d) => {
-        // Ensure D3 force has x/y
-        ; (d as any).x = (d as any).x ?? width / 2 + (Math.random() - 0.5) * 40
-          ; (d as any).y = (d as any).y ?? height / 2 + (Math.random() - 0.5) * 40
-        return d
-      })
-      const links = root.links()
-
-      const leafScores = nodes
-        .filter((n) => !n.children || n.children.length === 0)
-        .map((n: any) => Number(n.data?.score_mean ?? n.data?.score ?? 0))
-        .filter((v) => Number.isFinite(v))
-        .map((v) => Math.max(0, Math.min(1, v)))
-      renderHistogram(leafScores)
-      renderLegend(0, 1)
-
-      clusterColorScale = d3.scaleOrdinal(d3.schemeTableau10)
-      const nodeColor = (n: any, mode: ColorMode) => {
-        if (mode === 'cluster') {
-          const cid = n.data?.cluster_id ?? n.data?.cluster ?? n.data?.id ?? n.data?.name
-          return clusterColorScale(String(cid))
-        }
-        const s = Number(n.data?.score_mean ?? n.data?.score ?? 0)
-        return scoreToColor(Math.max(0, Math.min(1, s)))
+      if (!nodes.length) {
+        setStatus('El gráfico no tiene nodos.')
+        return
       }
 
-      const link = linkLayer
+      const nodeId = (n: any) => String(n?.id ?? '')
+      const nodeLabel = (n: any) => (n?.label != null ? String(n.label) : nodeId(n))
+
+      // Histogram/legend from node.score (your data uses "score")
+      const scores = nodes
+        .map((n) => Number(n?.score))
+        .filter((v) => Number.isFinite(v))
+        .map((v) => Math.max(0, Math.min(1, v)))
+      renderHistogram(scores)
+      renderLegend(0, 1)
+
+      // cluster colors
+      clusterColorScale = d3.scaleOrdinal(d3.schemeTableau10)
+
+      const nodeColor = (n: any, mode: ColorMode) => {
+        if (mode === 'cluster') {
+          const c = n?.cluster_label
+          return c == null ? '#94a3b8' : clusterColorScale(String(c))
+        }
+        const s = Number(n?.score)
+        return scoreToColor(Number.isFinite(s) ? Math.max(0, Math.min(1, s)) : 0)
+      }
+
+      const updateTable = (n: any) => {
+        if (!n) {
+          tableTitle.text('')
+          tableContent.html('')
+          return
+        }
+        tableTitle.text(nodeLabel(n))
+        const rows: Array<[string, any]> = []
+        if (n.score != null) rows.push(['Promedio', formatPct(n.score)])
+        if (n.cluster_label != null) rows.push(['Cluster', n.cluster_label])
+        if (n.size != null) rows.push(['Tamaño', n.size])
+        if (Array.isArray(n.members_index)) rows.push(['Estudiantes', n.members_index.length])
+
+        tableContent.html(`
+      <table class="node-table">
+        <tbody>
+          ${rows.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    `)
+      }
+
+      // ---- USE PROVIDED POSITIONS ----
+      const havePos =
+        nodes.length > 0 &&
+        nodes.every((n) => Array.isArray(n.pos) && n.pos.length === 2 && Number.isFinite(n.pos[0]) && Number.isFinite(n.pos[1]))
+
+      // if no pos, you can fall back to a force sim; but your data DOES have pos.
+      if (!havePos) {
+        setStatus('El gráfico no trae coordenadas (pos).')
+        return
+      }
+
+      const xs = nodes.map((n) => n.pos[0])
+      const ys = nodes.map((n) => n.pos[1])
+
+      const xScale = d3.scaleLinear().domain(d3.extent(xs) as [number, number]).range([padding, width - padding])
+      const yScale = d3.scaleLinear().domain(d3.extent(ys) as [number, number]).range([height - padding, padding])
+
+      // Materialize x/y in pixel space for fast edge rendering
+      for (const n of nodes) {
+        n.x = xScale(n.pos[0])
+        n.y = yScale(n.pos[1])
+      }
+
+      const byId = new Map(nodes.map((n) => [nodeId(n), n]))
+
+      const resolvedEdges = edges
+        .map((e: any) => {
+          const s = byId.get(String(e.source))
+          const t = byId.get(String(e.target))
+          if (!s || !t) return null
+          return { source: s, target: t }
+        })
+        .filter(Boolean) as Array<{ source: any; target: any }>
+
+      const linkSel = linkLayer
         .selectAll('line')
-        .data(links as any)
+        .data(resolvedEdges)
         .enter()
         .append('line')
         .attr('stroke', '#cbd5e1')
-        .attr('stroke-opacity', 0.6)
+        .attr('stroke-opacity', 0.55)
         .attr('stroke-width', 1)
+        .attr('x1', (d) => d.source.x)
+        .attr('y1', (d) => d.source.y)
+        .attr('x2', (d) => d.target.x)
+        .attr('y2', (d) => d.target.y)
 
-      const node = nodeLayer
+      const nodeSel = nodeLayer
         .selectAll('circle')
-        .data(nodes as any)
+        .data(nodes)
         .enter()
         .append('circle')
-        .attr('r', (d: any) => (d.children ? 8 : 5))
+        .attr('cx', (d: any) => d.x)
+        .attr('cy', (d: any) => d.y)
+        .attr('r', (d: any) => (d?.is_leaf ? 3.5 : 6)) // leaf/supernode sizing
         .attr('fill', (d: any) => nodeColor(d, colorMode))
         .attr('stroke', '#0f172a')
-        .attr('stroke-width', (d: any) => (highlightedNodeId && nodeLabel(d.data) === highlightedNodeId ? 2 : 0))
+        .attr('stroke-width', (d: any) => (highlightedNodeId && nodeId(d) === highlightedNodeId ? 2 : 0))
         .style('cursor', 'pointer')
         .on('click', (_ev: any, d: any) => {
-          highlightedNodeId = nodeLabel(d.data)
-          updateTable(d.data)
-          node.attr('stroke-width', (n: any) => (nodeLabel(n.data) === highlightedNodeId ? 2 : 0))
+          highlightedNodeId = nodeId(d)
+          updateTable(d)
+          nodeSel.attr('stroke-width', (n: any) => (nodeId(n) === highlightedNodeId ? 2 : 0))
         })
-        .call(
-          d3
-            .drag<any, any>()
-            .on('start', (event: any, d: any) => {
-              if (!event.active && currentSimulation) currentSimulation.alphaTarget(0.3).restart()
-              d.fx = d.x
-              d.fy = d.y
-            })
-            .on('drag', (event: any, d: any) => {
-              d.fx = event.x
-              d.fy = event.y
-            })
-            .on('end', (event: any, d: any) => {
-              if (!event.active && currentSimulation) currentSimulation.alphaTarget(0)
-              d.fx = null
-              d.fy = null
-            }),
-        )
 
-      // Allow React UI to toggle color mode without re-initializing the graph.
+      // recolor without rerender
       applyColorModeRef.current = (mode: ColorMode) => {
-        try {
-          // Update node colors
-          node.attr('fill', (d: any) => nodeColor(d, mode))
-
-          // Keep the score legend for now (cluster legend can be added later)
-          // but match Flask behavior by updating the label and histogram.
-          const leafScoresNow = nodes
-            .filter((n) => !n.children || n.children.length === 0)
-            .map((n: any) => Number(n.data?.score_mean ?? n.data?.score ?? 0))
-            .filter((v) => Number.isFinite(v))
-            .map((v) => Math.max(0, Math.min(1, v)))
-          renderHistogram(leafScoresNow)
-          renderLegend(0, 1)
-        } catch (e) {
-          // no-op
-        }
+        nodeSel.attr('fill', (d: any) => nodeColor(d, mode))
       }
 
+      // zoom/pan
       const zoom = d3
         .zoom<any, any>()
-        .scaleExtent([0.15, 2.5])
+        .scaleExtent([0.2, 6])
         .on('zoom', (event: any) => {
           zoomLayer.attr('transform', event.transform)
         })
 
       svg.call(zoom as any)
-
-      // Apply current mode immediately.
-      applyColorModeRef.current?.(colorMode)
-
-      // Allow React toggle to recolor nodes without rebuilding the graph.
-      applyColorModeRef.current = (mode: ColorMode) => {
-        try {
-          node.attr('fill', (d: any) => nodeColor(d, mode))
-        } catch {
-          // ignore
-        }
-      }
-
-      stopSimulation()
-      currentSimulation = d3
-        .forceSimulation(nodes as any)
-        .force(
-          'link',
-          d3
-            .forceLink(links as any)
-            .id((d: any) => d)
-            .distance((l: any) => (l.source.depth === 0 ? 110 : 70)),
-        )
-        .force('charge', d3.forceManyBody().strength(-120))
-        .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collision', d3.forceCollide().radius((d: any) => (d.children ? 12 : 7)))
-        .on('tick', () => {
-          link
-            .attr('x1', (d: any) => d.source.x)
-            .attr('y1', (d: any) => d.source.y)
-            .attr('x2', (d: any) => d.target.x)
-            .attr('y2', (d: any) => d.target.y)
-          node.attr('cx', (d: any) => d.x).attr('cy', (d: any) => d.y)
-        })
     }
+
+
 
     const loadDataset = async () => {
       if (!currentGradeId || !currentDatasetId) return
