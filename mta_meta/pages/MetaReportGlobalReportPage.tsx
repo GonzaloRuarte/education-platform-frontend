@@ -6,7 +6,7 @@ import { withAuth } from '@/mta_auth/hocs/withAuth'
 import Page from '@/shared/components/Page'
 import { useStore } from '@/shared/state'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, Box, Button, Card, CardContent, Paper, Stack, Tab, Tabs, TextField, Typography, Grid2 } from '@mui/material'
+import { Alert, Box, Button, Card, CardContent, Paper, Stack, Tab, Tabs, TextField, Typography, Grid2, FormControl, InputLabel, Select, MenuItem, NativeSelect, Chip, Divider, Popover, Slider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel } from '@mui/material'
 
 // -----------------------------------------------------------------------------
 // Auth-aware fetch (same refresh semantics as the rest of the app)
@@ -125,6 +125,13 @@ const StatCard = ({ label, value }: { label: string; value: React.ReactNode }) =
       </CardContent>
     </Card>
   </Grid2>
+)
+
+
+const TabPanel = ({ active, tab, children }: { active: boolean; tab: string; children: React.ReactNode }) => (
+  <Box role="tabpanel" data-tab-content={tab} sx={{ display: active ? 'block' : 'none' }}>
+    {children}
+  </Box>
 )
 
 
@@ -286,102 +293,120 @@ const EstadisticasTab = ({ active }: { active: boolean }) => {
     })
   }
 
-  return (
-    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="estadisticas">
-      <h2>Estadísticas</h2>
+return (
+  <TabPanel active={active} tab="estadisticas">
+    <Typography variant="h5" sx={{ mb: 2 }}>
+      Estadísticas
+    </Typography>
 
-      {loading && <p className="loading-message">Cargando datos...</p>}
-      {error && <p className="error-message">{error}</p>}
+    {loading && (
+      <Alert severity="info" sx={{ mb: 2 }}>
+        Cargando datos...
+      </Alert>
+    )}
+    {error && (
+      <Alert severity="error" sx={{ mb: 2 }}>
+        {error}
+      </Alert>
+    )}
 
-      {summaries && (
-        <>
-          <Grid2 container spacing={2} sx={{ mb: 2 }}>
-            <StatCard label="Respuestas" value={summaries.total_responses ?? '—'} />
-            <StatCard label="Preguntas" value={summaries.total_questions ?? '—'} />
-            <StatCard label="Estudiantes" value={summaries.total_students ?? '—'} />
-            <StatCard label="Escuelas" value={summaries.total_schools ?? '—'} />
-            <StatCard
-              label="KR-20"
-              value={
-                summaries.total_kr20_lengua === null || summaries.total_kr20_lengua === undefined
-                  ? '—'
-                  : Number(summaries.total_kr20_lengua).toFixed(3)
-              }
-            />
-            <StatCard
-              label="Promedio"
-              value={
-                summaries.total_mean_score === null || summaries.total_mean_score === undefined
-                  ? '—'
-                  : `${(Number(summaries.total_mean_score) * 100).toFixed(1)}%`
-              }
-            />
-          </Grid2>
+    {summaries && (
+      <Stack spacing={2}>
+        <Grid2 container spacing={2}>
+          <StatCard label="Respuestas" value={summaries.total_responses ?? '—'} />
+          <StatCard label="Preguntas" value={summaries.total_questions ?? '—'} />
+          <StatCard label="Estudiantes" value={summaries.total_students ?? '—'} />
+          <StatCard label="Escuelas" value={summaries.total_schools ?? '—'} />
+          <StatCard
+            label="KR-20"
+            value={
+              summaries.total_kr20_lengua === null || summaries.total_kr20_lengua === undefined
+                ? '—'
+                : Number(summaries.total_kr20_lengua).toFixed(3)
+            }
+          />
+          <StatCard
+            label="Promedio"
+            value={
+              summaries.total_mean_score === null || summaries.total_mean_score === undefined
+                ? '—'
+                : `${(Number(summaries.total_mean_score) * 100).toFixed(1)}%`
+            }
+          />
+        </Grid2>
 
-          <div className="filters-panel">
-            <div className="filters-row">
-              <div className="filter-group">
-                <label className="filter-label">Grado</label>
-                <select
-                  className="filter-select"
-                  value={filters.grade}
-                  onChange={(e) => setFilters((f) => ({ ...f, grade: e.target.value }))}
-                >
-                  <option value="">Todos</option>
-                  {options.grades.map((g) => (
-                    <option key={g} value={g}>
-                      {g}°
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="filter-group">
-                <label className="filter-label">Escuela</label>
-                <select
-                  className="filter-select"
-                  value={filters.school}
-                  onChange={(e) => setFilters((f) => ({ ...f, school: e.target.value }))}
-                >
-                  <option value="">Todas</option>
-                  {options.schools.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="filter-group">
-                <label className="filter-label">Materia</label>
-                <select
-                  className="filter-select"
-                  value={filters.subject}
-                  onChange={(e) => setFilters((f) => ({ ...f, subject: e.target.value }))}
-                >
-                  <option value="">Todas</option>
-                  {options.subjects.map((s) => (
-                    <option key={s} value={s}>
-                      {subjectNames[s] ?? s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <button
-                className="filter-clear-btn"
-                onClick={() => {
-                  setFilters({ grade: '', school: '', subject: '' })
-                  setSort({ column: null, direction: 'asc' })
-                }}
-                type="button"
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap flexWrap="wrap" alignItems="center">
+            <FormControl size="small" sx={{ minWidth: 180 }}>
+              <InputLabel id="estadisticas-grade-label">Grado</InputLabel>
+              <Select
+                labelId="estadisticas-grade-label"
+                label="Grado"
+                value={filters.grade}
+                onChange={(e) => setFilters((f) => ({ ...f, grade: String(e.target.value) }))}
               >
-                Limpiar
-              </button>
-            </div>
-          </div>
+                <MenuItem value="">Todos</MenuItem>
+                {options.grades.map((g) => (
+                  <MenuItem key={g} value={g}>
+                    {g}°
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-          <div className="table-panel">
-            <table id="stats-table">
-              <thead>
-                <tr>
+            <FormControl size="small" sx={{ minWidth: 180 }}>
+              <InputLabel id="estadisticas-school-label">Escuela</InputLabel>
+              <Select
+                labelId="estadisticas-school-label"
+                label="Escuela"
+                value={filters.school}
+                onChange={(e) => setFilters((f) => ({ ...f, school: String(e.target.value) }))}
+              >
+                <MenuItem value="">Todas</MenuItem>
+                {options.schools.map((s) => (
+                  <MenuItem key={s} value={s}>
+                    {s}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <InputLabel id="estadisticas-subject-label">Materia</InputLabel>
+              <Select
+                labelId="estadisticas-subject-label"
+                label="Materia"
+                value={filters.subject}
+                onChange={(e) => setFilters((f) => ({ ...f, subject: String(e.target.value) }))}
+              >
+                <MenuItem value="">Todas</MenuItem>
+                {options.subjects.map((s) => (
+                  <MenuItem key={s} value={s}>
+                    {subjectNames[s] ?? s}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <Box sx={{ flexGrow: 1 }} />
+
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setFilters({ grade: '', school: '', subject: '' })
+                setSort({ column: null, direction: 'asc' })
+              }}
+            >
+              Limpiar
+            </Button>
+          </Stack>
+        </Paper>
+
+        <Paper variant="outlined">
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
                   {[
                     ['evaluation_grade', 'Grado'],
                     ['school_id', 'Escuela'],
@@ -392,42 +417,47 @@ const EstadisticasTab = ({ active }: { active: boolean }) => {
                     ['standard_error', 'Error Std'],
                     ['kr20', 'KR-20'],
                   ].map(([key, label]) => (
-                    <th key={key}>
-                      <button className="sort-btn" type="button" onClick={() => toggleSort(key)}>
-                        {label}{' '}
-                        {sort.column === key ? (sort.direction === 'asc' ? '▲' : '▼') : '↕'}
-                      </button>
-                    </th>
+                    <TableCell key={key}>
+                      <TableSortLabel
+                        active={sort.column === key}
+                        direction={sort.column === key ? sort.direction : 'asc'}
+                        onClick={() => toggleSort(key)}
+                      >
+                        {label}
+                      </TableSortLabel>
+                    </TableCell>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
+                </TableRow>
+              </TableHead>
+              <TableBody>
                 {sorted.map((r, idx) => (
-                  <tr key={`${r.evaluation_grade}-${r.school_id}-${r.subject_id}-${idx}`}>
-                    <td>{String(r.evaluation_grade)}</td>
-                    <td>{String(r.school_id)}</td>
-                    <td>{subjectNames[String(r.subject_id)] ?? String(r.subject_id)}</td>
-                    <td>{r.n_students}</td>
-                    <td>{formatPct(r.mean_score)}</td>
-                    <td>{formatPct(r.std_score)}</td>
-                    <td>{formatPct(r.standard_error)}</td>
-                    <td>{r.kr20 === null || r.kr20 === undefined ? '—' : Number(r.kr20).toFixed(3)}</td>
-                  </tr>
+                  <TableRow key={`${r.evaluation_grade}-${r.school_id}-${r.subject_id}-${idx}`} hover>
+                    <TableCell>{String(r.evaluation_grade)}</TableCell>
+                    <TableCell>{String(r.school_id)}</TableCell>
+                    <TableCell>{subjectNames[String(r.subject_id)] ?? String(r.subject_id)}</TableCell>
+                    <TableCell>{r.n_students}</TableCell>
+                    <TableCell>{formatPct(r.mean_score)}</TableCell>
+                    <TableCell>{formatPct(r.std_score)}</TableCell>
+                    <TableCell>{formatPct(r.standard_error)}</TableCell>
+                    <TableCell>{r.kr20 === null || r.kr20 === undefined ? '—' : Number(r.kr20).toFixed(3)}</TableCell>
+                  </TableRow>
                 ))}
+
                 {!sorted.length && (
-                  <tr>
-                    <td colSpan={8} style={{ textAlign: 'center', padding: '1rem', color: '#64748b' }}>
+                  <TableRow>
+                    <TableCell colSpan={8} align="center" sx={{ py: 3, color: 'text.secondary' }}>
                       No hay datos con los filtros seleccionados
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
-    </div>
-  )
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+      </Stack>
+    )}
+  </TabPanel>
+)
 }
 
 // -----------------------------------------------------------------------------
@@ -457,7 +487,7 @@ const PreguntasTab = ({ active }: { active: boolean }) => {
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<T_QuestionsStatsResponse | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const tooltipRef = useRef<HTMLDivElement | null>(null)
+  const [tooltip, setTooltip] = useState<{ open: boolean; x: number; y: number; id: string; pct: number; count: number }>(() => ({ open: false, x: 0, y: 0, id: '', pct: 0, count: 0 }))
 
   const { ref: containerRef, rect } = useResizeObserver<HTMLDivElement>()
 
@@ -616,26 +646,21 @@ const PreguntasTab = ({ active }: { active: boolean }) => {
       return c ?? fallback
     }
 
-    const showTooltip = (event: any, d: any) => {
-      const el = tooltipRef.current
-      if (!el) return
-      const rect = (event.currentTarget as Element).getBoundingClientRect()
-      const pageX = event.clientX
-      const pageY = event.clientY
-      el.innerHTML = `
-        <div class="tooltip-id">Pregunta: ${d.id}</div>
-        <div class="tooltip-score">Promedio: ${(d.normalizedMean * 100).toFixed(1)}%</div>
-        <div class="tooltip-count">Respuestas: ${d.count}</div>
-      `
-      el.style.left = `${pageX + 10}px`
-      el.style.top = `${pageY - 28}px`
-      el.classList.add('visible')
-    }
-    const hideTooltip = () => {
-      const el = tooltipRef.current
-      if (!el) return
-      el.classList.remove('visible')
-    }
+    
+const showTooltip = (event: any, d: any) => {
+  setTooltip({
+    open: true,
+    x: event.clientX + 10,
+    y: event.clientY - 28,
+    id: String(d.id ?? ''),
+    pct: Number(d.normalizedMean ?? 0),
+    count: Number(d.count ?? 0),
+  })
+}
+const hideTooltip = () => {
+  setTooltip((t) => ({ ...t, open: false }))
+}
+
 
     g.selectAll('.bar')
       .data(questionsArray as any)
@@ -715,118 +740,166 @@ const PreguntasTab = ({ active }: { active: boolean }) => {
     }
   }, [selected])
 
-  return (
-    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="preguntas">
-      <h2>Preguntas</h2>
+return (
+  <TabPanel active={active} tab="preguntas">
+    <Typography variant="h5" sx={{ mb: 2 }}>
+      Preguntas
+    </Typography>
 
-      {loading && <p className="loading-message">Cargando datos...</p>}
-      {error && <p className="error-message">{error}</p>}
+    {loading && (
+      <Alert severity="info" sx={{ mb: 2 }}>
+        Cargando datos...
+      </Alert>
+    )}
+    {error && (
+      <Alert severity="error" sx={{ mb: 2 }}>
+        {error}
+      </Alert>
+    )}
 
-      <div className="filters-panel">
-        <div className="filters-row">
-          <div className="filter-group">
-            <label className="filter-label">Materia</label>
-            <select
-              className="filter-select"
-              value={filters.subject}
-              onChange={(e) => setFilters((f) => ({ ...f, subject: e.target.value }))}
-            >
-              <option value="">Todas</option>
-              {options.subjects.map((s) => (
-                <option key={s} value={s}>
-                  {subjectNames[s] ?? s}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="filter-group">
-            <label className="filter-label">Competencia</label>
-            <select
-              className="filter-select"
-              value={filters.competencia}
-              onChange={(e) => setFilters((f) => ({ ...f, competencia: e.target.value }))}
-            >
-              <option value="">Todas</option>
-              {options.competencias.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="filter-group">
-            <label className="filter-label">Contenido</label>
-            <select
-              className="filter-select"
-              value={filters.contenido}
-              onChange={(e) => setFilters((f) => ({ ...f, contenido: e.target.value }))}
-            >
-              <option value="">Todos</option>
-              {options.contenidos.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
-            className="filter-clear-btn"
-            type="button"
-            onClick={() => {
-              setFilters({ subject: '', competencia: '', contenido: '' })
-              setSelectedId(null)
-            }}
+    <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap flexWrap="wrap" alignItems="center">
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel id="preguntas-subject-label">Materia</InputLabel>
+          <Select
+            labelId="preguntas-subject-label"
+            label="Materia"
+            value={filters.subject}
+            onChange={(e) => setFilters((f) => ({ ...f, subject: String(e.target.value) }))}
           >
-            Limpiar
-          </button>
-        </div>
-      </div>
+            <MenuItem value="">Todas</MenuItem>
+            {options.subjects.map((s) => (
+              <MenuItem key={s} value={s}>
+                {subjectNames[s] ?? s}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-      <div className="questions-layout">
-        <div className="questions-chart">
-          <div className="chart-container" ref={containerRef} id="questions-chart-container" />
-          <div ref={tooltipRef} className="tooltip" />
-        </div>
-        <div className="questions-detail">
-          <h3>Detalle</h3>
+        <FormControl size="small" sx={{ minWidth: 260 }}>
+          <InputLabel id="preguntas-competencia-label">Competencia</InputLabel>
+          <Select
+            labelId="preguntas-competencia-label"
+            label="Competencia"
+            value={filters.competencia}
+            onChange={(e) => setFilters((f) => ({ ...f, competencia: String(e.target.value) }))}
+          >
+            <MenuItem value="">Todas</MenuItem>
+            {options.competencias.map((c) => (
+              <MenuItem key={c} value={c}>
+                {c}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl size="small" sx={{ minWidth: 260 }}>
+          <InputLabel id="preguntas-contenido-label">Contenido</InputLabel>
+          <Select
+            labelId="preguntas-contenido-label"
+            label="Contenido"
+            value={filters.contenido}
+            onChange={(e) => setFilters((f) => ({ ...f, contenido: String(e.target.value) }))}
+          >
+            <MenuItem value="">Todos</MenuItem>
+            {options.contenidos.map((c) => (
+              <MenuItem key={c} value={c}>
+                {c}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <Box sx={{ flexGrow: 1 }} />
+
+        <Button
+          variant="outlined"
+          onClick={() => {
+            setFilters({ subject: '', competencia: '', contenido: '' })
+            setSelectedId(null)
+          }}
+        >
+          Limpiar
+        </Button>
+      </Stack>
+    </Paper>
+
+    <Grid2 container spacing={2}>
+      <Grid2 size={{ xs: 12, md: 8 }}>
+        <Paper variant="outlined" sx={{ p: 1, minHeight: 420 }}>
+          <Box ref={containerRef} id="questions-chart-container" sx={{ minHeight: 400 }} />
+        </Paper>
+      </Grid2>
+
+      <Grid2 size={{ xs: 12, md: 4 }}>
+        <Paper variant="outlined" sx={{ p: 2, minHeight: 420 }}>
+          <Typography variant="h6" sx={{ mb: 1 }}>
+            Detalle
+          </Typography>
+
           {!detail ? (
-            <p className="no-selection">Selecciona una barra para ver el detalle.</p>
+            <Typography variant="body2" color="text.secondary">
+              Selecciona una barra para ver el detalle.
+            </Typography>
           ) : (
-            <div id="question-detail-content">
-              <div className="detail-item detail-item-stats">
-                <div className="stat-row">
-                  <span className="detail-label">Texto</span>
-                  <span className="detail-value question-text">{detail.question || 'Sin texto disponible'}</span>
-                </div>
-                <div className="stat-row">
-                  <span className="detail-label">Respuestas</span>
-                  <span className="detail-value">{detail.count}</span>
-                </div>
-                <div className="stat-row">
-                  <span className="detail-label">Promedio</span>
-                  <span className="detail-value large">{formatPct(detail.mean)}</span>
-                </div>
-              </div>
-              <div className="detail-item detail-item-stats">
-                <div className="stat-row">
-                  <span className="detail-label">Materia</span>
-                  <span className="detail-value">{detail.subject}</span>
-                </div>
-                <div className="stat-row">
-                  <span className="detail-label">Competencia</span>
-                  <span className="detail-value">{detail.competencia || 'No especificada'}</span>
-                </div>
-                <div className="stat-row">
-                  <span className="detail-label">Contenido</span>
-                  <span className="detail-value">{detail.contenido || 'No especificado'}</span>
-                </div>
-              </div>
-            </div>
+            <Stack spacing={2}>
+              <Box>
+                <Typography variant="overline" color="text.secondary">
+                  Texto
+                </Typography>
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {detail.question || 'Sin texto disponible'}
+                </Typography>
+              </Box>
+
+              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                <Chip size="small" label={`Respuestas: ${detail.count}`} />
+                <Chip size="small" label={`Promedio: ${formatPct(detail.mean)}`} />
+              </Stack>
+
+              <Divider />
+
+              <Stack spacing={1}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Typography variant="body2" color="text.secondary">
+                    Materia
+                  </Typography>
+                  <Typography variant="body2">{detail.subject}</Typography>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Typography variant="body2" color="text.secondary">
+                    Competencia
+                  </Typography>
+                  <Typography variant="body2">{detail.competencia || 'No especificada'}</Typography>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Typography variant="body2" color="text.secondary">
+                    Contenido
+                  </Typography>
+                  <Typography variant="body2">{detail.contenido || 'No especificado'}</Typography>
+                </Stack>
+              </Stack>
+            </Stack>
           )}
-        </div>
-      </div>
-    </div>
-  )
+        </Paper>
+      </Grid2>
+    </Grid2>
+
+    <Popover
+      open={tooltip.open}
+      onClose={() => setTooltip((t) => ({ ...t, open: false }))}
+      anchorReference="anchorPosition"
+      anchorPosition={{ top: tooltip.y, left: tooltip.x }}
+      transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+      PaperProps={{ sx: { p: 1.25, maxWidth: 320 } }}
+    >
+      <Typography variant="subtitle2">Pregunta: {tooltip.id}</Typography>
+      <Typography variant="body2" color="text.secondary">
+        Promedio: {(tooltip.pct * 100).toFixed(1)}% • Respuestas: {tooltip.count}
+      </Typography>
+    </Popover>
+  </TabPanel>
+)
 }
 
 // -----------------------------------------------------------------------------
@@ -863,7 +936,7 @@ const EstudiantesTab = ({ active }: { active: boolean }) => {
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<T_StudentsStatsResponse | null>(null)
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
-  const tooltipRef = useRef<HTMLDivElement | null>(null)
+  const [tooltip, setTooltip] = useState<{ open: boolean; x: number; y: number; id: string; pct: number; count: number }>(() => ({ open: false, x: 0, y: 0, id: '', pct: 0, count: 0 }))
   const { ref: containerRef, rect } = useResizeObserver<HTMLDivElement>()
 
   useEffect(() => {
@@ -1033,24 +1106,22 @@ const EstudiantesTab = ({ active }: { active: boolean }) => {
       .selectAll('.domain')
       .remove()
 
-    const showTooltip = (event: any, d: any) => {
-      const el = tooltipRef.current
-      if (!el) return
-      const parsed = parseStudentKey(d.id)
-      const studentId = parsed ? parsed.studentId : d.id
-      el.innerHTML = `
-        <div class="tooltip-id">Estudiante: ${studentId}</div>
-        <div class="tooltip-score">Puntaje: ${(d.normalizedMean * 100).toFixed(1)}%</div>
-      `
-      el.style.left = `${event.clientX + 10}px`
-      el.style.top = `${event.clientY - 28}px`
-      el.classList.add('visible')
-    }
-    const hideTooltip = () => {
-      const el = tooltipRef.current
-      if (!el) return
-      el.classList.remove('visible')
-    }
+    
+const showTooltip = (event: any, d: any) => {
+  const parsed = parseStudentKey(String(d.id ?? ''))
+  const studentId = parsed ? String(parsed.studentId) : String(d.id ?? '')
+  setTooltip({
+    open: true,
+    x: event.clientX + 10,
+    y: event.clientY - 28,
+    studentId,
+    pct: Number(d.normalizedMean ?? 0),
+  })
+}
+const hideTooltip = () => {
+  setTooltip((t) => ({ ...t, open: false }))
+}
+
 
     g.selectAll('.bar')
       .data(studentsArray as any)
@@ -1107,183 +1178,234 @@ const EstudiantesTab = ({ active }: { active: boolean }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, data, filteredEntries, rect.width, rect.height, thresholds.redYellow, thresholds.yellowGreen, selectedKey])
 
-  return (
-    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="estudiantes">
-      <h2>Estudiantes</h2>
+return (
+  <TabPanel active={active} tab="estudiantes">
+    <Typography variant="h5" sx={{ mb: 2 }}>
+      Estudiantes
+    </Typography>
 
-      {loading && <p className="loading-message">Cargando datos...</p>}
-      {error && <p className="error-message">{error}</p>}
+    {loading && (
+      <Alert severity="info" sx={{ mb: 2 }}>
+        Cargando datos...
+      </Alert>
+    )}
+    {error && (
+      <Alert severity="error" sx={{ mb: 2 }}>
+        {error}
+      </Alert>
+    )}
 
-      <div className="filters-panel">
-        <div className="filters-row">
-          <div className="filter-group">
-            <label className="filter-label">Grado</label>
-            <select
-              className="filter-select"
-              value={filters.grade}
-              onChange={(e) => setFilters((f) => ({ ...f, grade: e.target.value }))}
-            >
-              <option value="">Todos</option>
-              {options.grades.map((g) => (
-                <option key={g} value={String(g)}>
-                  {g}°
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="filter-group">
-            <label className="filter-label">Escuela</label>
-            <select
-              className="filter-select"
-              value={filters.school}
-              onChange={(e) => setFilters((f) => ({ ...f, school: e.target.value }))}
-            >
-              <option value="">Todas</option>
-              {options.schools.map((s) => (
-                <option key={s} value={String(s)}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="filter-group">
-            <label className="filter-label">Materia</label>
-            <select
-              className="filter-select"
-              value={filters.subject}
-              onChange={(e) => setFilters((f) => ({ ...f, subject: e.target.value }))}
-            >
-              <option value="">Todas</option>
-              {options.subjects.map((s) => (
-                <option key={s} value={s}>
-                  {subjectNames[s] ?? s}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
-            className="filter-clear-btn"
-            type="button"
-            onClick={() => {
-              setFilters({ grade: '', school: '', subject: '' })
-              setSelectedKey(null)
-            }}
+    <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap flexWrap="wrap" alignItems="center">
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel id="estudiantes-grade-label">Grado</InputLabel>
+          <Select
+            labelId="estudiantes-grade-label"
+            label="Grado"
+            value={filters.grade}
+            onChange={(e) => setFilters((f) => ({ ...f, grade: String(e.target.value) }))}
           >
-            Limpiar
-          </button>
-        </div>
-      </div>
+            <MenuItem value="">Todos</MenuItem>
+            {options.grades.map((g) => (
+              <MenuItem key={g} value={String(g)}>
+                {g}°
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-      <div className="thresholds-panel">
-        <div className="threshold">
-          <label className="threshold-label">
-            Rojo → Amarillo: <span className="threshold-value">{Math.round(thresholds.redYellow * 100)}%</span>
-          </label>
-          <input
-            id="threshold-red-yellow"
-            className="threshold-slider"
-            type="range"
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel id="estudiantes-school-label">Escuela</InputLabel>
+          <Select
+            labelId="estudiantes-school-label"
+            label="Escuela"
+            value={filters.school}
+            onChange={(e) => setFilters((f) => ({ ...f, school: String(e.target.value) }))}
+          >
+            <MenuItem value="">Todas</MenuItem>
+            {options.schools.map((s) => (
+              <MenuItem key={s} value={String(s)}>
+                {s}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl size="small" sx={{ minWidth: 200 }}>
+          <InputLabel id="estudiantes-subject-label">Materia</InputLabel>
+          <Select
+            labelId="estudiantes-subject-label"
+            label="Materia"
+            value={filters.subject}
+            onChange={(e) => setFilters((f) => ({ ...f, subject: String(e.target.value) }))}
+          >
+            <MenuItem value="">Todas</MenuItem>
+            {options.subjects.map((s) => (
+              <MenuItem key={s} value={s}>
+                {subjectNames[s] ?? s}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <Box sx={{ flexGrow: 1 }} />
+
+        <Button
+          variant="outlined"
+          onClick={() => {
+            setFilters({ grade: '', school: '', subject: '' })
+            setSelectedKey(null)
+          }}
+        >
+          Limpiar
+        </Button>
+      </Stack>
+    </Paper>
+
+    <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+      <Stack spacing={2}>
+        <Box>
+          <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+            <Typography variant="subtitle2">Rojo → Amarillo</Typography>
+            <Typography variant="caption" color="text.secondary">
+              {Math.round(thresholds.redYellow * 100)}%
+            </Typography>
+          </Stack>
+          <Slider
+            value={thresholds.redYellow}
             min={0}
             max={0.95}
             step={0.01}
-            value={thresholds.redYellow}
-            onChange={(e) =>
-              setThresholds((t) => ({
-                ...t,
-                redYellow: Math.min(Number(e.target.value), t.yellowGreen - 0.01),
-              }))
-            }
+            onChange={(_e, value) => {
+              const v = Array.isArray(value) ? value[0] : value
+              setThresholds((t) => ({ ...t, redYellow: Math.min(Number(v), t.yellowGreen - 0.01) }))
+            }}
           />
-        </div>
-        <div className="threshold">
-          <label className="threshold-label">
-            Amarillo → Verde: <span className="threshold-value">{Math.round(thresholds.yellowGreen * 100)}%</span>
-          </label>
-          <input
-            id="threshold-yellow-green"
-            className="threshold-slider"
-            type="range"
+        </Box>
+
+        <Box>
+          <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+            <Typography variant="subtitle2">Amarillo → Verde</Typography>
+            <Typography variant="caption" color="text.secondary">
+              {Math.round(thresholds.yellowGreen * 100)}%
+            </Typography>
+          </Stack>
+          <Slider
+            value={thresholds.yellowGreen}
             min={0.05}
             max={1}
             step={0.01}
-            value={thresholds.yellowGreen}
-            onChange={(e) =>
-              setThresholds((t) => ({
-                ...t,
-                yellowGreen: Math.max(Number(e.target.value), t.redYellow + 0.01),
-              }))
-            }
+            onChange={(_e, value) => {
+              const v = Array.isArray(value) ? value[0] : value
+              setThresholds((t) => ({ ...t, yellowGreen: Math.max(Number(v), t.redYellow + 0.01) }))
+            }}
           />
-        </div>
-        <div className="traffic-counts">
-          <div className="traffic-count traffic-count-red">
-            <span className="traffic-dot" />
-            <span id="count-red">{counts.red}</span>
-          </div>
-          <div className="traffic-count traffic-count-yellow">
-            <span className="traffic-dot" />
-            <span id="count-yellow">{counts.yellow}</span>
-          </div>
-          <div className="traffic-count traffic-count-green">
-            <span className="traffic-dot" />
-            <span id="count-green">{counts.green}</span>
-          </div>
-        </div>
-      </div>
+        </Box>
 
-      <div className="students-layout">
-        <div className="students-chart">
-          <div className="chart-container" ref={containerRef} id="students-chart-container" />
-          <div ref={tooltipRef} className="tooltip" />
-        </div>
-        <div className="students-detail">
-          <h3>Detalle</h3>
+        <Stack direction="row" spacing={3} useFlexGap flexWrap="wrap" alignItems="center">
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#ef4444' }} />
+            <Typography variant="body2">{counts.red}</Typography>
+          </Stack>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#f59e0b' }} />
+            <Typography variant="body2">{counts.yellow}</Typography>
+          </Stack>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#22c55e' }} />
+            <Typography variant="body2">{counts.green}</Typography>
+          </Stack>
+        </Stack>
+      </Stack>
+    </Paper>
+
+    <Grid2 container spacing={2}>
+      <Grid2 size={{ xs: 12, md: 8 }}>
+        <Paper variant="outlined" sx={{ p: 1, minHeight: 420 }}>
+          <Box ref={containerRef} id="students-chart-container" sx={{ minHeight: 400 }} />
+        </Paper>
+      </Grid2>
+
+      <Grid2 size={{ xs: 12, md: 4 }}>
+        <Paper variant="outlined" sx={{ p: 2, minHeight: 420 }}>
+          <Typography variant="h6" sx={{ mb: 1 }}>
+            Detalle
+          </Typography>
+
           {!selectedDetail ? (
-            <p className="no-selection">Selecciona una barra para ver el detalle.</p>
+            <Typography variant="body2" color="text.secondary">
+              Selecciona una barra para ver el detalle.
+            </Typography>
           ) : (
-            <div id="student-detail-content">
-              <div className="detail-item detail-item-stats">
-                <div className="stat-row">
-                  <span className="detail-label">ID Estudiante</span>
-                  <span className="detail-value">{selectedDetail.studentId}</span>
-                </div>
-                <div className="stat-row">
-                  <span className="detail-label">Escuela</span>
-                  <span className="detail-value">{selectedDetail.school}</span>
-                </div>
-                <div className="stat-row">
-                  <span className="detail-label">Grado</span>
-                  <span className="detail-value">{selectedDetail.grade}°</span>
-                </div>
-              </div>
-              <div className="detail-item detail-item-stats">
-                <div className="stat-row">
-                  <span className="detail-label">Lengua - Puntaje</span>
-                  <span className="detail-value">{selectedDetail.lengua ? formatPct(selectedDetail.lengua.mean) : 'N/A'}</span>
-                </div>
-                <div className="stat-row">
-                  <span className="detail-label">Lengua - Preguntas</span>
-                  <span className="detail-value">{selectedDetail.lengua ? selectedDetail.lengua.count : 'N/A'}</span>
-                </div>
-              </div>
-              <div className="detail-item detail-item-stats">
-                <div className="stat-row">
-                  <span className="detail-label">Matemática - Puntaje</span>
-                  <span className="detail-value">
-                    {selectedDetail.matematica ? formatPct(selectedDetail.matematica.mean) : 'N/A'}
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span className="detail-label">Matemática - Preguntas</span>
-                  <span className="detail-value">{selectedDetail.matematica ? selectedDetail.matematica.count : 'N/A'}</span>
-                </div>
-              </div>
-            </div>
+            <Stack spacing={2}>
+              <Stack spacing={1}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Typography variant="body2" color="text.secondary">
+                    ID Estudiante
+                  </Typography>
+                  <Typography variant="body2">{selectedDetail.studentId}</Typography>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Typography variant="body2" color="text.secondary">
+                    Escuela
+                  </Typography>
+                  <Typography variant="body2">{selectedDetail.school}</Typography>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Typography variant="body2" color="text.secondary">
+                    Grado
+                  </Typography>
+                  <Typography variant="body2">{selectedDetail.grade}°</Typography>
+                </Stack>
+              </Stack>
+
+              <Divider />
+
+              <Stack spacing={1}>
+                <Typography variant="subtitle2">Lengua</Typography>
+                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                  <Chip
+                    size="small"
+                    label={`Puntaje: ${selectedDetail.lengua ? formatPct(selectedDetail.lengua.mean) : 'N/A'}`}
+                  />
+                  <Chip size="small" label={`Preguntas: ${selectedDetail.lengua ? selectedDetail.lengua.count : 'N/A'}`} />
+                </Stack>
+              </Stack>
+
+              <Stack spacing={1}>
+                <Typography variant="subtitle2">Matemática</Typography>
+                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                  <Chip
+                    size="small"
+                    label={`Puntaje: ${selectedDetail.matematica ? formatPct(selectedDetail.matematica.mean) : 'N/A'}`}
+                  />
+                  <Chip
+                    size="small"
+                    label={`Preguntas: ${selectedDetail.matematica ? selectedDetail.matematica.count : 'N/A'}`}
+                  />
+                </Stack>
+              </Stack>
+            </Stack>
           )}
-        </div>
-      </div>
-    </div>
-  )
+        </Paper>
+      </Grid2>
+    </Grid2>
+
+    <Popover
+      open={tooltip.open}
+      onClose={() => setTooltip((t) => ({ ...t, open: false }))}
+      anchorReference="anchorPosition"
+      anchorPosition={{ top: tooltip.y, left: tooltip.x }}
+      transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+      PaperProps={{ sx: { p: 1.25 } }}
+    >
+      <Typography variant="subtitle2">Estudiante: {tooltip.studentId}</Typography>
+      <Typography variant="body2" color="text.secondary">
+        Puntaje: {(tooltip.pct * 100).toFixed(1)}%
+      </Typography>
+    </Popover>
+  </TabPanel>
+)
 }
 
 // -----------------------------------------------------------------------------
@@ -1374,118 +1496,145 @@ const AgrupamientoTab = ({ active }: { active: boolean }) => {
     URL.revokeObjectURL(url)
   }
 
+  
   return (
-    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="agrupamiento">
-      <h2>Agrupamiento</h2>
+    <TabPanel active={active} tab="agrupamiento">
+      <Typography variant="h5" sx={{ mb: 2 }}>
+        Agrupamiento
+      </Typography>
 
-      {loading && <p className="loading-message">Cargando datos...</p>}
-      {error && <p className="error-message">{error}</p>}
+      {loading && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Cargando datos...
+        </Alert>
+      )}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
-      <div className="filters-panel">
-        <div className="filters-row">
-          <div className="filter-group">
-            <label className="filter-label">Grado</label>
-            <select
-              id="agrupamiento-grade-select"
-              className="filter-select"
-              value={grade}
-              onChange={(e) => {
-                setGrade(e.target.value)
-                setSubject('')
-              }}
-            >
-              <option value="">Seleccionar...</option>
-              {gradeOptions.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="filter-group">
-            <label className="filter-label">Materia</label>
-            <select
-              id="agrupamiento-subject-select"
-              className="filter-select"
-              value={subject}
-              disabled={!grade}
-              onChange={(e) => setSubject(e.target.value)}
-            >
-              <option value="">Seleccionar...</option>
-              {subjectOptions.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
+      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <Grid2 container spacing={2}>
+          <Grid2 size={{ xs: 12, sm: 6 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel id="agrupamiento-grade-label">Grado</InputLabel>
+              <Select
+                labelId="agrupamiento-grade-label"
+                id="agrupamiento-grade-select"
+                label="Grado"
+                value={grade}
+                onChange={(e) => {
+                  setGrade(String(e.target.value))
+                  setSubject('')
+                }}
+              >
+                <MenuItem value="">
+                  <em>Seleccionar...</em>
+                </MenuItem>
+                {gradeOptions.map((g) => (
+                  <MenuItem key={g.id} value={g.id}>
+                    {g.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid2>
 
-      <div id="agrupamiento-clusters-container" className="clusters-container">
-        {!grade || !subject ? (
-          <p className="agrupamiento-placeholder">Seleccione un grado y una materia para ver los clusters</p>
-        ) : !cluster ? (
-          <p className="agrupamiento-placeholder">Cargando datos...</p>
-        ) : !clusterIds.length ? (
-          <p className="agrupamiento-placeholder" style={{ color: '#ef4444' }}>
-            No hay datos de clusters disponibles
-          </p>
-        ) : (
-          <>
-            {clusterIds.map((clusterId) => {
-              const nStudents = cluster?.n_students?.[clusterId] ?? 0
-              const scoresMean = cluster?.scores_mean?.[clusterId] ?? 0
-              const studentIds = cluster?.student_ids?.[clusterId] ?? []
-              const competencias: Array<{ name: string; value: any }> = []
-              Object.keys(cluster).forEach((key) => {
-                if (['scores_mean', 'n_students', 'student_ids'].includes(key)) return
-                if (cluster?.[key]?.[clusterId] === undefined) return
-                competencias.push({ name: formatCompetenciaName(key), value: cluster[key][clusterId] })
-              })
-              return (
-                <div key={clusterId} className="cluster-panel" data-cluster={clusterId}>
-                  <div className="cluster-panel-header">
-                    <h3 className="cluster-panel-title">Grupo {clusterId}</h3>
-                    <span className="cluster-panel-count tag-pill">
-                      {nStudents} estudiante{nStudents !== 1 ? 's' : ''}
-                    </span>
-                  </div>
+          <Grid2 size={{ xs: 12, sm: 6 }}>
+            <FormControl fullWidth size="small" disabled={!grade}>
+              <InputLabel id="agrupamiento-subject-label">Materia</InputLabel>
+              <Select
+                labelId="agrupamiento-subject-label"
+                id="agrupamiento-subject-select"
+                label="Materia"
+                value={subject}
+                onChange={(e) => setSubject(String(e.target.value))}
+              >
+                <MenuItem value="">
+                  <em>Seleccionar...</em>
+                </MenuItem>
+                {subjectOptions.map((s) => (
+                  <MenuItem key={s.id} value={s.id}>
+                    {s.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid2>
+        </Grid2>
+      </Paper>
 
-                  <div className="cluster-panel-body">
-                    <div className="cluster-metric">
-                      <span className="cluster-metric-label">Promedio Global</span>
-                      <span className="cluster-metric-value tag-pill">
-                        <span className="tag-pill-value">{formatPct(scoresMean)}</span>
-                      </span>
-                    </div>
+      {!grade || !subject ? (
+        <Alert severity="info">Seleccione un grado y una materia para ver los grupos.</Alert>
+      ) : !cluster ? (
+        <Alert severity="info">Cargando datos...</Alert>
+      ) : !clusterIds.length ? (
+        <Alert severity="warning">No hay datos de clusters disponibles.</Alert>
+      ) : (
+        <Grid2 container spacing={2}>
+          {clusterIds.map((clusterId) => {
+            const nStudents = cluster?.n_students?.[clusterId] ?? 0
+            const scoresMean = cluster?.scores_mean?.[clusterId] ?? 0
+            const studentIds = cluster?.student_ids?.[clusterId] ?? []
+
+            const competencias: Array<{ name: string; value: any }> = []
+            Object.keys(cluster).forEach((key) => {
+              if (['scores_mean', 'n_students', 'student_ids'].includes(key)) return
+              if (cluster?.[key]?.[clusterId] === undefined) return
+              competencias.push({ name: formatCompetenciaName(key), value: cluster[key][clusterId] })
+            })
+
+            return (
+              <Grid2 key={clusterId} size={{ xs: 12, md: 6 }}>
+                <Paper
+                  variant="outlined"
+                  sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}
+                >
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+                    <Typography variant="h6">Grupo {clusterId}</Typography>
+                    <Chip
+                      size="small"
+                      label={`${nStudents} estudiante${nStudents !== 1 ? 's' : ''}`}
+                    />
+                  </Stack>
+
+                  <Divider sx={{ mb: 1 }} />
+
+                  <Stack spacing={1} sx={{ flexGrow: 1 }}>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between">
+                      <Typography variant="body2" color="text.secondary">
+                        Promedio Global
+                      </Typography>
+                      <Chip size="small" label={formatPct(scoresMean)} />
+                    </Stack>
+
                     {competencias.map((c) => (
-                      <div key={c.name} className="cluster-metric">
-                        <span className="cluster-metric-label">{c.name}</span>
-                        <span className="cluster-metric-value tag-pill">
-                          <span className="tag-pill-value">{formatPct(c.value)}</span>
-                        </span>
-                      </div>
+                      <Stack key={c.name} direction="row" alignItems="center" justifyContent="space-between">
+                        <Typography variant="body2" color="text.secondary">
+                          {c.name}
+                        </Typography>
+                        <Chip size="small" label={formatPct(c.value)} />
+                      </Stack>
                     ))}
-                  </div>
+                  </Stack>
 
-                  <div className="cluster-panel-footer">
-                    <button
-                      className="cluster-download-btn"
-                      type="button"
+                  <Box sx={{ mt: 2 }}>
+                    <Button
+                      variant="outlined"
+                      fullWidth
                       onClick={() => downloadStudentIds(clusterId, studentIds)}
                     >
-                      <span>⬇</span>
-                      <span>Descargar IDs de Estudiantes</span>
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
-          </>
-        )}
-      </div>
-    </div>
+                      Descargar IDs de Estudiantes
+                    </Button>
+                  </Box>
+                </Paper>
+              </Grid2>
+            )
+          })}
+        </Grid2>
+      )}
+    </TabPanel>
   )
 }
 
@@ -1605,8 +1754,7 @@ const GraphTab = ({ active }: { active: boolean }) => {
     let highlightedNodeId: string | null = null
     let currentColorScale: any = null
     let clusterColorScale: any = null
-    type ColorMode = 'score' | 'cluster';
-    const [colorMode, setColorMode] = useState<ColorMode>('score');
+    const colorMode: 'score' | 'cluster' = 'score'
 
     const clearViz = () => {
       container.selectAll('*').remove()
@@ -1938,56 +2086,91 @@ const GraphTab = ({ active }: { active: boolean }) => {
     }
 
     init()
+
     return () => {
       gradeSelect?.removeEventListener('change', handleGradeChange)
       dataSelect?.removeEventListener('change', handleDatasetChange)
-      stopSimulation()
     }
-  }, [active, apiBase, getJson])
+  }, [active, getJson])
 
   return (
-    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="graph">
-      <h2>Gráfico</h2>
-      <div className="graph-controls">
-        <div className="filter-group">
-          <label className="filter-label">Grado</label>
-          <select id="grade-select" className="filter-select" />
-        </div>
-        <div className="filter-group">
-          <label className="filter-label">Conjunto de datos</label>
-          <select id="data-select" className="filter-select" />
-        </div>
-        <div id="status" className="graph-status" />
-      </div>
+    <TabPanel active={active} tab="graph">
+      <Typography variant="h5" sx={{ mb: 2 }}>
+        Gráfico
+      </Typography>
 
-      <div className="graph-layout">
-        <div id="viz-container" className="viz-container" />
-        <div className="graph-side">
-          <div className="legend">
-            <div className="legend-title">Puntaje</div>
-            <div className="legend-row">
-              <span id="legend-min">0%</span>
-              <canvas id="legend-canvas" width={160} height={10} />
-              <span id="legend-max">100%</span>
-            </div>
-          </div>
+      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <Grid2 container spacing={2} alignItems="center">
+          <Grid2 size={{ xs: 12, sm: 4 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel shrink htmlFor="grade-select">
+                Grado
+              </InputLabel>
+              <NativeSelect inputProps={{ id: 'grade-select' }} />
+            </FormControl>
+          </Grid2>
 
-          <div className="histogram" id="histogram">
-            <div className="histogram-title">Distribución</div>
-            <svg id="histogram-svg" width={180} height={110} />
-            <div id="histogram-message" className="histogram-message" />
-          </div>
+          <Grid2 size={{ xs: 12, sm: 5 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel shrink htmlFor="data-select">
+                Conjunto de datos
+              </InputLabel>
+              <NativeSelect inputProps={{ id: 'data-select' }} />
+            </FormControl>
+          </Grid2>
 
-          <div className="table-panel">
-            <div id="table-title" className="table-title" />
-            <div id="table-content" className="table-content" />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+          <Grid2 size={{ xs: 12, sm: 3 }}>
+            <Box id="status" sx={{ typography: 'body2', color: 'text.secondary', minHeight: 20 }} />
+          </Grid2>
+        </Grid2>
+      </Paper>
+
+      <Grid2 container spacing={2}>
+        <Grid2 size={{ xs: 12, md: 8 }}>
+          <Paper variant="outlined" sx={{ p: 1, minHeight: 540 }}>
+            <Box id="viz-container" sx={{ minHeight: 520 }} />
+          </Paper>
+        </Grid2>
+
+        <Grid2 size={{ xs: 12, md: 4 }}>
+          <Stack spacing={2}>
+            <Paper variant="outlined" sx={{ p: 2 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Puntaje
+              </Typography>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography id="legend-min" variant="caption">
+                  0%
+                </Typography>
+                <Box sx={{ flexGrow: 1 }}>
+                  <canvas id="legend-canvas" width={160} height={10} style={{ width: '100%' }} />
+                </Box>
+                <Typography id="legend-max" variant="caption">
+                  100%
+                </Typography>
+              </Stack>
+            </Paper>
+
+            <Paper variant="outlined" sx={{ p: 2 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Distribución
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <svg id="histogram-svg" width={180} height={110} />
+              </Box>
+              <Box id="histogram-message" sx={{ typography: 'caption', color: 'text.secondary', mt: 1 }} />
+            </Paper>
+
+            <Paper variant="outlined" sx={{ p: 2 }}>
+              <Box id="table-title" sx={{ typography: 'subtitle2', mb: 1 }} />
+              <Box id="table-content" />
+            </Paper>
+          </Stack>
+        </Grid2>
+      </Grid2>
+    </TabPanel>
+)
 }
-
 // -----------------------------------------------------------------------------
 // Chat tab
 // -----------------------------------------------------------------------------
@@ -2001,21 +2184,26 @@ const ChatTab = ({ active, enabled }: { active: boolean; enabled: boolean }) => 
   const [waiting, setWaiting] = useState(false)
   const scrollRef = useRef<HTMLDivElement | null>(null)
 
+  const scrollToBottom = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollTop = el.scrollHeight
+  }, [])
+
   useEffect(() => {
     if (!active) return
-    // scroll to bottom when activating tab
-    setTimeout(() => {
-      const el = scrollRef.current
-      if (el) el.scrollTop = el.scrollHeight
-    }, 0)
-  }, [active])
+    // scroll on activation and when new messages arrive
+    setTimeout(scrollToBottom, 0)
+  }, [active, messages.length, scrollToBottom])
 
   const send = async () => {
     const text = value.trim()
     if (!text || waiting) return
+
     setMessages((m) => [...m, { role: 'user', text }])
     setValue('')
     setWaiting(true)
+
     try {
       const resp = await postJson<{ response?: string }, { message: string }>('/chat/', { message: text })
       setMessages((m) => [...m, { role: 'assistant', text: resp?.response || '—' }])
@@ -2026,67 +2214,98 @@ const ChatTab = ({ active, enabled }: { active: boolean; enabled: boolean }) => 
       ])
     } finally {
       setWaiting(false)
-      setTimeout(() => {
-        const el = scrollRef.current
-        if (el) el.scrollTop = el.scrollHeight
-      }, 0)
+      setTimeout(scrollToBottom, 0)
     }
   }
 
-  if (!enabled) {
-    return (
-      <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="chat">
-        <h2>Chat</h2>
-        <p className="loading-message">Chat deshabilitado.</p>
-      </div>
-    )
-  }
-
   return (
-    <div className={`tab-content ${active ? 'active' : ''}`} data-tab-content="chat">
-      <h2>Chat</h2>
-      <div className="chat-container">
-        <div id="chat-messages" className="chat-messages" ref={scrollRef}>
-          {messages.map((m, idx) => (
-            <div key={idx} className={`chat-message chat-message-${m.role === 'user' ? 'user' : 'assistant'}`}>
-              <div className="chat-message-content">
-                <p>{m.text}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <Box
-          component="form"
-          id="chat-form"
-          className="chat-form"
-          onSubmit={(e) => {
-            e.preventDefault()
-            send()
-          }}
-          sx={{ display: 'flex', gap: 1, mt: 1 }}
-        >
-          <TextField
-            id="chat-input"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            disabled={waiting}
-            placeholder="Escribí una pregunta..."
-            size="small"
-            fullWidth
-          />
-          <Button
-            id="chat-submit"
-            type="submit"
-            variant="contained"
-            disabled={waiting || !value.trim()}
-          >
-            {waiting ? 'Enviando...' : 'Enviar'}
-          </Button>
-        </Box>
-      </div>
-    </div>
+    <TabPanel active={active} tab="chat">
+      <Stack spacing={2}>
+        <Typography variant="h6">Chat</Typography>
+
+        {!enabled ? (
+          <Alert severity="info">Chat deshabilitado.</Alert>
+        ) : (
+          <>
+            <Paper variant="outlined" sx={{ p: 2 }}>
+              <Box
+                ref={scrollRef}
+                sx={{
+                  height: 380,
+                  overflowY: 'auto',
+                  pr: 1,
+                }}
+              >
+                <Stack spacing={1.25}>
+                  {messages.map((m, idx) => {
+                    const isUser = m.role === 'user'
+                    return (
+                      <Box key={idx} sx={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
+                        <Paper
+                          variant="outlined"
+                          sx={{
+                            p: 1.25,
+                            maxWidth: '85%',
+                            bgcolor: isUser ? 'action.selected' : 'background.paper',
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                            {m.text}
+                          </Typography>
+                        </Paper>
+                      </Box>
+                    )
+                  })}
+                  {waiting && (
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                      <Typography variant="caption" color="text.secondary">
+                        Escribiendo…
+                      </Typography>
+                    </Box>
+                  )}
+                </Stack>
+              </Box>
+            </Paper>
+
+            <Paper variant="outlined" sx={{ p: 2 }}>
+              <Box
+                component="form"
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  send()
+                }}
+              >
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems="stretch">
+                  <TextField
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    disabled={waiting}
+                    placeholder="Escribí una pregunta..."
+                    size="small"
+                    fullWidth
+                    multiline
+                    minRows={1}
+                    maxRows={4}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        send()
+                      }
+                    }}
+                  />
+                  <Button variant="contained" type="submit" disabled={waiting || !value.trim()} sx={{ minWidth: 120 }}>
+                    {waiting ? 'Enviando...' : 'Enviar'}
+                  </Button>
+                </Stack>
+              </Box>
+            </Paper>
+          </>
+        )}
+      </Stack>
+    </TabPanel>
   )
 }
+
 
 // -----------------------------------------------------------------------------
 // Main app component (tabs)
@@ -2154,7 +2373,7 @@ const MetaReportApp = () => {
         </Alert>
       )}
 
-      <Box className="app-main">
+      <Box >
         <EstadisticasTab active={activeTab === 'estadisticas'} />
         <PreguntasTab active={activeTab === 'preguntas'} />
         <EstudiantesTab active={activeTab === 'estudiantes'} />
