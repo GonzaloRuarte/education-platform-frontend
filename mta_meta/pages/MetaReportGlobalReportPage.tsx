@@ -487,7 +487,15 @@ const PreguntasTab = ({ active }: { active: boolean }) => {
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<T_QuestionsStatsResponse | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [tooltip, setTooltip] = useState<{ open: boolean; x: number; y: number; id: string; pct: number; count: number }>(() => ({ open: false, x: 0, y: 0, id: '', pct: 0, count: 0 }))
+  // Tooltip state for the questions chart
+  const [tooltip, setTooltip] = useState<{ open: boolean; x: number; y: number; id: string; pct: number; count: number }>(() => ({
+    open: false,
+    x: 0,
+    y: 0,
+    id: '',
+    pct: 0,
+    count: 0,
+  }))
 
   const { ref: containerRef, rect } = useResizeObserver<HTMLDivElement>()
 
@@ -936,7 +944,14 @@ const EstudiantesTab = ({ active }: { active: boolean }) => {
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<T_StudentsStatsResponse | null>(null)
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
-  const [tooltip, setTooltip] = useState<{ open: boolean; x: number; y: number; id: string; pct: number; count: number }>(() => ({ open: false, x: 0, y: 0, id: '', pct: 0, count: 0 }))
+  // Tooltip state for the students chart
+  const [tooltip, setTooltip] = useState<{ open: boolean; x: number; y: number; studentId: string; pct: number }>(() => ({
+    open: false,
+    x: 0,
+    y: 0,
+    studentId: '',
+    pct: 0,
+  }))
   const { ref: containerRef, rect } = useResizeObserver<HTMLDivElement>()
 
   useEffect(() => {
@@ -1646,6 +1661,30 @@ const GraphTab = ({ active }: { active: boolean }) => {
   const { apiBase, getJson } = useMetaReportApi()
   const mountedRef = useRef(false)
 
+  // Color encoding toggle (matches Flask graph-tab.js behavior).
+  type ColorMode = 'score' | 'cluster'
+  const COLOR_MODE_KEY = 'reporteMeta.graph.colorMode'
+  const [colorMode, setColorMode] = useState<ColorMode>(() => {
+    try {
+      const v = localStorage.getItem(COLOR_MODE_KEY)
+      return v === 'cluster' ? 'cluster' : 'score'
+    } catch {
+      return 'score'
+    }
+  })
+
+  // D3 elements are created once; we update colors/legend via this ref on toggle.
+  const applyColorModeRef = useRef<null | ((mode: ColorMode) => void)>(null)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(COLOR_MODE_KEY, colorMode)
+    } catch {
+      // ignore
+    }
+    applyColorModeRef.current?.(colorMode)
+  }, [colorMode])
+
   useEffect(() => {
     if (!active) return
     if (mountedRef.current) return
@@ -1754,7 +1793,6 @@ const GraphTab = ({ active }: { active: boolean }) => {
     let highlightedNodeId: string | null = null
     let currentColorScale: any = null
     let clusterColorScale: any = null
-    const colorMode: 'score' | 'cluster' = 'score'
 
     const clearViz = () => {
       container.selectAll('*').remove()
@@ -1941,8 +1979,8 @@ const GraphTab = ({ active }: { active: boolean }) => {
       renderLegend(0, 1)
 
       clusterColorScale = d3.scaleOrdinal(d3.schemeTableau10)
-      const nodeColor = (n: any) => {
-        if (colorMode === 'cluster') {
+      const nodeColor = (n: any, mode: ColorMode) => {
+        if (mode === 'cluster') {
           const cid = n.data?.cluster_id ?? n.data?.cluster ?? n.data?.id ?? n.data?.name
           return clusterColorScale(String(cid))
         }
@@ -1965,7 +2003,7 @@ const GraphTab = ({ active }: { active: boolean }) => {
         .enter()
         .append('circle')
         .attr('r', (d: any) => (d.children ? 8 : 5))
-        .attr('fill', (d: any) => nodeColor(d))
+        .attr('fill', (d: any) => nodeColor(d, colorMode))
         .attr('stroke', '#0f172a')
         .attr('stroke-width', (d: any) => (highlightedNodeId && nodeLabel(d.data) === highlightedNodeId ? 2 : 0))
         .style('cursor', 'pointer')
@@ -1993,6 +2031,26 @@ const GraphTab = ({ active }: { active: boolean }) => {
             }),
         )
 
+      // Allow React UI to toggle color mode without re-initializing the graph.
+      applyColorModeRef.current = (mode: ColorMode) => {
+        try {
+          // Update node colors
+          node.attr('fill', (d: any) => nodeColor(d, mode))
+
+          // Keep the score legend for now (cluster legend can be added later)
+          // but match Flask behavior by updating the label and histogram.
+          const leafScoresNow = nodes
+            .filter((n) => !n.children || n.children.length === 0)
+            .map((n: any) => Number(n.data?.score_mean ?? n.data?.score ?? 0))
+            .filter((v) => Number.isFinite(v))
+            .map((v) => Math.max(0, Math.min(1, v)))
+          renderHistogram(leafScoresNow)
+          renderLegend(0, 1)
+        } catch (e) {
+          // no-op
+        }
+      }
+
       const zoom = d3
         .zoom<any, any>()
         .scaleExtent([0.15, 2.5])
@@ -2001,6 +2059,18 @@ const GraphTab = ({ active }: { active: boolean }) => {
         })
 
       svg.call(zoom as any)
+
+      // Apply current mode immediately.
+      applyColorModeRef.current?.(colorMode)
+
+      // Allow React toggle to recolor nodes without rebuilding the graph.
+      applyColorModeRef.current = (mode: ColorMode) => {
+        try {
+          node.attr('fill', (d: any) => nodeColor(d, mode))
+        } catch {
+          // ignore
+        }
+      }
 
       stopSimulation()
       currentSimulation = d3
@@ -2120,7 +2190,20 @@ const GraphTab = ({ active }: { active: boolean }) => {
           </Grid2>
 
           <Grid2 size={{ xs: 12, sm: 3 }}>
-            <Box id="status" sx={{ typography: 'body2', color: 'text.secondary', minHeight: 20 }} />
+            <Stack spacing={1} alignItems={{ xs: 'flex-start', sm: 'flex-end' }}>
+              <Button
+                id="color-mode-toggle"
+                variant="outlined"
+                size="small"
+                onClick={() => setColorMode((m) => (m === 'score' ? 'cluster' : 'score'))}
+              >
+                Color por:{' '}
+                <Box component="span" id="color-mode-label" sx={{ ml: 0.5, fontWeight: 600 }}>
+                  {colorMode === 'score' ? 'Puntaje' : 'Agrupación'}
+                </Box>
+              </Button>
+              <Box id="status" sx={{ typography: 'body2', color: 'text.secondary', minHeight: 20 }} />
+            </Stack>
           </Grid2>
         </Grid2>
       </Paper>
