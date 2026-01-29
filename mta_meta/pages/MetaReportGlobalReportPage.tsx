@@ -103,7 +103,8 @@ function useResizeObserver<T extends HTMLElement>() {
     const obs = new ResizeObserver((entries) => {
       const cr = entries[0]?.contentRect
       if (!cr) return
-      setRect({ width: cr.width, height: cr.height })
+      const w = Math.round(cr.width)
+      setRect((prev) => (prev.width === w ? prev : { width: w, height: prev.height }))
     })
     obs.observe(el)
     return () => obs.disconnect()
@@ -293,171 +294,171 @@ const EstadisticasTab = ({ active }: { active: boolean }) => {
     })
   }
 
-return (
-  <TabPanel active={active} tab="estadisticas">
-    <Typography variant="h5" sx={{ mb: 2 }}>
-      Estadísticas
-    </Typography>
+  return (
+    <TabPanel active={active} tab="estadisticas">
+      <Typography variant="h5" sx={{ mb: 2 }}>
+        Estadísticas
+      </Typography>
 
-    {loading && (
-      <Alert severity="info" sx={{ mb: 2 }}>
-        Cargando datos...
-      </Alert>
-    )}
-    {error && (
-      <Alert severity="error" sx={{ mb: 2 }}>
-        {error}
-      </Alert>
-    )}
+      {loading && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Cargando datos...
+        </Alert>
+      )}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
-    {summaries && (
-      <Stack spacing={2}>
-        <Grid2 container spacing={2}>
-          <StatCard label="Respuestas" value={summaries.total_responses ?? '—'} />
-          <StatCard label="Preguntas" value={summaries.total_questions ?? '—'} />
-          <StatCard label="Estudiantes" value={summaries.total_students ?? '—'} />
-          <StatCard label="Escuelas" value={summaries.total_schools ?? '—'} />
-          <StatCard
-            label="KR-20"
-            value={
-              summaries.total_kr20_lengua === null || summaries.total_kr20_lengua === undefined
-                ? '—'
-                : Number(summaries.total_kr20_lengua).toFixed(3)
-            }
-          />
-          <StatCard
-            label="Promedio"
-            value={
-              summaries.total_mean_score === null || summaries.total_mean_score === undefined
-                ? '—'
-                : `${(Number(summaries.total_mean_score) * 100).toFixed(1)}%`
-            }
-          />
-        </Grid2>
+      {summaries && (
+        <Stack spacing={2}>
+          <Grid2 container spacing={2}>
+            <StatCard label="Respuestas" value={summaries.total_responses ?? '—'} />
+            <StatCard label="Preguntas" value={summaries.total_questions ?? '—'} />
+            <StatCard label="Estudiantes" value={summaries.total_students ?? '—'} />
+            <StatCard label="Escuelas" value={summaries.total_schools ?? '—'} />
+            <StatCard
+              label="KR-20"
+              value={
+                summaries.total_kr20_lengua === null || summaries.total_kr20_lengua === undefined
+                  ? '—'
+                  : Number(summaries.total_kr20_lengua).toFixed(3)
+              }
+            />
+            <StatCard
+              label="Promedio"
+              value={
+                summaries.total_mean_score === null || summaries.total_mean_score === undefined
+                  ? '—'
+                  : `${(Number(summaries.total_mean_score) * 100).toFixed(1)}%`
+              }
+            />
+          </Grid2>
 
-        <Paper variant="outlined" sx={{ p: 2 }}>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap flexWrap="wrap" alignItems="center">
-            <FormControl size="small" sx={{ minWidth: 180 }}>
-              <InputLabel id="estadisticas-grade-label">Grado</InputLabel>
-              <Select
-                labelId="estadisticas-grade-label"
-                label="Grado"
-                value={filters.grade}
-                onChange={(e) => setFilters((f) => ({ ...f, grade: String(e.target.value) }))}
-              >
-                <MenuItem value="">Todos</MenuItem>
-                {options.grades.map((g) => (
-                  <MenuItem key={g} value={g}>
-                    {g}°
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl size="small" sx={{ minWidth: 180 }}>
-              <InputLabel id="estadisticas-school-label">Escuela</InputLabel>
-              <Select
-                labelId="estadisticas-school-label"
-                label="Escuela"
-                value={filters.school}
-                onChange={(e) => setFilters((f) => ({ ...f, school: String(e.target.value) }))}
-              >
-                <MenuItem value="">Todas</MenuItem>
-                {options.schools.map((s) => (
-                  <MenuItem key={s} value={s}>
-                    {s}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl size="small" sx={{ minWidth: 200 }}>
-              <InputLabel id="estadisticas-subject-label">Materia</InputLabel>
-              <Select
-                labelId="estadisticas-subject-label"
-                label="Materia"
-                value={filters.subject}
-                onChange={(e) => setFilters((f) => ({ ...f, subject: String(e.target.value) }))}
-              >
-                <MenuItem value="">Todas</MenuItem>
-                {options.subjects.map((s) => (
-                  <MenuItem key={s} value={s}>
-                    {subjectNames[s] ?? s}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <Box sx={{ flexGrow: 1 }} />
-
-            <Button
-              variant="outlined"
-              onClick={() => {
-                setFilters({ grade: '', school: '', subject: '' })
-                setSort({ column: null, direction: 'asc' })
-              }}
-            >
-              Limpiar
-            </Button>
-          </Stack>
-        </Paper>
-
-        <Paper variant="outlined">
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  {[
-                    ['evaluation_grade', 'Grado'],
-                    ['school_id', 'Escuela'],
-                    ['subject_id', 'Materia'],
-                    ['n_students', 'Estudiantes'],
-                    ['mean_score', 'Promedio'],
-                    ['std_score', 'Std'],
-                    ['standard_error', 'Error Std'],
-                    ['kr20', 'KR-20'],
-                  ].map(([key, label]) => (
-                    <TableCell key={key}>
-                      <TableSortLabel
-                        active={sort.column === key}
-                        direction={sort.column === key ? sort.direction : 'asc'}
-                        onClick={() => toggleSort(key)}
-                      >
-                        {label}
-                      </TableSortLabel>
-                    </TableCell>
+          <Paper variant="outlined" sx={{ p: 2 }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap flexWrap="wrap" alignItems="center">
+              <FormControl size="small" sx={{ minWidth: 180 }}>
+                <InputLabel id="estadisticas-grade-label">Grado</InputLabel>
+                <Select
+                  labelId="estadisticas-grade-label"
+                  label="Grado"
+                  value={filters.grade}
+                  onChange={(e) => setFilters((f) => ({ ...f, grade: String(e.target.value) }))}
+                >
+                  <MenuItem value="">Todos</MenuItem>
+                  {options.grades.map((g) => (
+                    <MenuItem key={g} value={g}>
+                      {g}°
+                    </MenuItem>
                   ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {sorted.map((r, idx) => (
-                  <TableRow key={`${r.evaluation_grade}-${r.school_id}-${r.subject_id}-${idx}`} hover>
-                    <TableCell>{String(r.evaluation_grade)}</TableCell>
-                    <TableCell>{String(r.school_id)}</TableCell>
-                    <TableCell>{subjectNames[String(r.subject_id)] ?? String(r.subject_id)}</TableCell>
-                    <TableCell>{r.n_students}</TableCell>
-                    <TableCell>{formatPct(r.mean_score)}</TableCell>
-                    <TableCell>{formatPct(r.std_score)}</TableCell>
-                    <TableCell>{formatPct(r.standard_error)}</TableCell>
-                    <TableCell>{r.kr20 === null || r.kr20 === undefined ? '—' : Number(r.kr20).toFixed(3)}</TableCell>
-                  </TableRow>
-                ))}
+                </Select>
+              </FormControl>
 
-                {!sorted.length && (
+              <FormControl size="small" sx={{ minWidth: 180 }}>
+                <InputLabel id="estadisticas-school-label">Escuela</InputLabel>
+                <Select
+                  labelId="estadisticas-school-label"
+                  label="Escuela"
+                  value={filters.school}
+                  onChange={(e) => setFilters((f) => ({ ...f, school: String(e.target.value) }))}
+                >
+                  <MenuItem value="">Todas</MenuItem>
+                  {options.schools.map((s) => (
+                    <MenuItem key={s} value={s}>
+                      {s}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl size="small" sx={{ minWidth: 200 }}>
+                <InputLabel id="estadisticas-subject-label">Materia</InputLabel>
+                <Select
+                  labelId="estadisticas-subject-label"
+                  label="Materia"
+                  value={filters.subject}
+                  onChange={(e) => setFilters((f) => ({ ...f, subject: String(e.target.value) }))}
+                >
+                  <MenuItem value="">Todas</MenuItem>
+                  {options.subjects.map((s) => (
+                    <MenuItem key={s} value={s}>
+                      {subjectNames[s] ?? s}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <Box sx={{ flexGrow: 1 }} />
+
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setFilters({ grade: '', school: '', subject: '' })
+                  setSort({ column: null, direction: 'asc' })
+                }}
+              >
+                Limpiar
+              </Button>
+            </Stack>
+          </Paper>
+
+          <Paper variant="outlined">
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={8} align="center" sx={{ py: 3, color: 'text.secondary' }}>
-                      No hay datos con los filtros seleccionados
-                    </TableCell>
+                    {[
+                      ['evaluation_grade', 'Grado'],
+                      ['school_id', 'Escuela'],
+                      ['subject_id', 'Materia'],
+                      ['n_students', 'Estudiantes'],
+                      ['mean_score', 'Promedio'],
+                      ['std_score', 'Std'],
+                      ['standard_error', 'Error Std'],
+                      ['kr20', 'KR-20'],
+                    ].map(([key, label]) => (
+                      <TableCell key={key}>
+                        <TableSortLabel
+                          active={sort.column === key}
+                          direction={sort.column === key ? sort.direction : 'asc'}
+                          onClick={() => toggleSort(key)}
+                        >
+                          {label}
+                        </TableSortLabel>
+                      </TableCell>
+                    ))}
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      </Stack>
-    )}
-  </TabPanel>
-)
+                </TableHead>
+                <TableBody>
+                  {sorted.map((r, idx) => (
+                    <TableRow key={`${r.evaluation_grade}-${r.school_id}-${r.subject_id}-${idx}`} hover>
+                      <TableCell>{String(r.evaluation_grade)}</TableCell>
+                      <TableCell>{String(r.school_id)}</TableCell>
+                      <TableCell>{subjectNames[String(r.subject_id)] ?? String(r.subject_id)}</TableCell>
+                      <TableCell>{r.n_students}</TableCell>
+                      <TableCell>{formatPct(r.mean_score)}</TableCell>
+                      <TableCell>{formatPct(r.std_score)}</TableCell>
+                      <TableCell>{formatPct(r.standard_error)}</TableCell>
+                      <TableCell>{r.kr20 === null || r.kr20 === undefined ? '—' : Number(r.kr20).toFixed(3)}</TableCell>
+                    </TableRow>
+                  ))}
+
+                  {!sorted.length && (
+                    <TableRow>
+                      <TableCell colSpan={8} align="center" sx={{ py: 3, color: 'text.secondary' }}>
+                        No hay datos con los filtros seleccionados
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </Stack>
+      )}
+    </TabPanel>
+  )
 }
 
 // -----------------------------------------------------------------------------
@@ -610,12 +611,15 @@ const PreguntasTab = ({ active }: { active: boolean }) => {
     questionsArray.forEach((d: any) => (d.normalizedMean = normalize(d.mean)))
 
     const width = Math.max(300, rect.width || containerRef.current.getBoundingClientRect().width)
-    const height = Math.max(360, rect.height || containerRef.current.getBoundingClientRect().height)
+    const height = 420
     const margin = { top: 20, right: 30, bottom: 60, left: 60 }
     const chartWidth = width - margin.left - margin.right
     const chartHeight = height - margin.top - margin.bottom
 
-    const svg = container.append('svg').attr('width', width).attr('height', height)
+    const svg = container.append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('display', 'block')
     const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
 
     const xScale = d3
@@ -654,20 +658,20 @@ const PreguntasTab = ({ active }: { active: boolean }) => {
       return c ?? fallback
     }
 
-    
-const showTooltip = (event: any, d: any) => {
-  setTooltip({
-    open: true,
-    x: event.clientX + 10,
-    y: event.clientY - 28,
-    id: String(d.id ?? ''),
-    pct: Number(d.normalizedMean ?? 0),
-    count: Number(d.count ?? 0),
-  })
-}
-const hideTooltip = () => {
-  setTooltip((t) => ({ ...t, open: false }))
-}
+
+    const showTooltip = (event: any, d: any) => {
+      setTooltip({
+        open: true,
+        x: event.clientX + 10,
+        y: event.clientY - 28,
+        id: String(d.id ?? ''),
+        pct: Number(d.normalizedMean ?? 0),
+        count: Number(d.count ?? 0),
+      })
+    }
+    const hideTooltip = () => {
+      setTooltip((t) => ({ ...t, open: false }))
+    }
 
 
     g.selectAll('.bar')
@@ -721,7 +725,7 @@ const hideTooltip = () => {
       .text(`Preguntas (${questionsArray.length} total)`) // matches Flask
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, data, filteredEntries, rect.width, rect.height, selectedId, colorByCompetencia])
+  }, [active, data, filteredEntries, rect.width, selectedId, colorByCompetencia])
 
   const selected = useMemo(() => {
     if (!data || !selectedId) return null
@@ -748,166 +752,170 @@ const hideTooltip = () => {
     }
   }, [selected])
 
-return (
-  <TabPanel active={active} tab="preguntas">
-    <Typography variant="h5" sx={{ mb: 2 }}>
-      Preguntas
-    </Typography>
-
-    {loading && (
-      <Alert severity="info" sx={{ mb: 2 }}>
-        Cargando datos...
-      </Alert>
-    )}
-    {error && (
-      <Alert severity="error" sx={{ mb: 2 }}>
-        {error}
-      </Alert>
-    )}
-
-    <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap flexWrap="wrap" alignItems="center">
-        <FormControl size="small" sx={{ minWidth: 180 }}>
-          <InputLabel id="preguntas-subject-label">Materia</InputLabel>
-          <Select
-            labelId="preguntas-subject-label"
-            label="Materia"
-            value={filters.subject}
-            onChange={(e) => setFilters((f) => ({ ...f, subject: String(e.target.value) }))}
-          >
-            <MenuItem value="">Todas</MenuItem>
-            {options.subjects.map((s) => (
-              <MenuItem key={s} value={s}>
-                {subjectNames[s] ?? s}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <FormControl size="small" sx={{ minWidth: 260 }}>
-          <InputLabel id="preguntas-competencia-label">Competencia</InputLabel>
-          <Select
-            labelId="preguntas-competencia-label"
-            label="Competencia"
-            value={filters.competencia}
-            onChange={(e) => setFilters((f) => ({ ...f, competencia: String(e.target.value) }))}
-          >
-            <MenuItem value="">Todas</MenuItem>
-            {options.competencias.map((c) => (
-              <MenuItem key={c} value={c}>
-                {c}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <FormControl size="small" sx={{ minWidth: 260 }}>
-          <InputLabel id="preguntas-contenido-label">Contenido</InputLabel>
-          <Select
-            labelId="preguntas-contenido-label"
-            label="Contenido"
-            value={filters.contenido}
-            onChange={(e) => setFilters((f) => ({ ...f, contenido: String(e.target.value) }))}
-          >
-            <MenuItem value="">Todos</MenuItem>
-            {options.contenidos.map((c) => (
-              <MenuItem key={c} value={c}>
-                {c}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <Box sx={{ flexGrow: 1 }} />
-
-        <Button
-          variant="outlined"
-          onClick={() => {
-            setFilters({ subject: '', competencia: '', contenido: '' })
-            setSelectedId(null)
-          }}
-        >
-          Limpiar
-        </Button>
-      </Stack>
-    </Paper>
-
-    <Grid2 container spacing={2}>
-      <Grid2 size={{ xs: 12, md: 8 }}>
-        <Paper variant="outlined" sx={{ p: 1, minHeight: 420 }}>
-          <Box ref={containerRef} id="questions-chart-container" sx={{ minHeight: 400 }} />
-        </Paper>
-      </Grid2>
-
-      <Grid2 size={{ xs: 12, md: 4 }}>
-        <Paper variant="outlined" sx={{ p: 2, minHeight: 420 }}>
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            Detalle
-          </Typography>
-
-          {!detail ? (
-            <Typography variant="body2" color="text.secondary">
-              Selecciona una barra para ver el detalle.
-            </Typography>
-          ) : (
-            <Stack spacing={2}>
-              <Box>
-                <Typography variant="overline" color="text.secondary">
-                  Texto
-                </Typography>
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                  {detail.question || 'Sin texto disponible'}
-                </Typography>
-              </Box>
-
-              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                <Chip size="small" label={`Respuestas: ${detail.count}`} />
-                <Chip size="small" label={`Promedio: ${formatPct(detail.mean)}`} />
-              </Stack>
-
-              <Divider />
-
-              <Stack spacing={1}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="body2" color="text.secondary">
-                    Materia
-                  </Typography>
-                  <Typography variant="body2">{detail.subject}</Typography>
-                </Stack>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="body2" color="text.secondary">
-                    Competencia
-                  </Typography>
-                  <Typography variant="body2">{detail.competencia || 'No especificada'}</Typography>
-                </Stack>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="body2" color="text.secondary">
-                    Contenido
-                  </Typography>
-                  <Typography variant="body2">{detail.contenido || 'No especificado'}</Typography>
-                </Stack>
-              </Stack>
-            </Stack>
-          )}
-        </Paper>
-      </Grid2>
-    </Grid2>
-
-    <Popover
-      open={tooltip.open}
-      onClose={() => setTooltip((t) => ({ ...t, open: false }))}
-      anchorReference="anchorPosition"
-      anchorPosition={{ top: tooltip.y, left: tooltip.x }}
-      transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-      PaperProps={{ sx: { p: 1.25, maxWidth: 320 } }}
-    >
-      <Typography variant="subtitle2">Pregunta: {tooltip.id}</Typography>
-      <Typography variant="body2" color="text.secondary">
-        Promedio: {(tooltip.pct * 100).toFixed(1)}% • Respuestas: {tooltip.count}
+  return (
+    <TabPanel active={active} tab="preguntas">
+      <Typography variant="h5" sx={{ mb: 2 }}>
+        Preguntas
       </Typography>
-    </Popover>
-  </TabPanel>
-)
+
+      {loading && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Cargando datos...
+        </Alert>
+      )}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap flexWrap="wrap" alignItems="center">
+          <FormControl size="small" sx={{ minWidth: 180 }}>
+            <InputLabel id="preguntas-subject-label">Materia</InputLabel>
+            <Select
+              labelId="preguntas-subject-label"
+              label="Materia"
+              value={filters.subject}
+              onChange={(e) => setFilters((f) => ({ ...f, subject: String(e.target.value) }))}
+            >
+              <MenuItem value="">Todas</MenuItem>
+              {options.subjects.map((s) => (
+                <MenuItem key={s} value={s}>
+                  {subjectNames[s] ?? s}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl size="small" sx={{ minWidth: 260 }}>
+            <InputLabel id="preguntas-competencia-label">Competencia</InputLabel>
+            <Select
+              labelId="preguntas-competencia-label"
+              label="Competencia"
+              value={filters.competencia}
+              onChange={(e) => setFilters((f) => ({ ...f, competencia: String(e.target.value) }))}
+            >
+              <MenuItem value="">Todas</MenuItem>
+              {options.competencias.map((c) => (
+                <MenuItem key={c} value={c}>
+                  {c}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl size="small" sx={{ minWidth: 260 }}>
+            <InputLabel id="preguntas-contenido-label">Contenido</InputLabel>
+            <Select
+              labelId="preguntas-contenido-label"
+              label="Contenido"
+              value={filters.contenido}
+              onChange={(e) => setFilters((f) => ({ ...f, contenido: String(e.target.value) }))}
+            >
+              <MenuItem value="">Todos</MenuItem>
+              {options.contenidos.map((c) => (
+                <MenuItem key={c} value={c}>
+                  {c}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <Box sx={{ flexGrow: 1 }} />
+
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setFilters({ subject: '', competencia: '', contenido: '' })
+              setSelectedId(null)
+            }}
+          >
+            Limpiar
+          </Button>
+        </Stack>
+      </Paper>
+
+      <Grid2 container spacing={2}>
+        <Grid2 size={{ xs: 12, md: 8 }}>
+          <Paper variant="outlined" sx={{ p: 1 }}>
+            <Box
+              ref={containerRef}
+              id="questions-chart-container"
+              sx={{ height: 420, width: '100%', overflow: 'hidden' }}
+            />
+          </Paper>
+        </Grid2>
+
+        <Grid2 size={{ xs: 12, md: 4 }}>
+          <Paper variant="outlined" sx={{ p: 2, minHeight: 420 }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              Detalle
+            </Typography>
+
+            {!detail ? (
+              <Typography variant="body2" color="text.secondary">
+                Selecciona una barra para ver el detalle.
+              </Typography>
+            ) : (
+              <Stack spacing={2}>
+                <Box>
+                  <Typography variant="overline" color="text.secondary">
+                    Texto
+                  </Typography>
+                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                    {detail.question || 'Sin texto disponible'}
+                  </Typography>
+                </Box>
+
+                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                  <Chip size="small" label={`Respuestas: ${detail.count}`} />
+                  <Chip size="small" label={`Promedio: ${formatPct(detail.mean)}`} />
+                </Stack>
+
+                <Divider />
+
+                <Stack spacing={1}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography variant="body2" color="text.secondary">
+                      Materia
+                    </Typography>
+                    <Typography variant="body2">{detail.subject}</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography variant="body2" color="text.secondary">
+                      Competencia
+                    </Typography>
+                    <Typography variant="body2">{detail.competencia || 'No especificada'}</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography variant="body2" color="text.secondary">
+                      Contenido
+                    </Typography>
+                    <Typography variant="body2">{detail.contenido || 'No especificado'}</Typography>
+                  </Stack>
+                </Stack>
+              </Stack>
+            )}
+          </Paper>
+        </Grid2>
+      </Grid2>
+
+      <Popover
+        open={tooltip.open}
+        onClose={() => setTooltip((t) => ({ ...t, open: false }))}
+        anchorReference="anchorPosition"
+        anchorPosition={{ top: tooltip.y, left: tooltip.x }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        PaperProps={{ sx: { p: 1.25, maxWidth: 320 } }}
+      >
+        <Typography variant="subtitle2">Pregunta: {tooltip.id}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Promedio: {(tooltip.pct * 100).toFixed(1)}% • Respuestas: {tooltip.count}
+        </Typography>
+      </Popover>
+    </TabPanel>
+  )
 }
 
 // -----------------------------------------------------------------------------
@@ -1083,12 +1091,12 @@ const EstudiantesTab = ({ active }: { active: boolean }) => {
     studentsArray.forEach((d: any) => (d.normalizedMean = normalize(d.mean)))
 
     const width = Math.max(300, rect.width || containerRef.current.getBoundingClientRect().width)
-    const height = Math.max(360, rect.height || containerRef.current.getBoundingClientRect().height)
+    const height = 420
     const margin = { top: 20, right: 30, bottom: 60, left: 60 }
     const chartWidth = width - margin.left - margin.right
     const chartHeight = height - margin.top - margin.bottom
 
-    const svg = container.append('svg').attr('width', width).attr('height', height)
+    const svg = container.append('svg').attr('width', width).attr('height', height).style('display', 'block')
     const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
 
     const xScale = d3
@@ -1121,21 +1129,21 @@ const EstudiantesTab = ({ active }: { active: boolean }) => {
       .selectAll('.domain')
       .remove()
 
-    
-const showTooltip = (event: any, d: any) => {
-  const parsed = parseStudentKey(String(d.id ?? ''))
-  const studentId = parsed ? String(parsed.studentId) : String(d.id ?? '')
-  setTooltip({
-    open: true,
-    x: event.clientX + 10,
-    y: event.clientY - 28,
-    studentId,
-    pct: Number(d.normalizedMean ?? 0),
-  })
-}
-const hideTooltip = () => {
-  setTooltip((t) => ({ ...t, open: false }))
-}
+
+    const showTooltip = (event: any, d: any) => {
+      const parsed = parseStudentKey(String(d.id ?? ''))
+      const studentId = parsed ? String(parsed.studentId) : String(d.id ?? '')
+      setTooltip({
+        open: true,
+        x: event.clientX + 10,
+        y: event.clientY - 28,
+        studentId,
+        pct: Number(d.normalizedMean ?? 0),
+      })
+    }
+    const hideTooltip = () => {
+      setTooltip((t) => ({ ...t, open: false }))
+    }
 
 
     g.selectAll('.bar')
@@ -1191,236 +1199,240 @@ const hideTooltip = () => {
       .text(`Estudiantes (${studentsArray.length} total)`)
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, data, filteredEntries, rect.width, rect.height, thresholds.redYellow, thresholds.yellowGreen, selectedKey])
+  }, [active, data, filteredEntries, rect.width, thresholds.redYellow, thresholds.yellowGreen, selectedKey])
 
-return (
-  <TabPanel active={active} tab="estudiantes">
-    <Typography variant="h5" sx={{ mb: 2 }}>
-      Estudiantes
-    </Typography>
+  return (
+    <TabPanel active={active} tab="estudiantes">
+      <Typography variant="h5" sx={{ mb: 2 }}>
+        Estudiantes
+      </Typography>
 
-    {loading && (
-      <Alert severity="info" sx={{ mb: 2 }}>
-        Cargando datos...
-      </Alert>
-    )}
-    {error && (
-      <Alert severity="error" sx={{ mb: 2 }}>
-        {error}
-      </Alert>
-    )}
+      {loading && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Cargando datos...
+        </Alert>
+      )}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
-    <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap flexWrap="wrap" alignItems="center">
-        <FormControl size="small" sx={{ minWidth: 180 }}>
-          <InputLabel id="estudiantes-grade-label">Grado</InputLabel>
-          <Select
-            labelId="estudiantes-grade-label"
-            label="Grado"
-            value={filters.grade}
-            onChange={(e) => setFilters((f) => ({ ...f, grade: String(e.target.value) }))}
-          >
-            <MenuItem value="">Todos</MenuItem>
-            {options.grades.map((g) => (
-              <MenuItem key={g} value={String(g)}>
-                {g}°
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap flexWrap="wrap" alignItems="center">
+          <FormControl size="small" sx={{ minWidth: 180 }}>
+            <InputLabel id="estudiantes-grade-label">Grado</InputLabel>
+            <Select
+              labelId="estudiantes-grade-label"
+              label="Grado"
+              value={filters.grade}
+              onChange={(e) => setFilters((f) => ({ ...f, grade: String(e.target.value) }))}
+            >
+              <MenuItem value="">Todos</MenuItem>
+              {options.grades.map((g) => (
+                <MenuItem key={g} value={String(g)}>
+                  {g}°
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-        <FormControl size="small" sx={{ minWidth: 180 }}>
-          <InputLabel id="estudiantes-school-label">Escuela</InputLabel>
-          <Select
-            labelId="estudiantes-school-label"
-            label="Escuela"
-            value={filters.school}
-            onChange={(e) => setFilters((f) => ({ ...f, school: String(e.target.value) }))}
-          >
-            <MenuItem value="">Todas</MenuItem>
-            {options.schools.map((s) => (
-              <MenuItem key={s} value={String(s)}>
-                {s}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+          <FormControl size="small" sx={{ minWidth: 180 }}>
+            <InputLabel id="estudiantes-school-label">Escuela</InputLabel>
+            <Select
+              labelId="estudiantes-school-label"
+              label="Escuela"
+              value={filters.school}
+              onChange={(e) => setFilters((f) => ({ ...f, school: String(e.target.value) }))}
+            >
+              <MenuItem value="">Todas</MenuItem>
+              {options.schools.map((s) => (
+                <MenuItem key={s} value={String(s)}>
+                  {s}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-        <FormControl size="small" sx={{ minWidth: 200 }}>
-          <InputLabel id="estudiantes-subject-label">Materia</InputLabel>
-          <Select
-            labelId="estudiantes-subject-label"
-            label="Materia"
-            value={filters.subject}
-            onChange={(e) => setFilters((f) => ({ ...f, subject: String(e.target.value) }))}
-          >
-            <MenuItem value="">Todas</MenuItem>
-            {options.subjects.map((s) => (
-              <MenuItem key={s} value={s}>
-                {subjectNames[s] ?? s}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+          <FormControl size="small" sx={{ minWidth: 200 }}>
+            <InputLabel id="estudiantes-subject-label">Materia</InputLabel>
+            <Select
+              labelId="estudiantes-subject-label"
+              label="Materia"
+              value={filters.subject}
+              onChange={(e) => setFilters((f) => ({ ...f, subject: String(e.target.value) }))}
+            >
+              <MenuItem value="">Todas</MenuItem>
+              {options.subjects.map((s) => (
+                <MenuItem key={s} value={s}>
+                  {subjectNames[s] ?? s}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-        <Box sx={{ flexGrow: 1 }} />
+          <Box sx={{ flexGrow: 1 }} />
 
-        <Button
-          variant="outlined"
-          onClick={() => {
-            setFilters({ grade: '', school: '', subject: '' })
-            setSelectedKey(null)
-          }}
-        >
-          Limpiar
-        </Button>
-      </Stack>
-    </Paper>
-
-    <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-      <Stack spacing={2}>
-        <Box>
-          <Stack direction="row" justifyContent="space-between" alignItems="baseline">
-            <Typography variant="subtitle2">Rojo → Amarillo</Typography>
-            <Typography variant="caption" color="text.secondary">
-              {Math.round(thresholds.redYellow * 100)}%
-            </Typography>
-          </Stack>
-          <Slider
-            value={thresholds.redYellow}
-            min={0}
-            max={0.95}
-            step={0.01}
-            onChange={(_e, value) => {
-              const v = Array.isArray(value) ? value[0] : value
-              setThresholds((t) => ({ ...t, redYellow: Math.min(Number(v), t.yellowGreen - 0.01) }))
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setFilters({ grade: '', school: '', subject: '' })
+              setSelectedKey(null)
             }}
-          />
-        </Box>
+          >
+            Limpiar
+          </Button>
+        </Stack>
+      </Paper>
 
-        <Box>
-          <Stack direction="row" justifyContent="space-between" alignItems="baseline">
-            <Typography variant="subtitle2">Amarillo → Verde</Typography>
-            <Typography variant="caption" color="text.secondary">
-              {Math.round(thresholds.yellowGreen * 100)}%
-            </Typography>
-          </Stack>
-          <Slider
-            value={thresholds.yellowGreen}
-            min={0.05}
-            max={1}
-            step={0.01}
-            onChange={(_e, value) => {
-              const v = Array.isArray(value) ? value[0] : value
-              setThresholds((t) => ({ ...t, yellowGreen: Math.max(Number(v), t.redYellow + 0.01) }))
-            }}
-          />
-        </Box>
+      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <Stack spacing={2}>
+          <Box>
+            <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+              <Typography variant="subtitle2">Rojo → Amarillo</Typography>
+              <Typography variant="caption" color="text.secondary">
+                {Math.round(thresholds.redYellow * 100)}%
+              </Typography>
+            </Stack>
+            <Slider
+              value={thresholds.redYellow}
+              min={0}
+              max={0.95}
+              step={0.01}
+              onChange={(_e, value) => {
+                const v = Array.isArray(value) ? value[0] : value
+                setThresholds((t) => ({ ...t, redYellow: Math.min(Number(v), t.yellowGreen - 0.01) }))
+              }}
+            />
+          </Box>
 
-        <Stack direction="row" spacing={3} useFlexGap flexWrap="wrap" alignItems="center">
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#ef4444' }} />
-            <Typography variant="body2">{counts.red}</Typography>
-          </Stack>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#f59e0b' }} />
-            <Typography variant="body2">{counts.yellow}</Typography>
-          </Stack>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#22c55e' }} />
-            <Typography variant="body2">{counts.green}</Typography>
+          <Box>
+            <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+              <Typography variant="subtitle2">Amarillo → Verde</Typography>
+              <Typography variant="caption" color="text.secondary">
+                {Math.round(thresholds.yellowGreen * 100)}%
+              </Typography>
+            </Stack>
+            <Slider
+              value={thresholds.yellowGreen}
+              min={0.05}
+              max={1}
+              step={0.01}
+              onChange={(_e, value) => {
+                const v = Array.isArray(value) ? value[0] : value
+                setThresholds((t) => ({ ...t, yellowGreen: Math.max(Number(v), t.redYellow + 0.01) }))
+              }}
+            />
+          </Box>
+
+          <Stack direction="row" spacing={3} useFlexGap flexWrap="wrap" alignItems="center">
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#ef4444' }} />
+              <Typography variant="body2">{counts.red}</Typography>
+            </Stack>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#f59e0b' }} />
+              <Typography variant="body2">{counts.yellow}</Typography>
+            </Stack>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#22c55e' }} />
+              <Typography variant="body2">{counts.green}</Typography>
+            </Stack>
           </Stack>
         </Stack>
-      </Stack>
-    </Paper>
+      </Paper>
 
-    <Grid2 container spacing={2}>
-      <Grid2 size={{ xs: 12, md: 8 }}>
-        <Paper variant="outlined" sx={{ p: 1, minHeight: 420 }}>
-          <Box ref={containerRef} id="students-chart-container" sx={{ minHeight: 400 }} />
-        </Paper>
-      </Grid2>
+      <Grid2 container spacing={2}>
+        <Grid2 size={{ xs: 12, md: 8 }}>
+          <Paper variant="outlined" sx={{ p: 1 }}>
+            <Box
+              ref={containerRef}
+              id="students-chart-container"
+              sx={{ height: 420, width: '100%', overflow: 'hidden' }}
+            />
+          </Paper>
+        </Grid2>
 
-      <Grid2 size={{ xs: 12, md: 4 }}>
-        <Paper variant="outlined" sx={{ p: 2, minHeight: 420 }}>
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            Detalle
-          </Typography>
-
-          {!selectedDetail ? (
-            <Typography variant="body2" color="text.secondary">
-              Selecciona una barra para ver el detalle.
+        <Grid2 size={{ xs: 12, md: 4 }}>
+          <Paper variant="outlined" sx={{ p: 2, minHeight: 420 }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              Detalle
             </Typography>
-          ) : (
-            <Stack spacing={2}>
-              <Stack spacing={1}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="body2" color="text.secondary">
-                    ID Estudiante
-                  </Typography>
-                  <Typography variant="body2">{selectedDetail.studentId}</Typography>
+
+            {!selectedDetail ? (
+              <Typography variant="body2" color="text.secondary">
+                Selecciona una barra para ver el detalle.
+              </Typography>
+            ) : (
+              <Stack spacing={2}>
+                <Stack spacing={1}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography variant="body2" color="text.secondary">
+                      ID Estudiante
+                    </Typography>
+                    <Typography variant="body2">{selectedDetail.studentId}</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography variant="body2" color="text.secondary">
+                      Escuela
+                    </Typography>
+                    <Typography variant="body2">{selectedDetail.school}</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography variant="body2" color="text.secondary">
+                      Grado
+                    </Typography>
+                    <Typography variant="body2">{selectedDetail.grade}°</Typography>
+                  </Stack>
                 </Stack>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="body2" color="text.secondary">
-                    Escuela
-                  </Typography>
-                  <Typography variant="body2">{selectedDetail.school}</Typography>
+
+                <Divider />
+
+                <Stack spacing={1}>
+                  <Typography variant="subtitle2">Lengua</Typography>
+                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                    <Chip
+                      size="small"
+                      label={`Puntaje: ${selectedDetail.lengua ? formatPct(selectedDetail.lengua.mean) : 'N/A'}`}
+                    />
+                    <Chip size="small" label={`Preguntas: ${selectedDetail.lengua ? selectedDetail.lengua.count : 'N/A'}`} />
+                  </Stack>
                 </Stack>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="body2" color="text.secondary">
-                    Grado
-                  </Typography>
-                  <Typography variant="body2">{selectedDetail.grade}°</Typography>
+
+                <Stack spacing={1}>
+                  <Typography variant="subtitle2">Matemática</Typography>
+                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                    <Chip
+                      size="small"
+                      label={`Puntaje: ${selectedDetail.matematica ? formatPct(selectedDetail.matematica.mean) : 'N/A'}`}
+                    />
+                    <Chip
+                      size="small"
+                      label={`Preguntas: ${selectedDetail.matematica ? selectedDetail.matematica.count : 'N/A'}`}
+                    />
+                  </Stack>
                 </Stack>
               </Stack>
-
-              <Divider />
-
-              <Stack spacing={1}>
-                <Typography variant="subtitle2">Lengua</Typography>
-                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                  <Chip
-                    size="small"
-                    label={`Puntaje: ${selectedDetail.lengua ? formatPct(selectedDetail.lengua.mean) : 'N/A'}`}
-                  />
-                  <Chip size="small" label={`Preguntas: ${selectedDetail.lengua ? selectedDetail.lengua.count : 'N/A'}`} />
-                </Stack>
-              </Stack>
-
-              <Stack spacing={1}>
-                <Typography variant="subtitle2">Matemática</Typography>
-                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                  <Chip
-                    size="small"
-                    label={`Puntaje: ${selectedDetail.matematica ? formatPct(selectedDetail.matematica.mean) : 'N/A'}`}
-                  />
-                  <Chip
-                    size="small"
-                    label={`Preguntas: ${selectedDetail.matematica ? selectedDetail.matematica.count : 'N/A'}`}
-                  />
-                </Stack>
-              </Stack>
-            </Stack>
-          )}
-        </Paper>
+            )}
+          </Paper>
+        </Grid2>
       </Grid2>
-    </Grid2>
 
-    <Popover
-      open={tooltip.open}
-      onClose={() => setTooltip((t) => ({ ...t, open: false }))}
-      anchorReference="anchorPosition"
-      anchorPosition={{ top: tooltip.y, left: tooltip.x }}
-      transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-      PaperProps={{ sx: { p: 1.25 } }}
-    >
-      <Typography variant="subtitle2">Estudiante: {tooltip.studentId}</Typography>
-      <Typography variant="body2" color="text.secondary">
-        Puntaje: {(tooltip.pct * 100).toFixed(1)}%
-      </Typography>
-    </Popover>
-  </TabPanel>
-)
+      <Popover
+        open={tooltip.open}
+        onClose={() => setTooltip((t) => ({ ...t, open: false }))}
+        anchorReference="anchorPosition"
+        anchorPosition={{ top: tooltip.y, left: tooltip.x }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        PaperProps={{ sx: { p: 1.25 } }}
+      >
+        <Typography variant="subtitle2">Estudiante: {tooltip.studentId}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Puntaje: {(tooltip.pct * 100).toFixed(1)}%
+        </Typography>
+      </Popover>
+    </TabPanel>
+  )
 }
 
 // -----------------------------------------------------------------------------
@@ -1511,7 +1523,7 @@ const AgrupamientoTab = ({ active }: { active: boolean }) => {
     URL.revokeObjectURL(url)
   }
 
-  
+
   return (
     <TabPanel active={active} tab="agrupamiento">
       <Typography variant="h5" sx={{ mb: 2 }}>
@@ -2252,7 +2264,7 @@ const GraphTab = ({ active }: { active: boolean }) => {
         </Grid2>
       </Grid2>
     </TabPanel>
-)
+  )
 }
 // -----------------------------------------------------------------------------
 // Chat tab
