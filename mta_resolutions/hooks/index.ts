@@ -148,7 +148,6 @@ const useResolutionManageSubmit = () => {
     if (!isOnline) {
       downloadResolutionState()
       navigateToResolutionSubmittedPage({ offline: true })
-      resetState()
       setIsNotInProgress()
       return
     }
