@@ -45,6 +45,15 @@ const ResolveEvaluationPage = () => {
     }
   }, [timeLeft, resolutionLogout])
 
+  // Warn student before closing/navigating away during evaluation
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [])
+
   return (
     <>
       <OfflineIndicator />
