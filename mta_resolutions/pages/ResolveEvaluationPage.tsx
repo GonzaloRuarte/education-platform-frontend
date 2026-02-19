@@ -20,6 +20,7 @@ import { StickyPinned } from '@/shared/components/StickyPinned'
 import { warningToast } from '@/shared/toasts'
 import { useEffect, useRef } from 'react'
 import { useResolutionLogout } from '@/mta_resolutions/hooks'
+import { submitNavigationGuard } from '@/mta_resolutions/hooks/navigation'
 import 'react-quill-new/dist/quill.snow.css'
 
 const ResolveEvaluationPage = () => {
@@ -48,6 +49,7 @@ const ResolveEvaluationPage = () => {
   // Warn student before closing/navigating away during evaluation
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
+      if (submitNavigationGuard.active) return
       e.preventDefault()
     }
     window.addEventListener('beforeunload', handler)
