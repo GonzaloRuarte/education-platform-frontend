@@ -147,8 +147,7 @@ const useResolutionManageSubmit = () => {
 
     if (!isOnline) {
       downloadResolutionState()
-      navigateToResolutionSubmittedPage()
-      resetState()
+      navigateToResolutionSubmittedPage({ offline: true })
       setIsNotInProgress()
       return
     }
@@ -164,10 +163,24 @@ const useResolutionManageSubmit = () => {
   return manageSubmit
 }
 
+const useResolutionRetrySubmit = () => {
+  const submit = useResolutionRequestSubmit()
+  const resetState = useResolutionResetState()
+  const state = useResolutionState()
+
+  return async () => {
+    if (!state) throw new Error('No resolution state')
+    await submit(state)
+    resetState()
+  }
+}
+
 export {
+  useResolutionDownloadState,
   useResolutionElapsedTimeSeconds,
   useResolutionExit,
   useResolutionManageSubmit,
   useResolutionPagination,
   useResolutionLogout,
+  useResolutionRetrySubmit,
 }
