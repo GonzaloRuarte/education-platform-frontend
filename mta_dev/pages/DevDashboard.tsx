@@ -6,6 +6,7 @@ import {
   useDevAppointmentMakeAvailableNow,
   useDevAppointmentMakeResolutionsLeft10Seconds,
   useDevAppointmentMakeResolutionsLeft5Minutes,
+  useDevAppointmentPrepareTest,
   useDevAppointmentSetAsFinished,
   useDevEvaluationsFakerize,
   useDevEvaluationsFakerizeComplete,
@@ -27,6 +28,7 @@ import { useState } from 'react'
 
 const DevDashboard = () => {
   const { executeAction: appointmentFakerize } = useDevAppointmentFakerize()
+  const { executeAction: appointmentPrepareTest } = useDevAppointmentPrepareTest()
   const { executeAction: appointmentMakeAvailableNow } = useDevAppointmentMakeAvailableNow()
   const { executeAction: appointmentSetAsFinished } = useDevAppointmentSetAsFinished()
   const { executeAction: appointmentMakeResolutionsLeft5Minutes } = useDevAppointmentMakeResolutionsLeft5Minutes()
@@ -109,6 +111,18 @@ const DevDashboard = () => {
 
             <Grid2 size={12}>
               <H4>Turnos</H4>
+            </Grid2>
+            <Grid2 size={2}>
+              <DevButton
+                fullWidth
+                size="small"
+                title="Crea un turno APPROVED con la última escuela y evaluación, listo para usar"
+                onClick={actionHandler(() =>
+                  appointmentPrepareTest({}).then((r) => successToast(r.message))
+                )}
+              >
+                Preparar turno de prueba
+              </DevButton>
             </Grid2>
             <Grid2 size={2}>
               <DevButton
