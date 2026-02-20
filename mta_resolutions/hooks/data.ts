@@ -159,17 +159,13 @@ const useResolutionResume = () => {
         storeNewPage(1)
       })
       .catch((err) => {
-        if (ApiError.errorCode(err) === ErrorCode.RESOLUTION_ALREADY_SUBMITTED) {
+        if (err.status !== -1 && ApiError.errorCode(err) === ErrorCode.RESOLUTION_ALREADY_SUBMITTED) {
           logout()
           dismissAll()
           errorToast(ApiError.message(err))
           return
         }
-        else {
-          logout()
-        }
-
-        
+        logout()
       })
       .finally(setIsNotInProgress)
   }, 100)
