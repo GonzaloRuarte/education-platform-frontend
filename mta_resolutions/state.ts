@@ -13,6 +13,7 @@ interface I_ResolutionSliceDataFields {
   resolution_maxDurationMinutes: number | null
   resolution_remainingTimeWarningAlreadyDisplayed: boolean
   resolution_pin: number | null
+  resolution_offlineSubmitted: boolean
 }
 
 interface I_ResolutionsSlice extends I_ResolutionSliceDataFields {
@@ -28,6 +29,7 @@ interface I_ResolutionsSlice extends I_ResolutionSliceDataFields {
     resolution_pin: number | null
   }) => void
 
+  resolution_setOfflineSubmitted: (value: boolean) => void
   resolution_resetState: () => void
 }
 
@@ -41,10 +43,12 @@ const initialState: I_ResolutionSliceDataFields = {
   resolution_maxDurationMinutes: null,
   resolution_remainingTimeWarningAlreadyDisplayed: false,
   resolution_pin: null,
+  resolution_offlineSubmitted: false,
 }
 
 const createResolutionsSlice: StateCreator<I_ResolutionsSlice, [], [], I_ResolutionsSlice> = (set) => ({
   ...initialState,
+  resolution_setOfflineSubmitted: (value) => set(() => ({ resolution_offlineSubmitted: value })),
   resolution_resetState: () => set(() => initialState),
   resolution_storeEvaluation: (resolution_evaluation) => set(() => ({ resolution_evaluation })),
   resolution_storeCurrentPage: (resolution_currentPage) => set(() => ({ resolution_currentPage })),

@@ -45,8 +45,9 @@ const useStore = create<T_CombinedSlices>()(
           excludeForPartialize(state, [
             'core_isInProgress',
             'evaluations_subjects',
-            'evaluations_subjectLabels',          // ← NEW
+            'evaluations_subjectLabels',
             'resolution_remainingTimeWarningAlreadyDisplayed',
+            'resolution_offlineSubmitted',
           ]),
       },
     ),
