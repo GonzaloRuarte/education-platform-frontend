@@ -157,7 +157,14 @@ const useResolutionManageSubmit = () => {
         navigateToResolutionSubmittedPage()
         resetState()
       })
-      .catch(handleServiceError)
+      .catch((error) => {
+        if (error.status === -1) {
+          downloadResolutionState()
+          navigateToResolutionSubmittedPage({ offline: true })
+          return
+        }
+        handleServiceError(error)
+      })
       .finally(setIsNotInProgress)
   }
   return manageSubmit
