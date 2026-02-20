@@ -23,7 +23,6 @@ import Spacer from '@/shared/components/Spacer'
 import Spinner from '@/shared/components/Spinner'
 import { Body1, H3 } from '@/shared/components/Typography'
 import OfflineIndicator from '@/shared/offline/OfflineIndicator'
-import { useNetworkStatus } from '@/shared/offline/hooks'
 import { useStore } from '@/shared/state'
 import { HorizontalRule } from '@mui/icons-material'
 import { Box } from '@mui/material'
@@ -32,28 +31,36 @@ import { warningToast } from '@/shared/toasts'
 import { useEffect, useRef, useState } from 'react'
 import 'react-quill-new/dist/quill.snow.css'
 
+const RETRY_INTERVAL_MS = 8000
+
 const OfflineSubmittedView = () => {
   const { downloadResolutionState } = useResolutionDownloadState()
   const retrySubmit = useResolutionRetrySubmit()
   const exit = useResolutionExit()
-  const { isOnline } = useNetworkStatus()
-  const [retryStatus, setRetryStatus] = useState<'pending' | 'retrying' | 'success' | 'error'>('pending')
-  const hasTriedRef = useRef(false)
+  const [retryStatus, setRetryStatus] = useState<'waiting' | 'retrying' | 'success'>('waiting')
+  const inProgressRef = useRef(false)
+  const doneRef = useRef(false)
 
   useEffect(() => {
-    if (!isOnline) return
-    if (hasTriedRef.current) return
+    const attempt = () => {
+      if (inProgressRef.current || doneRef.current) return
+      inProgressRef.current = true
+      setRetryStatus('retrying')
 
-    hasTriedRef.current = true
-    setRetryStatus('retrying')
+      retrySubmit()
+        .then(() => {
+          doneRef.current = true
+          setRetryStatus('success')
+        })
+        .catch(() => {
+          inProgressRef.current = false
+          setRetryStatus('waiting')
+        })
+    }
 
-    retrySubmit()
-      .then(() => setRetryStatus('success'))
-      .catch(() => {
-        hasTriedRef.current = false
-        setRetryStatus('error')
-      })
-  }, [isOnline])
+    const id = setInterval(attempt, RETRY_INTERVAL_MS)
+    return () => clearInterval(id)
+  }, [])
 
   const handleExit = () => {
     submitNavigationGuard.active = true
@@ -81,21 +88,6 @@ const OfflineSubmittedView = () => {
           <Body1>Tu evaluación fue enviada con éxito. Gracias por tu participación.</Body1>
           <Spacer />
           <Button onClick={handleExit}>Salir</Button>
-        </Page.Content>
-      </Page>
-    )
-  }
-
-  if (retryStatus === 'error') {
-    return (
-      <Page>
-        <Page.Content>
-          <H3>Evaluación finalizada</H3>
-          <Body1>
-            No se pudo enviar la evaluación. Por favor, descargá las respuestas y avisá al docente.
-          </Body1>
-          <Spacer />
-          <Button onClick={downloadResolutionState}>Descargar respuestas</Button>
         </Page.Content>
       </Page>
     )
