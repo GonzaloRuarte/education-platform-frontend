@@ -79,7 +79,7 @@ interface I_OngoingResolution {
 
 export interface I_Option   { id: number; name: string; content: string }
 export interface I_Answer   { id: number; resource_type: 'Numeric' | 'MultipleChoice' | 'OpenEnded'; specific_data: any }
-export interface I_Question { id: number; order: number; global_order: number; content: string; is_mandatory: boolean; answer: I_Answer }
+export interface I_Question { id: number; order: number; global_order: number; content: string; is_mandatory: boolean; answer: I_Answer; section_title: string | null; section_close: boolean }
 
 export interface I_Page {
   pinned_text: string | null;

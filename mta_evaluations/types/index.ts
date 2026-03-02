@@ -61,6 +61,8 @@ interface I_QuestionDetail {
   answer: T_AnswerPolymorphicDetail
   page_id: T_EvaluationPageId
   tags: string
+  section_title: string | null
+  section_close: boolean
 }
 
 interface I_QuestionDetailSpecific<T_Answer extends T_AnswerPolymorphicDetail> {
@@ -71,6 +73,8 @@ interface I_QuestionDetailSpecific<T_Answer extends T_AnswerPolymorphicDetail> {
   answer: T_Answer
   page_id: T_EvaluationPageId
   tags: string
+  section_title: string | null
+  section_close: boolean
 }
 
 interface I_EvaluationPageDetail {
@@ -150,34 +154,46 @@ interface I_MultipleChoiceOptionEditIsTrueResponseData {
 interface I_QuestionUpdateMultipleChoiceRequestData {
   content: string
   tags: string
+  section_title: string | null
+  section_close: boolean
 }
 interface I_QuestionUpdateNumericRequestData {
   content: string
   value: number
   tags: string
+  section_title: string | null
+  section_close: boolean
 }
 
 interface I_QuestionUpdateOpenEndedRequestData {
   content: string
   tags: string
+  section_title: string | null
+  section_close: boolean
 }
 
 interface I_QuestionCreateMultipleChoiceRequestData {
   page_id: T_EvaluationPageId
   content: string
   tags: string
+  section_title: string | null
+  section_close: boolean
 }
 interface I_QuestionCreateNumericRequestData {
   page_id: T_EvaluationPageId
   content: string
   value: number
   tags: string
+  section_title: string | null
+  section_close: boolean
 }
 
 interface I_QuestionCreateOpenEndedRequestData {
   page_id: T_EvaluationPageId
   content: string
   tags: string
+  section_title: string | null
+  section_close: boolean
 }
 
 interface I_QuestionCreateResponseData {

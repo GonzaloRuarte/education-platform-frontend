@@ -10,21 +10,21 @@ import Spacer from '@/shared/components/Spacer'
 import { sharedLabels } from '@/shared/labels'
 import { useProgressSubmit } from '@/mta_evaluations/hooks/useProgressSubmit'
 
-type I_FormFields = { content: string; tags: string }
+type I_FormFields = { content: string; tags: string, section_title: string | null, section_close: boolean }
 
 const OpenEndedCreateForm: FC<{ page_id: T_EvaluationPageId; onSuccess: () => void; onCancel?: () => void }> = ({
   page_id,
   onSuccess,
   onCancel,
 }) => {
-  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues: { content: '', tags: '' } })
+  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues: { content: '', tags: '', section_title: null, section_close: false } })
   const create = useQuestionOpenEndedCreate()
   const submitWithTags = useProgressSubmit()
 
   const onSubmit: SubmitHandler<I_FormFields> = (data) =>
     submitWithTags(
       data,
-      (f) => ({ content: f.content, page_id, tags: f.tags }),
+      (f) => ({ content: f.content, page_id, tags: f.tags, section_title: f.section_title, section_close: f.section_close }),
       (wire) => create(wire as I_QuestionCreateOpenEndedRequestData),
       'Pregunta de texto libre agregada correctamente',
       onSuccess,

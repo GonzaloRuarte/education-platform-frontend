@@ -10,16 +10,16 @@ import Spacer from '@/shared/components/Spacer'
 import { sharedLabels } from '@/shared/labels'
 import { useProgressSubmit } from '@/mta_evaluations/hooks/useProgressSubmit'
 
-type I_FormFields = { content: string; tags: string }
+type I_FormFields = { content: string; tags: string, section_title: string | null, section_close: boolean }
 
 const OpenEndedEditForm: T_QuestionForm<I_AnswerOpenEndedDetail> = ({
   data,
   onSuccess,
   onCancel,
 }) => {
-  const { content, tags: tagsFromData } = data
+  const { content, tags: tagsFromData, section_title, section_close } = data
   const { handleSubmit, control } = useForm<I_FormFields>({
-    defaultValues: { content, tags: Array.isArray(tagsFromData) ? tagsFromData.join(';') : (tagsFromData ?? '') },
+    defaultValues: { content, tags: Array.isArray(tagsFromData) ? tagsFromData.join(';') : (tagsFromData ?? ''), section_title: section_title ?? null, section_close: section_close ?? false },
   })
 
   const update = useQuestionOpenEndedUpdate()
@@ -28,7 +28,7 @@ const OpenEndedEditForm: T_QuestionForm<I_AnswerOpenEndedDetail> = ({
   const onSubmit: SubmitHandler<I_FormFields> = (f) =>
     submitWithTags(
       f,
-      (g) => ({ content: g.content, tags: g.tags }),
+      (g) => ({ content: g.content, tags: g.tags, section_title: g.section_title, section_close: g.section_close }),
       (wire) => update(data.id, wire),
       'Pregunta de texto libre editada correctamente',
       onSuccess,

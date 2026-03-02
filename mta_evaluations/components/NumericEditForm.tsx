@@ -15,16 +15,16 @@ import { useProgressSubmit } from '@/mta_evaluations/hooks/useProgressSubmit'
 import MagicGrid from '@/shared/components/MagicGrid'
 
 
-type I_FormFields = { content: string; value: number; tags: string }
+type I_FormFields = { content: string; value: number; tags: string, section_title: string | null, section_close: boolean }
 
 const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({
   data,
   onSuccess,
   onCancel
 }) => {
-  const { content, answer, tags: tagsFromData } = data
+  const { content, answer, tags: tagsFromData, section_title, section_close } = data
   const { handleSubmit, control } = useForm<I_FormFields>({
-    defaultValues: { content, value: answer.value, tags: Array.isArray(tagsFromData) ? tagsFromData.join(';') : (tagsFromData ?? '') },
+    defaultValues: { content, value: answer.value, tags: Array.isArray(tagsFromData) ? tagsFromData.join(';') : (tagsFromData ?? ''), section_title: section_title ?? null, section_close: section_close ?? false },
   })
 
   const update = useQuestionNumericUpdate()
@@ -33,7 +33,7 @@ const NumericEditForm: T_QuestionForm<I_AnswerNumericDetail> = ({
   const onSubmit: SubmitHandler<I_FormFields> = (f) =>
     submitWithTags(
       f,
-      (g) => ({ content: g.content, value: g.value, tags: g.tags }),
+      (g) => ({ content: g.content, value: g.value, tags: g.tags, section_title: g.section_title, section_close: g.section_close }),
       (wire) => update(data.id, wire),
       'Pregunta numérica editada correctamente',
       onSuccess,

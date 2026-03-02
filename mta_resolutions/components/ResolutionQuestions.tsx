@@ -9,6 +9,7 @@ import {
   T_ResolutionState_NumericAnswerData,
   T_EvaluationToResolve_OpenEndedAnswer,
   T_ResolutionState_OpenEndedAnswerData,
+  I_Question,
 } from '@/mta_resolutions/types'
 import Chip from '@/shared/components/Chip'
 import Spacer from '@/shared/components/Spacer'
@@ -17,7 +18,7 @@ import Input from '@/shared/forms/Input'
 
 import HTMLParser from '@/shared/components/HTMLParser'
 import { Box, Checkbox, FormControl, FormControlLabel, Grid2 as Grid, Radio } from '@mui/material'
-import { FC, Fragment } from 'react'
+import { FC, Fragment, useMemo } from 'react'
 import MultipleChoiceOptionContainer from '@/mta_evaluations/components/MultipleChoiceOptionContainer'
 import React from 'react';
 
@@ -168,40 +169,93 @@ const forms: Record<T_AnswerType, FC<any>> = {
 }
 
 
+type QuestionBlock =
+  | { kind: 'plain'; questions: I_Question[] }
+  | { kind: 'section'; title: string; questions: I_Question[] };
+
+function buildQuestionBlocks(questions: I_Question[]): QuestionBlock[] {
+  const blocks: QuestionBlock[] = [];
+
+  let plain: I_Question[] = [];
+  let section: { title: string; questions: I_Question[] } | null = null;
+
+  const flushPlain = () => {
+    if (plain.length) blocks.push({ kind: 'plain', questions: plain });
+    plain = [];
+  };
+
+  const flushSection = () => {
+    if (section) blocks.push({ kind: 'section', title: section.title, questions: section.questions });
+    section = null;
+  };
+
+  for (const q of questions) {
+    const title = (q.section_title ?? '').trim();
+    const close = !!q.section_close;
+
+    // Start a new section at this question
+    if (title) {
+      flushPlain();
+      flushSection(); // implicit close if one was open
+      section = { title, questions: [] };
+    }
+
+    // If we're inside a section, add to it; otherwise keep in plain run
+    if (section) {
+      section.questions.push(q);
+      if (close) flushSection(); // explicit close after this question
+    } else {
+      plain.push(q);
+      // If someone accidentally sets close without an open section, we ignore it.
+    }
+  }
+
+  flushPlain();
+  flushSection();
+  return blocks;
+}
+
 const ResolutionQuestions: FC<{ evaluationToResolve: I_EvaluationToResolve; currentPage: number }> = ({
   evaluationToResolve,
   currentPage,
 }) => {
-  // ── NEW: page object ───────────────────────────────────────────
   const page: I_Page = evaluationToResolve.pages[currentPage - 1];
-  const { pinned_text, questions } = page;
+  const { questions } = page;
+
+  const blocks = useMemo(() => buildQuestionBlocks(questions), [questions]);
+
+  const renderQuestion = (question: I_Question) => {
+    const AnswerForm = forms[question.answer.resource_type];
+    return (
+      <Fragment key={question.id}>
+        <Body1>Pregunta {question.global_order + 1}</Body1>
+
+        <Box sx={{ fontSize: '1.5em' }}>
+          <HTMLParser htmlContent={question.content} />
+        </Box>
+
+        <Spacer size="s" />
+        <AnswerForm data={question.answer} questionId={question.id} />
+        <Spacer size="xl" />
+      </Fragment>
+    );
+  };
 
   return (
     <>
-
-
-      {/* render the questions for this page */}
-      {questions.map((question) => {
-        const AnswerForm = forms[question.answer.resource_type];
-        return (
-          <Fragment key={question.id}>
-            <Body1>
-              Pregunta {question.global_order + 1}
-              {/* {question.is_mandatory && <sup style={{ fontSize: 10 }}> (obligatoria)</sup>} */}
-            </Body1>
-
-            <Box sx={{ fontSize: '1.5em' }}>
-              <HTMLParser htmlContent={question.content} />
-            </Box>
-
-            <Spacer size="s" />
-            <AnswerForm data={question.answer} questionId={question.id} />
-            <Spacer size="xl" />
-          </Fragment>
-        );
+      {blocks.map((block, idx) => {
+        if (block.kind === 'section') {
+          return (
+            <Fragment key={`section-${idx}`}>
+              <Body1 style={{ fontWeight: 700, marginTop: 16 }}>{block.title}</Body1>
+              <Spacer size="s" />
+              {block.questions.map(renderQuestion)}
+            </Fragment>
+          );
+        }
+        return <Fragment key={`plain-${idx}`}>{block.questions.map(renderQuestion)}</Fragment>;
       })}
     </>
   );
 };
-
 export default ResolutionQuestions;
