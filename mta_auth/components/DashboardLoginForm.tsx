@@ -10,6 +10,8 @@ import { useInProgress, useNavigateToDashboardHome } from '@/shared/hooks'
 import Spacer from '@/shared/components/Spacer'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import PasswordInputControlled from '@/shared/components/PasswordField'
+import Link from 'next/link'
+import pages from '@/pages'
 
 interface I_FormFields {
   username: string
@@ -51,6 +53,8 @@ export default function DashboardLoginForm() {
         </MagicGrid>
         <Spacer />
         <Submit>Ingresar</Submit>
+        <Spacer size="s" />
+        <Link href={pages.D._.login._.forgotAccess.path}>¿Olvidaste tu usuario o contraseña?</Link>
       </form>
     </>
   )

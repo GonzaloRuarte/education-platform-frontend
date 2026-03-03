@@ -14,7 +14,8 @@ const appointmentsEditStudentsPath = '/dashboard/turnos/{appointmentId:number}/e
 const questionBankCreatePath = '/dashboard/banco-de-preguntas/crear'
 const questionBankEditPath = '/dashboard/banco-de-preguntas/{questionId:number}'
 const reportEditPath = '/dashboard/reportes/{reportId:number}'
-
+const dashboardForgotAccessPath = '/dashboard/login/recuperar-acceso'
+const dashboardResetPasswordPath = '/dashboard/login/restablecer-password/{uid:string}/{token:string}'
 // META report bundles (computed artifacts)
 const metaReportsListPath = '/dashboard/reportes/meta'
 const metaReportsDetailPath = '/dashboard/reportes/meta/{bundleId:number}'
@@ -27,8 +28,18 @@ const pages = {
     label: 'Bienvenida',
     _: {
       login: {
-        path: '/login',
-        label: 'Login estudiante',
+        path: '/dashboard/login',
+        label: 'Login',
+        _: {
+          forgotAccess: {
+            path: dashboardForgotAccessPath,
+            label: 'Recuperar acceso',
+          },
+          resetPassword: {
+            path: dashboardResetPasswordPath,
+            label: 'Restablecer contraseña',
+          },
+        },
       },
       resolverEvaluacion: {
         path: '/resolver-evaluacion',
