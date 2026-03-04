@@ -198,6 +198,7 @@ const _resolutionStateWithNewAnswer = (
   value: number,
 ): I_ResolutionState => {
   const now = new Date().toISOString()
+  const existing = resolutionState.answers[questionId]
   return {
     ...resolutionState,
     last_update_datetime: now,
@@ -205,7 +206,9 @@ const _resolutionStateWithNewAnswer = (
       ...resolutionState.answers,
       [questionId]: {
         id: answerId,
+        first_touched_datetime: existing?.first_touched_datetime ?? now,
         last_update_datetime: now,
+        change_count: (existing?.change_count ?? 0) + 1,
         resource_type: 'Numeric',
         specific_data: { value },
       },
@@ -219,8 +222,6 @@ const useResolutionStateUpdateAnswer = () => {
   const Numeric = (questionId: T_QuestionId, answerId: T_AnswerId, value: number | null) => {
     if (resolutionState === null) return
 
-    const now = new Date().toISOString()
-
     const newResolutionState: I_ResolutionState =
       value === null
         ? _resolutionStateWithoutNullAnswer(resolutionState, questionId)
@@ -232,9 +233,12 @@ const useResolutionStateUpdateAnswer = () => {
     if (resolutionState === null) return
 
     const now = new Date().toISOString()
+    const existing = resolutionState.answers[questionId]
     const answerData: T_ResolutionState_MultipleChoiceAnswerData = {
       id: answerId,
+      first_touched_datetime: existing?.first_touched_datetime ?? now,
       last_update_datetime: now,
+      change_count: (existing?.change_count ?? 0) + 1,
       resource_type: 'MultipleChoice',
       specific_data: { chosen_options },
     }
@@ -252,6 +256,7 @@ const useResolutionStateUpdateAnswer = () => {
     if (resolutionState === null) return
 
     const now = new Date().toISOString()
+    const existing = resolutionState.answers[questionId]
     storeResolutionState({
       ...resolutionState,
       last_update_datetime: now,
@@ -259,7 +264,9 @@ const useResolutionStateUpdateAnswer = () => {
         ...resolutionState.answers,
         [questionId]: {
           id: answerId,
+          first_touched_datetime: existing?.first_touched_datetime ?? now,
           last_update_datetime: now,
+          change_count: (existing?.change_count ?? 0) + 1,
           resource_type: 'OpenEnded',
           specific_data: { value },
         },
