@@ -2,6 +2,7 @@
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import {
+  useDevAppointmentDeleteTest,
   useDevAppointmentFakerize,
   useDevAppointmentMakeAvailableNow,
   useDevAppointmentMakeResolutionsLeft10Seconds,
@@ -26,6 +27,7 @@ import { Grid2 } from '@mui/material'
 import { useState } from 'react'
 
 const DevDashboard = () => {
+  const { executeAction: appointmentDeleteTest } = useDevAppointmentDeleteTest()
   const { executeAction: appointmentFakerize } = useDevAppointmentFakerize()
   const { executeAction: appointmentMakeAvailableNow } = useDevAppointmentMakeAvailableNow()
   const { executeAction: appointmentSetAsFinished } = useDevAppointmentSetAsFinished()
@@ -118,6 +120,17 @@ const DevDashboard = () => {
                 title="python manage.py appointment_fakerize"
               >
                 Crear Turno
+              </DevButton>
+            </Grid2>
+            <Grid2 size={2}>
+              <DevButton
+                fullWidth
+                size="small"
+                bgcolor="red"
+                title="Elimina todos los turnos creados con 'Preparar turno de prueba'"
+                onClick={actionHandler(() => appointmentDeleteTest({}).then((r) => successToast(r.message)))}
+              >
+                Eliminar turnos de prueba
               </DevButton>
             </Grid2>
             <Grid2 size={2}>

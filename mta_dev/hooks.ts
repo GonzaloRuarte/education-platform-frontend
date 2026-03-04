@@ -1,6 +1,6 @@
 import { useAuthResources } from '@/mta_auth/hooks'
 import { T_AppointmentId } from '@/mta_schedule/types'
-import { axiosPost } from '@/shared/data/axios'
+import { axiosDelete, axiosPost } from '@/shared/data/axios'
 import { actionHookV3 } from '@/shared/hooks/dataServices/v3'
 import { T_EmptyPayload } from '@/shared/types'
 
@@ -70,6 +70,22 @@ const useDevEvaluationsFakerizeComplete = actionHookV3<
   T_EmptyPayload
 >(DEV_EVALUATIONS_FAKERIZE_COMPLETE_PATH, axiosPost, useAuthResources)
 
+const DEV_APPOINTMENT_PREPARE_TEST_PATH = '/development/appointments/prepare-test/'
+
+const useDevAppointmentPrepareTest = actionHookV3<
+  typeof DEV_APPOINTMENT_PREPARE_TEST_PATH,
+  T_EmptyPayload,
+  { message: string; appointment_id: number; pin: number; student_personal_id: number }
+>(DEV_APPOINTMENT_PREPARE_TEST_PATH, axiosPost, useAuthResources)
+
+const DEV_APPOINTMENT_DELETE_TEST_PATH = '/development/appointments/delete-test/'
+
+const useDevAppointmentDeleteTest = actionHookV3<
+  typeof DEV_APPOINTMENT_DELETE_TEST_PATH,
+  T_EmptyPayload,
+  { message: string }
+>(DEV_APPOINTMENT_DELETE_TEST_PATH, axiosDelete, useAuthResources)
+
 const DEV_REPORTS_FAKERIZE_PATH = '/development/reports/fakerize/'
 
 const useDevReportsFakerize = actionHookV3<typeof DEV_REPORTS_FAKERIZE_PATH, T_EmptyPayload, T_EmptyPayload>(
@@ -79,8 +95,10 @@ const useDevReportsFakerize = actionHookV3<typeof DEV_REPORTS_FAKERIZE_PATH, T_E
 )
 
 export {
+  useDevAppointmentDeleteTest,
   useDevAppointmentFakerize,
   useDevAppointmentMakeAvailableNow,
+  useDevAppointmentPrepareTest,
   useDevAppointmentSetAsFinished,
   useDevAppointmentMakeResolutionsLeft5Minutes,
   useDevSchoolsFakerize,
