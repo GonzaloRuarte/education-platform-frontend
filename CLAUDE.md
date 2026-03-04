@@ -1,5 +1,25 @@
 # Instrucciones para Claude
 
+## Repositorios
+
+- **Frontend:** `/home/gus/Documents/REPOS/meta-frontend`
+- **Backend:** `/home/gus/repos/meta-backend`
+
+## Workflow de git
+
+Antes de crear cualquier rama de fix o feature, siempre verificar la rama actual y moverse a `development`:
+
+```bash
+git checkout development && git pull
+git checkout -b fix/nombre-del-fix
+```
+
+**Nunca crear una rama parado en `production`** — arrastraría todos los commits que production tiene de más respecto a development, aunque el PR target sea development. Este error ocurrió dos veces.
+
+La rama base para PRs siempre es `development`. Desde ahí se mergea a `production` para hacer releases.
+
+---
+
 ## "revision produccion"
 
 Cuando el usuario diga "revision produccion", hacer una revisión MINUCIOSA y EXHAUSTIVA de todos los commits que están en `development` pero no en `production`, en ambos repos (frontend y backend). No limitarse a los cambios propios — revisar TODO, incluyendo commits de otros autores.
