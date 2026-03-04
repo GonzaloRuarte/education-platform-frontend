@@ -31,6 +31,7 @@ import { useState } from 'react'
 const DevDashboard = () => {
   const { executeAction: appointmentDeleteTest } = useDevAppointmentDeleteTest()
   const { executeAction: appointmentListTest } = useDevAppointmentListTest()
+  const { executeAction: appointmentPrepareTest } = useDevAppointmentPrepareTest()
   const { showConfirm, ConfirmDialogComponent } = useConfirm()
   const { executeAction: appointmentFakerize } = useDevAppointmentFakerize()
   const { executeAction: appointmentMakeAvailableNow } = useDevAppointmentMakeAvailableNow()
@@ -116,6 +117,18 @@ const DevDashboard = () => {
 
             <Grid2 size={12}>
               <H4>Turnos</H4>
+            </Grid2>
+            <Grid2 size={2}>
+              <DevButton
+                fullWidth
+                size="small"
+                title="Crea un turno APPROVED con la última escuela y evaluación, listo para usar"
+                onClick={actionHandler(() =>
+                  appointmentPrepareTest({}).then((r) => successToast(r.message))
+                )}
+              >
+                Preparar turno de prueba
+              </DevButton>
             </Grid2>
             <Grid2 size={2}>
               <DevButton
