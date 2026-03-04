@@ -4,6 +4,7 @@ import { withAuth } from '@/mta_auth/hocs/withAuth'
 import {
   useDevAppointmentDeleteTest,
   useDevAppointmentListTest,
+  useDevAppointmentPrepareTest,
   useDevAppointmentFakerize,
   useDevAppointmentMakeAvailableNow,
   useDevAppointmentMakeResolutionsLeft10Seconds,
