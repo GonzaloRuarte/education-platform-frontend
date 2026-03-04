@@ -147,20 +147,28 @@ const DevDashboard = () => {
                 size="small"
                 bgcolor="red"
                 title="Elimina todos los turnos creados con 'Preparar turno de prueba'"
-                onClick={actionHandler(() =>
-                  appointmentListTest(undefined).then((r) => {
-                    const { appointments } = r
-                    if (appointments.length === 0) {
-                      successToast('No hay turnos de prueba para eliminar.')
-                      return Promise.resolve()
-                    }
-                    const lista = appointments.map((a) => `• ${a.label}`).join('\n')
-                    return showConfirm(
-                      `Eliminar ${appointments.length} turno(s) de prueba`,
-                      `Se eliminarán los siguientes turnos:\n\n${lista}`,
-                    ).then(() => appointmentDeleteTest({}).then((res) => successToast(res.message)))
-                  })
-                )}
+                onClick={() => {
+                  appointmentListTest(undefined)
+                    .then((r) => {
+                      const { appointments } = r
+                      if (appointments.length === 0) {
+                        successToast('No hay turnos de prueba para eliminar.')
+                        return
+                      }
+                      const lista = appointments.map((a) => `• ${a.label}`).join('\n')
+                      showConfirm(
+                        `Eliminar ${appointments.length} turno(s) de prueba`,
+                        `Se eliminarán los siguientes turnos:\n\n${lista}`,
+                      ).then(() => {
+                        setIsInProgress()
+                        appointmentDeleteTest({})
+                          .then((res) => successToast(res.message))
+                          .catch(handleServiceError)
+                          .finally(setIsNotInProgress)
+                      })
+                    })
+                    .catch(handleServiceError)
+                }}
               >
                 Eliminar turnos de prueba
               </DevButton>
