@@ -3,6 +3,7 @@
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import {
   useDevAppointmentDeleteTest,
+  useDevAppointmentListTest,
   useDevAppointmentFakerize,
   useDevAppointmentMakeAvailableNow,
   useDevAppointmentMakeResolutionsLeft10Seconds,
@@ -21,6 +22,7 @@ import Page from '@/shared/components/Page'
 import { H3, H4 } from '@/shared/components/Typography'
 import Input from '@/shared/forms/Input'
 import { useInProgress } from '@/shared/hooks'
+import { useConfirm } from '@/shared/confirm'
 import { handleServiceError } from '@/shared/service'
 import { errorToast, successToast } from '@/shared/toasts'
 import { Grid2 } from '@mui/material'
@@ -28,6 +30,8 @@ import { useState } from 'react'
 
 const DevDashboard = () => {
   const { executeAction: appointmentDeleteTest } = useDevAppointmentDeleteTest()
+  const { executeAction: appointmentListTest } = useDevAppointmentListTest()
+  const { showConfirm, ConfirmDialogComponent } = useConfirm()
   const { executeAction: appointmentFakerize } = useDevAppointmentFakerize()
   const { executeAction: appointmentMakeAvailableNow } = useDevAppointmentMakeAvailableNow()
   const { executeAction: appointmentSetAsFinished } = useDevAppointmentSetAsFinished()
@@ -57,6 +61,7 @@ const DevDashboard = () => {
 
   return (
     <>
+      <ConfirmDialogComponent />
       <Page>
         <Page.Title>Dashboard de Desarrollo</Page.Title>
         <Page.Content>
@@ -128,7 +133,20 @@ const DevDashboard = () => {
                 size="small"
                 bgcolor="red"
                 title="Elimina todos los turnos creados con 'Preparar turno de prueba'"
-                onClick={actionHandler(() => appointmentDeleteTest({}).then((r) => successToast(r.message)))}
+                onClick={actionHandler(() =>
+                  appointmentListTest(undefined).then((r) => {
+                    const { appointments } = r
+                    if (appointments.length === 0) {
+                      successToast('No hay turnos de prueba para eliminar.')
+                      return Promise.resolve()
+                    }
+                    const lista = appointments.map((a) => `• ${a.label}`).join('\n')
+                    return showConfirm(
+                      `Eliminar ${appointments.length} turno(s) de prueba`,
+                      `Se eliminarán los siguientes turnos:\n\n${lista}`,
+                    ).then(() => appointmentDeleteTest({}).then((res) => successToast(res.message)))
+                  })
+                )}
               >
                 Eliminar turnos de prueba
               </DevButton>
