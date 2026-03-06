@@ -110,6 +110,7 @@ export {
   useDevAppointmentPrepareTest,
   useDevAppointmentSetAsFinished,
   useDevAppointmentMakeResolutionsLeft5Minutes,
+  useDevAppointmentPrepareTest,
   useDevSchoolsFakerize,
   useDevSchoolsFakerizeComplete,
   useDevEvaluationsFakerize,
