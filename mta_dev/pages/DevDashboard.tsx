@@ -2,6 +2,9 @@
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import {
+  useDevAppointmentDeleteTest,
+  useDevAppointmentListTest,
+  useDevAppointmentPrepareTest,
   useDevAppointmentFakerize,
   useDevAppointmentMakeAvailableNow,
   useDevAppointmentMakeResolutionsLeft10Seconds,
@@ -20,12 +23,17 @@ import Page from '@/shared/components/Page'
 import { H3, H4 } from '@/shared/components/Typography'
 import Input from '@/shared/forms/Input'
 import { useInProgress } from '@/shared/hooks'
+import { useConfirm } from '@/shared/confirm'
 import { handleServiceError } from '@/shared/service'
 import { errorToast, successToast } from '@/shared/toasts'
 import { Grid2 } from '@mui/material'
 import { useState } from 'react'
 
 const DevDashboard = () => {
+  const { executeAction: appointmentDeleteTest } = useDevAppointmentDeleteTest()
+  const { executeAction: appointmentListTest } = useDevAppointmentListTest()
+  const { executeAction: appointmentPrepareTest } = useDevAppointmentPrepareTest()
+  const { showConfirm, ConfirmDialogComponent } = useConfirm()
   const { executeAction: appointmentFakerize } = useDevAppointmentFakerize()
   const { executeAction: appointmentMakeAvailableNow } = useDevAppointmentMakeAvailableNow()
   const { executeAction: appointmentSetAsFinished } = useDevAppointmentSetAsFinished()
@@ -55,6 +63,7 @@ const DevDashboard = () => {
 
   return (
     <>
+      <ConfirmDialogComponent />
       <Page>
         <Page.Title>Dashboard de Desarrollo</Page.Title>
         <Page.Content>
@@ -112,12 +121,56 @@ const DevDashboard = () => {
             </Grid2>
             <Grid2 size={2}>
               <DevButton
+                fullWidth
+                size="small"
+                title="Crea un turno APPROVED con la última escuela y evaluación, listo para usar"
+                onClick={actionHandler(() =>
+                  appointmentPrepareTest({}).then((r) => successToast(r.message))
+                )}
+              >
+                Preparar turno de prueba
+              </DevButton>
+            </Grid2>
+            <Grid2 size={2}>
+              <DevButton
                 onClick={actionHandler(() => appointmentFakerize({}), 'Turno creado')}
                 fullWidth
                 size="small"
                 title="python manage.py appointment_fakerize"
               >
                 Crear Turno
+              </DevButton>
+            </Grid2>
+            <Grid2 size={2}>
+              <DevButton
+                fullWidth
+                size="small"
+                bgcolor="red"
+                title="Elimina todos los turnos creados con 'Preparar turno de prueba'"
+                onClick={() => {
+                  appointmentListTest(undefined)
+                    .then((r) => {
+                      const { appointments } = r
+                      if (appointments.length === 0) {
+                        successToast('No hay turnos de prueba para eliminar.')
+                        return
+                      }
+                      const lista = appointments.map((a) => `• ${a.label}`).join('\n')
+                      showConfirm(
+                        `Eliminar ${appointments.length} turno(s) de prueba`,
+                        `Se eliminarán los siguientes turnos:\n\n${lista}`,
+                      ).then(() => {
+                        setIsInProgress()
+                        appointmentDeleteTest({})
+                          .then((res) => successToast(res.message))
+                          .catch(handleServiceError)
+                          .finally(setIsNotInProgress)
+                      })
+                    })
+                    .catch(handleServiceError)
+                }}
+              >
+                Eliminar turnos de prueba
               </DevButton>
             </Grid2>
             <Grid2 size={2}>

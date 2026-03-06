@@ -38,7 +38,10 @@ const ResolutionSubmittedPage = () => {
 
     retrySubmit()
       .then(() => setRetryStatus('success'))
-      .catch(() => setRetryStatus('error'))
+      .catch(() => {
+        hasTriedRef.current = false
+        setRetryStatus('error')
+      })
   }, [isOnline, isOffline])
 
   const renderOfflineContent = () => {

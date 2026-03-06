@@ -39,7 +39,9 @@ interface I_ResumeResolutionResponse {
 
 interface I_ResolutionState_BaseAnswer<T extends T_AnswerType, T_SpecificData> {
   id: T_AnswerId
+  first_touched_datetime: string
   last_update_datetime: string
+  change_count: number
   resource_type: T
   specific_data: T_SpecificData
 }

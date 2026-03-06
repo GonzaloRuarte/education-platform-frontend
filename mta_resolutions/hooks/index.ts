@@ -23,6 +23,7 @@ import { useNetworkStatus } from '@/shared/offline/hooks'
 import { handleServiceError } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import { withRouterHistoryReset } from '@/shared/utils'
+import ApiError from '@/shared/data/errors'
 import { useMemo, useState } from 'react'
 
 const hasAllCurrentPageQuestionsAnswered = (
@@ -140,6 +141,7 @@ const useResolutionManageSubmit = () => {
   const navigateToResolutionSubmittedPage = useNavigateToResolutionSubmittedPage()
   const { downloadResolutionState } = useResolutionDownloadState()
   const { setIsInProgress, setIsNotInProgress } = useInProgress()
+  const setOfflineSubmitted = useStore((s) => s.resolution_setOfflineSubmitted)
 
   const manageSubmit = () => {
     if (state === null) return
@@ -147,7 +149,7 @@ const useResolutionManageSubmit = () => {
 
     if (!isOnline) {
       downloadResolutionState()
-      navigateToResolutionSubmittedPage({ offline: true })
+      setOfflineSubmitted(true)
       setIsNotInProgress()
       return
     }
@@ -157,7 +159,14 @@ const useResolutionManageSubmit = () => {
         navigateToResolutionSubmittedPage()
         resetState()
       })
-      .catch(handleServiceError)
+      .catch((err) => {
+        if (err instanceof ApiError && err.status === -1) {
+          downloadResolutionState()
+          setOfflineSubmitted(true)
+        } else {
+          handleServiceError(err)
+        }
+      })
       .finally(setIsNotInProgress)
   }
   return manageSubmit
@@ -165,13 +174,11 @@ const useResolutionManageSubmit = () => {
 
 const useResolutionRetrySubmit = () => {
   const submit = useResolutionRequestSubmit()
-  const resetState = useResolutionResetState()
   const state = useResolutionState()
 
   return async () => {
     if (!state) throw new Error('No resolution state')
     await submit(state)
-    resetState()
   }
 }
 
