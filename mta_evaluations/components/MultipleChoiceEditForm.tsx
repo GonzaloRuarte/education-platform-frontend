@@ -19,19 +19,19 @@ import SpacerCmp from '@/shared/components/Spacer'
 import { Box } from '@mui/material'
 import { diffOptions } from '@/mta_evaluations/utils/diffOptions'
 
-type I_FormFields = { content: string; tags: string }
+type I_FormFields = { content: string; tags: string, section_title: string | null }
 
 const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({
   data,
   onSuccess,
   onCancel
 }) => {
-  const { content, answer, tags: tagsFromData } = data
+  const { content, answer, tags: tagsFromData, section_title } = data
   const [options, setOptions] = useState(answer.options)
   const originalOptionsRef = useRef(answer.options)
 
   const { handleSubmit, control } = useForm<I_FormFields>({
-    defaultValues: { content, tags: Array.isArray(tagsFromData) ? tagsFromData.join(';') : (tagsFromData ?? '') },
+    defaultValues: { content, tags: Array.isArray(tagsFromData) ? tagsFromData.join(';') : (tagsFromData ?? ''), section_title: section_title ?? null },
   })
 
   const update = useQuestionMultipleChoiceUpdate()
@@ -49,6 +49,7 @@ const MultipleChoiceEditForm: T_QuestionForm<I_AnswerMultipleChoiceDetail> = ({
           update: toUpdate,        // with id
           delete: toDelete,        // ids
         },
+        section_title: g.section_title,
       }),
       (wire) => update(data.id, wire),
       'Pregunta editada correctamente',

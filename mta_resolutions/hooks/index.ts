@@ -23,6 +23,7 @@ import { useNetworkStatus } from '@/shared/offline/hooks'
 import { handleServiceError } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import { withRouterHistoryReset } from '@/shared/utils'
+import ApiError from '@/shared/data/errors'
 import { useMemo, useState } from 'react'
 
 const hasAllCurrentPageQuestionsAnswered = (
@@ -158,13 +159,13 @@ const useResolutionManageSubmit = () => {
         navigateToResolutionSubmittedPage()
         resetState()
       })
-      .catch((error) => {
-        if (error.status === -1) {
+      .catch((err) => {
+        if (err instanceof ApiError && err.status === -1) {
           downloadResolutionState()
           setOfflineSubmitted(true)
-          return
+        } else {
+          handleServiceError(err)
         }
-        handleServiceError(error)
       })
       .finally(setIsNotInProgress)
   }

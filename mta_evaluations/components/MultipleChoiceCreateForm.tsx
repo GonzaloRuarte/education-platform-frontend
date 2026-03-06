@@ -11,7 +11,7 @@ import FormActions from '@/mta_evaluations/components/FormActions'
 import { useProgressSubmit } from '@/mta_evaluations/hooks/useProgressSubmit'
 import { sharedLabels } from '@/shared/labels'
 
-type I_FormFields = Omit<I_QuestionCreateMultipleChoiceRequestData, 'page_id' | 'tags'> & { tags: string }
+type I_FormFields = Omit<I_QuestionCreateMultipleChoiceRequestData, 'page_id' | 'tags'> & { tags: string, section_title: string | null }
 
 interface Props {
   page_id: T_EvaluationPageId
@@ -20,14 +20,14 @@ interface Props {
 }
 
 const MultipleChoiceCreateForm: FC<Props> = ({ page_id, onSuccess, onCancel }) => {
-  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues: { content: '', tags: '' } })
+  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues: { content: '', tags: '', section_title: null } })
   const create = useQuestionMultipleChoiceCreate()
   const submitWithTags = useProgressSubmit()
 
   const onSubmit: SubmitHandler<I_FormFields> = (data) =>
     submitWithTags(
       data,
-      (f) => ({ content: f.content, page_id, tags: f.tags }),
+      (f) => ({ content: f.content, page_id, tags: f.tags, section_title: f.section_title }),
       (wire) => create(wire),
       'Pregunta de opción múltiple agregada correctamente',
       onSuccess,

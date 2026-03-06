@@ -1,5 +1,5 @@
 import { apiUrl } from '@/config'
-import { I_AuthData, I_AuthorizeRequestData, I_AuthorizeResponseData, I_AuthResources } from '@/mta_auth/types'
+import { I_AuthData, I_AuthorizeRequestData, I_AuthorizeResponseData, I_AuthResources, I_ForgotAccessRequestData, I_ForgotAccessResponseData, I_PasswordResetConfirmRequestData, I_PasswordResetConfirmResponseData,  } from '@/mta_auth/types'
 import { useSchoolStoreOwnSchool } from '@/mta_schools/hooks/state'
 
 import { T_AllowedUserProfiles } from '@/mta_users/types'
@@ -134,6 +134,15 @@ const useAuthorizeAndStore = () => {
   return { authorize }
 }
 
+const useForgotAccess = () =>
+  postService<I_ForgotAccessRequestData, I_ForgotAccessResponseData>('/auth/forgot-access', axiosPost)()
+
+const usePasswordResetConfirm = () =>
+  postService<I_PasswordResetConfirmRequestData, I_PasswordResetConfirmResponseData>(
+    '/auth/password-reset-confirm',
+    axiosPost,
+  )()
+
 export { useNavigateToLogin } from './navigation'
 
 export {
@@ -148,4 +157,6 @@ export {
   useUserProfiles,
   useUserProfilesResources,
   useRequestSetupWithMultipart,
+  useForgotAccess,
+  usePasswordResetConfirm,
 }

@@ -39,7 +39,9 @@ interface I_ResumeResolutionResponse {
 
 interface I_ResolutionState_BaseAnswer<T extends T_AnswerType, T_SpecificData> {
   id: T_AnswerId
+  first_touched_datetime: string
   last_update_datetime: string
+  change_count: number
   resource_type: T
   specific_data: T_SpecificData
 }
@@ -79,7 +81,7 @@ interface I_OngoingResolution {
 
 export interface I_Option   { id: number; name: string; content: string }
 export interface I_Answer   { id: number; resource_type: 'Numeric' | 'MultipleChoice' | 'OpenEnded'; specific_data: any }
-export interface I_Question { id: number; order: number; global_order: number; content: string; is_mandatory: boolean; answer: I_Answer }
+export interface I_Question { id: number; order: number; global_order: number; content: string; is_mandatory: boolean; answer: I_Answer; section_title: string | null }
 
 export interface I_Page {
   pinned_text: string | null;

@@ -36,6 +36,24 @@ interface I_AuthorizeStudentResponseData {
   access: string
 }
 
+interface I_ForgotAccessRequestData {
+  email: string
+}
+
+interface I_ForgotAccessResponseData {
+  message: string
+}
+
+interface I_PasswordResetConfirmRequestData {
+  uid: string
+  token: string
+  new_password: string
+}
+
+interface I_PasswordResetConfirmResponseData {
+  message: string
+}
+
 export type {
   I_AuthData,
   I_AuthorizeRequestData,
@@ -43,5 +61,9 @@ export type {
   I_AuthorizeStudentResponseData,
   I_AuthResources,
   T_UserProfiles,
+  I_ForgotAccessRequestData,
+  I_ForgotAccessResponseData,
+  I_PasswordResetConfirmRequestData,
+  I_PasswordResetConfirmResponseData,
 }
 export type T_LoginZone = 'dashboard' | 'resolutions'

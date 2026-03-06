@@ -15,21 +15,21 @@ import { sharedLabels } from '@/shared/labels'
 import { useProgressSubmit } from '@/mta_evaluations/hooks/useProgressSubmit'
 import MagicGrid from '@/shared/components/MagicGrid'
 
-type I_FormFields = { content: string; value: number | ''; tags: string }
+type I_FormFields = { content: string; value: number | ''; tags: string, section_title: string | null }
 
 const NumericCreateForm: FC<{ page_id: T_EvaluationPageId; onSuccess: () => void; onCancel?: () => void }> = ({
   page_id,
   onSuccess,
   onCancel,
 }) => {
-  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues: { content: '', value: '', tags: '' } })
+  const { handleSubmit, control } = useForm<I_FormFields>({ defaultValues: { content: '', value: '', tags: '', section_title: null } })
   const create = useQuestionNumericCreate()
   const submitWithTags = useProgressSubmit()
 
   const onSubmit: SubmitHandler<I_FormFields> = (data) =>
     submitWithTags(
       data,
-      (f) => ({ content: f.content, value: Number(f.value), page_id, tags: f.tags }),
+      (f) => ({ content: f.content, value: Number(f.value), page_id, tags: f.tags, section_title: f.section_title }),
       (wire) => create(wire as I_QuestionCreateNumericRequestData),
       'Pregunta numérica agregada correctamente',
       onSuccess,
