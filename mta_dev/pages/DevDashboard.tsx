@@ -9,7 +9,6 @@ import {
   useDevAppointmentMakeAvailableNow,
   useDevAppointmentMakeResolutionsLeft10Seconds,
   useDevAppointmentMakeResolutionsLeft5Minutes,
-  useDevAppointmentPrepareTest,
   useDevAppointmentSetAsFinished,
   useDevEvaluationsFakerize,
   useDevEvaluationsFakerizeComplete,
@@ -36,7 +35,6 @@ const DevDashboard = () => {
   const { executeAction: appointmentPrepareTest } = useDevAppointmentPrepareTest()
   const { showConfirm, ConfirmDialogComponent } = useConfirm()
   const { executeAction: appointmentFakerize } = useDevAppointmentFakerize()
-  const { executeAction: appointmentPrepareTest } = useDevAppointmentPrepareTest()
   const { executeAction: appointmentMakeAvailableNow } = useDevAppointmentMakeAvailableNow()
   const { executeAction: appointmentSetAsFinished } = useDevAppointmentSetAsFinished()
   const { executeAction: appointmentMakeResolutionsLeft5Minutes } = useDevAppointmentMakeResolutionsLeft5Minutes()
