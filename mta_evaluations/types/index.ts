@@ -62,7 +62,6 @@ interface I_QuestionDetail {
   page_id: T_EvaluationPageId
   tags: string
   section_title: string | null
-  section_close: boolean
 }
 
 interface I_QuestionDetailSpecific<T_Answer extends T_AnswerPolymorphicDetail> {
@@ -74,7 +73,6 @@ interface I_QuestionDetailSpecific<T_Answer extends T_AnswerPolymorphicDetail> {
   page_id: T_EvaluationPageId
   tags: string
   section_title: string | null
-  section_close: boolean
 }
 
 interface I_EvaluationPageDetail {
@@ -155,21 +153,18 @@ interface I_QuestionUpdateMultipleChoiceRequestData {
   content: string
   tags: string
   section_title: string | null
-  section_close: boolean
 }
 interface I_QuestionUpdateNumericRequestData {
   content: string
   value: number
   tags: string
   section_title: string | null
-  section_close: boolean
 }
 
 interface I_QuestionUpdateOpenEndedRequestData {
   content: string
   tags: string
   section_title: string | null
-  section_close: boolean
 }
 
 interface I_QuestionCreateMultipleChoiceRequestData {
@@ -177,7 +172,6 @@ interface I_QuestionCreateMultipleChoiceRequestData {
   content: string
   tags: string
   section_title: string | null
-  section_close: boolean
 }
 interface I_QuestionCreateNumericRequestData {
   page_id: T_EvaluationPageId
@@ -185,7 +179,6 @@ interface I_QuestionCreateNumericRequestData {
   value: number
   tags: string
   section_title: string | null
-  section_close: boolean
 }
 
 interface I_QuestionCreateOpenEndedRequestData {
@@ -193,7 +186,6 @@ interface I_QuestionCreateOpenEndedRequestData {
   content: string
   tags: string
   section_title: string | null
-  section_close: boolean
 }
 
 interface I_QuestionCreateResponseData {

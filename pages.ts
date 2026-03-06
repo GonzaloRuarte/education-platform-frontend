@@ -30,16 +30,7 @@ const pages = {
       login: {
         path: '/dashboard/login',
         label: 'Login',
-        _: {
-          forgotAccess: {
-            path: dashboardForgotAccessPath,
-            label: 'Recuperar acceso',
-          },
-          resetPassword: {
-            path: dashboardResetPasswordPath,
-            label: 'Restablecer contraseña',
-          },
-        },
+
       },
       resolverEvaluacion: {
         path: '/resolver-evaluacion',
@@ -66,6 +57,16 @@ const pages = {
       login: {
         path: '/dashboard/login',
         label: 'Login',
+        _: {
+          forgotAccess: {
+            path: dashboardForgotAccessPath,
+            label: 'Recuperar acceso',
+          },
+          resetPassword: {
+            path: dashboardResetPasswordPath,
+            label: 'Restablecer contraseña',
+          },
+        },
       },
       escuelas: {
         path: '/dashboard/escuelas',

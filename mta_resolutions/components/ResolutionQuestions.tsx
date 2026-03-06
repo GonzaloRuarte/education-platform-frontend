@@ -191,7 +191,7 @@ function buildQuestionBlocks(questions: I_Question[]): QuestionBlock[] {
 
   for (const q of questions) {
     const title = (q.section_title ?? '').trim();
-    const close = !!q.section_close;
+
 
     // Start a new section at this question
     if (title) {
@@ -203,7 +203,6 @@ function buildQuestionBlocks(questions: I_Question[]): QuestionBlock[] {
     // If we're inside a section, add to it; otherwise keep in plain run
     if (section) {
       section.questions.push(q);
-      if (close) flushSection(); // explicit close after this question
     } else {
       plain.push(q);
       // If someone accidentally sets close without an open section, we ignore it.

@@ -3,7 +3,6 @@
 import MagicGrid from '@/shared/components/MagicGrid'
 import WysiwygEditorControlled from '@/shared/forms/WysiwygEditorControlled'
 import InputControlled from '@/shared/forms/InputControlled'
-import ToggleControlled from '@/shared/forms/ToggleControlled'
 import { rules } from '@/shared/forms/messages'
 import { questionLabels } from '@/mta_evaluations/labels'
 import { TagsFieldControlled } from '@/mta_evaluations/components/Tags'
@@ -14,7 +13,6 @@ type Props<T extends FieldValues> = {
   contentName?: Path<T>
   tagsName?: Path<T>
   section_title?: Path<T>
-  section_close?: Path<T>
   canCloseSection?: boolean
 }
 
@@ -23,12 +21,10 @@ export default function QuestionBaseFields<T extends FieldValues>({
   contentName,
   tagsName,
   section_title,
-  section_close,
 }: Props<T>) {
   const contentKey = (contentName ?? ('content' as Path<T>))
   const tagsKey = (tagsName ?? ('tags' as Path<T>))
   const sectionTitleKey = (section_title ?? ('section_title' as Path<T>))
-  const sectionCloseKey = (section_close ?? ('section_close' as Path<T>))
 
   // Watch title to decide whether to show close toggle (keeps UI clean)
 
@@ -51,14 +47,7 @@ export default function QuestionBaseFields<T extends FieldValues>({
         helperText="Si lo completás, se muestra como encabezado antes de esta pregunta."
       />
 
-      {/* Optional: close toggle (only shown when title is set) */}
 
-      <ToggleControlled<T>
-        control={control}
-        name={sectionCloseKey}
-        label="Cerrar sección después de esta pregunta"
-        helperText="Cierra la sección actualmente abierta (iniciada en una pregunta anterior o en esta)."
-      />
 
     </MagicGrid>
   )
