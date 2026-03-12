@@ -66,6 +66,6 @@ const UsersListPage = () => {
 }
 
 export default withAuth(UsersListPage, {
-  allowedUserProfiles: ['admin'],
+  allowedCapabilities: ['manage_admin_users'],
   logoutDestination: 'dashboard',
 })

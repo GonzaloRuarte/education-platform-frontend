@@ -14,6 +14,17 @@ const EXECUTIVE_PROFILE_NAME = new EntityName({
 })
 
 const SCHOOL_NAME = new EntityName({ gender: 'F', plural: 'escuelas', singular: 'escuela' })
+const GROUPING_NAME = new EntityName({ gender: 'M', plural: 'agrupamientos', singular: 'agrupamiento' })
+const GROUPING_STAFF_PROFILE_NAME = new EntityName({
+  gender: 'M',
+  plural: 'responsables de agrupamiento',
+  singular: 'responsable de agrupamiento',
+})
+const GROUPING_STAFF_ANON_PROFILE_NAME = new EntityName({
+  gender: 'M',
+  plural: 'responsables de agrupamiento (anonimizados)',
+  singular: 'responsable de agrupamiento (anonimizado)',
+})
 
 enum SchoolGrade {
   G_1 = '1',
@@ -29,4 +40,4 @@ enum SchoolGrade {
   G_11 = '11',
   G_12 = '12',
 }
-export { STUDENT_PROFILE_NAME, SCHOOL_NAME, SCHOOL_STAFF_PROFILE_NAME, EXECUTIVE_PROFILE_NAME, SchoolGrade }
+export { STUDENT_PROFILE_NAME, SCHOOL_NAME, GROUPING_NAME, GROUPING_STAFF_PROFILE_NAME, GROUPING_STAFF_ANON_PROFILE_NAME, SCHOOL_STAFF_PROFILE_NAME, EXECUTIVE_PROFILE_NAME, SchoolGrade }

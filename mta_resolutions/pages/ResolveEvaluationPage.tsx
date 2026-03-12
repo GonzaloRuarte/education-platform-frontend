@@ -194,6 +194,6 @@ const ResolveEvaluationPage = () => {
 }
 
 export default withAuth(ResolveEvaluationPage, {
-  allowedUserProfiles: ['admin', 'student'],
+  allowedCapabilities: ['resolve_evaluations'],
   logoutDestination: 'resolutions',
 })

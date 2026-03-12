@@ -58,7 +58,7 @@ const SchoolStaffProfileUpdateForm = ({ data }: I_Props) => {
     }
     setInProgressStatus(true)
     update(data.id, payload)
-      .then((res) => {
+      .then(() => {
         successToast(sentence(`${SCHOOL_STAFF_PROFILE_NAME.singular} editado correctamente`))
         navToList()
       })

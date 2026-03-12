@@ -4,8 +4,8 @@ import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
 import { STUDENT_PROFILE_NAME } from '@/mta_schools/constants'
 import { useNavigateToStudentProfileList, useStudentProfileBatchCreate } from '@/mta_schools/hooks'
-import { useSchoolOwnSchool } from '@/mta_schools/hooks/state'
-import { I_SchoolName } from '@/mta_schools/types'
+import { useSchoolScopeResources } from '@/mta_schools/hooks/state'
+import { I_SchoolName, T_SchoolNames } from '@/mta_schools/types'
 import Button from '@/shared/components/Button'
 import { BackButton } from '@/shared/components/buttons'
 import Page from '@/shared/components/Page'
@@ -30,10 +30,12 @@ interface I_FormFields {
 }
 
 interface I_Props {
-  ownSchoolData: I_SchoolName | null
+  selectedSchool: I_SchoolName | null
+  availableSchools: T_SchoolNames
+  lockSchool: boolean
 }
 
-const StudentProfilesBatchCreatePageContent = ({ ownSchoolData }: I_Props) => {
+const StudentProfilesBatchCreatePageContent = ({ selectedSchool, availableSchools, lockSchool }: I_Props) => {
   const backToList = useNavigateToStudentProfileList()
   const { setIsInProgress, setIsNotInProgress } = useInProgress()
 
@@ -42,7 +44,7 @@ const StudentProfilesBatchCreatePageContent = ({ ownSchoolData }: I_Props) => {
     handleSubmit,
     register,
     formState: { errors },
-  } = useForm<I_FormFields>({ defaultValues: { school_id: ownSchoolData !== null ? ownSchoolData.id : undefined } })
+  } = useForm<I_FormFields>({ defaultValues: { school_id: selectedSchool !== null ? selectedSchool.id : undefined } })
 
   const batchCreate = useStudentProfileBatchCreate()
 
@@ -53,12 +55,12 @@ const StudentProfilesBatchCreatePageContent = ({ ownSchoolData }: I_Props) => {
     }
 
     const formData = new FormData()
-    formData.append('school_id', String(data.school_id)) // Convertir school_id a string
-    formData.append('file', data.file[0]) // Solo se envía el primer archivo
+    formData.append('school_id', String(data.school_id))
+    formData.append('file', data.file[0])
 
     setIsInProgress()
     batchCreate(formData)
-      .then((res) => {
+      .then(() => {
         successToast(sentence(`${STUDENT_PROFILE_NAME.plural} creados correctamente`))
         backToList()
       })
@@ -83,18 +85,19 @@ const StudentProfilesBatchCreatePageContent = ({ ownSchoolData }: I_Props) => {
             <Spacer />
             <form onSubmit={handleSubmit(onSubmit)} encType="multipart/form-data">
               <Grid container spacing={3}>
-                {ownSchoolData === null ? (
+                {!lockSchool ? (
                   <Grid size={12}>
                     <SchoolSelectControlled
                       control={control}
                       name="school_id"
                       rules={{ required: 'Debe seleccionar una escuela' }}
                       label="Escuela"
+                      options={availableSchools}
                     />
                     {errors.school_id && <p style={{ color: 'red' }}>{errors.school_id.message}</p>}
                   </Grid>
                 ) : (
-                  <H4>{ownSchoolData.name}</H4>
+                  <H4>{selectedSchool?.name}</H4>
                 )}
                 <Grid size={12}>
                   <TextField
@@ -134,12 +137,18 @@ const StudentProfilesBatchCreatePageContent = ({ ownSchoolData }: I_Props) => {
   )
 }
 const StudentProfilesBatchCreatePage = () => {
-  const ownSchool = useSchoolOwnSchool()
+  const { isLoading, selectedSchool, accessibleSchools, hasSingleSchool } = useSchoolScopeResources()
 
-  if (ownSchool === undefined) return <Spinner />
-  return <StudentProfilesBatchCreatePageContent ownSchoolData={ownSchool} />
+  if (isLoading || accessibleSchools === undefined || selectedSchool === undefined) return <Spinner />
+  return (
+    <StudentProfilesBatchCreatePageContent
+      selectedSchool={selectedSchool}
+      availableSchools={accessibleSchools}
+      lockSchool={!!hasSingleSchool}
+    />
+  )
 }
 export default withAuth(StudentProfilesBatchCreatePage, {
-  allowedUserProfiles: ['admin', 'school_staff'],
+  allowedCapabilities: ['manage_students'],
   logoutDestination: 'dashboard',
 })

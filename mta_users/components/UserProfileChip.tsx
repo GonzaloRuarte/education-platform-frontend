@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Chip, ChipProps } from '@mui/material'
-import { blue, green, orange, red } from '@mui/material/colors'
+import { blue, cyan, green, orange, red, teal } from '@mui/material/colors'
 import { T_UserProfiles } from '@/mta_users/types'
 import { userProfileLabel } from '@/mta_users/utils'
 
@@ -16,9 +16,11 @@ const profileColors: Record<T_UserProfiles, string> = {
   student: green[500],
   school_staff: orange[500],
   executive: 'purple',
+  grouping_staff: teal[500],
+  grouping_staff_anonymized: cyan[700],
   superuser: 'black',
-
 }
+
 
 const UserProfileChip: React.FC<I_UserProfileChipProps> = ({ profile, ...props }) => {
   return (

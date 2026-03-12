@@ -1,7 +1,7 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
-import { SCHOOL_NAME, SCHOOL_STAFF_PROFILE_NAME } from '@/mta_schools/constants'
+import { SCHOOL_NAME } from '@/mta_schools/constants'
 import {
   useNavigateToSchoolCreate,
   useNavigateToSchoolDetail,
@@ -18,11 +18,27 @@ const columns: Array<GridColDef> = [
   { field: 'meta_id', headerName: 'Meta ID', flex: 1 },
   { field: 'district', headerName: 'Distrito', flex: 1 },
   {
+    field: 'groups',
+    headerName: 'Agrupamientos',
+    flex: 1.8,
+    sortable: false,
+    filterable: false,
+    renderCell: ({ value }) => {
+      if (!value || value.length === 0) return <>Ninguno</>
+      return (
+        <>
+          <Chip size="small" label={value[0].name} />
+          {value.length > 1 && <Chip size="small" label={`y ${value.length - 1} más`} sx={{ ml: 0.5 }} />}
+        </>
+      )
+    },
+  },
+  {
     field: 'staff',
     headerName: 'Responsables institucionales',
     flex: 1.5,
     renderCell: ({ value }) => {
-      if (value.length === 0) return <>-</>
+      if (!value || value.length === 0) return <>-</>
       const FinalChip = () => <Chip size="small" key={value[0].user_id} label={value[0].full_name} />
       if (value.length === 1) return <FinalChip />
       return (
@@ -52,6 +68,6 @@ const SchoolsListPage = () => {
 }
 
 export default withAuth(SchoolsListPage, {
-  allowedUserProfiles: ['admin'],
+  allowedCapabilities: ['manage_schools'],
   logoutDestination: 'dashboard',
 })

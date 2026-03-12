@@ -76,6 +76,16 @@ const pages = {
             path: '/dashboard/escuelas/agregar',
             label: 'Agregar escuela',
           },
+          agrupamientos: {
+            path: '/dashboard/escuelas/agrupamientos',
+            label: 'Agrupamientos',
+            _: {
+              agregar: {
+                path: '/dashboard/escuelas/agrupamientos/agregar',
+                label: 'Agregar agrupamiento',
+              },
+            },
+          },
         },
       },
       turnos: {
@@ -209,7 +219,27 @@ const pages = {
             _: {
               agregar: {
                 path: '/dashboard/usuarios/responsables-institucionales/agregar',
-                label: 'Agregar estudiante',
+                label: 'Agregar responsable institucional',
+              },
+            },
+          },
+          responsableAgrupamiento: {
+            path: '/dashboard/usuarios/responsables-agrupamiento',
+            label: 'Responsables de agrupamiento',
+            _: {
+              agregar: {
+                path: '/dashboard/usuarios/responsables-agrupamiento/agregar',
+                label: 'Agregar responsable de agrupamiento',
+              },
+            },
+          },
+          responsableAgrupamientoAnon: {
+            path: '/dashboard/usuarios/responsables-agrupamiento-anon',
+            label: 'Responsables de agrupamiento (anon)',
+            _: {
+              agregar: {
+                path: '/dashboard/usuarios/responsables-agrupamiento-anon/agregar',
+                label: 'Agregar responsable de agrupamiento (anon)',
               },
             },
           },

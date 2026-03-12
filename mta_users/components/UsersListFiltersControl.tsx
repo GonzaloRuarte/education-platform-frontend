@@ -13,6 +13,8 @@ export interface I_UserListFilterData {
   has_evaluator_profile: boolean | null
   is_superuser: boolean | null
   has_executive_profile: boolean | null
+  has_grouping_staff_profile: boolean | null
+  has_grouping_staff_anonymized_profile: boolean | null
 }
 
 const profileNameAsUserFilter: Record<T_UserProfiles, keyof I_UserListFilterData> = {
@@ -22,6 +24,8 @@ const profileNameAsUserFilter: Record<T_UserProfiles, keyof I_UserListFilterData
   student: 'has_student_profile',
   superuser: 'is_superuser',
   executive: 'has_executive_profile',
+  grouping_staff: 'has_grouping_staff_profile',
+  grouping_staff_anonymized: 'has_grouping_staff_anonymized_profile',
 }
 
 const UsersListFiltersControl = ({
@@ -37,6 +41,8 @@ const UsersListFiltersControl = ({
     evaluator: { label: 'Evaluador' },
     student: { label: 'Estudiante' },
     executive: { label: 'Ejecutivo' },
+    grouping_staff: { label: 'Responsable de agrupamiento' },
+    grouping_staff_anonymized: { label: 'Resp. agrupamiento (anon)' },
     superuser: { label: 'Superusuario' },
 
   }
@@ -83,6 +89,8 @@ export const useUserListFilters = () => {
     has_evaluator_profile: null,
     is_superuser: null,
     has_executive_profile: null,
+    has_grouping_staff_profile: null,
+    has_grouping_staff_anonymized_profile: null,
   })
 
   return { filters, setFilters, UsersListFiltersControl }

@@ -8,6 +8,7 @@ interface I_AuthSliceDataFields {
   auth_accessToken: I_AuthData['accessToken']
   auth_refreshToken: I_AuthData['refreshToken']
   auth_profiles: I_AuthData['profiles']
+  auth_capabilities: I_AuthData['capabilities']
 }
 interface I_AuthSlice extends I_AuthSliceDataFields {
   auth_storeAuthData: (data: I_AuthData) => void
@@ -19,16 +20,17 @@ const initialState: I_AuthSliceDataFields = {
   auth_accessToken: undefined,
   auth_refreshToken: undefined,
   auth_profiles: undefined,
+  auth_capabilities: undefined,
 }
 
 const createAuthSlice: StateCreator<I_AuthSlice, [], [], I_AuthSlice> = (set) => ({
   ...initialState,
-  
   auth_storeAuthData: (data) =>
     set(() => ({
       auth_accessToken: data.accessToken,
       auth_refreshToken: data.refreshToken,
       auth_profiles: data.profiles,
+      auth_capabilities: data.capabilities,
     })),
   auth_storeRefreshedToken: (accessToken) => set(() => ({ auth_accessToken: accessToken })),
   auth_clearAuthData: () => set(() => initialState),

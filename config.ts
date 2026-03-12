@@ -9,8 +9,6 @@ const DEFAULT_PAGE_SIZE: T_PageSizeOptions = 10
  */
 const apiUrl = (path: string) => `${process.env.NEXT_PUBLIC_API_BASE_PATH}${path}`
 
-console.log('API Base Path:', process.env.NEXT_PUBLIC_API_BASE_PATH)
-
 enum ErrorCode {
   RESOLUTION_ALREADY_SUBMITTED = 'RESOLUTION_ALREADY_SUBMITTED',
   SCHOOL_RESTRICTED_DATA = 'SCHOOL_RESTRICTED_DATA',

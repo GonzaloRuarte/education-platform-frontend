@@ -1,5 +1,6 @@
 'use client'
 
+import { useSchoolScopeResources } from '@/mta_schools/hooks/state'
 import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
 import { T_SchoolId } from '@/mta_schools/types'
 import MagicGrid from '@/shared/components/MagicGrid'
@@ -8,6 +9,7 @@ import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
 import { useWatch } from 'react-hook-form'
 import PasswordField from '@/shared/components/PasswordField'
+import Spinner from '@/shared/components/Spinner'
 
 interface I_FormFields {
   school_id: T_SchoolId
@@ -21,10 +23,20 @@ interface I_FormFields {
 
 const ExecutiveProfileFormFields = ({ control, excludePassword = false }) => {
   const password = useWatch({ control, name: 'password' })
+  const { accessibleSchools, hasSingleSchool, isLoading } = useSchoolScopeResources()
+
+  if (isLoading || accessibleSchools === undefined) return <Spinner />
 
   return (
     <MagicGrid>
-      <SchoolSelectControlled control={control} name="school_id" rules={{ ...rules.required() }} label="Escuela" />
+      <SchoolSelectControlled
+        control={control}
+        name="school_id"
+        rules={{ ...rules.required() }}
+        label="Escuela"
+        options={accessibleSchools}
+        disabled={!!hasSingleSchool}
+      />
       <Spacer size="xs" />
       <InputControlled<I_FormFields>
         control={control}

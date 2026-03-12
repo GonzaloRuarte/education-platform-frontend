@@ -38,6 +38,6 @@ const EvaluatorProfileListPage = () => {
 }
 
 export default withAuth(EvaluatorProfileListPage, {
-  allowedUserProfiles: ['admin'],
+  allowedCapabilities: ['manage_evaluators'],
   logoutDestination: 'dashboard',
 })

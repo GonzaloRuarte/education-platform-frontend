@@ -1,26 +1,29 @@
 import { useSchoolAllNames } from '@/mta_schools/hooks'
+import { T_SchoolNames } from '@/mta_schools/types'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 import { FormControl, InputLabel, MenuItem, Select, FormHelperText } from '@mui/material'
 import { schoolLabels } from '@/mta_schools/labels'
 import { Body1 } from '@/shared/components/Typography'
 
-// SelectSchool Component
 export const SchoolSelect: React.FC<{
   value: string | number | undefined
   onChange: (value: string | number) => void
   label?: string
   error?: boolean
   helperText?: string
-}> = ({ value, onChange, label = schoolLabels.chooseSchool, error, helperText }) => {
-  const { data: schools, isLoading } = useSchoolAllNames()
+  options?: T_SchoolNames
+  disabled?: boolean
+}> = ({ value, onChange, label = schoolLabels.chooseSchool, error, helperText, options, disabled = false }) => {
+  const { data: fetchedSchools, isLoading } = useSchoolAllNames()
+  const schools = options ?? fetchedSchools
 
-  if (isLoading) return <Body1>{schoolLabels.loading}</Body1>
+  if (schools === undefined && isLoading) return <Body1>{schoolLabels.loading}</Body1>
 
   return (
     <FormControl fullWidth error={error}>
       <InputLabel>{label}</InputLabel>
-      <Select value={value || ''} onChange={(e) => onChange(e.target.value as string | number)}>
-        {schools?.map((school) => (
+      <Select value={value || ''} onChange={(e) => onChange(e.target.value as string | number)} label={label} disabled={disabled}>
+        {(schools ?? []).map((school) => (
           <MenuItem key={school.id} value={school.id}>
             {school.name}
           </MenuItem>
@@ -31,7 +34,6 @@ export const SchoolSelect: React.FC<{
   )
 }
 
-// SelectSchoolControlled Component
 export const SchoolSelectControlled = <T_FormFields extends FieldValues>({
   name,
   rules,
@@ -39,7 +41,9 @@ export const SchoolSelectControlled = <T_FormFields extends FieldValues>({
   defaultValue,
   control,
   label,
-}: UseControllerProps<T_FormFields> & { label?: string }) => {
+  options,
+  disabled,
+}: UseControllerProps<T_FormFields> & { label?: string; options?: T_SchoolNames; disabled?: boolean }) => {
   const { field, fieldState } = useController({ name, rules, shouldUnregister, defaultValue, control })
   const hasError = fieldState.error !== undefined
 
@@ -50,6 +54,8 @@ export const SchoolSelectControlled = <T_FormFields extends FieldValues>({
       label={label}
       error={hasError}
       helperText={fieldState.error?.message}
+      options={options}
+      disabled={disabled}
     />
   )
 }

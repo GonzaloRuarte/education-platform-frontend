@@ -13,6 +13,6 @@ const SchoolCreatePage = () => {
 }
 
 export default withAuth(SchoolCreatePage, {
-  allowedUserProfiles: ['admin'],
+  allowedCapabilities: ['manage_schools'],
   logoutDestination: 'dashboard',
 })

@@ -105,6 +105,6 @@ const EvaluationPreviewPage = () => {
 }
 
 export default withAuth(EvaluationPreviewPage, {
-  allowedUserProfiles: ['admin', 'evaluator'],
+  allowedCapabilities: ['manage_evaluation_content'],
   logoutDestination: 'dashboard',
 })

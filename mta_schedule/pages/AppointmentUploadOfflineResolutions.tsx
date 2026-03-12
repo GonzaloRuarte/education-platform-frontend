@@ -1,6 +1,7 @@
 'use client'
 
 import { LIGHT_BG_COLOR } from '@/config'
+import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { APPOINTMENT_RESOLUTION_PROCESS_NAME } from '@/mta_resolutions/constants'
 import { useResolutionUploadOfflineState } from '@/mta_resolutions/hooks/data'
 import { useNavigateToAppointmentHome, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
@@ -161,4 +162,7 @@ const AppointmentUploadOfflineResolutions = () => {
   )
 }
 
-export default AppointmentUploadOfflineResolutions
+export default withAuth(AppointmentUploadOfflineResolutions, {
+  allowedCapabilities: ['upload_offline_resolutions'],
+  logoutDestination: 'dashboard',
+})

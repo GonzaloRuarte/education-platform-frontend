@@ -123,6 +123,6 @@ const AppointmentProcessPage = () => {
 }
 
 export default withAuth(AppointmentProcessPage, {
-  allowedUserProfiles: ['admin'],
+  allowedCapabilities: ['manage_appointment_slots'],
   logoutDestination: 'dashboard',
 })

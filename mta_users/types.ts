@@ -1,7 +1,7 @@
 import { I_PaginatedResponse } from '@/shared/data/types'
 
 type T_UserId = number
-type T_UserProfiles = 'admin' | 'school_staff' | 'evaluator' | 'student' | 'superuser' | 'executive'
+type T_UserProfiles = 'admin' | 'school_staff' | 'evaluator' | 'student' | 'superuser' | 'executive' | 'grouping_staff' | 'grouping_staff_anonymized'
 type T_AllowedUserProfiles = Array<T_UserProfiles> | undefined
 
 interface I_UserProfilesFlags {
@@ -9,6 +9,8 @@ interface I_UserProfilesFlags {
   has_school_staff_profile: boolean
   has_evaluator_profile: boolean
   has_executive_profile: boolean
+  has_grouping_staff_profile: boolean
+  has_grouping_staff_anonymized_profile: boolean
   is_admin: boolean
 }
 interface I_UserListItemBaseFields {
@@ -17,10 +19,10 @@ interface I_UserListItemBaseFields {
   email: string
   is_active: boolean
 }
-interface I_UserListItem extends I_UserListItemBaseFields, I_UserProfilesFlags {}
-interface I_UserListItemWithProfiles extends I_UserListItemBaseFields {
+interface I_UserListItem extends I_UserListItemBaseFields, I_UserProfilesFlags {
   profiles: Array<T_UserProfiles | null>
 }
+interface I_UserListItemWithProfiles extends I_UserListItem {}
 
 type T_UserList = I_PaginatedResponse<I_UserListItem>
 type T_UserListWithProfiles = I_PaginatedResponse<I_UserListItemWithProfiles>

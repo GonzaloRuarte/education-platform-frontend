@@ -13,6 +13,6 @@ const AdminProfileCreatePage = () => {
 }
 
 export default withAuth(AdminProfileCreatePage, {
-  allowedUserProfiles: ['admin'],
+  allowedCapabilities: ['manage_admin_users'],
   logoutDestination: 'dashboard',
 })

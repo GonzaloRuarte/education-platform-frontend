@@ -18,6 +18,6 @@ const AppointmentCreatePage = () => {
 }
 
 export default withAuth(AppointmentCreatePage, {
-  allowedUserProfiles: ['admin'],
+  allowedCapabilities: ['manage_appointment_slots'],
   logoutDestination: 'dashboard',
 })

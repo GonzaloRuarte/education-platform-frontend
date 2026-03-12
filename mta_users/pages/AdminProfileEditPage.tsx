@@ -34,6 +34,6 @@ const AdminProfileEditPage = () => {
 }
 
 export default withAuth(AdminProfileEditPage, {
-  allowedUserProfiles: ['admin'],
+  allowedCapabilities: ['manage_admin_users'],
   logoutDestination: 'dashboard',
 })

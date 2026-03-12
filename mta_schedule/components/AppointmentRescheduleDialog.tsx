@@ -84,8 +84,15 @@ const RescheduleDialog: React.FC<Props> = ({ open, onClose, originalAppointment,
   const handleDateChange = () => {
     if (freeByMonth === undefined) return
 
-    const choosenDate = getValues().date.date()
-    const availableOptions = freeByMonth[choosenDate]
+    const selectedDate = getValues('date')
+    if (selectedDate === undefined || selectedDate === null) {
+      setAppointmentOptions([])
+      setSelectedAppointmentData(null)
+      return
+    }
+
+    const choosenDate = selectedDate.date()
+    const availableOptions = freeByMonth[choosenDate] ?? []
 
     setAppointmentOptions(
       Object.entries(distinctAvailableAppointments(availableOptions)).map(([datetime, availbleAppointments]) => ({
@@ -96,11 +103,18 @@ const RescheduleDialog: React.FC<Props> = ({ open, onClose, originalAppointment,
   }
   useEffect(() => {
     if (freeByMonth === undefined) return
-    const choosenDate = getValues('date').date()
-    setSelectedAppointmentData(
-      freeByMonth[choosenDate].find((appointment) => appointment.id === originalAppointment.id) || null,
-    )
-  }, [originalAppointment.id])
+
+    const selectedDate = getValues('date')
+    if (selectedDate === undefined || selectedDate === null) {
+      setSelectedAppointmentData(null)
+      return
+    }
+
+    const choosenDate = selectedDate.date()
+    const availableAppointments = freeByMonth[choosenDate] ?? []
+
+    setSelectedAppointmentData(availableAppointments.find((appointment) => appointment.id === originalAppointment.id) || null)
+  }, [freeByMonth, getValues, originalAppointment.id])
   /* ── submit handler ──────────────────────────────────── */
   const onSubmit = ({ appointment_id }: FormFields) => {
     if (!appointment_id) return

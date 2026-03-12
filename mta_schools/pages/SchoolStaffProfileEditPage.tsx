@@ -1,6 +1,7 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
+import SelectedSchoolMismatchAlert from '@/mta_schools/components/SelectedSchoolMismatchAlert'
 import SchoolStaffProfileUpdateForm from '@/mta_schools/components/SchoolStaffProfileUpdateForm'
 import { SCHOOL_STAFF_PROFILE_NAME } from '@/mta_schools/constants'
 import {
@@ -19,21 +20,25 @@ const SchoolStaffProfileEditPage = () => {
 
   return (
     <EditionPage<T_SchoolStaffProfileId, I_SchoolStaffProfileDetail>
-      EditionForm={SchoolStaffProfileUpdateForm}
+      EditionForm={(dataProps) => (
+        <>
+          <SelectedSchoolMismatchAlert
+            entitySchool={{ id: dataProps.data.school_id, name: dataProps.data.school_name }}
+            entityLabel="responsable institucional"
+          />
+          <SchoolStaffProfileUpdateForm {...dataProps} />
+        </>
+      )}
       entityName={SCHOOL_STAFF_PROFILE_NAME}
       onExit={navToList}
       useDetail={useSchoolStaffProfileDetail}
       useDelete={useSchoolStaffProfileDelete}
-      customButtons={(data) => (
-        <>
-          <ChangePasswordButton onClick={() => navigateToChangePassword({ userId: data.user_id })} />
-        </>
-      )}
+      customButtons={(data) => <ChangePasswordButton onClick={() => navigateToChangePassword({ userId: data.user_id })} />}
     />
   )
 }
 
 export default withAuth(SchoolStaffProfileEditPage, {
-  allowedUserProfiles: ['admin'],
+  allowedCapabilities: ['manage_school_staff'],
   logoutDestination: 'dashboard',
 })

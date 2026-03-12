@@ -146,6 +146,6 @@ const TemplateCreatePage = () => {
 }
 
 export default withAuth(TemplateCreatePage, {
-  allowedUserProfiles: ['admin', 'evaluator'],
+  allowedCapabilities: ['manage_evaluation_content'],
   logoutDestination: 'dashboard',
 })

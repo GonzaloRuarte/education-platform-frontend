@@ -1,6 +1,7 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
+import SelectedSchoolMismatchAlert from '@/mta_schools/components/SelectedSchoolMismatchAlert'
 import ExecutiveProfileUpdateForm from '@/mta_schools/components/ExecutiveProfileUpdateForm'
 import { EXECUTIVE_PROFILE_NAME } from '@/mta_schools/constants'
 import {
@@ -19,7 +20,15 @@ const ExecutiveProfileEditPage = () => {
 
   return (
     <EditionPage<T_ExecutiveProfileId, I_ExecutiveProfileDetail>
-      EditionForm={ExecutiveProfileUpdateForm}
+      EditionForm={(dataProps) => (
+        <>
+          <SelectedSchoolMismatchAlert
+            entitySchool={{ id: dataProps.data.school_id, name: dataProps.data.school_name }}
+            entityLabel="responsable ejecutivo"
+          />
+          <ExecutiveProfileUpdateForm {...dataProps} />
+        </>
+      )}
       entityName={EXECUTIVE_PROFILE_NAME}
       onExit={navToList}
       useDetail={useExecutiveProfileDetail}
@@ -34,6 +43,6 @@ const ExecutiveProfileEditPage = () => {
 }
 
 export default withAuth(ExecutiveProfileEditPage, {
-  allowedUserProfiles: ['admin', 'school_staff'],
+  allowedCapabilities: ['manage_executives'],
   logoutDestination: 'dashboard',
 })

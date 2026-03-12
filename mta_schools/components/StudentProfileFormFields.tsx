@@ -1,39 +1,49 @@
 'use client'
 
+import { useHasCapabilities } from '@/mta_auth/hooks'
 import { CohortSelectControlled } from '@/mta_schools/components/CohortSelect'
 import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
+import { T_SchoolNames, T_SchoolId } from '@/mta_schools/types'
 import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
 import MagicGrid from '@/shared/components/MagicGrid'
 import { useWatch, Control } from 'react-hook-form'
-import { T_SchoolId } from '@/mta_schools/types'
 
 export interface I_FormFields {
   cohort: string
-  personal_id: number | ''
+  personal_id: number | '' | null
   school_id: T_SchoolId
 }
 
 interface I_Props {
   control: Control<I_FormFields>
-  ownSchoolData: boolean
+  schoolOptions?: T_SchoolNames
+  lockSchool?: boolean
 }
 
-const StudentProfileFormFields = ({ control, ownSchoolData }: I_Props) => {
+const StudentProfileFormFields = ({ control, schoolOptions, lockSchool = false }: I_Props) => {
   const schoolId = useWatch({ control, name: 'school_id' })
+  const canViewStudentDni = useHasCapabilities(['view_student_dni'])
 
   return (
     <MagicGrid>
-      {!ownSchoolData && (
-        <SchoolSelectControlled control={control} name="school_id" rules={{ ...rules.required() }} label="Escuela" />
+      {!lockSchool && (
+        <SchoolSelectControlled control={control} name="school_id" rules={{ ...rules.required() }} label="Escuela" options={schoolOptions} />
       )}
-      <InputControlled<I_FormFields>
-        control={control}
-        name="personal_id"
-        rules={{ ...rules.required(), ...rules.minLength(8) }}
-        label="DNI"
-        type="number"
-      />
+      {canViewStudentDni && (
+        <InputControlled<I_FormFields>
+          control={control}
+          name="personal_id"
+          rules={{
+            ...rules.required(),
+            ...rules.minLength(8),
+            ...rules.pattern(/^\d{8,10}$/, 'Ingrese un DNI válido de 8 a 10 dígitos'),
+          }}
+          label="DNI"
+          type="text"
+          inputProps={{ inputMode: 'numeric', pattern: '\d*', maxLength: 10 }}
+        />
+      )}
       {schoolId !== undefined && (
         <CohortSelectControlled
           control={control}

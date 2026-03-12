@@ -115,6 +115,6 @@ const TemplateListPage = () => {
 }
 
 export default withAuth(TemplateListPage, {
-  allowedUserProfiles: ['admin', 'evaluator'],
+  allowedCapabilities: ['manage_evaluation_content'],
   logoutDestination: 'dashboard',
 })
