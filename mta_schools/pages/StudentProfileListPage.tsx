@@ -46,7 +46,7 @@ const StudentProfileListPage = () => {
 
   const columns = canViewStudentDni
     ? ([
-        { field: 'personal_id', headerName: 'DNI', flex: 1 },
+        { field: 'personal_id', headerName: 'DNI o Pasaporte', flex: 1 },
         ...baseColumns,
       ] as Array<GridColDef>)
     : baseColumns

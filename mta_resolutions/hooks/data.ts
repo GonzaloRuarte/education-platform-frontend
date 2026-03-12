@@ -91,7 +91,7 @@ const useResolutionUpdateLastUploadDatetime = () => {
     storeLastUpload(new Date().toISOString())
   }
 }
-const initialState = (personal_id: number, appointment_id: T_AppointmentId): I_ResolutionState => {
+const initialState = (personal_id: string, appointment_id: T_AppointmentId): I_ResolutionState => {
   const now = new Date().toISOString()
   return {
     student_personal_id: personal_id,

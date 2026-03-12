@@ -7,7 +7,7 @@ import { I_SchoolName, I_StudentProfileDetail, T_SchoolNames } from '@/mta_schoo
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 
-const normalizePersonalId = (value: number | string | '' | null) => Number(String(value ?? '').replace(/\D/g, ''))
+const normalizePersonalId = (value: string | '' | null) => String(value ?? '').trim().toUpperCase()
 import { useInProgress } from '@/shared/hooks'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'

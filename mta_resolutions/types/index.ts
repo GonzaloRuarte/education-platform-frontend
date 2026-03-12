@@ -29,7 +29,7 @@ interface I_ResumeResolutionResponse {
   evaluation: I_EvaluationToResolve
   appointment_id: T_AppointmentId
   appointment_pin: number | null
-  student_personal_id: number
+  student_personal_id: string
   resolution: {
     last_uploaded_state: null | I_ResolutionState
     started_at: string
@@ -67,7 +67,7 @@ type T_ResolutionState_MultipleChoiceAnswerData = I_ResolutionState_BaseAnswer<
 >
 interface I_ResolutionState {
   appointment_id: T_AppointmentId
-  student_personal_id: number
+  student_personal_id: string
   last_login_datetime: string
   last_update_datetime: string | null
   answers: Record<T_QuestionId, T_ResolutionState_NumericAnswerData | T_ResolutionState_MultipleChoiceAnswerData | T_ResolutionState_OpenEndedAnswerData>

@@ -78,7 +78,7 @@ const columns = (
   ]
 
   if (canViewStudentDni) {
-    baseColumns.unshift({ field: 'personal_id', headerName: 'DNI', flex: 1 })
+    baseColumns.unshift({ field: 'personal_id', headerName: 'DNI o Pasaporte', flex: 1 })
   }
 
   return baseColumns
@@ -117,7 +117,7 @@ const StudentsProfileSelector = ({ schoolId, addedStudents, onAddedStudentsChang
   })
 
   const hasSelection = rowSelectionModel.length > 0
-  const searchHelperText = canViewStudentDni ? 'Por DNI o división' : 'Por ID o división'
+  const searchHelperText = canViewStudentDni ? 'Por DNI o Pasaporte, o división' : 'Por ID o división'
 
   const { data: students, isLoading, reload } = useStudentProfileListBySchool(
     {

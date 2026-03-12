@@ -19,7 +19,7 @@ interface I_AppointmentResolutionProcessDetail {
   resolutions: Array<{
     id: T_ResolutionId
     student_id: T_StudentProfileId
-    student_personal_id: number | null
+    student_personal_id: string | null
     right_resolutions: string
     total_question_resolutions: number
     started_at: string

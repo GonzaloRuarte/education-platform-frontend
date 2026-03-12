@@ -17,7 +17,7 @@ import { GridColDef } from '@mui/x-data-grid'
 import { useParams } from 'next/navigation'
 
 const baseColumns: Array<GridColDef> = [
-  { field: 'student_personal_id', headerName: 'DNI' },
+  { field: 'student_personal_id', headerName: 'DNI o Pasaporte' },
   { field: 'total_question_resolutions', headerName: 'Cantidad de respuestas', flex: 1 },
   {
     field: 'elapsed_time',

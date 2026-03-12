@@ -80,7 +80,7 @@ const StudentProfilesBatchCreatePageContent = ({ selectedSchool, availableSchool
         <Grid container spacing={12}>
           <Grid size={7}>
             <Body1>
-              Se cargarán los estudiantes incluidos en el archivo Excel. Si alguno ya existe en el sistema (identificado por su DNI), sus datos se actualizarán automáticamente con la información proporcionada en el archivo.
+              Se cargarán los estudiantes incluidos en el archivo Excel. Si alguno ya existe en el sistema (identificado por su DNI o Pasaporte), sus datos se actualizarán automáticamente con la información proporcionada en el archivo.
             </Body1>
             <Spacer />
             <form onSubmit={handleSubmit(onSubmit)} encType="multipart/form-data">

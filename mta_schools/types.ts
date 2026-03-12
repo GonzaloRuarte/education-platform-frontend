@@ -5,7 +5,7 @@ type T_SchoolId = number
 type T_GroupingId = number
 type T_StudentProfileId = number
 type T_SchoolStaffProfileId = number
-type T_StudentProfilePersonalId = number | null
+type T_StudentProfilePersonalId = string | null
 type T_ExecutiveProfileId = number
 type T_GroupingStaffProfileId = number
 type T_GroupingStaffAnonymizedProfileId = number
@@ -70,7 +70,7 @@ interface I_SchoolCreateRequestData {
 }
 interface I_StudentProfileCreateRequestData {
   cohort: string
-  personal_id: number
+  personal_id: string
   school_id: T_SchoolId
 }
 type T_StudentProfileBatchCreateRequestData = FormData

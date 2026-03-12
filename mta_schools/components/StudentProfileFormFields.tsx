@@ -11,7 +11,7 @@ import { useWatch, Control } from 'react-hook-form'
 
 export interface I_FormFields {
   cohort: string
-  personal_id: number | '' | null
+  personal_id: string | '' | null
   school_id: T_SchoolId
 }
 
@@ -36,12 +36,11 @@ const StudentProfileFormFields = ({ control, schoolOptions, lockSchool = false }
           name="personal_id"
           rules={{
             ...rules.required(),
-            ...rules.minLength(8),
-            ...rules.pattern(/^\d{8,10}$/, 'Ingrese un DNI válido de 8 a 10 dígitos'),
+            ...rules.pattern(/^(?:\d{8}|[A-Za-z0-9]{9})$/, 'Ingrese un DNI o Pasaporte válido (8 numéricos o 9 alfanuméricos sin ñ)'),
           }}
-          label="DNI"
+          label="DNI o Pasaporte"
           type="text"
-          inputProps={{ inputMode: 'numeric', pattern: '\d*', maxLength: 10 }}
+          inputProps={{ autoCapitalize: 'characters', maxLength: 9 }}
         />
       )}
       {schoolId !== undefined && (

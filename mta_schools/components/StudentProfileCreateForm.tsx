@@ -12,7 +12,7 @@ import { sentence } from '@/shared/utils'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 
-const normalizePersonalId = (value: number | string | '' | null) => Number(String(value ?? '').replace(/\D/g, ''))
+const normalizePersonalId = (value: string | '' | null) => String(value ?? '').trim().toUpperCase()
 
 interface I_Props {
   selectedSchool: I_SchoolName | null
