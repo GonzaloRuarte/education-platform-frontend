@@ -16,6 +16,7 @@ const evaluationLabels = {
   create: 'Crear',
   pages: 'Páginas de evaluación',
   addPage: 'Agregar página',
+
 }
 
 const evaluationPageLabels = {
@@ -49,11 +50,5 @@ const numericLabels = {
   value: 'Valor',
 }
 
-export {
-  evaluationLabels,
-  evaluationPageLabels,
-  evaluationStatusCodeToLabels,
-  multipleChoiceLabels,
-  questionLabels,
-  numericLabels,
-}
+
+export { evaluationLabels, evaluationPageLabels, evaluationStatusCodeToLabels, multipleChoiceLabels, questionLabels, numericLabels }
