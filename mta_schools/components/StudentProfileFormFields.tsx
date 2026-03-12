@@ -5,14 +5,16 @@ import { CohortSelectControlled } from '@/mta_schools/components/CohortSelect'
 import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
 import { T_SchoolNames, T_SchoolId } from '@/mta_schools/types'
 import InputControlled from '@/shared/forms/InputControlled'
+import Select from '@/shared/forms/Select'
 import { rules } from '@/shared/forms/messages'
 import MagicGrid from '@/shared/components/MagicGrid'
-import { useWatch, Control } from 'react-hook-form'
+import { useWatch, Control, useController } from 'react-hook-form'
 
 export interface I_FormFields {
   cohort: string
   personal_id: string | '' | null
   school_id: T_SchoolId
+  nee: boolean
 }
 
 interface I_Props {
@@ -24,6 +26,7 @@ interface I_Props {
 const StudentProfileFormFields = ({ control, schoolOptions, lockSchool = false }: I_Props) => {
   const schoolId = useWatch({ control, name: 'school_id' })
   const canViewStudentDni = useHasCapabilities(['view_student_dni'])
+  const { field: neeField } = useController({ name: 'nee', control })
 
   return (
     <MagicGrid>
@@ -43,6 +46,15 @@ const StudentProfileFormFields = ({ control, schoolOptions, lockSchool = false }
           inputProps={{ autoCapitalize: 'characters', maxLength: 9 }}
         />
       )}
+      <Select
+        label="NEE"
+        value={neeField.value === true ? 'true' : neeField.value === false ? 'false' : undefined}
+        onChange={(value) => neeField.onChange(value === 'true')}
+        options={[
+          { value: 'false', label: 'No' },
+          { value: 'true', label: 'Sí' },
+        ]}
+      />
       {schoolId !== undefined && (
         <CohortSelectControlled
           control={control}

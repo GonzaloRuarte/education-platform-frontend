@@ -58,6 +58,7 @@ interface I_StudentProfileDetail {
   id: T_StudentProfileId
   personal_id: T_StudentProfilePersonalId
   cohort: string
+  nee: boolean
   user_id: T_UserId
   school_id: T_SchoolId
 }
@@ -72,6 +73,7 @@ interface I_StudentProfileCreateRequestData {
   cohort: string
   personal_id: string
   school_id: T_SchoolId
+  nee: boolean
 }
 type T_StudentProfileBatchCreateRequestData = FormData
 
@@ -102,6 +104,7 @@ interface I_StudentProfileListItem {
   updated_at: string
   school: string
   personal_id: T_StudentProfilePersonalId
+  nee: boolean
 }
 
 type T_StudentProfileList = I_PaginatedResponse<I_StudentProfileListItem>

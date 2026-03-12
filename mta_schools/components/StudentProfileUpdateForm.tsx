@@ -6,13 +6,13 @@ import { useNavigateToStudentProfileList, useStudentProfileUpdate } from '@/mta_
 import { I_SchoolName, I_StudentProfileDetail, T_SchoolNames } from '@/mta_schools/types'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
-
-const normalizePersonalId = (value: string | '' | null) => String(value ?? '').trim().toUpperCase()
 import { useInProgress } from '@/shared/hooks'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { sentence } from '@/shared/utils'
 import { SubmitHandler, useForm } from 'react-hook-form'
+
+const normalizePersonalId = (value: string | '' | null) => String(value ?? '').trim().toUpperCase()
 
 interface I_Props {
   studentProfileData: I_StudentProfileDetail
@@ -27,6 +27,7 @@ const StudentProfileUpdateForm = ({ studentProfileData, selectedSchool, availabl
       cohort: studentProfileData.cohort,
       personal_id: studentProfileData.personal_id,
       school_id: studentProfileData.school_id ?? selectedSchool?.id,
+      nee: studentProfileData.nee ?? false,
     },
   })
 

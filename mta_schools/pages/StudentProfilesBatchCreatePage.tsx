@@ -80,7 +80,7 @@ const StudentProfilesBatchCreatePageContent = ({ selectedSchool, availableSchool
         <Grid container spacing={12}>
           <Grid size={7}>
             <Body1>
-              Se cargarán los estudiantes incluidos en el archivo Excel. Si alguno ya existe en el sistema (identificado por su DNI o Pasaporte), sus datos se actualizarán automáticamente con la información proporcionada en el archivo.
+              Se cargarán los estudiantes incluidos en el archivo Excel. Si alguno ya existe en el sistema (identificado por su DNI o Pasaporte), sus datos se actualizarán automáticamente con la información proporcionada en el archivo, incluyendo si es NEE.
             </Body1>
             <Spacer />
             <form onSubmit={handleSubmit(onSubmit)} encType="multipart/form-data">
@@ -123,7 +123,7 @@ const StudentProfilesBatchCreatePageContent = ({ selectedSchool, availableSchool
               <H4>Archivo base</H4>
               <Spacer />
               <Body1>
-                Descargá este archivo: es la plantilla oficial que debés usar para cargar los datos de los nuevos alumnos. Por favor, no lo reemplaces por otro formato.
+                Descargá este archivo: es la plantilla oficial que debés usar para cargar los datos de los nuevos alumnos. Incluye una columna NEE para completar con Sí o No. Por favor, no lo reemplaces por otro formato.
               </Body1>
               <Spacer />
               <Button LinkComponent={Link} href="/Meta--PlanillaBaseAlumnos.xlsx">
