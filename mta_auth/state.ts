@@ -23,7 +23,7 @@ const initialState: I_AuthSliceDataFields = {
 
 const createAuthSlice: StateCreator<I_AuthSlice, [], [], I_AuthSlice> = (set) => ({
   ...initialState,
-  
+
   auth_storeAuthData: (data) =>
     set(() => ({
       auth_accessToken: data.accessToken,
