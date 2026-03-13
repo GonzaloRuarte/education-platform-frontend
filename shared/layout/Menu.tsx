@@ -1,6 +1,7 @@
 'use client'
 
 import { RRCC } from '@/mta_auth/components/RestrictedContent'
+import { useHasCapabilities } from '@/mta_auth/hooks'
 import P from '@/pages'
 import MagicGrid from '@/shared/components/MagicGrid'
 import MenuBlock from '@/shared/layout/MenuBlock'
@@ -35,6 +36,8 @@ const SkeletonMenu = () => {
 
 const Menu = () => {
   const isClient = useIsClient()
+  const canManageExecutives = useHasCapabilities(['manage_executives'])
+  const canManageAdminUsers = useHasCapabilities(['manage_admin_users'])
   if (!isClient) return <SkeletonMenu />
 
   return (
@@ -120,6 +123,10 @@ const Menu = () => {
         <RRCC allowedCapabilities={['manage_school_staff']}>
           <MenuItem Icon={BadgeIcon} label={P.D._.usuarios._.responsableInstitucional.label} href={P.D._.usuarios._.responsableInstitucional.path} />
         </RRCC>
+
+        {canManageExecutives && !canManageAdminUsers && (
+          <MenuItem Icon={BadgeIcon} label={P.D._.usuarios._.responsableEjecutivo.label} href={P.D._.usuarios._.responsableEjecutivo.path} />
+        )}
 
         <RRCC allowedCapabilities={['view_reports']}>
           <MenuItem

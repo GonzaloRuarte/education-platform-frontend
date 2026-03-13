@@ -1,6 +1,6 @@
 'use client'
 
-import { useSchoolScopeResources } from '@/mta_schools/hooks/state'
+import { useSchoolAllNames } from '@/mta_schools/hooks'
 import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
 import { T_SchoolId } from '@/mta_schools/types'
 import MagicGrid from '@/shared/components/MagicGrid'
@@ -26,9 +26,11 @@ interface I_FormFields {
 
 const SchoolStaffProfileFormFields = ({ control, excludePassword = false }) => {
   const password = useWatch({ control, name: 'password' })
-  const { accessibleSchools, hasSingleSchool, isLoading } = useSchoolScopeResources()
+  const { data: schools, isLoading } = useSchoolAllNames()
 
-  if (isLoading || accessibleSchools === undefined) return <Spinner />
+  if (isLoading || schools === undefined) return <Spinner />
+
+  const hasSingleSchool = schools.length === 1
 
   return (
     <MagicGrid>
@@ -37,7 +39,7 @@ const SchoolStaffProfileFormFields = ({ control, excludePassword = false }) => {
         name="school_id"
         rules={{ ...rules.required() }}
         label="Escuela"
-        options={accessibleSchools}
+        options={schools}
         disabled={!!hasSingleSchool}
       />
       <Spacer size="xs" />

@@ -43,7 +43,7 @@ const listHookV3 = <T_Path extends string, T_Response>(
         fetcher()
           .then((res) => setData(res))
           .finally(setIsNotInProgress)
-      }, [options?.page, options?.page_size, options?.filters, options?.sort, options?.externalFilters]),
+      }, [resolvedPath, options?.page, options?.page_size, options?.filters, options?.sort, options?.externalFilters]),
       250,
     )
 

@@ -17,7 +17,7 @@ import { Body1, H4 } from '@/shared/components/Typography'
 import { useInProgress } from '@/shared/hooks'
 
 import { handleServiceError } from '@/shared/service'
-import { errorToast, successToast } from '@/shared/toasts'
+import { errorToast, successToast, warningToast } from '@/shared/toasts'
 import { sentence } from '@/shared/utils'
 import { TextField } from '@mui/material'
 import Grid from '@mui/material/Grid2'
@@ -60,8 +60,17 @@ const StudentProfilesBatchCreatePageContent = ({ selectedSchool, availableSchool
 
     setIsInProgress()
     batchCreate(formData)
-      .then(() => {
-        successToast(sentence(`${STUDENT_PROFILE_NAME.plural} creados correctamente`))
+      .then((response: unknown) => {
+        if (Array.isArray(response) && response.length === 0) {
+          warningToast('La carga finalizó pero no se encontró ninguna fila válida para importar. Revisá que la planilla tenga la columna DNI o Pasaporte y al menos un alumno completo.')
+          return
+        }
+
+        if (Array.isArray(response)) {
+          successToast(sentence(`${response.length} ${STUDENT_PROFILE_NAME.plural} procesados correctamente`))
+        } else {
+          successToast(sentence(`${STUDENT_PROFILE_NAME.plural} creados correctamente`))
+        }
         backToList()
       })
       .catch(handleServiceError)
