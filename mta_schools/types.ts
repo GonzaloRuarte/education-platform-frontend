@@ -59,6 +59,7 @@ interface I_StudentProfileDetail {
   personal_id: T_StudentProfilePersonalId
   cohort: string
   nee: boolean
+  nee_comments?: string
   user_id: T_UserId
   school_id: T_SchoolId
 }
@@ -74,6 +75,7 @@ interface I_StudentProfileCreateRequestData {
   personal_id: string
   school_id: T_SchoolId
   nee: boolean
+  nee_comments?: string
 }
 type T_StudentProfileBatchCreateRequestData = FormData
 

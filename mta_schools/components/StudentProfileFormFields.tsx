@@ -15,6 +15,7 @@ export interface I_FormFields {
   personal_id: string | '' | null
   school_id: T_SchoolId
   nee: boolean
+  nee_comments: string
 }
 
 interface I_Props {
@@ -55,6 +56,15 @@ const StudentProfileFormFields = ({ control, schoolOptions, lockSchool = false }
           { value: 'true', label: 'Sí' },
         ]}
       />
+      {neeField.value === true && (
+        <InputControlled<I_FormFields>
+          control={control}
+          name="nee_comments"
+          label="Comentarios NEE"
+          multiline
+          rows={3}
+        />
+      )}
       {schoolId !== undefined && (
         <CohortSelectControlled
           control={control}

@@ -28,6 +28,7 @@ const StudentProfileUpdateForm = ({ studentProfileData, selectedSchool, availabl
       personal_id: studentProfileData.personal_id,
       school_id: studentProfileData.school_id ?? selectedSchool?.id,
       nee: studentProfileData.nee ?? false,
+      nee_comments: studentProfileData.nee_comments ?? '',
     },
   })
 

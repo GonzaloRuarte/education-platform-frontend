@@ -27,6 +27,7 @@ const StudentProfileCreateForm = ({ selectedSchool, availableSchools, lockSchool
       personal_id: '',
       school_id: selectedSchool !== null ? selectedSchool.id : undefined,
       nee: false,
+      nee_comments: '',
     },
   })
 
