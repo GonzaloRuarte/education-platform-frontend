@@ -1,10 +1,13 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
-import { useUserProfilesResources } from '@/mta_auth/hooks'
+import { useHasCapabilities } from '@/mta_auth/hooks'
 import { APPOINTMENT_RESOLUTION_PROCESS_NAME } from '@/mta_resolutions/constants'
 import { useNavigateToARPDetail, useARPList, useARPListByUserSchool } from '@/mta_resolutions/hooks/arp'
+import { useSchoolScopeResources } from '@/mta_schools/hooks/state'
 import Spinner from '@/shared/components/Spinner'
+import Page from '@/shared/components/Page'
+import { Alert } from '@mui/material'
 import ListPage from '@/shared/pages/ListPage'
 import { idExposeColumn } from '@/shared/pages/utils'
 import { GridColDef } from '@mui/x-data-grid'
@@ -77,21 +80,38 @@ const columns: Array<GridColDef> = [
 
 const AppointmentResolutionProcessListPage = () => {
   const navigateToDetail = useNavigateToARPDetail()
-  const { isAdmin } = useUserProfilesResources()
+  const canManageAppointmentSlots = useHasCapabilities(['manage_appointment_slots'])
+  const { selectedSchool, isLoading, shouldSelectSchool } = useSchoolScopeResources()
 
-  if (isAdmin === undefined) return <Spinner />
+  if (isLoading) return <Spinner />
+
+  if (!canManageAppointmentSlots && shouldSelectSchool && selectedSchool === null) {
+    return (
+      <Page>
+        <Page.Title>Listado de {APPOINTMENT_RESOLUTION_PROCESS_NAME.plural}</Page.Title>
+        <Page.Content>
+          <Alert severity="info">Seleccioná una escuela para ver los procesos de evaluación.</Alert>
+        </Page.Content>
+      </Page>
+    )
+  }
+
+  const filtersData = !canManageAppointmentSlots && selectedSchool !== null ? { school_id: selectedSchool?.id } : undefined
+  const stateKey = !canManageAppointmentSlots ? `scope-${selectedSchool?.id ?? 'all-accessible'}` : undefined
 
   return (
     <ListPage
       columns={columns}
-      useList={isAdmin ? useARPList : useARPListByUserSchool}
+      useList={canManageAppointmentSlots ? useARPList : useARPListByUserSchool}
       entityName={APPOINTMENT_RESOLUTION_PROCESS_NAME}
       onRowClick={ListPage.mapNavToOnRowClick(navigateToDetail)}
+      filtersData={filtersData}
+      stateKey={stateKey}
     />
   )
 }
 
 export default withAuth(AppointmentResolutionProcessListPage, {
-  allowedUserProfiles: ['admin', 'school_staff', 'executive'],
+  allowedCapabilities: ['view_reports'],
   logoutDestination: 'dashboard',
 })

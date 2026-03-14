@@ -75,7 +75,7 @@ const DEV_APPOINTMENT_PREPARE_TEST_PATH = '/development/appointments/prepare-tes
 const useDevAppointmentPrepareTest = actionHookV3<
   typeof DEV_APPOINTMENT_PREPARE_TEST_PATH,
   T_EmptyPayload,
-  { message: string; appointment_id: number; pin: number; student_personal_id: number }
+  { message: string; appointment_id: number; pin: number; student_personal_id: string }
 >(DEV_APPOINTMENT_PREPARE_TEST_PATH, axiosPost, useAuthResources)
 
 const DEV_APPOINTMENT_LIST_TEST_PATH = '/development/appointments/list-test/'

@@ -1,31 +1,38 @@
 'use client'
 
+import { GroupingMultiSelectControlled } from '@/mta_schools/components/GroupingSelect'
 import { useNavigateToSchoolList, useSchoolUpdate } from '@/mta_schools/hooks'
 import { I_SchoolDetail, I_SchoolUpdateRequestData } from '@/mta_schools/types'
-import InputControlled from '@/shared/forms/InputControlled'
 import MagicGrid from '@/shared/components/MagicGrid'
+import Chip from '@/shared/components/Chip'
+import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
+import { H4 } from '@/shared/components/Typography'
+import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
 import { useInProgress } from '@/shared/hooks'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
-import { SubmitHandler, useForm } from 'react-hook-form'
-import Spacer from '@/shared/components/Spacer'
-import { H4 } from '@/shared/components/Typography'
-import Chip from '@/shared/components/Chip'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import Link from 'next/link'
 import pages from '@/pages'
+import { SubmitHandler, useForm } from 'react-hook-form'
 
 interface I_FormFields extends I_SchoolUpdateRequestData {}
 
 interface I_Props {
   data: I_SchoolDetail
 }
-const SchoolCreateForm = ({ data }: I_Props) => {
+
+const SchoolEditForm = ({ data }: I_Props) => {
   const { handleSubmit, control } = useForm<I_FormFields>({
     defaultValues: {
-      ...data,
+      name: data.name,
+      district: data.district,
+      contact_email: data.contact_email,
+      max_executives: data.max_executives,
+      meta_id: data.meta_id,
+      group_ids: data.groups.map((group) => group.id),
     },
   })
 
@@ -45,6 +52,7 @@ const SchoolCreateForm = ({ data }: I_Props) => {
         setInProgressStatus(false)
       })
   }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
@@ -64,34 +72,32 @@ const SchoolCreateForm = ({ data }: I_Props) => {
           rules={{ ...rules.required() }}
           label="Máximo de Responsables Ejecutivos"
         />
-          <InputControlled<I_FormFields>
+        <InputControlled<I_FormFields>
           control={control}
           type="number"
           name="meta_id"
           rules={{ ...rules.required() }}
           label="Meta ID"
         />
+        <GroupingMultiSelectControlled<I_FormFields> control={control} name="group_ids" label="Agrupamientos" />
       </MagicGrid>
       <Spacer />
-      <H4>Staff</H4>
+      <H4>Responsables institucionales</H4>
       <Spacer size="s" />
       <MagicGrid itemSize="auto">
-        {data.staff.map((member) => {
-          return (
-            <Link
-              key={member.school_staff_id}
-              href={`${pages.D._.usuarios._.responsableInstitucional.path}/${member.school_staff_id}`}
-            >
-              <Chip icon={<AccountCircleIcon />} label={`${member.full_name} <${member.email}>`} />
-            </Link>
-          )
-        })}
+        {data.staff.map((member) => (
+          <Link
+            key={member.school_staff_id}
+            href={`${pages.D._.usuarios._.responsableInstitucional.path}/${member.school_staff_id}`}
+          >
+            <Chip icon={<AccountCircleIcon />} label={`${member.full_name} <${member.email}>`} />
+          </Link>
+        ))}
       </MagicGrid>
       <Spacer />
-
       <Submit>Guardar</Submit>
     </form>
   )
 }
 
-export default SchoolCreateForm
+export default SchoolEditForm

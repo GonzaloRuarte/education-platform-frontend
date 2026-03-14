@@ -1,13 +1,16 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
+import { useHasCapabilities } from '@/mta_auth/hooks'
 import { SCHOOL_STAFF_PROFILE_NAME } from '@/mta_schools/constants'
 import {
   useNavigateToSchoolStaffProfileCreate,
   useNavigateToSchoolStaffProfileDetail,
   useSchoolStaffProfileBatchDelete,
   useSchoolStaffProfileList,
+  useSchoolStaffProfileListByUserSchool,
 } from '@/mta_schools/hooks'
+import { useSchoolScopeResources } from '@/mta_schools/hooks/state'
 import { I_SchoolStaffProfileListItem } from '@/mta_schools/types'
 import ListPage from '@/shared/pages/ListPage'
 import { idExposeColumn } from '@/shared/pages/utils'
@@ -26,20 +29,25 @@ const columns: Array<GridColDef<I_SchoolStaffProfileListItem>> = [
 const SchoolStaffProfileListPage = () => {
   const navToDetail = useNavigateToSchoolStaffProfileDetail()
   const navToCreate = useNavigateToSchoolStaffProfileCreate()
+  const canManageSchools = useHasCapabilities(['manage_schools'])
+  const { selectedSchool, isLoading } = useSchoolScopeResources()
+  const useListHook = canManageSchools ? useSchoolStaffProfileList : useSchoolStaffProfileListByUserSchool
 
   return (
     <ListPage
       columns={columns}
-      useList={useSchoolStaffProfileList}
+      useList={useListHook}
       entityName={SCHOOL_STAFF_PROFILE_NAME}
       onRowClick={ListPage.mapNavToOnRowClick(navToDetail)}
       onCreate={navToCreate}
       useBatchDelete={useSchoolStaffProfileBatchDelete}
+      filtersData={!isLoading && selectedSchool !== undefined && selectedSchool !== null ? { school_id: selectedSchool.id } : undefined}
+      stateKey={!isLoading && selectedSchool !== undefined && selectedSchool !== null ? `school-${selectedSchool.id}` : undefined}
     />
   )
 }
 
 export default withAuth(SchoolStaffProfileListPage, {
-  allowedUserProfiles: ['admin'],
+  allowedCapabilities: ['manage_school_staff'],
   logoutDestination: 'dashboard',
 })

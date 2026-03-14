@@ -1,14 +1,14 @@
-import { useUserProfiles } from '@/mta_auth/hooks'
-import { T_UserProfiles } from '@/mta_users/types'
+import { useHasCapabilities } from '@/mta_auth/hooks'
+import { T_UserCapability } from '@/mta_auth/types'
 import React, { FC } from 'react'
 
-const RestrictedContent: FC<{ allowedProfiles: Array<T_UserProfiles>; children: React.ReactNode }> = ({
-  allowedProfiles,
-  children,
-}) => {
-  const profiles = useUserProfiles()
-  const isAuthorized = profiles?.some((profile) => allowedProfiles.includes(profile))
-  if (!isAuthorized) {
+const RestrictedContent: FC<{
+  allowedCapabilities?: Array<T_UserCapability>
+  children: React.ReactNode
+}> = ({ allowedCapabilities, children }) => {
+  const hasCapabilities = useHasCapabilities(allowedCapabilities)
+
+  if (!hasCapabilities) {
     return <></>
   }
   return <>{children}</>

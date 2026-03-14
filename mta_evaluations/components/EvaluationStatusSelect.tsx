@@ -1,7 +1,6 @@
-import { useUserProfilesResources } from '@/mta_auth/hooks'
+import { useHasCapabilities } from '@/mta_auth/hooks'
 import { evaluationStatusCodeToLabels } from '@/mta_evaluations/labels'
 import { EvaluationStatus } from '@/mta_evaluations/types'
-import Spinner from '@/shared/components/Spinner'
 import { Body1 } from '@/shared/components/Typography'
 import { FormControl, FormHelperText, InputLabel, MenuItem, Select, SelectProps } from '@mui/material'
 import React from 'react'
@@ -16,9 +15,8 @@ export const EvaluationStatusSelect: React.FC<{
   size?: SelectProps['size']
   fullwidth?: SelectProps['fullWidth']
 }> = ({ value, onChange, label = 'Seleccionar estado', error, helperText, size, fullwidth }) => {
-  const { isEvaluator } = useUserProfilesResources()
-  if (isEvaluator === undefined) return <Spinner />
-  if (isEvaluator) return <></>
+  const canManageWorkflow = useHasCapabilities(['manage_evaluation_workflow'])
+  if (!canManageWorkflow) return <></>
 
   return (
     <FormControl fullWidth={fullwidth} error={error}>

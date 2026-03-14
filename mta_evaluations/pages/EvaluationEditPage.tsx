@@ -32,6 +32,6 @@ const EvaluationEditPage = () => {
 }
 
 export default withAuth(EvaluationEditPage, {
-  allowedUserProfiles: ['admin', 'evaluator'],
+  allowedCapabilities: ['manage_evaluation_content'],
   logoutDestination: 'dashboard',
 })

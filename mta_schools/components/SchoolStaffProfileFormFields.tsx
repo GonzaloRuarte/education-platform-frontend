@@ -1,5 +1,6 @@
 'use client'
 
+import { useSchoolAllNames } from '@/mta_schools/hooks'
 import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
 import { T_SchoolId } from '@/mta_schools/types'
 import MagicGrid from '@/shared/components/MagicGrid'
@@ -8,6 +9,8 @@ import InputControlled from '@/shared/forms/InputControlled'
 import { rules } from '@/shared/forms/messages'
 import { useWatch } from 'react-hook-form'
 import PasswordField from '@/shared/components/PasswordField'
+import Spinner from '@/shared/components/Spinner'
+
 interface I_FormFields {
   school_id: T_SchoolId
   username: string
@@ -23,10 +26,22 @@ interface I_FormFields {
 
 const SchoolStaffProfileFormFields = ({ control, excludePassword = false }) => {
   const password = useWatch({ control, name: 'password' })
+  const { data: schools, isLoading } = useSchoolAllNames()
+
+  if (isLoading || schools === undefined) return <Spinner />
+
+  const hasSingleSchool = schools.length === 1
 
   return (
     <MagicGrid>
-      <SchoolSelectControlled control={control} name="school_id" rules={{ ...rules.required() }} label="Escuela" />
+      <SchoolSelectControlled
+        control={control}
+        name="school_id"
+        rules={{ ...rules.required() }}
+        label="Escuela"
+        options={schools}
+        disabled={!!hasSingleSchool}
+      />
       <Spacer size="xs" />
       <InputControlled<I_FormFields>
         control={control}
@@ -104,13 +119,7 @@ const SchoolStaffProfileFormFields = ({ control, excludePassword = false }) => {
         label="Celular"
         type="tel"
       />
-      <InputControlled<I_FormFields>
-        control={control}
-        name="position"
-
-        label="Cargo"
-        type="text"
-      />
+      <InputControlled<I_FormFields> control={control} name="position" label="Cargo" type="text" />
     </MagicGrid>
   )
 }

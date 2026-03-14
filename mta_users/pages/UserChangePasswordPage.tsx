@@ -10,11 +10,9 @@ import Submit from '@/shared/components/Submit'
 import { rules } from '@/shared/forms/messages'
 import { useInProgress } from '@/shared/hooks'
 import { successToast } from '@/shared/toasts'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useForm, useWatch } from 'react-hook-form'
 import PasswordField from '@/shared/components/PasswordField'
-import { useNavigateToExecutiveProfileList } from '@/mta_schools/hooks'
-import { useUserProfilesResources } from '@/mta_auth/hooks'
 
 interface I_FormFields {
   // old_password: string
@@ -23,18 +21,16 @@ interface I_FormFields {
 }
 const UserChangePasswordPage = () => {
   const { userId } = useParams()
-  const { isAdmin, isSchoolStaff, isExecutive } = useUserProfilesResources()
+  const router = useRouter()
   const navigateToUserList = useNavigateToUserList()
-  const navigateToExecutiveList = useNavigateToExecutiveProfileList()
 
-  let navToList: () => void = () => {}
-
-  if (isAdmin) {
-    navToList = navigateToUserList
-  } else if (isSchoolStaff) {
-    navToList = navigateToExecutiveList
+  const navToList = () => {
+    if (window.history.length > 1) {
+      router.back()
+      return
+    }
+    navigateToUserList()
   }
-
 
   const { executeAction: changePassword } = useUserChangePassword({ id: Number(userId) }, useInProgress)
   const { handleSubmit, control } = useForm<I_FormFields>({
@@ -96,4 +92,4 @@ const UserChangePasswordPage = () => {
   )
 }
 
-export default withAuth(UserChangePasswordPage, { logoutDestination: 'dashboard', allowedUserProfiles: ['admin', 'school_staff'] })
+export default withAuth(UserChangePasswordPage, { logoutDestination: 'dashboard', allowedCapabilities: ['change_user_passwords'] })

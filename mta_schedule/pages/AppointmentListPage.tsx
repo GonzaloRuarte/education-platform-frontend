@@ -292,6 +292,6 @@ const AppointmentListPage = () => {
 }
 
 export default withAuth(AppointmentListPage, {
-  allowedUserProfiles: ['admin'],
+  allowedCapabilities: ['manage_appointment_slots'],
   logoutDestination: 'dashboard',
 })

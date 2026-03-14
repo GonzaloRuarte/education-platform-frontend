@@ -1,42 +1,54 @@
-import { AppointmentOccurrenceStatus, AppointmentStatus, I_AppointmentSchoolCardItem } from '@/mta_schedule/types'
 import AppointmentBriefCard from '@/mta_schedule/components/AppointmentBriefCard'
+import RescheduleDialog from '@/mta_schedule/components/AppointmentRescheduleDialog'
 import { useNavigateToAppointmentDetail, useNavigateToAppointmentEditStudents } from '@/mta_schedule/hooks'
+import { AppointmentOccurrenceStatus, AppointmentStatus, I_AppointmentSchoolCardItem } from '@/mta_schedule/types'
 import Bold from '@/shared/components/Bold'
 import Button from '@/shared/components/Button'
 import MagicGrid from '@/shared/components/MagicGrid'
-import Box from '@mui/material/Box'
 import { Body1 } from '@/shared/components/Typography'
+import Box from '@mui/material/Box'
 import { useState } from 'react'
-import RescheduleDialog from '@/mta_schedule/components/AppointmentRescheduleDialog'
 
 interface I_Props {
   data: I_AppointmentSchoolCardItem
   onRescheduled?: () => void
-  isSchoolStaff?: boolean
+  canViewDetail?: boolean
+  canEditStudents?: boolean
+  canReschedule?: boolean
 }
 
-const AppointmentSchoolCard = ({ data, onRescheduled, isSchoolStaff }: I_Props) => {
+const AppointmentSchoolCard = ({
+  data,
+  onRescheduled,
+  canViewDetail = true,
+  canEditStudents = true,
+  canReschedule = true,
+}: I_Props) => {
   const navToEditStudents = useNavigateToAppointmentEditStudents()
   const navToDetail = useNavigateToAppointmentDetail()
   const [open, setOpen] = useState(false)
 
-  const handleEditStudents = () => {
-    navToEditStudents({ appointmentId: data.id })
-  }
+  const canManageStudentsForAppointment =
+    canEditStudents &&
+    (data.occurrence_status === AppointmentOccurrenceStatus.upcoming ||
+      data.occurrence_status === AppointmentOccurrenceStatus.ongoing) &&
+    data.status === AppointmentStatus.approved
+
+  const handleEditStudents = () => navToEditStudents({ appointmentId: data.id })
 
   return (
     <Box
-    sx={{
-      width: '100%',
-      backgroundColor: 'white',
-      boxShadow: 1,
-      borderRadius: 5,
-      p: { xs: 2, md: 3 },          // less padding on small screens
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 2,
-      boxSizing: 'border-box',
-    }}
+      sx={{
+        width: '100%',
+        backgroundColor: 'white',
+        boxShadow: 1,
+        borderRadius: 5,
+        p: { xs: 2, md: 3 },
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        boxSizing: 'border-box',
+      }}
     >
       <AppointmentBriefCard
         appointmentId={data.id}
@@ -51,36 +63,37 @@ const AppointmentSchoolCard = ({ data, onRescheduled, isSchoolStaff }: I_Props) 
         comments={data.comments}
       />
 
-      {/* Actions */}
       <MagicGrid>
         <Box display="flex" flexDirection="column" gap={2}>
-          {(data.occurrence_status === AppointmentOccurrenceStatus.upcoming ||
-            data.occurrence_status === AppointmentOccurrenceStatus.ongoing) &&
-            data.status === AppointmentStatus.approved && (
-              <>
-                <Body1>
-                  Estudiantes: <Bold>{data.student_count}</Bold>
-                </Body1>
+          {canManageStudentsForAppointment && (
+            <>
+              <Body1>
+                Estudiantes: <Bold>{data.student_count}</Bold>
+              </Body1>
 
-                {data.student_count === 0 ? (
-                  <Button fullWidth onClick={handleEditStudents}>
-                    Agregar estudiantes
-                  </Button>
-                ) : (
-                  <Button fullWidth color="secondary" onClick={handleEditStudents}>
-                    Editar estudiantes
-                  </Button>
-                )}
+              {data.student_count === 0 ? (
+                <Button fullWidth onClick={handleEditStudents}>
+                  Agregar estudiantes
+                </Button>
+              ) : (
+                <Button fullWidth color="secondary" onClick={handleEditStudents}>
+                  Editar estudiantes
+                </Button>
+              )}
 
+              {canReschedule && (
                 <Button fullWidth color="info" onClick={() => setOpen(true)}>
                   Reprogramar
                 </Button>
-              </>
-            )}
+              )}
+            </>
+          )}
 
-          <Button fullWidth onClick={() => navToDetail(data.id)}>
-            Ver detalle
-          </Button>
+          {canViewDetail && (
+            <Button fullWidth onClick={() => navToDetail(data.id)}>
+              Ver detalle
+            </Button>
+          )}
         </Box>
       </MagicGrid>
 

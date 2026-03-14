@@ -1,6 +1,5 @@
 'use client'
 
-
 import SubjectOptions from '@/mta_evaluations/components/SubjectOptions'
 import { T_EvaluationSubjectId } from '@/mta_evaluations/types'
 import AppointmentBriefCard from '@/mta_schedule/components/AppointmentBriefCard'
@@ -10,11 +9,11 @@ import {
   useNavigateToAppointmentList,
 } from '@/mta_schedule/hooks'
 import { I_AppointmentAvailable, T_AppointmentId } from '@/mta_schedule/types'
-import { availableDays } from '@/mta_schedule/utils'
+import { availableDays, distinctAvailableAppointments } from '@/mta_schedule/utils'
 import { SchoolGradeSelectControlled } from '@/mta_schools/components/SchoolGradeSelect'
 import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
 import { SchoolGrade } from '@/mta_schools/constants'
-import { I_SchoolName, T_SchoolId } from '@/mta_schools/types'
+import { I_SchoolName, T_SchoolId, T_SchoolNames } from '@/mta_schools/types'
 import MagicGrid from '@/shared/components/MagicGrid'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
@@ -30,7 +29,6 @@ import { FormLabel, Grid2 } from '@mui/material'
 import dayjs, { Dayjs } from 'dayjs'
 import { useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
-import { distinctAvailableAppointments } from '@/mta_schedule/utils'
 
 interface I_FormFields {
   appointment_id: T_AppointmentId
@@ -39,14 +37,15 @@ interface I_FormFields {
   evaluation_subject_id: T_EvaluationSubjectId | null
   grade: SchoolGrade
   date: Dayjs
-  comments:string
+  comments: string
 }
-
 
 interface I_Props {
-  ownSchoolData: I_SchoolName | null
+  selectedSchool: I_SchoolName | null
+  availableSchools: T_SchoolNames
+  lockSchool: boolean
 }
-const AppointmentRequestForm = ({ ownSchoolData }: I_Props) => {
+const AppointmentRequestForm = ({ selectedSchool, availableSchools, lockSchool }: I_Props) => {
   const { setIsInProgress, setIsNotInProgress } = useInProgress()
   const backToList = useNavigateToAppointmentList()
   const [refDate, setRefDate] = useState(dayjs())
@@ -64,14 +63,13 @@ const AppointmentRequestForm = ({ ownSchoolData }: I_Props) => {
       evaluation_subject_id: null,
       grade: undefined,
       pin: randomInt(1000, 9999),
-      school_id: ownSchoolData === null ? undefined : ownSchoolData.id,
+      school_id: selectedSchool === null ? undefined : selectedSchool.id,
       comments: '',
     },
   })
   const onSubmit: SubmitHandler<I_FormFields> = ({ date, ...data }) => {
-    const payload = { ...data }
     setIsInProgress()
-    requestAppointment(payload).then(backToList).catch(handleServiceError).finally(setIsNotInProgress)
+    requestAppointment({ ...data }).then(backToList).catch(handleServiceError).finally(setIsNotInProgress)
   }
 
   const appointment_id = watch('appointment_id')
@@ -79,8 +77,15 @@ const AppointmentRequestForm = ({ ownSchoolData }: I_Props) => {
   const handleDateChange = () => {
     if (appointmentFreeListByMonth === undefined) return
 
-    const choosenDate = getValues().date.date()
-    const availableOptions = appointmentFreeListByMonth[choosenDate]
+    const selectedDate = getValues('date')
+    if (selectedDate === undefined || selectedDate === null) {
+      setAppointmentOptions([])
+      setSelectedAppointmentData(null)
+      return
+    }
+
+    const choosenDate = selectedDate.date()
+    const availableOptions = appointmentFreeListByMonth[choosenDate] ?? []
 
     setAppointmentOptions(
       Object.entries(distinctAvailableAppointments(availableOptions)).map(([datetime, availbleAppointments]) => ({
@@ -92,19 +97,23 @@ const AppointmentRequestForm = ({ ownSchoolData }: I_Props) => {
 
   useEffect(() => {
     if (appointmentFreeListByMonth === undefined) return
-    const choosenDate = getValues('date').date()
-    setSelectedAppointmentData(
-      appointmentFreeListByMonth[choosenDate].find((appointment) => appointment.id === appointment_id) || null,
-    )
-  }, [appointment_id])
+
+    const selectedDate = getValues('date')
+    if (selectedDate === undefined || selectedDate === null) {
+      setSelectedAppointmentData(null)
+      return
+    }
+
+    const choosenDate = selectedDate.date()
+    const availableAppointments = appointmentFreeListByMonth[choosenDate] ?? []
+
+    setSelectedAppointmentData(availableAppointments.find((appointment) => appointment.id === appointment_id) || null)
+  }, [appointment_id, appointmentFreeListByMonth, getValues])
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Grid2 container spacing={3}>
-          <Grid2
-            size={{ xs: 12, md: 8, lg: 5 }}   // 👈 one prop instead of xs/md/lg
-            sx={{ minWidth: 280 }}
-          >
+        <Grid2 size={{ xs: 12, md: 8, lg: 5 }} sx={{ minWidth: 280 }}>
           {appointmentFreeListByMonth !== undefined && (
             <DateCalendarControlled
               onMonthChange={(newDate) => setRefDate(newDate)}
@@ -117,7 +126,7 @@ const AppointmentRequestForm = ({ ownSchoolData }: I_Props) => {
             />
           )}
         </Grid2>
-        <Grid2 size={{ xs: 12, md: 4, lg: 7}}>
+        <Grid2 size={{ xs: 12, md: 4, lg: 7 }}>
           {selectedAppointmentData !== null && (
             <>
               <AppointmentBriefCard
@@ -141,12 +150,10 @@ const AppointmentRequestForm = ({ ownSchoolData }: I_Props) => {
 
         <Grid2 size={12}>
           <MagicGrid>
-            {ownSchoolData === null ? (
-              <SchoolSelectControlled control={control} name="school_id" rules={{ ...rules.required() }} />
+            {!lockSchool ? (
+              <SchoolSelectControlled control={control} name="school_id" rules={{ ...rules.required() }} options={availableSchools} />
             ) : (
-              <>
-                <H4>{ownSchoolData.name}</H4>
-              </>
+              <H4>{selectedSchool?.name}</H4>
             )}
 
             <InputControlled control={control} name="pin" type="number" label="Pin" rules={{ ...rules.required() }} />

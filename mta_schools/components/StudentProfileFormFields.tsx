@@ -1,39 +1,70 @@
 'use client'
 
+import { useHasCapabilities } from '@/mta_auth/hooks'
 import { CohortSelectControlled } from '@/mta_schools/components/CohortSelect'
 import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
+import { T_SchoolNames, T_SchoolId } from '@/mta_schools/types'
 import InputControlled from '@/shared/forms/InputControlled'
+import Select from '@/shared/forms/Select'
 import { rules } from '@/shared/forms/messages'
 import MagicGrid from '@/shared/components/MagicGrid'
-import { useWatch, Control } from 'react-hook-form'
-import { T_SchoolId } from '@/mta_schools/types'
+import { useWatch, Control, useController } from 'react-hook-form'
 
 export interface I_FormFields {
   cohort: string
-  personal_id: number | ''
+  personal_id: string | '' | null
   school_id: T_SchoolId
+  nee: boolean
+  nee_comments: string
 }
 
 interface I_Props {
   control: Control<I_FormFields>
-  ownSchoolData: boolean
+  schoolOptions?: T_SchoolNames
+  lockSchool?: boolean
 }
 
-const StudentProfileFormFields = ({ control, ownSchoolData }: I_Props) => {
+const StudentProfileFormFields = ({ control, schoolOptions, lockSchool = false }: I_Props) => {
   const schoolId = useWatch({ control, name: 'school_id' })
+  const canViewStudentDni = useHasCapabilities(['view_student_dni'])
+  const { field: neeField } = useController({ name: 'nee', control })
 
   return (
     <MagicGrid>
-      {!ownSchoolData && (
-        <SchoolSelectControlled control={control} name="school_id" rules={{ ...rules.required() }} label="Escuela" />
+      {!lockSchool && (
+        <SchoolSelectControlled control={control} name="school_id" rules={{ ...rules.required() }} label="Escuela" options={schoolOptions} />
       )}
-      <InputControlled<I_FormFields>
-        control={control}
-        name="personal_id"
-        rules={{ ...rules.required(), ...rules.minLength(8) }}
-        label="DNI"
-        type="number"
+      {canViewStudentDni && (
+        <InputControlled<I_FormFields>
+          control={control}
+          name="personal_id"
+          rules={{
+            ...rules.required(),
+            ...rules.pattern(/^(?:\d{8}|[A-Za-z0-9]{9})$/, 'Ingrese un DNI o Pasaporte válido (8 numéricos o 9 alfanuméricos sin ñ)'),
+          }}
+          label="DNI o Pasaporte"
+          type="text"
+          inputProps={{ autoCapitalize: 'characters', maxLength: 9 }}
+        />
+      )}
+      <Select
+        label="NEE"
+        value={neeField.value === true ? 'true' : neeField.value === false ? 'false' : undefined}
+        onChange={(value) => neeField.onChange(value === 'true')}
+        options={[
+          { value: 'false', label: 'No' },
+          { value: 'true', label: 'Sí' },
+        ]}
       />
+      {neeField.value === true && (
+        <InputControlled<I_FormFields>
+          control={control}
+          name="nee_comments"
+          label="Comentarios NEE"
+          multiline
+          rows={3}
+        />
+      )}
       {schoolId !== undefined && (
         <CohortSelectControlled
           control={control}

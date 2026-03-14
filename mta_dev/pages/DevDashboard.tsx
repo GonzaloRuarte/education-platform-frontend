@@ -290,4 +290,4 @@ const DevDashboard = () => {
   )
 }
 
-export default withAuth(DevDashboard, { logoutDestination: 'dashboard', allowedUserProfiles: ['superuser'] })
+export default withAuth(DevDashboard, { logoutDestination: 'dashboard', allowedCapabilities: ['dev_access'] })

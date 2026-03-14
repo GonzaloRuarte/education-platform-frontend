@@ -1,7 +1,7 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
-import { useUserProfilesResources } from '@/mta_auth/hooks'
+import { useHasCapabilities } from '@/mta_auth/hooks'
 import { STUDENT_PROFILE_NAME } from '@/mta_schools/constants'
 import {
   useNavigateToStudentProfileBatchCreate,
@@ -11,7 +11,7 @@ import {
   useStudentProfileList,
   useStudentProfileListBySchool,
 } from '@/mta_schools/hooks'
-import { useSchoolOwnSchool } from '@/mta_schools/hooks/state'
+import { useSchoolScopeResources } from '@/mta_schools/hooks/state'
 import { T_SchoolId } from '@/mta_schools/types'
 import Button from '@/shared/components/Button'
 import Spinner from '@/shared/components/Spinner'
@@ -19,9 +19,8 @@ import { I_FetchOptions } from '@/shared/data/types'
 import ListPage from '@/shared/pages/ListPage'
 import { GridColDef } from '@mui/x-data-grid'
 
-const columns: Array<GridColDef> = [
+const baseColumns: Array<GridColDef> = [
   { field: 'id', headerName: 'ID', flex: 1 },
-  { field: 'personal_id', headerName: 'DNI', flex: 1 },
   {
     field: 'school',
     headerName: 'Escuela',
@@ -39,31 +38,36 @@ const StudentProfileListPage = () => {
   const navigateToDetail = useNavigateToStudentProfileDetail()
   const navigateToCreate = useNavigateToStudentProfileCreate()
   const navigateToBatchCreate = useNavigateToStudentProfileBatchCreate()
-  const { isAdmin } = useUserProfilesResources()
-  const ownSchool = useSchoolOwnSchool()
+  const canManageSchools = useHasCapabilities(['manage_schools'])
+  const canViewStudentDni = useHasCapabilities(['view_student_dni'])
+  const { isLoading, selectedSchool } = useSchoolScopeResources()
 
-  if (ownSchool === undefined) return <Spinner />
+  if (isLoading || selectedSchool === undefined) return <Spinner />
+
+  const columns = canViewStudentDni
+    ? ([
+        { field: 'personal_id', headerName: 'DNI o Pasaporte', flex: 1 },
+        ...baseColumns,
+      ] as Array<GridColDef>)
+    : baseColumns
+
+  const useListHook =
+    !canManageSchools && selectedSchool !== null ? studentProfileListBySchool_CurrifiedHook(selectedSchool.id) : useStudentProfileList
 
   return (
     <ListPage
       columns={columns}
-      useList={
-        !isAdmin && ownSchool !== null ? studentProfileListBySchool_CurrifiedHook(ownSchool.id) : useStudentProfileList
-      }
+      useList={useListHook}
       entityName={STUDENT_PROFILE_NAME}
       onCreate={navigateToCreate}
       onRowClick={ListPage.mapNavToOnRowClick(navigateToDetail)}
       useBatchDelete={useStudentProfileBatchDelete}
-      customButtons={
-        <>
-          <Button onClick={navigateToBatchCreate}>Carga masiva</Button>
-        </>
-      }
+      customButtons={<Button onClick={navigateToBatchCreate}>Carga masiva</Button>}
     />
   )
 }
 
 export default withAuth(StudentProfileListPage, {
-  allowedUserProfiles: ['admin', 'school_staff'],
+  allowedCapabilities: ['manage_students'],
   logoutDestination: 'dashboard',
 })

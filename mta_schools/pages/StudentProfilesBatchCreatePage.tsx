@@ -3,9 +3,9 @@
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
 import { STUDENT_PROFILE_NAME } from '@/mta_schools/constants'
-import { useNavigateToStudentProfileList, useStudentProfileBatchCreate } from '@/mta_schools/hooks'
-import { useSchoolOwnSchool } from '@/mta_schools/hooks/state'
-import { I_SchoolName } from '@/mta_schools/types'
+import { useNavigateToStudentProfileList, useSchoolAllNames, useStudentProfileBatchCreate } from '@/mta_schools/hooks'
+import { useSchoolScopeResources } from '@/mta_schools/hooks/state'
+import { I_SchoolName, T_SchoolNames } from '@/mta_schools/types'
 import Button from '@/shared/components/Button'
 import { BackButton } from '@/shared/components/buttons'
 import Page from '@/shared/components/Page'
@@ -17,7 +17,7 @@ import { Body1, H4 } from '@/shared/components/Typography'
 import { useInProgress } from '@/shared/hooks'
 
 import { handleServiceError } from '@/shared/service'
-import { errorToast, successToast } from '@/shared/toasts'
+import { errorToast, successToast, warningToast } from '@/shared/toasts'
 import { sentence } from '@/shared/utils'
 import { TextField } from '@mui/material'
 import Grid from '@mui/material/Grid2'
@@ -30,10 +30,12 @@ interface I_FormFields {
 }
 
 interface I_Props {
-  ownSchoolData: I_SchoolName | null
+  selectedSchool: I_SchoolName | null
+  availableSchools: T_SchoolNames
+  lockSchool: boolean
 }
 
-const StudentProfilesBatchCreatePageContent = ({ ownSchoolData }: I_Props) => {
+const StudentProfilesBatchCreatePageContent = ({ selectedSchool, availableSchools, lockSchool }: I_Props) => {
   const backToList = useNavigateToStudentProfileList()
   const { setIsInProgress, setIsNotInProgress } = useInProgress()
 
@@ -42,7 +44,7 @@ const StudentProfilesBatchCreatePageContent = ({ ownSchoolData }: I_Props) => {
     handleSubmit,
     register,
     formState: { errors },
-  } = useForm<I_FormFields>({ defaultValues: { school_id: ownSchoolData !== null ? ownSchoolData.id : undefined } })
+  } = useForm<I_FormFields>({ defaultValues: { school_id: selectedSchool !== null ? selectedSchool.id : undefined } })
 
   const batchCreate = useStudentProfileBatchCreate()
 
@@ -53,13 +55,22 @@ const StudentProfilesBatchCreatePageContent = ({ ownSchoolData }: I_Props) => {
     }
 
     const formData = new FormData()
-    formData.append('school_id', String(data.school_id)) // Convertir school_id a string
-    formData.append('file', data.file[0]) // Solo se envía el primer archivo
+    formData.append('school_id', String(data.school_id))
+    formData.append('file', data.file[0])
 
     setIsInProgress()
     batchCreate(formData)
-      .then((res) => {
-        successToast(sentence(`${STUDENT_PROFILE_NAME.plural} creados correctamente`))
+      .then((response: unknown) => {
+        if (Array.isArray(response) && response.length === 0) {
+          warningToast('La carga finalizó pero no se encontró ninguna fila válida para importar. Revisá que la planilla tenga la columna DNI o Pasaporte y al menos un alumno completo.')
+          return
+        }
+
+        if (Array.isArray(response)) {
+          successToast(sentence(`${response.length} ${STUDENT_PROFILE_NAME.plural} procesados correctamente`))
+        } else {
+          successToast(sentence(`${STUDENT_PROFILE_NAME.plural} creados correctamente`))
+        }
         backToList()
       })
       .catch(handleServiceError)
@@ -78,23 +89,24 @@ const StudentProfilesBatchCreatePageContent = ({ ownSchoolData }: I_Props) => {
         <Grid container spacing={12}>
           <Grid size={7}>
             <Body1>
-              Se cargarán los estudiantes incluidos en el archivo Excel. Si alguno ya existe en el sistema (identificado por su DNI), sus datos se actualizarán automáticamente con la información proporcionada en el archivo.
+              Se cargarán los estudiantes incluidos en el archivo Excel. Si alguno ya existe en el sistema (identificado por su DNI o Pasaporte), sus datos se actualizarán automáticamente con la información proporcionada en el archivo, incluyendo si es NEE.
             </Body1>
             <Spacer />
             <form onSubmit={handleSubmit(onSubmit)} encType="multipart/form-data">
               <Grid container spacing={3}>
-                {ownSchoolData === null ? (
+                {!lockSchool ? (
                   <Grid size={12}>
                     <SchoolSelectControlled
                       control={control}
                       name="school_id"
                       rules={{ required: 'Debe seleccionar una escuela' }}
                       label="Escuela"
+                      options={availableSchools}
                     />
                     {errors.school_id && <p style={{ color: 'red' }}>{errors.school_id.message}</p>}
                   </Grid>
                 ) : (
-                  <H4>{ownSchoolData.name}</H4>
+                  <H4>{selectedSchool?.name}</H4>
                 )}
                 <Grid size={12}>
                   <TextField
@@ -120,7 +132,7 @@ const StudentProfilesBatchCreatePageContent = ({ ownSchoolData }: I_Props) => {
               <H4>Archivo base</H4>
               <Spacer />
               <Body1>
-                Descargá este archivo: es la plantilla oficial que debés usar para cargar los datos de los nuevos alumnos. Por favor, no lo reemplaces por otro formato.
+                Descargá este archivo: es la plantilla oficial que debés usar para cargar los datos de los nuevos alumnos. Incluye una columna NEE para completar con Sí o No. Por favor, no lo reemplaces por otro formato.
               </Body1>
               <Spacer />
               <Button LinkComponent={Link} href="/Meta--PlanillaBaseAlumnos.xlsx">
@@ -134,12 +146,19 @@ const StudentProfilesBatchCreatePageContent = ({ ownSchoolData }: I_Props) => {
   )
 }
 const StudentProfilesBatchCreatePage = () => {
-  const ownSchool = useSchoolOwnSchool()
+  const { isLoading, selectedSchool } = useSchoolScopeResources()
+  const { data: schools, isLoading: isSchoolsLoading } = useSchoolAllNames()
 
-  if (ownSchool === undefined) return <Spinner />
-  return <StudentProfilesBatchCreatePageContent ownSchoolData={ownSchool} />
+  if (isLoading || isSchoolsLoading || schools === undefined || selectedSchool === undefined) return <Spinner />
+  return (
+    <StudentProfilesBatchCreatePageContent
+      selectedSchool={selectedSchool}
+      availableSchools={schools}
+      lockSchool={schools.length === 1}
+    />
+  )
 }
 export default withAuth(StudentProfilesBatchCreatePage, {
-  allowedUserProfiles: ['admin', 'school_staff'],
+  allowedCapabilities: ['manage_students'],
   logoutDestination: 'dashboard',
 })

@@ -4,28 +4,48 @@ import { DEFAULT_PAGE_SIZE } from '@/config'
 import AppointmentSchoolCard from '@/mta_schedule/components/AppointmentSchoolCard'
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
 import { useAppointmentListByUserSchool, useNavigateToAppointmentRequest } from '@/mta_schedule/hooks'
+import { useSchoolScopeResources } from '@/mta_schools/hooks/state'
 import Button from '@/shared/components/Button'
 import { ReloadButton } from '@/shared/components/buttons'
 import Page from '@/shared/components/Page'
 import Spinner from '@/shared/components/Spinner'
+import EditCalendarIcon from '@mui/icons-material/EditCalendar'
 import { Box, Grid2, Pagination } from '@mui/material'
 import { useRouter, useSearchParams } from 'next/navigation'
-import EditCalendarIcon from '@mui/icons-material/EditCalendar'
+import { useEffect, useRef } from 'react'
 
-const pageCount = (itemsCount: number) => itemsCount / DEFAULT_PAGE_SIZE
+const pageCount = (itemsCount: number) => Math.ceil(itemsCount / DEFAULT_PAGE_SIZE)
 
-const AppointmentSchoolDashboardPage = ({ isSchoolStaff }) => {
+interface I_Props {
+  canViewDetail: boolean
+  canEditStudents: boolean
+  canReschedule: boolean
+}
+
+const AppointmentSchoolDashboardPage = ({ canViewDetail, canEditStudents, canReschedule }: I_Props) => {
   const searchParams = useSearchParams()
   const router = useRouter()
   const navToAppointmentRequest = useNavigateToAppointmentRequest()
-
-  // Get the current page from query params or default to 1
   const currentPage = parseInt(searchParams.get('page') || '1', 10)
+  const { selectedSchool, isLoading: isSchoolScopeLoading } = useSchoolScopeResources()
+  const previousSchoolId = useRef<number | null | undefined>(selectedSchool?.id)
 
-  // Fetch data based on the current page
-  const { data, reload } = useAppointmentListByUserSchool({ page: currentPage, page_size: DEFAULT_PAGE_SIZE })
+  useEffect(() => {
+    const nextSchoolId = selectedSchool?.id
+    if (previousSchoolId.current !== nextSchoolId) {
+      previousSchoolId.current = nextSchoolId
+      if (currentPage !== 1) {
+        router.replace('?page=1')
+      }
+    }
+  }, [selectedSchool?.id, currentPage, router])
 
-  // Handle page change
+  const { data, reload } = useAppointmentListByUserSchool({
+    page: currentPage,
+    page_size: DEFAULT_PAGE_SIZE,
+    externalFilters: selectedSchool !== undefined && selectedSchool !== null ? { school_id: selectedSchool.id } : undefined,
+  })
+
   const handlePageChange = (_: React.ChangeEvent<unknown>, newPage: number) => {
     router.push(`?page=${newPage}`)
   }
@@ -35,12 +55,11 @@ const AppointmentSchoolDashboardPage = ({ isSchoolStaff }) => {
       <Page.Title>Listado de {APPOINTMENT_NAME.plural}</Page.Title>
       <Page.Toolbar>
         <ReloadButton onClick={reload} />
-
         <Button color="warning" startIcon={<EditCalendarIcon />} onClick={navToAppointmentRequest}>
           Solicitar {APPOINTMENT_NAME.singular}
         </Button>
       </Page.Toolbar>
-      {data === undefined ? (
+      {data === undefined || isSchoolScopeLoading ? (
         <Spinner />
       ) : (
         <Page.Content>
@@ -49,31 +68,28 @@ const AppointmentSchoolDashboardPage = ({ isSchoolStaff }) => {
               {data.results.map((appointment) => (
                 <Grid2
                   key={appointment.id}
-                    size={{
-                            xs: 12,  // phones
-                            sm: 12,  // small tablets (still 1 per row)
-                            md: 12,   // 2 per row from md up
-                            lg: 6,   // 3 per row only on large desktops
-                            xl: 4,
-                          }}
+                  size={{
+                    xs: 12,
+                    sm: 12,
+                    md: 12,
+                    lg: 6,
+                    xl: 4,
+                  }}
                 >
                   <AppointmentSchoolCard
                     data={appointment}
                     onRescheduled={reload}
-                    isSchoolStaff={isSchoolStaff}
+                    canViewDetail={canViewDetail}
+                    canEditStudents={canEditStudents}
+                    canReschedule={canReschedule}
                   />
                 </Grid2>
               ))}
             </Grid2>
           </Box>
-          {pageCount(data?.count) > 1 && (
+          {pageCount(data.count) > 1 && (
             <Box display="flex" justifyContent="center" mt={4}>
-              <Pagination
-                count={pageCount(data?.count)} // Total number of pages from the API
-                page={currentPage} // Current page
-                onChange={handlePageChange} // Handle page change
-                color="primary"
-              />
+              <Pagination count={pageCount(data.count)} page={currentPage} onChange={handlePageChange} color="primary" />
             </Box>
           )}
         </Page.Content>

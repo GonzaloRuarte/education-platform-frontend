@@ -2,9 +2,11 @@
 
 import SchoolStaffProfileFormFields from '@/mta_schools/components/SchoolStaffProfileFormFields'
 import { useNavigateToSchoolStaffProfileList, useSchoolStaffProfileCreate } from '@/mta_schools/hooks'
+import { useSchoolScopeResources } from '@/mta_schools/hooks/state'
 import { T_SchoolId } from '@/mta_schools/types'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
+import Spinner from '@/shared/components/Spinner'
 import { useInProgress } from '@/shared/hooks'
 
 import { handleServiceError } from '@/shared/service'
@@ -26,9 +28,10 @@ interface I_FormFields {
 }
 
 const SchoolStaffProfileCreateForm = () => {
+  const { selectedSchool, isLoading } = useSchoolScopeResources()
   const { handleSubmit, control } = useForm<I_FormFields>({
     defaultValues: {
-      school_id: undefined,
+      school_id: selectedSchool !== undefined && selectedSchool !== null ? selectedSchool.id : undefined,
       username: '',
       password: '',
       repeat_password: '',
@@ -48,7 +51,7 @@ const SchoolStaffProfileCreateForm = () => {
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
     setInProgressStatus(true)
     create(data)
-      .then((res) => {
+      .then(() => {
         successToast(sentence('Personal escolar agregado correctamente'))
         navToList()
       })
@@ -57,6 +60,8 @@ const SchoolStaffProfileCreateForm = () => {
         setInProgressStatus(false)
       })
   }
+
+  if (isLoading) return <Spinner />
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>

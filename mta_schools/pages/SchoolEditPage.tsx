@@ -17,6 +17,6 @@ const SchoolEditPage = () => (
 )
 
 export default withAuth(SchoolEditPage, {
-  allowedUserProfiles: ['admin'],
+  allowedCapabilities: ['manage_schools'],
   logoutDestination: 'dashboard',
 })

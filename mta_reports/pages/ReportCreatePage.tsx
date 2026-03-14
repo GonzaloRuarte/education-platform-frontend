@@ -15,6 +15,6 @@ const ReportCreatePage = () => (
 )
 
 export default withAuth(ReportCreatePage, {
-  allowedUserProfiles: ['admin'],
+  allowedCapabilities: ['manage_reports'],
   logoutDestination: 'dashboard',
 })

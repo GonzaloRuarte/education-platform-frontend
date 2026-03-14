@@ -7,7 +7,6 @@ import {
   T_UserId,
   T_UserListWithProfiles,
 } from '@/mta_users/types'
-import { userListWithProfiles } from '@/mta_users/utils'
 import pages, { userChangePasswordPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
 import {
@@ -28,9 +27,7 @@ import { T_EmptyPayload } from '@/shared/types'
 const USERS_PATH = '/users'
 const USERS_CHANGE_PASSWORD_PATH = '/users/{id:number}/change-password/'
 
-const useUserList = listHook<T_UserListWithProfiles>(USERS_PATH, axiosGet, useAuthResources, {
-  dataPostProcessor: userListWithProfiles,
-})
+const useUserList = listHook<T_UserListWithProfiles>(USERS_PATH, axiosGet, useAuthResources)
 const useUserDetail = detailHook<T_UserId, I_UserDetail>(USERS_PATH, axiosGet, useAuthResources)
 const useUserBatchDelete = batchDeletionHook<T_UserId>(USERS_PATH, axiosDelete, useAuthResources)
 const useUserChangePassword = actionHookV3<
@@ -39,9 +36,7 @@ const useUserChangePassword = actionHookV3<
   T_EmptyPayload
 >(USERS_CHANGE_PASSWORD_PATH, axiosPost, useAuthResources)
 
-const useAdminProfileList = listHook<T_UserListWithProfiles>(`${USERS_PATH}/admins`, axiosGet, useAuthResources, {
-  dataPostProcessor: userListWithProfiles,
-})
+const useAdminProfileList = listHook<T_UserListWithProfiles>(`${USERS_PATH}/admins`, axiosGet, useAuthResources)
 const useAdminProfileCreate = creationHook<I_AdminProfileCreateRequestData, I_UserDetail>(
   `${USERS_PATH}/create-admin`,
   axiosPost,

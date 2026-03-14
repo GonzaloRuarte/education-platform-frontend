@@ -1,13 +1,13 @@
 'use client'
 
+import { withAuth } from '@/mta_auth/hocs/withAuth'
+import { useHasCapabilities } from '@/mta_auth/hooks'
+import SelectedSchoolMismatchAlert from '@/mta_schools/components/SelectedSchoolMismatchAlert'
 import { useNavigateToARPDetail } from '@/mta_resolutions/hooks/arp'
 import { T_AppointmentResolutionProcessId } from '@/mta_resolutions/types/arp'
 import AppointmentBriefCard from '@/mta_schedule/components/AppointmentBriefCard'
 import { APPOINTMENT_NAME } from '@/mta_schedule/constants'
-import {
-  useAppointmentDetail,
-  useNavigateToAppointmentList,
-} from '@/mta_schedule/hooks'
+import { useAppointmentDetail, useNavigateToAppointmentList } from '@/mta_schedule/hooks'
 import { appointmentShowPostProcessingResources } from '@/mta_schedule/utils'
 import Button from '@/shared/components/Button'
 import Chip from '@/shared/components/Chip'
@@ -25,9 +25,8 @@ const AppointmentReadOnlyDetail = () => {
   const { appointmentId } = useParams()
   const { data, reload } = useAppointmentDetail(Number(appointmentId))
   const navToList = useNavigateToAppointmentList()
-
-
   const navToAPRDetail = useNavigateToARPDetail()
+  const canViewStudentDni = useHasCapabilities(['view_student_dni'])
 
   return (
     <Page>
@@ -39,6 +38,7 @@ const AppointmentReadOnlyDetail = () => {
           <Spinner />
         ) : (
           <>
+            <SelectedSchoolMismatchAlert entitySchool={data.school} entityLabel="turno" />
             <AppointmentBriefCard
               appointmentId={data.id}
               status={data.status}
@@ -60,7 +60,10 @@ const AppointmentReadOnlyDetail = () => {
                 <Spacer size="s" />
                 <MagicGrid itemSize="auto">
                   {data.students.map((s) => (
-                    <Chip key={s.personal_id} label={`${s.personal_id} (${s.cohort})`} />
+                    <Chip
+                      key={s.id}
+                      label={canViewStudentDni && s.personal_id ? `${s.personal_id} (${s.cohort})` : `Estudiante ${s.id} (${s.cohort})`}
+                    />
                   ))}
                 </MagicGrid>
               </>
@@ -93,24 +96,19 @@ const AppointmentReadOnlyDetail = () => {
               </>
             )}
 
-            {appointmentShowPostProcessingResources(data) && (
+            {appointmentShowPostProcessingResources(data) && data.was_post_processed && (
               <>
-                
-                {data.was_post_processed && (
-                  <>
-                    <Spacer size="l" />
-                    <H3 id="process-results">Procesamiento de Resultados</H3>
-                    <Spacer size="l" />
-                    <Button
-                      bgcolor="purple"
-                      size="large"
-                      startIcon={<CalculateIcon />}
-                      onClick={() => navToAPRDetail(data.post_process as T_AppointmentResolutionProcessId)}
-                    >
-                      Ver Resultados
-                    </Button>
-                  </>
-                )}
+                <Spacer size="l" />
+                <H3 id="process-results">Procesamiento de Resultados</H3>
+                <Spacer size="l" />
+                <Button
+                  bgcolor="purple"
+                  size="large"
+                  startIcon={<CalculateIcon />}
+                  onClick={() => navToAPRDetail(data.post_process as T_AppointmentResolutionProcessId)}
+                >
+                  Ver Resultados
+                </Button>
               </>
             )}
           </>
@@ -121,4 +119,7 @@ const AppointmentReadOnlyDetail = () => {
   )
 }
 
-export default AppointmentReadOnlyDetail
+export default withAuth(AppointmentReadOnlyDetail, {
+  allowedCapabilities: ['view_appointment_detail'],
+  logoutDestination: 'dashboard',
+})

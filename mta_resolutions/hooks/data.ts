@@ -12,7 +12,6 @@ import {
   T_ResolutionState_MultipleChoiceAnswerData,
 } from '@/mta_resolutions/types'
 import { T_AppointmentId } from '@/mta_schedule/types'
-import { T_StudentProfilePersonalId } from '@/mta_schools/types'
 import { axiosPost } from '@/shared/data/axios'
 import ApiError from '@/shared/data/errors'
 import { actionHook, useInProgress } from '@/shared/hooks'
@@ -92,7 +91,7 @@ const useResolutionUpdateLastUploadDatetime = () => {
     storeLastUpload(new Date().toISOString())
   }
 }
-const initialState = (personal_id: T_StudentProfilePersonalId, appointment_id: T_AppointmentId) => {
+const initialState = (personal_id: string, appointment_id: T_AppointmentId): I_ResolutionState => {
   const now = new Date().toISOString()
   return {
     student_personal_id: personal_id,

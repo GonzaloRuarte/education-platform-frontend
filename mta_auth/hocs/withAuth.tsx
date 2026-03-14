@@ -1,20 +1,22 @@
 import RequireAuth from '@/mta_auth/hocs/RequireAuth'
 
-import { T_AllowedUserProfiles } from '@/mta_users/types'
+import { T_UserCapability, T_LoginZone } from '@/mta_auth/types'
 import { ComponentProps, FC } from 'react'
-import { T_LoginZone } from '../types'
 
 export const withAuth = (
   WrappedComponent: FC,
   options: {
-    allowedUserProfiles?: T_AllowedUserProfiles
+    allowedCapabilities?: Array<T_UserCapability>
     logoutDestination: T_LoginZone
   },
 ) => {
   const WithAuthHOC = (props: ComponentProps<typeof WrappedComponent>) => {
     return (
       <>
-        <RequireAuth allowedUserProfiles={options.allowedUserProfiles} logoutDestination={options.logoutDestination}>
+        <RequireAuth
+          allowedCapabilities={options.allowedCapabilities}
+          logoutDestination={options.logoutDestination}
+        >
           <WrappedComponent {...props} />
         </RequireAuth>
       </>

@@ -1,6 +1,7 @@
 'use client'
 
 import { RRCC } from '@/mta_auth/components/RestrictedContent'
+import { useHasCapabilities } from '@/mta_auth/hooks'
 import P from '@/pages'
 import MagicGrid from '@/shared/components/MagicGrid'
 import MenuBlock from '@/shared/layout/MenuBlock'
@@ -35,45 +36,60 @@ const SkeletonMenu = () => {
 
 const Menu = () => {
   const isClient = useIsClient()
-
+  const canManageExecutives = useHasCapabilities(['manage_executives'])
+  const canManageAdminUsers = useHasCapabilities(['manage_admin_users'])
   if (!isClient) return <SkeletonMenu />
+
   return (
     <>
       <MenuBlock>
-        <RRCC allowedProfiles={['admin']}>
-          <MenuItem Icon={SchoolIcon} label={P.D._.escuelas.label} href={P.D._.escuelas.path} />
+        <RRCC allowedCapabilities={['manage_schools']}>
+          <MenuItem
+            Icon={SchoolIcon}
+            label={P.D._.escuelas.label}
+            href={P.D._.escuelas.path}
+            subMenu={
+              <MenuBlock isSubMenu>
+                <MenuItem label={P.D._.escuelas.label} href={P.D._.escuelas.path} />
+                <MenuItem label={P.D._.escuelas._.agrupamientos.label} href={P.D._.escuelas._.agrupamientos.path} />
+              </MenuBlock>
+            }
+          />
         </RRCC>
-        <RRCC allowedProfiles={['admin', 'school_staff','executive']}>
+
+        <RRCC allowedCapabilities={['list_appointments']}>
           <MenuItem
             Icon={CalendarMonthIcon}
             label={P.D._.turnos.label}
             href={P.D._.turnos.path}
             subMenu={
               <MenuBlock isSubMenu>
-                <MenuItem label={P.D._.turnos._.solicitar.label} href={P.D._.turnos._.solicitar.path} />
-                <MenuItem
-                  label={P.D._.turnos._.cargarResolucionesOffline.label}
-                  href={P.D._.turnos._.cargarResolucionesOffline.path}
-                />
+                <RRCC allowedCapabilities={['request_appointment']}>
+                  <MenuItem label={P.D._.turnos._.solicitar.label} href={P.D._.turnos._.solicitar.path} />
+                </RRCC>
+                <RRCC allowedCapabilities={['upload_offline_resolutions']}>
+                  <MenuItem
+                    label={P.D._.turnos._.cargarResolucionesOffline.label}
+                    href={P.D._.turnos._.cargarResolucionesOffline.path}
+                  />
+                </RRCC>
               </MenuBlock>
             }
           />
         </RRCC>
-        <RRCC allowedProfiles={['admin', 'evaluator']}>
+
+        <RRCC allowedCapabilities={['manage_evaluation_content']}>
           <MenuItem Icon={FactCheckIcon} label={P.D._.evaluaciones.label} href={P.D._.evaluaciones.path} />
         </RRCC>
-        <RRCC allowedProfiles={['admin', 'evaluator']}>
-        <MenuItem Icon={QuizIcon} label={P.D._.bancoDePreguntas.label} href={P.D._.bancoDePreguntas.path}
-        />
-      </RRCC>
-        <RRCC allowedProfiles={['admin', 'school_staff', 'executive']}>
-          <MenuItem
-            Icon={HistoryIcon}
-            label={P.D._.procesosDeEvaluacion.label}
-            href={P.D._.procesosDeEvaluacion.path}
-          />
+        <RRCC allowedCapabilities={['manage_evaluation_content']}>
+          <MenuItem Icon={QuizIcon} label={P.D._.bancoDePreguntas.label} href={P.D._.bancoDePreguntas.path} />
         </RRCC>
-        <RRCC allowedProfiles={['admin', 'school_staff']}>
+
+        <RRCC allowedCapabilities={['view_reports']}>
+          <MenuItem Icon={HistoryIcon} label={P.D._.procesosDeEvaluacion.label} href={P.D._.procesosDeEvaluacion.path} />
+        </RRCC>
+
+        <RRCC allowedCapabilities={['manage_students']}>
           <MenuItem
             Icon={PersonIcon}
             label={P.D._.estudiantes.label}
@@ -85,31 +101,34 @@ const Menu = () => {
             }
           />
         </RRCC>
-        <RRCC allowedProfiles={['admin']}>
+
+        <RRCC allowedCapabilities={['manage_admin_users']}>
           <MenuItem
             Icon={BadgeIcon}
             label={P.D._.usuarios.label}
             href={P.D._.usuarios.path}
             subMenu={
               <MenuBlock isSubMenu>
-                <MenuItem
-                  label={P.D._.usuarios._.responsableEjecutivo.label}
-                  href={P.D._.usuarios._.responsableEjecutivo.path}
-                />
-                <MenuItem
-                  label={P.D._.usuarios._.responsableInstitucional.label}
-                  href={P.D._.usuarios._.responsableInstitucional.path}
-                />
+                <MenuItem label={P.D._.usuarios._.responsableEjecutivo.label} href={P.D._.usuarios._.responsableEjecutivo.path} />
+                <MenuItem label={P.D._.usuarios._.responsableInstitucional.label} href={P.D._.usuarios._.responsableInstitucional.path} />
+                <MenuItem label={P.D._.usuarios._.responsableAgrupamiento.label} href={P.D._.usuarios._.responsableAgrupamiento.path} />
+                <MenuItem label={P.D._.usuarios._.responsableAgrupamientoAnon.label} href={P.D._.usuarios._.responsableAgrupamientoAnon.path} />
                 <MenuItem label={P.D._.usuarios._.itemista.label} href={P.D._.usuarios._.itemista.path} />
                 <MenuItem label={P.D._.usuarios._.admins.label} href={P.D._.usuarios._.admins.path} />
               </MenuBlock>
             }
           />
         </RRCC>
-        <RRCC allowedProfiles={['school_staff']}>
-          <MenuItem Icon={BadgeIcon} label={P.D._.usuarios._.responsableEjecutivo.label} href={P.D._.usuarios._.responsableEjecutivo.path} />
+
+        <RRCC allowedCapabilities={['manage_school_staff']}>
+          <MenuItem Icon={BadgeIcon} label={P.D._.usuarios._.responsableInstitucional.label} href={P.D._.usuarios._.responsableInstitucional.path} />
         </RRCC>
-        <RRCC allowedProfiles={['admin', 'school_staff', 'executive']}>
+
+        {canManageExecutives && !canManageAdminUsers && (
+          <MenuItem Icon={BadgeIcon} label={P.D._.usuarios._.responsableEjecutivo.label} href={P.D._.usuarios._.responsableEjecutivo.path} />
+        )}
+
+        <RRCC allowedCapabilities={['view_reports']}>
           <MenuItem
             Icon={QueryStatsIcon}
             label={P.D._.reportes.label}
@@ -122,7 +141,8 @@ const Menu = () => {
             }
           />
         </RRCC>
-        <RRCC allowedProfiles={['superuser']}>
+
+        <RRCC allowedCapabilities={['dev_access']}>
           <MenuItem Icon={DeveloperBoardIcon} label={P.D._.devPanel.label} href={P.D._.devPanel.path} />
         </RRCC>
       </MenuBlock>

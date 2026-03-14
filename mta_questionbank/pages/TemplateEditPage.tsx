@@ -31,6 +31,6 @@ const TemplateEditPage = () => {
 }
 
 export default withAuth(TemplateEditPage, {
-  allowedUserProfiles: ['admin', 'evaluator'],
+  allowedCapabilities: ['manage_evaluation_content'],
   logoutDestination: 'dashboard',
 })

@@ -11,7 +11,7 @@ import { useNavigateToResolutionPage } from '@/mta_resolutions/hooks/navigation'
 import { I_AuthorizeStudentRequestData } from '@/mta_resolutions/types'
 import { T_StudentProfilePersonalId } from '@/mta_schools/types'
 import Spacer from '@/shared/components/Spacer'
-import { IntegerInputControlled } from '@/shared/forms/IntegerInput'
+import InputControlled from '@/shared/forms/InputControlled'
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { useForm } from 'react-hook-form'
@@ -45,11 +45,13 @@ export default function StudentsLoginForm() {
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
         <MagicGrid>
-          <IntegerInputControlled<I_FormFields>
+          <InputControlled<I_FormFields>
             control={control}
             name="personal_id"
-            rules={{ ...rules.required(), ...rules.pattern(/^[0-9]+$/, 'Solo se permiten números.') }}
-            label="DNI"
+            rules={{ ...rules.required(), ...rules.pattern(/^(?:\d{8}|[A-Za-z0-9]{9})$/, 'Ingrese un DNI o Pasaporte válido (8 numéricos o 9 alfanuméricos sin ñ)') }}
+            label="DNI o Pasaporte"
+            type="text"
+            inputProps={{ autoCapitalize: 'characters', maxLength: 9 }}
           />
         </MagicGrid>
         <Spacer />

@@ -31,6 +31,6 @@ const ReportEditPage = () => {
 }
 
 export default withAuth(ReportEditPage, {
-  allowedUserProfiles: ['admin'],
+  allowedCapabilities: ['manage_reports'],
   logoutDestination: 'dashboard',
 })

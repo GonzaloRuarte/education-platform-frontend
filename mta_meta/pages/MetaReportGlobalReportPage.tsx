@@ -3,7 +3,9 @@
 import * as d3 from 'd3'
 import { apiUrl } from '@/config'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
+import { useSchoolScopeResources } from '@/mta_schools/hooks/state'
 import Page from '@/shared/components/Page'
+import Spinner from '@/shared/components/Spinner'
 import { useStore } from '@/shared/state'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Alert, Box, Button, Card, CardContent, Paper, Stack, Tab, Tabs, TextField, Typography, Grid2, FormControl, InputLabel, Select, MenuItem, NativeSelect, Chip, Divider, Popover, Slider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel } from '@mui/material'
@@ -93,6 +95,31 @@ function safeJsonParse<T>(value: string | null, fallback: T): T {
   }
 }
 
+
+function getSafeLocalStorage(): Storage | null {
+  return typeof window === 'undefined' ? null : window.localStorage
+}
+
+function safeStorageGetItem(key: string): string | null {
+  try {
+    return getSafeLocalStorage()?.getItem(key) ?? null
+  } catch {
+    return null
+  }
+}
+
+function safeStorageSetItem(key: string, value: string) {
+  try {
+    getSafeLocalStorage()?.setItem(key, value)
+  } catch {
+    // ignore storage write errors
+  }
+}
+
+function safeJsonStorageGet<T>(key: string, fallback: T): T {
+  return safeJsonParse(safeStorageGetItem(key), fallback)
+}
+
 function useResizeObserver<T extends HTMLElement>() {
   const ref = useRef<T | null>(null)
   const [rect, setRect] = useState<{ width: number; height: number }>({ width: 0, height: 0 })
@@ -137,16 +164,21 @@ const TabPanel = ({ active, tab, children }: { active: boolean; tab: string; chi
 
 
 
+
+const metaStoragePrefix = (base: string, schoolId?: number | null) => `${base}.school.${schoolId ?? 'all'}.`
+
 // -----------------------------------------------------------------------------
 // API hook
 // -----------------------------------------------------------------------------
 
 const useMetaReportApi = () => {
   const apiBase = useMemo(() => apiUrl('/meta-reports-global/flask'), [])
+  const { selectedSchool } = useSchoolScopeResources()
 
   const getJson = useCallback(
     async <T,>(path: string): Promise<T> => {
-      const url = `${apiBase}${path}`
+      const schoolQuery = selectedSchool?.id !== undefined ? `${path.includes('?') ? '&' : '?'}school_id=${selectedSchool.id}` : ''
+      const url = `${apiBase}${path}${schoolQuery}`
       const res = await metaReportFetch(url, { cache: 'no-store' })
       if (!res.ok) {
         const text = await res.text().catch(() => '')
@@ -154,12 +186,13 @@ const useMetaReportApi = () => {
       }
       return (await res.json()) as T
     },
-    [apiBase],
+    [apiBase, selectedSchool?.id],
   )
 
   const postJson = useCallback(
     async <TResponse, TBody extends object>(path: string, body: TBody): Promise<TResponse> => {
-      const url = `${apiBase}${path}`
+      const schoolQuery = selectedSchool?.id !== undefined ? `${path.includes('?') ? '&' : '?'}school_id=${selectedSchool.id}` : ''
+      const url = `${apiBase}${path}${schoolQuery}`
       const res = await metaReportFetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -171,7 +204,7 @@ const useMetaReportApi = () => {
       }
       return (await res.json()) as TResponse
     },
-    [apiBase],
+    [apiBase, selectedSchool?.id],
   )
 
   return { apiBase, getJson, postJson }
@@ -206,30 +239,31 @@ type T_SummariesResponse = {
 
 const EstadisticasTab = ({ active }: { active: boolean }) => {
   const { getJson } = useMetaReportApi()
+  const { selectedSchool } = useSchoolScopeResources()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [summaries, setSummaries] = useState<T_SummariesResponse | null>(null)
 
-  const STORAGE_PREFIX = 'reporteMeta.estadisticas.'
+  const STORAGE_PREFIX = metaStoragePrefix('reporteMeta.estadisticas', selectedSchool?.id)
   const STORAGE_KEY_FILTERS = STORAGE_PREFIX + 'filters'
   const STORAGE_KEY_SORT = STORAGE_PREFIX + 'sort'
 
   const [filters, setFilters] = useState<{ grade: string; school: string; subject: string }>(() =>
-    safeJsonParse(localStorage.getItem(STORAGE_KEY_FILTERS), { grade: '', school: '', subject: '' }),
+    safeJsonStorageGet(STORAGE_KEY_FILTERS, { grade: '', school: '', subject: '' }),
   )
   const [sort, setSort] = useState<{ column: string | null; direction: 'asc' | 'desc' }>(() =>
-    safeJsonParse(localStorage.getItem(STORAGE_KEY_SORT), { column: null, direction: 'asc' }),
+    safeJsonStorageGet(STORAGE_KEY_SORT, { column: null, direction: 'asc' }),
   )
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(filters))
+      safeStorageSetItem(STORAGE_KEY_FILTERS, JSON.stringify(filters))
     } catch { }
   }, [filters])
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY_SORT, JSON.stringify(sort))
+      safeStorageSetItem(STORAGE_KEY_SORT, JSON.stringify(sort))
     } catch { }
   }, [sort])
 
@@ -478,11 +512,12 @@ type T_QuestionsStatsResponse = Record<
 
 const PreguntasTab = ({ active }: { active: boolean }) => {
   const { getJson } = useMetaReportApi()
-  const STORAGE_PREFIX = 'reporteMeta.preguntas.'
+  const { selectedSchool } = useSchoolScopeResources()
+  const STORAGE_PREFIX = metaStoragePrefix('reporteMeta.preguntas', selectedSchool?.id)
   const STORAGE_KEY_FILTERS = STORAGE_PREFIX + 'filters'
 
   const [filters, setFilters] = useState<{ subject: string; competencia: string; contenido: string }>(() =>
-    safeJsonParse(localStorage.getItem(STORAGE_KEY_FILTERS), { subject: '', competencia: '', contenido: '' }),
+    safeJsonStorageGet(STORAGE_KEY_FILTERS, { subject: '', competencia: '', contenido: '' }),
   )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -502,7 +537,7 @@ const PreguntasTab = ({ active }: { active: boolean }) => {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(filters))
+      safeStorageSetItem(STORAGE_KEY_FILTERS, JSON.stringify(filters))
     } catch { }
   }, [filters])
 
@@ -942,15 +977,16 @@ const parseStudentKey = (key: string) => {
 
 const EstudiantesTab = ({ active }: { active: boolean }) => {
   const { getJson } = useMetaReportApi()
-  const STORAGE_PREFIX = 'reporteMeta.estudiantes.'
+  const { selectedSchool } = useSchoolScopeResources()
+  const STORAGE_PREFIX = metaStoragePrefix('reporteMeta.estudiantes', selectedSchool?.id)
   const STORAGE_KEY_FILTERS = STORAGE_PREFIX + 'filters'
   const STORAGE_KEY_THRESHOLDS = STORAGE_PREFIX + 'thresholds'
 
   const [filters, setFilters] = useState<{ grade: string; school: string; subject: string }>(() =>
-    safeJsonParse(localStorage.getItem(STORAGE_KEY_FILTERS), { grade: '', school: '', subject: '' }),
+    safeJsonStorageGet(STORAGE_KEY_FILTERS, { grade: '', school: '', subject: '' }),
   )
   const [thresholds, setThresholds] = useState<{ redYellow: number; yellowGreen: number }>(() =>
-    safeJsonParse(localStorage.getItem(STORAGE_KEY_THRESHOLDS), { redYellow: 0.4, yellowGreen: 0.6 }),
+    safeJsonStorageGet(STORAGE_KEY_THRESHOLDS, { redYellow: 0.4, yellowGreen: 0.6 }),
   )
 
   const [loading, setLoading] = useState(false)
@@ -969,12 +1005,12 @@ const EstudiantesTab = ({ active }: { active: boolean }) => {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(filters))
+      safeStorageSetItem(STORAGE_KEY_FILTERS, JSON.stringify(filters))
     } catch { }
   }, [filters])
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY_THRESHOLDS, JSON.stringify(thresholds))
+      safeStorageSetItem(STORAGE_KEY_THRESHOLDS, JSON.stringify(thresholds))
     } catch { }
   }, [thresholds])
 
@@ -1455,21 +1491,22 @@ type T_DatasetsResponse = {
 
 const AgrupamientoTab = ({ active }: { active: boolean }) => {
   const { getJson } = useMetaReportApi()
-  const STORAGE_PREFIX = 'reporteMeta.agrupamiento.'
+  const { selectedSchool } = useSchoolScopeResources()
+  const STORAGE_PREFIX = metaStoragePrefix('reporteMeta.agrupamiento', selectedSchool?.id)
   const STORAGE_KEY_GRADE = STORAGE_PREFIX + 'grade'
   const STORAGE_KEY_SUBJECT = STORAGE_PREFIX + 'subject'
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [datasets, setDatasets] = useState<T_DatasetsResponse | null>(null)
-  const [grade, setGrade] = useState<string>(() => localStorage.getItem(STORAGE_KEY_GRADE) || '')
-  const [subject, setSubject] = useState<string>(() => localStorage.getItem(STORAGE_KEY_SUBJECT) || '')
+  const [grade, setGrade] = useState<string>(() => safeStorageGetItem(STORAGE_KEY_GRADE) || '')
+  const [subject, setSubject] = useState<string>(() => safeStorageGetItem(STORAGE_KEY_SUBJECT) || '')
   const [cluster, setCluster] = useState<any | null>(null)
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY_GRADE, grade)
-      localStorage.setItem(STORAGE_KEY_SUBJECT, subject)
+      safeStorageSetItem(STORAGE_KEY_GRADE, grade)
+      safeStorageSetItem(STORAGE_KEY_SUBJECT, subject)
     } catch { }
   }, [grade, subject])
 
@@ -1680,14 +1717,15 @@ const AgrupamientoTab = ({ active }: { active: boolean }) => {
 
 const GraphTab = ({ active }: { active: boolean }) => {
   const { apiBase, getJson } = useMetaReportApi()
+  const { selectedSchool } = useSchoolScopeResources()
   const mountedRef = useRef(false)
 
   // Color encoding toggle (matches Flask graph-tab.js behavior).
   type ColorMode = 'score' | 'cluster'
-  const COLOR_MODE_KEY = 'reporteMeta.graph.colorMode'
+  const COLOR_MODE_KEY = metaStoragePrefix('reporteMeta.graph.colorMode', selectedSchool?.id)
   const [colorMode, setColorMode] = useState<ColorMode>(() => {
     try {
-      const v = localStorage.getItem(COLOR_MODE_KEY)
+      const v = safeStorageGetItem(COLOR_MODE_KEY)
       return v === 'cluster' ? 'cluster' : 'score'
     } catch {
       return 'score'
@@ -1699,7 +1737,7 @@ const GraphTab = ({ active }: { active: boolean }) => {
 
   useEffect(() => {
     try {
-      localStorage.setItem(COLOR_MODE_KEY, colorMode)
+      safeStorageSetItem(COLOR_MODE_KEY, colorMode)
     } catch {
       // ignore
     }
@@ -1714,7 +1752,7 @@ const GraphTab = ({ active }: { active: boolean }) => {
     // Most of this code mirrors the original graph-tab.js (D3 force graph).
     // It renders entirely within the DOM subtree of this React component.
 
-    const STORAGE_PREFIX = 'reporteMeta.graph.'
+    const STORAGE_PREFIX = metaStoragePrefix('reporteMeta.graph', selectedSchool?.id)
     const STORAGE_KEY_GRADE = STORAGE_PREFIX + 'grade'
     const STORAGE_KEY_DATASET = STORAGE_PREFIX + 'dataset'
 
@@ -1851,8 +1889,8 @@ const GraphTab = ({ active }: { active: boolean }) => {
     }
 
     const chooseDefault = () => {
-      const savedGrade = localStorage.getItem(STORAGE_KEY_GRADE)
-      const savedDataset = localStorage.getItem(STORAGE_KEY_DATASET)
+      const savedGrade = safeStorageGetItem(STORAGE_KEY_GRADE)
+      const savedDataset = safeStorageGetItem(STORAGE_KEY_DATASET)
       const gradeCandidates = [savedGrade, ...gradeFallbackOrder].filter(Boolean) as string[]
       currentGradeId = gradeCandidates.find((g) => grades.some((x) => x.id === g)) ?? grades[0]?.id ?? null
       if (!currentGradeId) return
@@ -1863,8 +1901,8 @@ const GraphTab = ({ active }: { active: boolean }) => {
 
     const persistSelection = () => {
       try {
-        if (currentGradeId) localStorage.setItem(STORAGE_KEY_GRADE, currentGradeId)
-        if (currentDatasetId) localStorage.setItem(STORAGE_KEY_DATASET, currentDatasetId)
+        if (currentGradeId) safeStorageSetItem(STORAGE_KEY_GRADE, currentGradeId)
+        if (currentDatasetId) safeStorageSetItem(STORAGE_KEY_DATASET, currentDatasetId)
       } catch { }
     }
 
@@ -2499,17 +2537,27 @@ const MetaReportApp = () => {
 }
 
 const MetaReportGlobalReportPage = () => {
+  const { selectedSchool, isLoading, shouldSelectSchool } = useSchoolScopeResources()
+
+  if (isLoading) {
+    return <Spinner />
+  }
+
   return (
     <Page>
       <Page.Title disableMarginBottom>Reporte META+</Page.Title>
       <Page.Content>
-        <MetaReportApp />
+        {shouldSelectSchool && selectedSchool === null ? (
+          <Alert severity="info">Seleccioná una escuela para cargar el reporte META+.</Alert>
+        ) : (
+          <MetaReportApp key={`meta-school-${selectedSchool?.id ?? 'all'}`} />
+        )}
       </Page.Content>
     </Page>
   )
 }
 
 export default withAuth(MetaReportGlobalReportPage, {
-  allowedUserProfiles: ['admin', 'school_staff', 'executive'],
+  allowedCapabilities: ['view_reports'],
   logoutDestination: 'dashboard',
 })

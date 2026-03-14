@@ -2,9 +2,11 @@
 
 import ExecutiveProfileFormFields from '@/mta_schools/components/ExecutiveProfileFormFields'
 import { useNavigateToExecutiveProfileList, useExecutiveProfileCreate } from '@/mta_schools/hooks'
+import { useSchoolScopeResources } from '@/mta_schools/hooks/state'
 import { T_SchoolId } from '@/mta_schools/types'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
+import Spinner from '@/shared/components/Spinner'
 import { useInProgress } from '@/shared/hooks'
 
 import { handleServiceError } from '@/shared/service'
@@ -23,9 +25,10 @@ interface I_FormFields {
 }
 
 const ExecutiveProfileCreateForm = () => {
+  const { selectedSchool, isLoading } = useSchoolScopeResources()
   const { handleSubmit, control } = useForm<I_FormFields>({
     defaultValues: {
-      school_id: undefined,
+      school_id: selectedSchool !== undefined && selectedSchool !== null ? selectedSchool.id : undefined,
       username: '',
       password: '',
       repeat_password: '',
@@ -42,8 +45,8 @@ const ExecutiveProfileCreateForm = () => {
   const onSubmit: SubmitHandler<I_FormFields> = (data) => {
     setInProgressStatus(true)
     create(data)
-      .then((res) => {
-        successToast(sentence('Personal escolar agregado correctamente'))
+      .then(() => {
+        successToast(sentence('Responsable ejecutivo agregado correctamente'))
         navToList()
       })
       .catch(handleServiceError)
@@ -51,6 +54,8 @@ const ExecutiveProfileCreateForm = () => {
         setInProgressStatus(false)
       })
   }
+
+  if (isLoading) return <Spinner />
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>

@@ -15,6 +15,6 @@ const EvaluatorProfileCreatePage = () => {
 }
 
 export default withAuth(EvaluatorProfileCreatePage, {
-  allowedUserProfiles: ['admin'],
+  allowedCapabilities: ['manage_evaluators'],
   logoutDestination: 'dashboard',
 })
