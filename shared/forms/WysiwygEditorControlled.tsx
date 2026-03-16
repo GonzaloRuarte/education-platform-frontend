@@ -58,7 +58,8 @@ export default function WysiwygEditorControlled<T extends FieldValues>({
   const modules = useMemo(
     () => ({
       toolbar: [
-        ['bold', 'italic'],
+        [{ header: [1, 2, 3, 4, 5, 6, false] }],
+        ['bold', 'italic', 'underline'],
         ['link', 'blockquote', 'code-block', 'image', 'formula'],
         [{ list: 'ordered' }, { list: 'bullet' }],
         [{ align: [] }],
