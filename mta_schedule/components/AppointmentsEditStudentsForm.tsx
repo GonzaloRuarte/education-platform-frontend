@@ -38,7 +38,7 @@ const AppointmentsEditStudentsForm = ({ data }: I_Props) => {
     },
   })
   const addStudentProfiles = (formData: I_FormFields) => {
-    showConfirm('Agregar estudantes', '¿Estás seguro/a que quieres agregar estos/as estudantes?').then(() => {
+    showConfirm('Agregar estudiantes', '¿Estás seguro/a que quieres agregar estos/as estudiantes?').then(() => {
       setIsInProgress()
       addStudents({
         appointment_id: Number(data.id),
