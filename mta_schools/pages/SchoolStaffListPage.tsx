@@ -41,8 +41,8 @@ const SchoolStaffProfileListPage = () => {
       onRowClick={ListPage.mapNavToOnRowClick(navToDetail)}
       onCreate={navToCreate}
       useBatchDelete={useSchoolStaffProfileBatchDelete}
-      filtersData={!isLoading && selectedSchool !== undefined && selectedSchool !== null ? { school_id: selectedSchool.id } : undefined}
-      stateKey={!isLoading && selectedSchool !== undefined && selectedSchool !== null ? `school-${selectedSchool.id}` : undefined}
+      filtersData={!canManageSchools && !isLoading && selectedSchool !== undefined && selectedSchool !== null ? { school_id: selectedSchool.id } : undefined}
+      stateKey={!canManageSchools && !isLoading && selectedSchool !== undefined && selectedSchool !== null ? `school-${selectedSchool.id}` : undefined}
     />
   )
 }
