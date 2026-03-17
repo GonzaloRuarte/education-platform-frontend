@@ -37,7 +37,14 @@ cd /home/gus/repos/meta-backend && git log origin/production..origin/development
 
 2. Para cada commit, hacer `git show <hash>` y leer el diff completo. Para cambios grandes, leer también los archivos afectados en su totalidad.
 
-3. Revisar específicamente:
+3. **Verificar los flujos críticos end-to-end en el estado actual de `development`**, independientemente del diff. Un diff limpio no garantiza que development esté sano. Recorrer:
+   - Login de estudiante → acceso al examen → submit
+   - Login de docente/institucional → dashboard
+   - En particular: si hay commits que tocaron `withAuth`, `RequireAuth`, capabilities o profiles, verificar que todos los login forms sigan almacenando lo que las páginas protegidas esperan.
+
+   **Por qué:** En 2026-03-17 se mergeó a producción con diff limpio (2 archivos sin riesgo), pero el login de estudiantes estaba roto en development desde días antes — un refactor de `RequireAuth` (profiles → capabilities) no actualizó `StudentsLoginForm`. Los alumnos no podían acceder a su examen.
+
+4. Revisar específicamente:
    - **Migraciones de DB**: ¿tienen `default=`? ¿son reversibles? ¿rompen datos existentes?
    - **Variables de entorno/settings**: ¿se usa algo que no está definido en `settings.py`? ¿falta agregar al entorno de producción?
    - **Cambios en la API**: ¿son backward compatible? ¿rompen el frontend actual en prod?
