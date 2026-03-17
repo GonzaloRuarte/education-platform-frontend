@@ -28,7 +28,7 @@ const pages = {
     label: 'Bienvenida',
     _: {
       login: {
-        path: '/dashboard/login',
+        path: '/login',
         label: 'Login',
 
       },
