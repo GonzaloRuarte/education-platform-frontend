@@ -1,5 +1,6 @@
 'use client'
 
+import { useUserProfilesResources } from '@/mta_auth/hooks'
 import { useSchoolScopeResources, useSchoolSetSelectedSchool } from '@/mta_schools/hooks/state'
 import Button from '@/shared/components/Button'
 import { Alert } from '@mui/material'
@@ -11,8 +12,10 @@ type I_Props = {
 
 const SelectedSchoolMismatchAlert = ({ entitySchool, entityLabel = 'registro' }: I_Props) => {
   const { accessibleSchools, selectedSchool, isLoading } = useSchoolScopeResources()
+  const { isSuperuser } = useUserProfilesResources()
   const setSelectedSchool = useSchoolSetSelectedSchool()
 
+  if (isSuperuser) return null
   if (isLoading || selectedSchool === undefined || !entitySchool || selectedSchool === null) return null
   if (selectedSchool.id === entitySchool.id) return null
 
