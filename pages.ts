@@ -11,6 +11,7 @@ const evaluationsEditContentPath = '/dashboard/evaluaciones/{evaluationId:number
 const evaluationsPreviewPath = '/preview/{evaluationId:number}'
 const appointmentsProcessPath = '/dashboard/turnos/{appointmentId:number}/procesar'
 const appointmentsEditStudentsPath = '/dashboard/turnos/{appointmentId:number}/editar-estudiantes'
+const appointmentAdminDashboardPath = '/dashboard/turnos/tablero'
 const questionBankCreatePath = '/dashboard/banco-de-preguntas/crear'
 const questionBankEditPath = '/dashboard/banco-de-preguntas/{questionId:number}'
 const reportEditPath = '/dashboard/reportes/{reportId:number}'
@@ -111,6 +112,10 @@ const pages = {
           cargarResolucionesOffline: {
             path: '/dashboard/turnos/cargar-resoluciones-offline',
             label: 'Cargar resoluciones offline',
+          },
+          tablero: {
+            path: appointmentAdminDashboardPath,
+            label: 'Tablero de control',
           },
         },
       },
@@ -279,6 +284,7 @@ export {
   evaluationsEditContentPath,
   appointmentsProcessPath,
   appointmentsEditStudentsPath,
+  appointmentAdminDashboardPath,
   userChangePasswordPath,
   evaluationsPreviewPath,
   questionBankCreatePath,
