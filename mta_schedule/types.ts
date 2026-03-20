@@ -110,6 +110,15 @@ interface I_AppointmentSchoolCardItem {
 type T_AppointmentSchoolCards = I_PaginatedResponse<I_AppointmentSchoolCardItem>
 type T_AppointmentList = I_PaginatedResponse<I_AppointmentListItem>
 
+
+interface I_AppointmentAdminSchoolDashboardRow {
+  school_id: T_SchoolId
+  school_name: string
+  requested_appointments: number
+  accepted_appointments: number
+  finalized_appointments: number
+}
+
 interface I_AppointmentCreateRequestData {
   begins_at: string
   quantity: number
@@ -162,6 +171,7 @@ export type {
   T_AppointmentOccurrenceStatus,
   I_AppointmentRealTimeStatus,
   I_AppointmentReschedule_RequestData,
+  I_AppointmentAdminSchoolDashboardRow,
 }
 
 export { AppointmentStatus, AppointmentOccurrenceStatus }

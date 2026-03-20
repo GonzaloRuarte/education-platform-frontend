@@ -4,6 +4,7 @@ import {
   I_AppointmentApprove_RequestData,
   I_AppointmentCreateRequestData,
   I_AppointmentDetail,
+  I_AppointmentAdminSchoolDashboardRow,
   I_AppointmentReject_RequestData,
   I_AppointmentRequest_RequestData,
   I_AppointmentsByMonthResponseData,
@@ -12,7 +13,7 @@ import {
   I_AppointmentReschedule_RequestData,
   T_AppointmentSchoolCards,
 } from '@/mta_schedule/types'
-import pages, { appointmentsEditStudentsPath, appointmentsProcessPath } from '@/pages'
+import pages, { appointmentAdminDashboardPath, appointmentsEditStudentsPath, appointmentsProcessPath } from '@/pages'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost, axiosGetBlob } from '@/shared/data/axios'
 import {
   actionHook,
@@ -61,6 +62,11 @@ const useAppointmentDetail = detailHook<T_AppointmentId, I_AppointmentDetail>(
 )
 const useAppointmentFreeListByMonth = getHook<I_AppointmentsByMonthResponseData, { year: number; month: number }>(
   `${APPOINTMENTS_PATH}/free-appointments-by-month`,
+  axiosGet,
+  useAuthResources,
+)
+const useAppointmentAdminSchoolDashboard = getHook<Array<I_AppointmentAdminSchoolDashboardRow>>(
+  `${APPOINTMENTS_PATH}/admin-school-dashboard`,
   axiosGet,
   useAuthResources,
 )
@@ -245,6 +251,7 @@ const useNavigateToAppointmentDetail = navigationWithIdHook(pages.D._.turnos.pat
 const useNavigateToAppointmentHome = navigationHook(pages.D._.turnos.path)
 const useNavigateToAppointmentUploadOfflineStates = navigationHook(pages.D._.turnos._.cargarResolucionesOffline.path)
 const useNavigateToAppointmentRequest = navigationHook(pages.D._.turnos._.solicitar.path)
+const useNavigateToAppointmentAdminDashboard = navigationHook(appointmentAdminDashboardPath)
 
 export {
   useAppointmentAddStudents,
@@ -258,6 +265,7 @@ export {
   useAppointmentListByUserSchool,
   useAppointmentReject,
   useAppointmentRequest,
+  useAppointmentAdminSchoolDashboard,
   useAppointmentUpdate,
   useNavigateToAppointmentCreate,
   useNavigateToAppointmentDetail,
@@ -265,6 +273,7 @@ export {
   useNavigateToAppointmentList,
   useNavigateToAppointmentProcess,
   useNavigateToAppointmentRequest,
+  useNavigateToAppointmentAdminDashboard,
   useNavigateToAppointmentHome,
   useNavigateToAppointmentUploadOfflineStates,
   useAppointmentRequestPostProcess,

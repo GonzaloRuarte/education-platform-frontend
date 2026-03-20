@@ -12,6 +12,7 @@ import {
   useNavigateToAppointmentEditStudents,
   useNavigateToAppointmentProcess,
   useNavigateToAppointmentUploadOfflineStates,
+  useNavigateToAppointmentAdminDashboard,
   useExportAppointments
 } from '@/mta_schedule/hooks'
 import { AppointmentOccurrenceStatus, AppointmentStatus, I_AppointmentListItem } from '@/mta_schedule/types'
@@ -22,6 +23,7 @@ import { dateFromDatetimeColumn, timeFromDatetimeColumn } from '@/shared/compone
 import RuleIcon from '@mui/icons-material/Rule'
 import SchoolIcon from '@mui/icons-material/School'
 import TroubleshootIcon from '@mui/icons-material/Troubleshoot'
+import DashboardIcon from '@mui/icons-material/Dashboard'
 import UploadIcon from '@mui/icons-material/Upload'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import { GridColDef } from '@mui/x-data-grid'
@@ -242,6 +244,7 @@ const AppointmentListPage = () => {
   const navToCreate = useNavigateToAppointmentCreate()
   const navToDetail = useNavigateToAppointmentDetail()
   const navToUploadOfflineStates = useNavigateToAppointmentUploadOfflineStates()
+  const navToAdminDashboard = useNavigateToAppointmentAdminDashboard()
 
   const useList = useAppointmentList
 
@@ -268,6 +271,9 @@ const AppointmentListPage = () => {
         customButtons={
 
           <Stack direction="row" spacing={2}>
+            <Button startIcon={<DashboardIcon />} onClick={navToAdminDashboard}>
+              Ver tablero
+            </Button>
             <Button startIcon={<UploadIcon />} onClick={navToUploadOfflineStates}>
               Cargar Resoluciones Offline
             </Button>
