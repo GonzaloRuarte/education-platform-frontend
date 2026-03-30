@@ -95,7 +95,7 @@ const OfflineSubmittedView = () => {
         <Spacer />
         <Button onClick={downloadResolutionState}>Descargar respuestas</Button>
         <Spacer />
-        <Button variant="secondary" onClick={handleExit}>
+        <Button variant="contained" color="secondary" onClick={handleExit}>
           Salir
         </Button>
       </Page.Content>

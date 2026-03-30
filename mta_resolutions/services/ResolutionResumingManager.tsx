@@ -5,8 +5,9 @@ import { useEffect } from 'react'
 
 const ResolutionResumingManager = () => {
   const { resume } = useResolutionResume()
-  useEffect(resume, [])
-
+  useEffect(() => {
+    resume()
+  }, [resume])
   return <></>
 }
 
