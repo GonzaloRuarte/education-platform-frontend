@@ -244,14 +244,15 @@ const useResolutionResume = () => {
           ? inMemoryState
           : offlineSnapshot?.state ?? null
 
-      const alreadyHasAnUploadedState = response.resolution.last_uploaded_state !== null
+      const uploadedState = response.resolution.last_uploaded_state
+      const alreadyHasAnUploadedState = uploadedState !== null
       const localStateIsNewer = _lastUploadedStateIsOlderThanLocal(response, candidateLocalState)
 
-      const chosenState =
+      const chosenState: I_ResolutionState =
         localStateIsNewer && candidateLocalState !== null
           ? candidateLocalState
-          : alreadyHasAnUploadedState
-            ? response.resolution.last_uploaded_state
+          : uploadedState !== null
+            ? uploadedState
             : initialState(response.student_personal_id, response.appointment_id)
 
       const metadata = {
