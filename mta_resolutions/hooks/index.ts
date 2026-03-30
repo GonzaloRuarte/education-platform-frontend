@@ -26,10 +26,7 @@ import { withRouterHistoryReset } from '@/shared/utils'
 import ApiError from '@/shared/data/errors'
 import { useMemo, useState } from 'react'
 
-const hasAllCurrentPageQuestionsAnswered = (
-  pageObj: I_Page,
-  state: I_ResolutionState,
-): boolean => {
+const hasAllCurrentPageQuestionsAnswered = (pageObj: I_Page, state: I_ResolutionState): boolean => {
   return pageObj.questions.every((question) => {
     const answer = state.answers[question.id]
 
@@ -67,6 +64,17 @@ const _canSubmitOrForwardPage = (a: {
     a.currentPage <= a.pagesQuantity &&
     hasAllCurrentPageQuestionsAnswered(a.evaluationToResolve.pages[a.currentPage - 1], a.resolutionState)
   )
+}
+
+const waitForBlurCommit = async () => {
+  if (typeof document === 'undefined') return
+
+  const activeElement = document.activeElement
+  if (activeElement instanceof HTMLElement) {
+    activeElement.blur()
+  }
+
+  await new Promise<void>((resolve) => setTimeout(resolve, 0))
 }
 
 const useResolutionPagination = () => {
@@ -117,19 +125,17 @@ const useResolutionElapsedTimeSeconds = () => {
     const startTime = new Date(resolutionStartedAt).getTime()
     const now = Date.now()
     setElapsedSeconds(Math.floor((now - startTime) / 1000))
-  }, 1000) // Update every second
+  }, 1000)
 
   return elapsedSeconds
 }
+
 const useResolutionLogout = () => useLogout(pages.R._.login.path)
 
 const useResolutionExit = () => {
-  const logOut = useResolutionLogout()
-  const resetState = useResolutionResetState()
-
+  const logout = useResolutionLogout()
   return () => {
-    logOut()
-    resetState()
+    logout()
   }
 }
 
@@ -137,14 +143,17 @@ const useResolutionManageSubmit = () => {
   const { isOnline } = useNetworkStatus()
   const submit = useResolutionRequestSubmit()
   const resetState = useResolutionResetState()
-  const state = useResolutionState()
   const navigateToResolutionSubmittedPage = useNavigateToResolutionSubmittedPage()
   const { downloadResolutionState } = useResolutionDownloadState()
   const { setIsInProgress, setIsNotInProgress } = useInProgress()
   const setOfflineSubmitted = useStore((s) => s.resolution_setOfflineSubmitted)
 
-  const manageSubmit = () => {
+  const manageSubmit = async () => {
+    await waitForBlurCommit()
+
+    const state = useStore.getState().resolution_state
     if (state === null) return
+
     setIsInProgress()
 
     if (!isOnline) {
@@ -155,9 +164,9 @@ const useResolutionManageSubmit = () => {
     }
 
     submit(state)
-      .then((res) => {
+      .then(async () => {
+        await resetState()
         navigateToResolutionSubmittedPage()
-        resetState()
       })
       .catch((err) => {
         if (err instanceof ApiError && err.status === -1) {
@@ -169,14 +178,15 @@ const useResolutionManageSubmit = () => {
       })
       .finally(setIsNotInProgress)
   }
+
   return manageSubmit
 }
 
 const useResolutionRetrySubmit = () => {
   const submit = useResolutionRequestSubmit()
-  const state = useResolutionState()
 
   return async () => {
+    const state = useStore.getState().resolution_state
     if (!state) throw new Error('No resolution state')
     await submit(state)
   }

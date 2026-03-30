@@ -17,18 +17,17 @@ interface I_ResolutionSliceDataFields {
 }
 
 interface I_ResolutionsSlice extends I_ResolutionSliceDataFields {
-  resolution_storeEvaluation: (resolution_evaluation: I_EvaluationToResolve) => void
+  resolution_storeEvaluation: (resolution_evaluation: I_EvaluationToResolve | null) => void
   resolution_storeCurrentPage: (resolution_currentPage: number) => void
   resolution_storeRequiresAccessibility: (resolution_requiresAccessibility: boolean) => void
   resolution_storeState: (resolutionState: I_ResolutionState | null) => void
-  resolution_storeLastUpload: (lastUpload: string) => void
+  resolution_storeLastUpload: (lastUpload: string | null) => void
   resolution_setRemainingTimeWarningAsDisplayed: () => void
   resolution_storeMetadata: (args: {
     resolution_startedAt: string
     resolution_maxDurationMinutes: number
     resolution_pin: number | null
   }) => void
-
   resolution_setOfflineSubmitted: (value: boolean) => void
   resolution_resetState: () => void
 }

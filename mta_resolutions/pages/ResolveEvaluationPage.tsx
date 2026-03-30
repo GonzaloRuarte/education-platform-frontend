@@ -13,8 +13,8 @@ import {
   useResolutionRetrySubmit,
 } from '@/mta_resolutions/hooks'
 import { useResolutionDurationResources } from '@/mta_resolutions/hooks/duration'
-import { useResolutionEvaluationToResolve } from '@/mta_resolutions/hooks/data'
-import { submitNavigationGuard } from '@/mta_resolutions/hooks/navigation'
+import { useResolutionEvaluationToResolve, useResolutionResetState } from '@/mta_resolutions/hooks/data'
+import { submitNavigationGuard, useNavigateToResolutionSubmittedPage } from '@/mta_resolutions/hooks/navigation'
 import ResolutionRemaingTimeManager from '@/mta_resolutions/services/ResolutionRemaingTimeManager'
 import ResolutionResumingManager from '@/mta_resolutions/services/ResolutionResumingManager'
 import Button from '@/shared/components/Button'
@@ -36,8 +36,10 @@ const RETRY_INTERVAL_MS = 8000
 const OfflineSubmittedView = () => {
   const { downloadResolutionState } = useResolutionDownloadState()
   const retrySubmit = useResolutionRetrySubmit()
+  const resetState = useResolutionResetState()
+  const navigateToResolutionSubmittedPage = useNavigateToResolutionSubmittedPage()
   const exit = useResolutionExit()
-  const [retryStatus, setRetryStatus] = useState<'waiting' | 'retrying' | 'success'>('waiting')
+  const [retryStatus, setRetryStatus] = useState<'waiting' | 'retrying'>('waiting')
   const inProgressRef = useRef(false)
   const doneRef = useRef(false)
 
@@ -48,9 +50,10 @@ const OfflineSubmittedView = () => {
       setRetryStatus('retrying')
 
       retrySubmit()
-        .then(() => {
+        .then(async () => {
           doneRef.current = true
-          setRetryStatus('success')
+          await resetState()
+          navigateToResolutionSubmittedPage()
         })
         .catch(() => {
           inProgressRef.current = false
@@ -60,7 +63,7 @@ const OfflineSubmittedView = () => {
 
     const id = setInterval(attempt, RETRY_INTERVAL_MS)
     return () => clearInterval(id)
-  }, [])
+  }, [retrySubmit, resetState, navigateToResolutionSubmittedPage])
 
   const handleExit = () => {
     submitNavigationGuard.active = true
@@ -80,23 +83,9 @@ const OfflineSubmittedView = () => {
     )
   }
 
-  if (retryStatus === 'success') {
-    return (
-      <Page>
-        <Page.Content>
-          <H3>¡Felicitaciones!</H3>
-          <Body1>Tu evaluación fue enviada con éxito. Gracias por tu participación.</Body1>
-          <Spacer />
-          <Button onClick={handleExit}>Salir</Button>
-        </Page.Content>
-      </Page>
-    )
-  }
-
   return (
     <Page>
       <Page.Content>
-        <OfflineIndicator />
         <Spacer />
         <H3>Evaluación finalizada</H3>
         <Body1>
@@ -105,6 +94,10 @@ const OfflineSubmittedView = () => {
         </Body1>
         <Spacer />
         <Button onClick={downloadResolutionState}>Descargar respuestas</Button>
+        <Spacer />
+        <Button variant="secondary" onClick={handleExit}>
+          Salir
+        </Button>
       </Page.Content>
     </Page>
   )
@@ -139,56 +132,57 @@ const ResolveEvaluationPage = () => {
     return () => window.removeEventListener('beforeunload', handler)
   }, [])
 
-  if (isOfflineSubmitted) return <OfflineSubmittedView />
-
   return (
     <>
       <OfflineIndicator />
       <ResolutionResumingManager />
-
       <ResolutionRemaingTimeManager />
 
-      <Page>
-        <Page.Content>
-          {evaluationToResolve === null ? (
-            <Spinner />
-          ) : (
-            <>
-              <Box position="relative">
-                <Box width="100%">
-                  {currentPage === 1 ? (
+      {isOfflineSubmitted ? (
+        <OfflineSubmittedView />
+      ) : (
+        <Page>
+          <Page.Content>
+            {evaluationToResolve === null ? (
+              <Spinner />
+            ) : (
+              <>
+                <Box position="relative">
+                  <Box width="100%">
+                    {currentPage === 1 ? (
+                      <div className="quill">
+                        <div className="ql-editor">
+                          <ResolutionHeader evaluationToResolve={evaluationToResolve} />
+                        </div>
+                      </div>
+                    ) : (
+                      <Spacer size="l" />
+                    )}
+                    <ResolutionPaginator />
+                    <Spacer size="s" />
+                    <StickyPinned text={evaluationToResolve.pages[currentPage - 1].pinned_text} />
+                    <Spacer size="xl" />
+
                     <div className="quill">
                       <div className="ql-editor">
-                        <ResolutionHeader evaluationToResolve={evaluationToResolve} />
+                        <ResolutionQuestions evaluationToResolve={evaluationToResolve} currentPage={currentPage} />
                       </div>
                     </div>
-                  ) : (
-                    <Spacer size="l" />
-                  )}
-                  <ResolutionPaginator />
-                  <Spacer size="s" />
-                  <StickyPinned text={evaluationToResolve.pages[currentPage - 1].pinned_text} />
-                  <Spacer size="xl" />
 
-                  <div className="quill">
-                    <div className="ql-editor">
-                      <ResolutionQuestions {...{ evaluationToResolve, currentPage }} />
-                    </div>
-                  </div>
-
-                  <Spacer size="s" />
-                  <ResolutionReviewDisclaimer />
-                  <Spacer size="s" />
-                  <HorizontalRule />
-                  <Spacer size="s" />
-                  <ResolutionPaginator />
-                  <Spacer size="xl" />
+                    <Spacer size="s" />
+                    <ResolutionReviewDisclaimer />
+                    <Spacer size="s" />
+                    <HorizontalRule />
+                    <Spacer size="s" />
+                    <ResolutionPaginator />
+                    <Spacer size="xl" />
+                  </Box>
                 </Box>
-              </Box>
-            </>
-          )}
-        </Page.Content>
-      </Page>
+              </>
+            )}
+          </Page.Content>
+        </Page>
+      )}
     </>
   )
 }
