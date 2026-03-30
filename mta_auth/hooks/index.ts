@@ -10,6 +10,7 @@ import {
   I_PasswordResetConfirmResponseData,
   T_UserCapability,
 } from '@/mta_auth/types'
+import { clearAllResolutionOfflineData } from '@/mta_resolutions/offlineStorage'
 import { useSchoolStoreSchoolScope } from '@/mta_schools/hooks/state'
 
 import pages from '@/pages'
@@ -106,6 +107,7 @@ const useLogout = (callbackPath: string = pages.D._.login.path) => {
     useStore.getState().resolution_resetState()
     useStore.getState().school_resetState()
     useStore.getState().user_resetState()
+    void clearAllResolutionOfflineData()
   }
 
   return () => {
