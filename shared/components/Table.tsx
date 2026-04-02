@@ -2,12 +2,12 @@ import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '@/config'
 import { alpha, styled } from '@mui/material'
 import {
   DataGrid,
-  DataGridProps,
-  GridCallbackDetails,
+  type DataGridProps,
+  type GridCallbackDetails,
   gridClasses,
-  GridColDef,
-  GridPaginationModel,
-  GridRowSelectionModel,
+  type GridColDef,
+  type GridPaginationModel,
+  type GridRowSelectionModel,
 } from '@mui/x-data-grid'
 import { useState } from 'react'
 
@@ -23,14 +23,22 @@ const StripedDataGrid = styled(DataGrid)(({ theme }) => ({
       },
     },
     '&.Mui-selected': {
-      backgroundColor: alpha(theme.palette.primary.main, ODD_OPACITY + theme.palette.action.selectedOpacity),
+      backgroundColor: alpha(
+        theme.palette.primary.main,
+        ODD_OPACITY + theme.palette.action.selectedOpacity,
+      ),
       '&:hover': {
         backgroundColor: alpha(
           theme.palette.primary.main,
-          ODD_OPACITY + theme.palette.action.selectedOpacity + theme.palette.action.hoverOpacity,
+          ODD_OPACITY +
+          theme.palette.action.selectedOpacity +
+          theme.palette.action.hoverOpacity,
         ),
         '@media (hover: none)': {
-          backgroundColor: alpha(theme.palette.primary.main, ODD_OPACITY + theme.palette.action.selectedOpacity),
+          backgroundColor: alpha(
+            theme.palette.primary.main,
+            ODD_OPACITY + theme.palette.action.selectedOpacity,
+          ),
         },
       },
     },
@@ -41,7 +49,6 @@ const StripedDataGrid = styled(DataGrid)(({ theme }) => ({
 export const stripHtmlToText = (html?: string) => {
   if (!html) return ''
   try {
-    // Run in browser (preferred)
     if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       const div = document.createElement('div')
       div.innerHTML = html
@@ -50,93 +57,109 @@ export const stripHtmlToText = (html?: string) => {
   } catch {
     // ignore and fall back below
   }
-  // SSR/fallback (rough): strip tags & collapse whitespace
   return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
 }
 
 /**
  * Column factory for MUI Data Grid:
  * - Displays your HTML (via dangerouslySetInnerHTML)
- * - Sorts/filters by the inner text extracted from that HTML
- *
- * Usage:
- *   columns: [
- *     htmlTextColumn({ field: 'description', htmlField: 'descriptionHtml', headerName: 'Description', flex: 1 }),
- *     ...
- *   ]
+ * - Exposes visible text as the logical value
  */
-type HtmlTextColOpts = Omit<GridColDef, 'field' | 'renderCell' | 'valueGetter' | 'sortComparator' | 'type'> & {
-  /** key on the row holding the HTML string (e.g. 'descriptionHtml') */
+type HtmlTextColOpts = Omit<
+  GridColDef,
+  'field' | 'renderCell' | 'valueGetter' | 'sortComparator' | 'type'
+> & {
   htmlField: string
-  /** column id (can be same as htmlField) */
   field: string
 }
 
-export const htmlTextColumn = ({ htmlField, field, ...rest }: HtmlTextColOpts): GridColDef => ({
+export const htmlTextColumn = ({
+  htmlField,
+  field,
+  ...rest
+}: HtmlTextColOpts): GridColDef => ({
   field,
   type: 'string',
   filterable: true,
   sortable: true,
-
-  // 1) Logical value used by sorting/filtering/quick-filter:
   valueGetter: (_value, row) => stripHtmlToText(row?.[htmlField]),
-
-  // 2) Pretty display using your HTML:
   renderCell: (params) => (
     <span
-      // IMPORTANT: sanitize first if content isn't fully trusted (e.g., DOMPurify)
       dangerouslySetInnerHTML={{ __html: String(params.row?.[htmlField] ?? '') }}
     />
   ),
-
-  // Optional: stable, locale-aware comparator (handles "A2" < "A10")
-  sortComparator: (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }),
-
+  sortComparator: (a, b) =>
+    String(a).localeCompare(String(b), undefined, {
+      numeric: true,
+      sensitivity: 'base',
+    }),
   ...rest,
 })
 
-type I_SelectedDataGridProps = Pick<
+type I_Props = Omit<
   DataGridProps,
-  | 'checkboxSelection'
-  | 'slots'
-  | 'density'
-  | 'rowSelectionModel'
-  | 'onRowSelectionModelChange'
-  | 'slotProps'
-  | 'onRowClick'
-  | 'disableRowSelectionOnClick'
->
-
-interface I_Props extends I_SelectedDataGridProps {
+  | 'rows'
+  | 'rowCount'
+  | 'columns'
+  | 'loading'
+  | 'paginationModel'
+  | 'onPaginationModelChange'
+> & {
   paginationModel: GridPaginationModel
-  onPaginationModelChange?: (m: GridPaginationModel, d: GridCallbackDetails<'pagination'>) => void
-  sortModel?: DataGridProps['sortModel']
-  onSortModelChange?: DataGridProps['onSortModelChange']
-  filterModel?: DataGridProps['filterModel']
-  onFilterModelChange?: DataGridProps['onFilterModelChange']
+  onPaginationModelChange?: (
+    model: GridPaginationModel,
+    details: GridCallbackDetails<'pagination'>,
+  ) => void
   data?: DataGridProps['rows']
   count?: number
   columns: Array<GridColDef>
   isLoading?: boolean
 }
 
-function Table({ isLoading = false, data, count = 0, ...props }: I_Props) {
-  const pageSizeOptions = Array.from(new Set([...PAGE_SIZE_OPTIONS, props.paginationModel.pageSize]))
+function Table({
+  isLoading = false,
+  data,
+  count = 0,
+  paginationModel,
+  onPaginationModelChange,
+  columns,
+
+  // Good defaults for your custom-toolbar approach:
+  disableColumnSorting = true,
+  disableColumnFilter = true,
+  ignoreDiacritics = true,
+
+  ...props
+}: I_Props) {
+  const pageSizeOptions = Array.from(
+    new Set([...PAGE_SIZE_OPTIONS, paginationModel.pageSize]),
+  )
+
   return (
     <StripedDataGrid
       sx={{ background: 'white', borderRadius: 3 }}
-      rows={data}
+      rows={data ?? []}
       rowCount={count}
-      getRowClassName={(p) => (p.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd')}
+      columns={columns}
+      loading={isLoading}
+      pagination
+      paginationModel={paginationModel}
+      onPaginationModelChange={onPaginationModelChange}
       pageSizeOptions={pageSizeOptions}
       paginationMode="server"
-      filterMode="server"
       sortingMode="server"
-      loading={isLoading}
+      filterMode="server"
+      disableColumnSorting={disableColumnSorting}
+      disableColumnFilter={disableColumnFilter}
+      ignoreDiacritics={ignoreDiacritics}
+      getRowClassName={(p) =>
+        p.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
+      }
       {...props}
     />
   )
 }
+
 const usePaginationModel = (initial?: Partial<GridPaginationModel>) => {
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
@@ -147,11 +170,11 @@ const usePaginationModel = (initial?: Partial<GridPaginationModel>) => {
 }
 
 const useRowSelectionModel = () => {
-  const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>([])
+  const [rowSelectionModel, setRowSelectionModel] =
+    useState<GridRowSelectionModel>([])
   return { rowSelectionModel, setRowSelectionModel }
 }
 
-// Attach hooks for ergonomics
 Table.usePaginationModel = usePaginationModel
 Table.useRowSelectionModel = useRowSelectionModel
 
