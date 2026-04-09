@@ -10,6 +10,8 @@ const ACTIVE_SNAPSHOT_KEY_STORAGE = 'meta_resolution-active-snapshot-key'
 
 export interface I_ResolutionOfflineSnapshotMetadata {
   resolution_startedAt: string | null
+  resolution_submitByTime: string | null
+  resolution_serverNowAtSync: string | null
   resolution_maxDurationMinutes: number | null
   resolution_pin: number | null
   resolution_lastUpload: string | null
@@ -25,6 +27,8 @@ export interface I_ResolutionOfflineSnapshot {
 
 const defaultMetadata = (): I_ResolutionOfflineSnapshotMetadata => ({
   resolution_startedAt: null,
+  resolution_submitByTime: null,
+  resolution_serverNowAtSync: null,
   resolution_maxDurationMinutes: null,
   resolution_pin: null,
   resolution_lastUpload: null,
@@ -76,20 +80,6 @@ const getSnapshot = async (key: string): Promise<I_ResolutionOfflineSnapshot | n
   })
 }
 
-const getAllSnapshots = async (): Promise<I_ResolutionOfflineSnapshot[]> => {
-  const db = await openDb()
-
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readonly')
-    const store = tx.objectStore(STORE_NAME)
-    const request = store.getAll()
-
-    request.onsuccess = () => resolve((request.result as I_ResolutionOfflineSnapshot[]) ?? [])
-    request.onerror = () => reject(request.error ?? new Error('Failed to read all snapshots'))
-    tx.oncomplete = () => db.close()
-    tx.onerror = () => reject(tx.error ?? new Error('Failed to read all snapshots'))
-  })
-}
 
 const putSnapshot = async (snapshot: I_ResolutionOfflineSnapshot): Promise<void> => {
   const db = await openDb()
@@ -109,23 +99,24 @@ const putSnapshot = async (snapshot: I_ResolutionOfflineSnapshot): Promise<void>
   })
 }
 
-const clearAllSnapshots = async (): Promise<void> => {
+const deleteSnapshot = async (key: string): Promise<void> => {
   const db = await openDb()
 
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite')
     const store = tx.objectStore(STORE_NAME)
 
-    store.clear()
+    store.delete(key)
 
     tx.oncomplete = () => {
       db.close()
       resolve()
     }
-    tx.onerror = () => reject(tx.error ?? new Error('Failed to clear snapshots'))
-    tx.onabort = () => reject(tx.error ?? new Error('Clear transaction aborted'))
+    tx.onerror = () => reject(tx.error ?? new Error('Failed to delete snapshot'))
+    tx.onabort = () => reject(tx.error ?? new Error('Delete transaction aborted'))
   })
 }
+
 
 export const setActiveResolutionSnapshotKey = (key: string) => {
   ensureClient()
@@ -142,23 +133,10 @@ export const clearActiveResolutionSnapshotKey = () => {
   window.localStorage.removeItem(ACTIVE_SNAPSHOT_KEY_STORAGE)
 }
 
-export const getLatestResolutionSnapshot = async (): Promise<I_ResolutionOfflineSnapshot | null> => {
-  const snapshots = await getAllSnapshots()
-  if (snapshots.length === 0) return null
-
-  snapshots.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-  return snapshots[0]
-}
-
-export const getActiveResolutionSnapshot = async (): Promise<I_ResolutionOfflineSnapshot | null> => {
+export const getStrictActiveResolutionSnapshot = async (): Promise<I_ResolutionOfflineSnapshot | null> => {
   const activeKey = getActiveResolutionSnapshotKey()
-
-  if (activeKey) {
-    const snapshot = await getSnapshot(activeKey)
-    if (snapshot) return snapshot
-  }
-
-  return getLatestResolutionSnapshot()
+  if (!activeKey) return null
+  return getSnapshot(activeKey)
 }
 
 export const getResolutionSnapshotByIdentity = async (
@@ -208,8 +186,29 @@ export const persistResolutionStateSnapshot = async (state: I_ResolutionState) =
   })
 }
 
-export const clearAllResolutionOfflineData = async () => {
-  if (typeof window === 'undefined') return
-  clearActiveResolutionSnapshotKey()
-  await clearAllSnapshots()
+export const clearResolutionOfflineDataForKey = async (key: string | null | undefined) => {
+  if (typeof window === 'undefined' || !key) return
+
+  const activeKey = getActiveResolutionSnapshotKey()
+  if (activeKey === key) {
+    clearActiveResolutionSnapshotKey()
+  }
+
+  await deleteSnapshot(key)
 }
+
+export const clearResolutionOfflineDataForIdentity = async (
+  appointmentId: T_AppointmentId,
+  studentPersonalId: string,
+) => {
+  await clearResolutionOfflineDataForKey(buildResolutionOfflineKey(appointmentId, studentPersonalId))
+}
+
+export const clearCurrentResolutionOfflineData = async (resolutionState?: I_ResolutionState | null) => {
+  const key = resolutionState
+    ? buildResolutionOfflineKeyFromState(resolutionState)
+    : getActiveResolutionSnapshotKey()
+
+  await clearResolutionOfflineDataForKey(key)
+}
+

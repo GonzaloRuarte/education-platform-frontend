@@ -25,16 +25,29 @@ type T_EvaluationToResolve_MultipleChoiceAnswer = I_EvaluationToResolve_BaseAnsw
   }>
   is_multiselect: boolean
 }>
+interface I_ResolutionTimingData {
+  last_uploaded_state: null | I_ResolutionState
+  started_at: string
+  submit_by_time: string
+  server_now: string
+  max_duration_minutes: number
+}
+
 interface I_ResumeResolutionResponse {
   evaluation: I_EvaluationToResolve
   appointment_id: T_AppointmentId
   appointment_pin: number | null
   student_personal_id: string
-  resolution: {
-    last_uploaded_state: null | I_ResolutionState
-    started_at: string
-    max_duration_minutes: number
-  }
+  resolution: I_ResolutionTimingData
+}
+
+
+interface I_FinalizeTimeoutResponse {
+  result: 'ACTIVE' | 'SUBMITTED'
+  message: string
+  appointment_id: T_AppointmentId
+  student_personal_id: string
+  resolution: I_ResolutionTimingData
 }
 
 interface I_ResolutionState_BaseAnswer<T extends T_AnswerType, T_SpecificData> {
@@ -102,7 +115,9 @@ interface I_EvaluationToResolve {
 export type {
   T_ResolutionId,
   I_AuthorizeStudentRequestData,
+  I_ResolutionTimingData,
   I_ResumeResolutionResponse,
+  I_FinalizeTimeoutResponse,
   T_EvaluationToResolve_NumericAnswer,
   T_EvaluationToResolve_MultipleChoiceAnswer,
   T_EvaluationToResolve_OpenEndedAnswer,
