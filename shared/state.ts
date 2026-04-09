@@ -24,7 +24,7 @@ type T_CombinedSlices = I_AuthSlice &
   I_SchoolSlice
 
 const PERSIST_KEY = 'meta_system-data'
-const PERSIST_VERSION = 2
+const PERSIST_VERSION = 4
 
 const excludeForPartialize = (state: T_CombinedSlices, fields: Array<keyof T_CombinedSlices>) =>
   Object.fromEntries<T_CombinedSlices>(
@@ -80,12 +80,16 @@ const useStore = create<T_CombinedSlices>()(
             'resolution_remainingTimeWarningAlreadyDisplayed',
             'resolution_evaluation',
             'resolution_state',
+            'resolution_runtimeStatus',
+            'resolution_runtimeMessage',
           ]),
         migrate: (persistedState) => {
           const next = (persistedState ?? {}) as Partial<T_CombinedSlices>
 
           delete (next as any).resolution_evaluation
           delete (next as any).resolution_state
+          delete (next as any).resolution_runtimeStatus
+          delete (next as any).resolution_runtimeMessage
 
           return next as T_CombinedSlices
         },

@@ -1,6 +1,7 @@
 'use client'
 
 import { useLogout } from '@/mta_auth/hooks'
+import { flushPendingResolutionEdits } from '@/mta_resolutions/flushPendingResolutionEdits'
 import {
   useResolutionDownloadState,
   useResolutionEvaluationToResolve,
@@ -64,17 +65,6 @@ const _canSubmitOrForwardPage = (a: {
     a.currentPage <= a.pagesQuantity &&
     hasAllCurrentPageQuestionsAnswered(a.evaluationToResolve.pages[a.currentPage - 1], a.resolutionState)
   )
-}
-
-const waitForBlurCommit = async () => {
-  if (typeof document === 'undefined') return
-
-  const activeElement = document.activeElement
-  if (activeElement instanceof HTMLElement) {
-    activeElement.blur()
-  }
-
-  await new Promise<void>((resolve) => setTimeout(resolve, 0))
 }
 
 const useResolutionPagination = () => {
@@ -149,7 +139,7 @@ const useResolutionManageSubmit = () => {
   const setOfflineSubmitted = useStore((s) => s.resolution_setOfflineSubmitted)
 
   const manageSubmit = async () => {
-    await waitForBlurCommit()
+    await flushPendingResolutionEdits()
 
     const state = useStore.getState().resolution_state
     if (state === null) return
@@ -168,10 +158,13 @@ const useResolutionManageSubmit = () => {
         await resetState()
         navigateToResolutionSubmittedPage()
       })
-      .catch((err) => {
+      .catch(async (err) => {
         if (err instanceof ApiError && err.status === -1) {
           downloadResolutionState()
           setOfflineSubmitted(true)
+        } else if (err instanceof ApiError && ApiError.errorCode(err) === 'RESOLUTION_ALREADY_SUBMITTED') {
+          await resetState()
+          navigateToResolutionSubmittedPage()
         } else {
           handleServiceError(err)
         }
@@ -186,6 +179,8 @@ const useResolutionRetrySubmit = () => {
   const submit = useResolutionRequestSubmit()
 
   return async () => {
+    await flushPendingResolutionEdits()
+
     const state = useStore.getState().resolution_state
     if (!state) throw new Error('No resolution state')
     await submit(state)
@@ -193,6 +188,7 @@ const useResolutionRetrySubmit = () => {
 }
 
 export {
+  flushPendingResolutionEdits,
   useResolutionDownloadState,
   useResolutionElapsedTimeSeconds,
   useResolutionExit,
