@@ -6,8 +6,8 @@ import { useAuthResources, useRequestSetupWithMultipart } from '@/mta_auth/hooks
 import { I_AuthorizeStudentResponseData } from '@/mta_auth/types'
 import { T_AnswerId, T_AnswerType, T_QuestionId } from '@/mta_evaluations/types'
 import {
-  buildResolutionOfflineKeyFromState,
   buildResolutionOfflineKey,
+  buildResolutionOfflineKeyFromState,
   clearCurrentResolutionOfflineData,
   getStrictActiveResolutionSnapshot,
   getResolutionSnapshotByIdentity,

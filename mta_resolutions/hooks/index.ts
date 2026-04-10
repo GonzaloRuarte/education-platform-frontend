@@ -25,7 +25,6 @@ import pages from '@/pages'
 import ApiError from '@/shared/data/errors'
 import { useInProgress, useInterval } from '@/shared/hooks'
 import { useNetworkStatus } from '@/shared/offline/hooks'
-import { handleServiceError } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import { withRouterHistoryReset } from '@/shared/utils'
 import { useMemo, useState } from 'react'
@@ -224,13 +223,11 @@ const useResolutionActionDrivenFinalize = () => {
 
       onStillActive?.()
     } catch (err) {
-      if (err instanceof ApiError && err.status === -1) {
-        await downloadResolutionState()
-        setOfflineSubmitted(true)
-      } else if (err instanceof ApiError && ApiError.errorCode(err) === 'RESOLUTION_ALREADY_SUBMITTED') {
+      if (err instanceof ApiError && ApiError.errorCode(err) === 'RESOLUTION_ALREADY_SUBMITTED') {
         await finishAndLeave()
       } else {
-        handleServiceError(err)
+        await downloadResolutionState()
+        setOfflineSubmitted(true)
       }
     } finally {
       setIsNotInProgress()
