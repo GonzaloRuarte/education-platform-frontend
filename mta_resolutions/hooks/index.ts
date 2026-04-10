@@ -2,29 +2,32 @@
 
 import { useLogout } from '@/mta_auth/hooks'
 import { flushPendingResolutionEdits } from '@/mta_resolutions/flushPendingResolutionEdits'
+import { buildResolutionOfflineKeyFromState } from '@/mta_resolutions/offlineStorage'
 import {
   useResolutionDownloadState,
   useResolutionEvaluationToResolve,
+  useResolutionFinalizeTimeout,
   useResolutionRequestSubmit,
   useResolutionResetState,
   useResolutionState,
 } from '@/mta_resolutions/hooks/data'
+import { useResolutionDurationResources } from '@/mta_resolutions/hooks/duration'
 import { useNavigateToResolutionSubmittedPage } from '@/mta_resolutions/hooks/navigation'
 import {
   I_EvaluationToResolve,
-  I_ResolutionState,
   I_Page,
+  I_ResolutionState,
   T_ResolutionState_MultipleChoiceAnswerData,
   T_ResolutionState_NumericAnswerData,
   T_ResolutionState_OpenEndedAnswerData,
 } from '@/mta_resolutions/types'
 import pages from '@/pages'
+import ApiError from '@/shared/data/errors'
 import { useInProgress, useInterval } from '@/shared/hooks'
 import { useNetworkStatus } from '@/shared/offline/hooks'
 import { handleServiceError } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import { withRouterHistoryReset } from '@/shared/utils'
-import ApiError from '@/shared/data/errors'
 import { useMemo, useState } from 'react'
 
 const hasAllCurrentPageQuestionsAnswered = (pageObj: I_Page, state: I_ResolutionState): boolean => {
@@ -129,50 +132,120 @@ const useResolutionExit = () => {
   }
 }
 
-const useResolutionManageSubmit = () => {
+const useResolutionActionDrivenFinalize = () => {
   const { isOnline } = useNetworkStatus()
   const submit = useResolutionRequestSubmit()
+  const finalizeTimeout = useResolutionFinalizeTimeout()
   const resetState = useResolutionResetState()
   const navigateToResolutionSubmittedPage = useNavigateToResolutionSubmittedPage()
   const { downloadResolutionState } = useResolutionDownloadState()
   const { setIsInProgress, setIsNotInProgress } = useInProgress()
   const setOfflineSubmitted = useStore((s) => s.resolution_setOfflineSubmitted)
+  const setRequiresFinalizationOnAction = useStore((s) => s.resolution_setRequiresFinalizationOnAction)
+  const storeMetadata = useStore((s) => s.resolution_storeMetadata)
+  const { maxDurationReached } = useResolutionDurationResources()
+  const requiresFinalizationOnAction = useStore((s) => s.resolution_requiresFinalizationOnAction)
 
-  const manageSubmit = async () => {
+  const normalizeActiveMetadataFromServer = (serverResolution: {
+    started_at: string
+    submit_by_time: string
+    server_now: string
+    max_duration_minutes: number
+    last_uploaded_state_server_created_at: string | null
+  }) => {
+    const current = useStore.getState()
+    storeMetadata({
+      resolution_startedAt: serverResolution.started_at,
+      resolution_submitByTime: serverResolution.submit_by_time,
+      resolution_serverNowAtSync: serverResolution.server_now,
+      resolution_maxDurationMinutes: serverResolution.max_duration_minutes,
+      resolution_pin: current.resolution_pin,
+      resolution_serverStateToken: serverResolution.last_uploaded_state_server_created_at,
+      resolution_hasUnsyncedLocalChanges: current.resolution_hasUnsyncedLocalChanges,
+      resolution_successfulResumeIdentityKey:
+        current.resolution_state ? buildResolutionOfflineKeyFromState(current.resolution_state) : current.resolution_successfulResumeIdentityKey,
+    })
+  }
+
+  const finishAndLeave = async () => {
+    setRequiresFinalizationOnAction(false)
+    await resetState()
+    navigateToResolutionSubmittedPage()
+  }
+
+  const normalSubmit = async (state: I_ResolutionState) => {
+    await submit(state)
+    await finishAndLeave()
+  }
+
+  return async (options?: { onStillActive?: () => void; forceSubmit?: boolean }) => {
+    const { onStillActive, forceSubmit = false } = options ?? {}
+
     await flushPendingResolutionEdits()
 
     const state = useStore.getState().resolution_state
     if (state === null) return
 
+    const mustResolveWithServer = requiresFinalizationOnAction || maxDurationReached === true
+
     setIsInProgress()
 
     if (!isOnline) {
-      downloadResolutionState()
+      await downloadResolutionState()
       setOfflineSubmitted(true)
       setIsNotInProgress()
       return
     }
 
-    submit(state)
-      .then(async () => {
-        await resetState()
-        navigateToResolutionSubmittedPage()
-      })
-      .catch(async (err) => {
-        if (err instanceof ApiError && err.status === -1) {
-          downloadResolutionState()
-          setOfflineSubmitted(true)
-        } else if (err instanceof ApiError && ApiError.errorCode(err) === 'RESOLUTION_ALREADY_SUBMITTED') {
-          await resetState()
-          navigateToResolutionSubmittedPage()
-        } else {
-          handleServiceError(err)
-        }
-      })
-      .finally(setIsNotInProgress)
-  }
+    try {
+      if (mustResolveWithServer) {
+        const result = await finalizeTimeout(state)
 
-  return manageSubmit
+        if (result.result === 'ACTIVE') {
+          normalizeActiveMetadataFromServer(result.resolution)
+          setRequiresFinalizationOnAction(false)
+
+          if (forceSubmit) {
+            await normalSubmit(useStore.getState().resolution_state ?? state)
+          } else {
+            onStillActive?.()
+          }
+          return
+        }
+
+        await finishAndLeave()
+        return
+      }
+
+      if (forceSubmit) {
+        await normalSubmit(state)
+        return
+      }
+
+      onStillActive?.()
+    } catch (err) {
+      if (err instanceof ApiError && err.status === -1) {
+        await downloadResolutionState()
+        setOfflineSubmitted(true)
+      } else if (err instanceof ApiError && ApiError.errorCode(err) === 'RESOLUTION_ALREADY_SUBMITTED') {
+        await finishAndLeave()
+      } else {
+        handleServiceError(err)
+      }
+    } finally {
+      setIsNotInProgress()
+    }
+  }
+}
+
+const useResolutionManageSubmit = () => {
+  const finalizeOnAction = useResolutionActionDrivenFinalize()
+  return async () => finalizeOnAction({ forceSubmit: true })
+}
+
+const useResolutionHandlePageAction = () => {
+  const finalizeOnAction = useResolutionActionDrivenFinalize()
+  return async (fn: () => void) => finalizeOnAction({ onStillActive: fn, forceSubmit: false })
 }
 
 const useResolutionRetrySubmit = () => {
@@ -192,6 +265,7 @@ export {
   useResolutionDownloadState,
   useResolutionElapsedTimeSeconds,
   useResolutionExit,
+  useResolutionHandlePageAction,
   useResolutionManageSubmit,
   useResolutionPagination,
   useResolutionLogout,

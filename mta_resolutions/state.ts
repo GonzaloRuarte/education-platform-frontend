@@ -8,6 +8,7 @@ export type T_ResolutionRuntimeStatus =
   | 'resuming'
   | 'active'
   | 'offline_recovery'
+  | 'awaiting_server_validation'
   | 'verifying_timeout'
   | 'timeout_pending_confirmation'
   | 'expired'
@@ -23,9 +24,13 @@ interface I_ResolutionSliceDataFields {
   resolution_maxDurationMinutes: number | null
   resolution_submitByTime: string | null
   resolution_serverNowAtSync: string | null
-  resolution_timerSyncedClientEpochMs: number | null
+  resolution_timerSyncedMonotonicMs: number | null
   resolution_remainingTimeWarningAlreadyDisplayed: boolean
   resolution_pin: number | null
+  resolution_serverStateToken: string | null
+  resolution_hasUnsyncedLocalChanges: boolean
+  resolution_successfulResumeIdentityKey: string | null
+  resolution_requiresFinalizationOnAction: boolean
   resolution_offlineSubmitted: boolean
   resolution_runtimeStatus: T_ResolutionRuntimeStatus
   resolution_runtimeMessage: string | null
@@ -44,6 +49,16 @@ interface I_ResolutionsSlice extends I_ResolutionSliceDataFields {
     resolution_serverNowAtSync: string
     resolution_maxDurationMinutes: number
     resolution_pin: number | null
+    resolution_serverStateToken: string | null
+    resolution_hasUnsyncedLocalChanges: boolean
+    resolution_successfulResumeIdentityKey: string | null
+  }) => void
+  resolution_setRequiresFinalizationOnAction: (value: boolean) => void
+  resolution_markLocalChangesDirty: () => void
+  resolution_storeServerSync: (args: {
+    resolution_serverStateToken: string | null
+    resolution_serverNowAtSync?: string | null
+    resolution_lastUpload?: string | null
   }) => void
   resolution_setOfflineSubmitted: (value: boolean) => void
   resolution_storeRuntime: (args: {
@@ -63,9 +78,13 @@ const initialState: I_ResolutionSliceDataFields = {
   resolution_maxDurationMinutes: null,
   resolution_submitByTime: null,
   resolution_serverNowAtSync: null,
-  resolution_timerSyncedClientEpochMs: null,
+  resolution_timerSyncedMonotonicMs: null,
   resolution_remainingTimeWarningAlreadyDisplayed: false,
   resolution_pin: null,
+  resolution_serverStateToken: null,
+  resolution_hasUnsyncedLocalChanges: false,
+  resolution_successfulResumeIdentityKey: null,
+  resolution_requiresFinalizationOnAction: false,
   resolution_offlineSubmitted: false,
   resolution_runtimeStatus: 'idle',
   resolution_runtimeMessage: null,
@@ -74,6 +93,7 @@ const initialState: I_ResolutionSliceDataFields = {
 const createResolutionsSlice: StateCreator<I_ResolutionsSlice, [], [], I_ResolutionsSlice> = (set) => ({
   ...initialState,
   resolution_setOfflineSubmitted: (value) => set(() => ({ resolution_offlineSubmitted: value })),
+  resolution_setRequiresFinalizationOnAction: (value) => set(() => ({ resolution_requiresFinalizationOnAction: value })),
   resolution_resetState: () => set(() => initialState),
   resolution_storeEvaluation: (resolution_evaluation) => set(() => ({ resolution_evaluation })),
   resolution_storeCurrentPage: (resolution_currentPage) => set(() => ({ resolution_currentPage })),
@@ -89,8 +109,21 @@ const createResolutionsSlice: StateCreator<I_ResolutionsSlice, [], [], I_Resolut
     resolution_serverNowAtSync: string
     resolution_maxDurationMinutes: number
     resolution_pin: number | null
+    resolution_serverStateToken: string | null
+    resolution_hasUnsyncedLocalChanges: boolean
+    resolution_successfulResumeIdentityKey: string | null
   }) =>
-    set(() => ({ ...args, resolution_timerSyncedClientEpochMs: Date.now() })),
+    set(() => ({ ...args, resolution_timerSyncedMonotonicMs: typeof performance !== 'undefined' ? performance.now() : 0 })),
+  resolution_markLocalChangesDirty: () => set(() => ({ resolution_hasUnsyncedLocalChanges: true })),
+  resolution_storeServerSync: ({ resolution_serverStateToken, resolution_serverNowAtSync = null, resolution_lastUpload }) =>
+    set((state) => ({
+      resolution_serverStateToken,
+      resolution_hasUnsyncedLocalChanges: false,
+      resolution_successfulResumeIdentityKey: state.resolution_successfulResumeIdentityKey,
+      resolution_serverNowAtSync: resolution_serverNowAtSync ?? state.resolution_serverNowAtSync,
+      resolution_lastUpload: resolution_lastUpload ?? state.resolution_lastUpload,
+      resolution_timerSyncedMonotonicMs: typeof performance !== 'undefined' ? performance.now() : 0,
+    })),
   resolution_storeRuntime: ({ status, message = null }) =>
     set(() => ({ resolution_runtimeStatus: status, resolution_runtimeMessage: message })),
 })

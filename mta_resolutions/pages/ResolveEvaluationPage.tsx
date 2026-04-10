@@ -6,16 +6,12 @@ import ResolutionPaginator from '@/mta_resolutions/components/ResolutionPaginato
 import ResolutionQuestions from '@/mta_resolutions/components/ResolutionQuestions'
 import ResolutionReviewDisclaimer from '@/mta_resolutions/components/ResolutionReviewDisclaimer'
 import { useResolutionDownloadState, useResolutionExit, useResolutionPagination, useResolutionRetrySubmit } from '@/mta_resolutions/hooks'
-import { flushPendingResolutionEdits } from '@/mta_resolutions/flushPendingResolutionEdits'
-import { useResolutionDurationResources } from '@/mta_resolutions/hooks/duration'
 import {
   useResolutionEvaluationToResolve,
-  useResolutionFinalizeTimeout,
-  useResolutionResetState,
   useResolutionResume,
+  useResolutionResetState,
   useResolutionRuntime,
   useResolutionState,
-  useResolutionStoreMetadata,
 } from '@/mta_resolutions/hooks/data'
 import { submitNavigationGuard, useNavigateToResolutionSubmittedPage } from '@/mta_resolutions/hooks/navigation'
 import ResolutionRemaingTimeManager from '@/mta_resolutions/services/ResolutionRemaingTimeManager'
@@ -26,13 +22,10 @@ import Spacer from '@/shared/components/Spacer'
 import Spinner from '@/shared/components/Spinner'
 import { Body1, H3 } from '@/shared/components/Typography'
 import OfflineIndicator from '@/shared/offline/OfflineIndicator'
-import { useNetworkStatus } from '@/shared/offline/hooks'
 import { useStore } from '@/shared/state'
 import { HorizontalRule } from '@mui/icons-material'
 import { Box } from '@mui/material'
 import { StickyPinned } from '@/shared/components/StickyPinned'
-import ApiError from '@/shared/data/errors'
-import { warningToast } from '@/shared/toasts'
 import { ReactNode, useEffect, useRef, useState } from 'react'
 import 'react-quill-new/dist/quill.snow.css'
 
@@ -132,40 +125,6 @@ const OfflineSubmittedView = () => {
   )
 }
 
-const TimeoutPendingConfirmationView = ({ message, isOnline }: { message: string; isOnline: boolean }) => {
-  const { downloadResolutionState } = useResolutionDownloadState()
-  const exit = useResolutionExit()
-
-  const handleExit = () => {
-    submitNavigationGuard.active = true
-    if (window.confirm('Si salís ahora, este dispositivo dejará de reintentar el envío automático. ¿Querés salir igual?')) {
-      exit()
-    }
-  }
-
-  const handleDownload = async () => {
-    await downloadResolutionState()
-    if (window.confirm('Las respuestas se descargaron. ¿Querés salir ahora?')) {
-      handleExit()
-    }
-  }
-
-  return (
-    <ResolutionStatusView
-      title="Estamos verificando la finalización de la evaluación"
-      message={message}
-    >
-      {isOnline ? <Spinner /> : null}
-      <Spacer />
-      <Button onClick={() => void handleDownload()}>Descargar respuestas guardadas</Button>
-      <Spacer />
-      <Button variant="contained" color="secondary" onClick={handleExit}>
-        Salir
-      </Button>
-    </ResolutionStatusView>
-  )
-}
-
 const ExpiredResolutionView = ({ message }: { message: string }) => {
   const { downloadResolutionState } = useResolutionDownloadState()
   const exit = useResolutionExit()
@@ -233,115 +192,7 @@ const ResolveEvaluationPage = () => {
   const evaluationToResolve = useResolutionEvaluationToResolve()
   const { currentPage } = useResolutionPagination()
   const isOfflineSubmitted = useStore((state) => state.resolution_offlineSubmitted)
-  const { runtimeStatus, runtimeMessage, storeRuntime } = useResolutionRuntime()
-  const finalizeTimeout = useResolutionFinalizeTimeout()
-  const storeMetadata = useResolutionStoreMetadata()
-  const resetState = useResolutionResetState()
-  const navigateToResolutionSubmittedPage = useNavigateToResolutionSubmittedPage()
-  const { isOnline } = useNetworkStatus()
-
-  const { timeLeft } = useResolutionDurationResources()
-
-  const didWarnOfflineTimeoutRef = useRef(false)
-  const isVerifyingTimeoutRef = useRef(false)
-  const nextTimeoutRetryAtRef = useRef(0)
-
-  useEffect(() => {
-    if (timeLeft == null || timeLeft > 0) {
-      didWarnOfflineTimeoutRef.current = false
-      nextTimeoutRetryAtRef.current = 0
-      if (runtimeStatus === 'timeout_pending_confirmation') {
-        storeRuntime({ status: 'active', message: null })
-      }
-      return
-    }
-
-    if (
-      runtimeStatus !== 'active' &&
-      runtimeStatus !== 'offline_recovery' &&
-      runtimeStatus !== 'timeout_pending_confirmation'
-    ) {
-      return
-    }
-
-    if (isVerifyingTimeoutRef.current) return
-    if (Date.now() < nextTimeoutRetryAtRef.current) return
-
-    if (!isOnline) {
-      nextTimeoutRetryAtRef.current = Date.now() + RETRY_INTERVAL_MS
-      if (!didWarnOfflineTimeoutRef.current) {
-        didWarnOfflineTimeoutRef.current = true
-        warningToast(
-          'Se alcanzó el tiempo límite y la evaluación quedó pausada mientras esperamos conexión para confirmar y enviar las respuestas.',
-        )
-      }
-      storeRuntime({
-        status: 'timeout_pending_confirmation',
-        message:
-          'Se alcanzó el tiempo límite. La evaluación quedó pausada en este dispositivo y vamos a reintentar la verificación automáticamente cuando vuelva la conexión. No cierres esta página.',
-      })
-      return
-    }
-
-    void (async () => {
-      isVerifyingTimeoutRef.current = true
-
-      try {
-        await flushPendingResolutionEdits()
-
-        const resolutionState = useStore.getState().resolution_state
-        if (!resolutionState) return
-
-        storeRuntime({ status: 'verifying_timeout', message: null })
-
-        const timeoutResult = await finalizeTimeout(resolutionState)
-
-        if (timeoutResult.result === 'ACTIVE') {
-          storeMetadata({
-            resolution_startedAt: timeoutResult.resolution.started_at,
-            resolution_submitByTime: timeoutResult.resolution.submit_by_time,
-            resolution_serverNowAtSync: timeoutResult.resolution.server_now,
-            resolution_maxDurationMinutes: timeoutResult.resolution.max_duration_minutes,
-            resolution_pin: useStore.getState().resolution_pin,
-          })
-          storeRuntime({ status: 'active', message: null })
-          didWarnOfflineTimeoutRef.current = false
-          nextTimeoutRetryAtRef.current = 0
-          return
-        }
-
-        await resetState()
-        navigateToResolutionSubmittedPage()
-      } catch (submitErr) {
-        nextTimeoutRetryAtRef.current = Date.now() + RETRY_INTERVAL_MS
-
-        if (submitErr instanceof ApiError && ApiError.errorCode(submitErr) === 'RESOLUTION_ALREADY_SUBMITTED') {
-          await resetState()
-          navigateToResolutionSubmittedPage()
-          return
-        }
-
-        storeRuntime({
-          status: 'timeout_pending_confirmation',
-          message:
-            submitErr instanceof ApiError && submitErr.status === -1
-              ? 'Se alcanzó el tiempo límite. No pudimos confirmar con el servidor por un problema de conexión. La evaluación permanece pausada y vamos a reintentar automáticamente. Podés descargar las respuestas por seguridad.'
-              : 'Se alcanzó el tiempo límite. No pudimos confirmar con el servidor el estado final de la evaluación. La evaluación permanece pausada y vamos a reintentar automáticamente.',
-        })
-      } finally {
-        isVerifyingTimeoutRef.current = false
-      }
-    })()
-  }, [
-    timeLeft,
-    runtimeStatus,
-    isOnline,
-    finalizeTimeout,
-    storeMetadata,
-    storeRuntime,
-    resetState,
-    navigateToResolutionSubmittedPage,
-  ])
+  const { runtimeStatus, runtimeMessage } = useResolutionRuntime()
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -356,28 +207,14 @@ const ResolveEvaluationPage = () => {
 
   if (isOfflineSubmitted) {
     content = <OfflineSubmittedView />
-  } else if (runtimeStatus === 'verifying_timeout' || runtimeStatus === 'resuming') {
+  } else if (runtimeStatus === 'resuming') {
     content = (
       <ResolutionStatusView
-        title={runtimeStatus === 'verifying_timeout' ? 'Verificando tiempo disponible...' : 'Recuperando evaluación...'}
-        message={
-          runtimeStatus === 'verifying_timeout'
-            ? 'El servidor está confirmando si la resolución sigue activa.'
-            : 'Estamos recuperando tu evaluación y las respuestas guardadas.'
-        }
+        title='Recuperando evaluación...'
+        message='Estamos recuperando tu evaluación y las respuestas guardadas.'
       >
         <Spinner />
       </ResolutionStatusView>
-    )
-  } else if (runtimeStatus === 'timeout_pending_confirmation') {
-    content = (
-      <TimeoutPendingConfirmationView
-        isOnline={isOnline}
-        message={
-          runtimeMessage ??
-          'Se alcanzó el tiempo límite. La evaluación quedó pausada mientras el servidor confirma el estado final.'
-        }
-      />
     )
   } else if (runtimeStatus === 'expired') {
     content = (
