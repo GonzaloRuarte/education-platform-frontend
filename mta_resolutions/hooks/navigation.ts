@@ -8,10 +8,9 @@ export const submitNavigationGuard = { active: false }
 const useNavigateToResolutionPage = navigationHook(pages.R._.resolverEvaluacion.path)
 const useNavigateToResolutionSubmittedPage = () => {
   const router = useRouter()
-  return (options?: { offline?: boolean }) => {
+  return () => {
     submitNavigationGuard.active = true
-    const path = pages.R._.resolucionEntregada.path
-    router.push(options?.offline ? `${path}?offline=true` : path)
+    router.push(pages.R._.resolucionEntregada.path)
   }
 }
 const useNavigateToResolutionLoginPage = navigationHook(pages.R._.login.path)

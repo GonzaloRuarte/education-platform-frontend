@@ -16,16 +16,16 @@ const useResolutionInspection = () => {
   const fetchResolutionInspection = async ({ personal_id, appointment_id }: I_ResolutionInspectionQuery) => {
     setIsLoading(true)
     try {
-      const response = await axiosGet<I_ResolutionInspectionResponse>({
-        url: `${apiUrl(RESOLUTION_INSPECTION_PATH)}/`,
-        requestSetup,
-        options: {
-          filters: {
-            personal_id,
-            ...(appointment_id !== undefined ? { appointment_id } : {}),
-          },
-        },
-      })
+        const queryParams = new URLSearchParams({
+          personal_id,
+          ...(appointment_id !== undefined ? { appointment_id: String(appointment_id) } : {}),
+        })
+
+        const response = await axiosGet<I_ResolutionInspectionResponse>({
+          url: `${apiUrl(RESOLUTION_INSPECTION_PATH)}/?${queryParams.toString()}`,
+          requestSetup,
+          options: {},
+        })
       setData(response)
       return response
     } finally {

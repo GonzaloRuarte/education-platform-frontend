@@ -26,10 +26,8 @@ import { useStore } from '@/shared/state'
 import { HorizontalRule } from '@mui/icons-material'
 import { Box } from '@mui/material'
 import { StickyPinned } from '@/shared/components/StickyPinned'
-import { ReactNode, useEffect, useRef, useState } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import 'react-quill-new/dist/quill.snow.css'
-
-const RETRY_INTERVAL_MS = 8000
 
 const ResolutionStatusView = ({
   title,
@@ -60,35 +58,23 @@ const OfflineSubmittedView = () => {
   const navigateToResolutionSubmittedPage = useNavigateToResolutionSubmittedPage()
   const exit = useResolutionExit()
   const [retryStatus, setRetryStatus] = useState<'waiting' | 'retrying'>('waiting')
-  const inProgressRef = useRef(false)
-  const doneRef = useRef(false)
 
-  useEffect(() => {
-    const attempt = () => {
-      if (inProgressRef.current || doneRef.current) return
-      inProgressRef.current = true
-      setRetryStatus('retrying')
+  const handleRetry = async () => {
+    if (retryStatus === 'retrying') return
 
-      retrySubmit()
-        .then(async () => {
-          doneRef.current = true
-          await resetState()
-          navigateToResolutionSubmittedPage()
-        })
-        .catch(() => {
-          inProgressRef.current = false
-          setRetryStatus('waiting')
-        })
+    setRetryStatus('retrying')
+    try {
+      await retrySubmit()
+      await resetState()
+      navigateToResolutionSubmittedPage()
+    } catch {
+      setRetryStatus('waiting')
     }
-
-    attempt()
-    const id = setInterval(attempt, RETRY_INTERVAL_MS)
-    return () => clearInterval(id)
-  }, [retrySubmit, resetState, navigateToResolutionSubmittedPage])
+  }
 
   const handleExit = () => {
     submitNavigationGuard.active = true
-    if (window.confirm('Si salís ahora, este dispositivo dejará de reintentar el envío automático. ¿Querés salir igual?')) {
+    if (window.confirm('Si salís ahora, este dispositivo dejará de intentar el envío desde esta pantalla. ¿Querés salir igual?')) {
       exit()
     }
   }
@@ -104,7 +90,7 @@ const OfflineSubmittedView = () => {
     return (
       <ResolutionStatusView
         title="Enviando evaluación..."
-        message="Se restableció la conexión. Enviando las respuestas al servidor."
+        message="Intentando enviar las respuestas al servidor."
       >
         <Spinner />
       </ResolutionStatusView>
@@ -114,8 +100,10 @@ const OfflineSubmittedView = () => {
   return (
     <ResolutionStatusView
       title="Evaluación finalizada"
-      message="Por favor llamá al docente. El dispositivo no tiene internet. Las respuestas se enviarán automáticamente cuando se restaure la conexión. Por favor, no cierres esta página."
+      message="No se pudo confirmar el envío al servidor. Podés reintentar manualmente o descargar las respuestas para cargarlas luego."
     >
+      <Button onClick={() => void handleRetry()}>Reintentar</Button>
+      <Spacer />
       <Button onClick={() => void handleDownload()}>Descargar respuestas</Button>
       <Spacer />
       <Button variant="contained" color="secondary" onClick={handleExit}>
@@ -132,7 +120,7 @@ const ExpiredResolutionView = ({ message }: { message: string }) => {
 
   const handleExit = () => {
     submitNavigationGuard.active = true
-    if (window.confirm('Si salís ahora, este dispositivo dejará de reintentar el envío automático. ¿Querés salir igual?')) {
+    if (window.confirm('Si salís ahora, este dispositivo dejará de intentar el envío desde esta pantalla. ¿Querés salir igual?')) {
       exit()
     }
   }
@@ -170,7 +158,7 @@ const ResumeErrorView = ({ message }: { message: string }) => {
 
   const handleExit = () => {
     submitNavigationGuard.active = true
-    if (window.confirm('Si salís ahora, este dispositivo dejará de reintentar el envío automático. ¿Querés salir igual?')) {
+    if (window.confirm('Si salís ahora, este dispositivo dejará de intentar el envío desde esta pantalla. ¿Querés salir igual?')) {
       exit()
     }
   }
