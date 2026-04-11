@@ -131,6 +131,31 @@ const useResolutionExit = () => {
   }
 }
 
+const SUBMIT_CONFIRMATION_TIMEOUT_MS = 4000
+
+const _buildSubmitConfirmationTimeoutError = () =>
+  new ApiError({
+    message: 'No se pudo confirmar el envío con el servidor.',
+    status: -1,
+    rawError: {
+      response: {
+        data: {
+          error_code: 'SUBMIT_CONFIRMATION_TIMEOUT',
+          message: 'No se pudo confirmar el envío con el servidor.',
+        },
+      },
+    },
+  })
+
+const withConfirmationTimeout = async <T,>(promise: Promise<T>): Promise<T> => {
+  return await Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      window.setTimeout(() => reject(_buildSubmitConfirmationTimeoutError()), SUBMIT_CONFIRMATION_TIMEOUT_MS)
+    }),
+  ])
+}
+
 const useResolutionActionDrivenFinalize = () => {
   const { isOnline } = useNetworkStatus()
   const submit = useResolutionRequestSubmit()
@@ -173,7 +198,7 @@ const useResolutionActionDrivenFinalize = () => {
   }
 
   const normalSubmit = async (state: I_ResolutionState) => {
-    await submit(state)
+    await withConfirmationTimeout(submit(state))
     await finishAndLeave()
   }
 
@@ -198,7 +223,7 @@ const useResolutionActionDrivenFinalize = () => {
 
     try {
       if (mustResolveWithServer) {
-        const result = await finalizeTimeout(state)
+        const result = await withConfirmationTimeout(finalizeTimeout(state))
 
         if (result.result === 'ACTIVE') {
           normalizeActiveMetadataFromServer(result.resolution)
@@ -253,7 +278,7 @@ const useResolutionRetrySubmit = () => {
 
     const state = useStore.getState().resolution_state
     if (!state) throw new Error('No resolution state')
-    await submit(state)
+    await withConfirmationTimeout(submit(state))
   }
 }
 
