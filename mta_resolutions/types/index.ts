@@ -27,6 +27,7 @@ type T_EvaluationToResolve_MultipleChoiceAnswer = I_EvaluationToResolve_BaseAnsw
 }>
 interface I_ResolutionTimingData {
   last_uploaded_state: null | I_ResolutionState
+  last_uploaded_state_server_created_at: string | null
   started_at: string
   submit_by_time: string
   server_now: string
@@ -48,6 +49,11 @@ interface I_FinalizeTimeoutResponse {
   appointment_id: T_AppointmentId
   student_personal_id: string
   resolution: I_ResolutionTimingData
+}
+
+interface I_ResolutionUploadStateResponse {
+  last_uploaded_state_server_created_at: string | null
+  server_now: string
 }
 
 interface I_ResolutionState_BaseAnswer<T extends T_AnswerType, T_SpecificData> {
@@ -118,6 +124,7 @@ export type {
   I_ResolutionTimingData,
   I_ResumeResolutionResponse,
   I_FinalizeTimeoutResponse,
+  I_ResolutionUploadStateResponse,
   T_EvaluationToResolve_NumericAnswer,
   T_EvaluationToResolve_MultipleChoiceAnswer,
   T_EvaluationToResolve_OpenEndedAnswer,

@@ -15,6 +15,9 @@ export interface I_ResolutionOfflineSnapshotMetadata {
   resolution_maxDurationMinutes: number | null
   resolution_pin: number | null
   resolution_lastUpload: string | null
+  resolution_serverStateToken: string | null
+  resolution_hasUnsyncedLocalChanges: boolean
+  resolution_successfulResumeIdentityKey: string | null
 }
 
 export interface I_ResolutionOfflineSnapshot {
@@ -32,6 +35,9 @@ const defaultMetadata = (): I_ResolutionOfflineSnapshotMetadata => ({
   resolution_maxDurationMinutes: null,
   resolution_pin: null,
   resolution_lastUpload: null,
+  resolution_serverStateToken: null,
+  resolution_hasUnsyncedLocalChanges: false,
+  resolution_successfulResumeIdentityKey: null,
 })
 
 const ensureClient = () => {
@@ -179,10 +185,14 @@ export const persistResolutionSnapshot = async (args: {
   return next
 }
 
-export const persistResolutionStateSnapshot = async (state: I_ResolutionState) => {
+export const persistResolutionStateSnapshot = async (
+  state: I_ResolutionState,
+  metadata?: Partial<I_ResolutionOfflineSnapshotMetadata>,
+) => {
   return persistResolutionSnapshot({
     key: buildResolutionOfflineKeyFromState(state),
     state,
+    metadata,
   })
 }
 

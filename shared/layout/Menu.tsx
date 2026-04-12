@@ -70,6 +70,9 @@ const Menu = () => {
                 <RRCC allowedCapabilities={['manage_appointment_slots']}>
                   <MenuItem label={P.D._.turnos._.tablero.label} href={P.D._.turnos._.tablero.path} />
                 </RRCC>
+                <RRCC allowedCapabilities={['manage_admin_users']}>
+                  <MenuItem label={P.D._.turnos._.estadoResolucion.label} href={P.D._.turnos._.estadoResolucion.path} />
+                </RRCC>
                 <RRCC allowedCapabilities={['upload_offline_resolutions']}>
                   <MenuItem
                     label={P.D._.turnos._.cargarResolucionesOffline.label}

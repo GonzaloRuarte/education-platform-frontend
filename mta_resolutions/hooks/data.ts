@@ -6,6 +6,7 @@ import { useAuthResources, useRequestSetupWithMultipart } from '@/mta_auth/hooks
 import { I_AuthorizeStudentResponseData } from '@/mta_auth/types'
 import { T_AnswerId, T_AnswerType, T_QuestionId } from '@/mta_evaluations/types'
 import {
+  buildResolutionOfflineKey,
   buildResolutionOfflineKeyFromState,
   clearCurrentResolutionOfflineData,
   getStrictActiveResolutionSnapshot,
@@ -18,6 +19,7 @@ import {
   I_AuthorizeStudentRequestData,
   I_FinalizeTimeoutResponse,
   I_ResolutionState,
+  I_ResolutionUploadStateResponse,
   I_ResumeResolutionResponse,
   T_ResolutionState_MultipleChoiceAnswerData,
 } from '@/mta_resolutions/types'
@@ -27,11 +29,13 @@ import ApiError from '@/shared/data/errors'
 import { actionHook, creationHook, useInProgress } from '@/shared/hooks'
 import { useNetworkStatus } from '@/shared/offline/hooks'
 import { useNavigateToResolutionSubmittedPage } from '@/mta_resolutions/hooks/navigation'
-import { postService } from '@/shared/service'
+import { handleServiceError, postService } from '@/shared/service'
 import { useStore } from '@/shared/state'
 import { errorToast, warningToast } from '@/shared/toasts'
 import { I_CreationCommonResponse, T_EmptyPayload } from '@/shared/types'
 import { useCallback } from 'react'
+
+const STARTUP_BACKGROUND_RESUME_TIMEOUT_MS = 4000
 
 const RESOLUTIONS_PATH = '/resolutions'
 
@@ -48,7 +52,7 @@ const _useResolutionRequestResume = actionHook<T_EmptyPayload, I_ResumeResolutio
   useAuthResources,
 )
 
-const _useResolutionUploadState = actionHook<I_ResolutionState, T_EmptyPayload>(
+const _useResolutionUploadState = actionHook<I_ResolutionState, I_ResolutionUploadStateResponse>(
   `${RESOLUTIONS_PATH}/upload-state`,
   axiosPost,
   useAuthResources,
@@ -88,11 +92,14 @@ const useResolutionRemainingTimeWarningAlreadyDisplayed = () => {
 const useResolutionMaxDurationMinutes = () => useStore((state) => state.resolution_maxDurationMinutes)
 const useResolutionSubmitByTime = () => useStore((state) => state.resolution_submitByTime)
 const useResolutionServerNowAtSync = () => useStore((state) => state.resolution_serverNowAtSync)
-const useResolutionTimerSyncedClientEpochMs = () => useStore((state) => state.resolution_timerSyncedClientEpochMs)
+const useResolutionTimerSyncedMonotonicMs = () => useStore((state) => state.resolution_timerSyncedMonotonicMs)
 const useResolutionPin = () => useStore((state) => state.resolution_pin)
 const useResolutionState = () => useStore((state) => state.resolution_state)
 const useResolutionLastUploadDatetime = () => useStore((state) => state.resolution_lastUpload)
 const useResolutionStoreLastUpload = () => useStore((state) => state.resolution_storeLastUpload)
+const useResolutionServerStateToken = () => useStore((state) => state.resolution_serverStateToken)
+const useResolutionHasUnsyncedLocalChanges = () => useStore((state) => state.resolution_hasUnsyncedLocalChanges)
+const useResolutionRequiresFinalizationOnAction = () => useStore((state) => state.resolution_requiresFinalizationOnAction)
 const useResolutionRuntime = () => {
   const runtimeStatus = useStore((state) => state.resolution_runtimeStatus)
   const runtimeMessage = useStore((state) => state.resolution_runtimeMessage)
@@ -107,6 +114,9 @@ const useResolutionUpdateLastUploadDatetime = () => {
   }
 }
 
+const _buildSuccessfulResumeIdentityKey = (appointmentId: T_AppointmentId, studentPersonalId: string) =>
+  buildResolutionOfflineKey(appointmentId, studentPersonalId)
+
 const initialState = (personal_id: string, appointment_id: T_AppointmentId): I_ResolutionState => {
   const now = new Date().toISOString()
   return {
@@ -116,6 +126,33 @@ const initialState = (personal_id: string, appointment_id: T_AppointmentId): I_R
     last_update_datetime: null,
     answers: {},
   }
+}
+
+const _snapshotHasCompleteServerTimingMetadata = (snapshot: I_ResolutionOfflineSnapshot): boolean => {
+  return (
+    snapshot.metadata.resolution_startedAt !== null &&
+    snapshot.metadata.resolution_submitByTime !== null &&
+    snapshot.metadata.resolution_serverNowAtSync !== null &&
+    snapshot.metadata.resolution_maxDurationMinutes !== null
+  )
+}
+
+const _snapshotMatchesSuccessfulResumeIdentity = (snapshot: I_ResolutionOfflineSnapshot): boolean => {
+  return snapshot.metadata.resolution_successfulResumeIdentityKey === snapshot.key
+}
+
+const _hasCompleteServerTimingData = (timing: {
+  started_at?: string | null
+  submit_by_time?: string | null
+  server_now?: string | null
+  max_duration_minutes?: number | null
+}) => {
+  return (
+    typeof timing.started_at === 'string' &&
+    typeof timing.submit_by_time === 'string' &&
+    typeof timing.server_now === 'string' &&
+    typeof timing.max_duration_minutes === 'number'
+  )
 }
 
 const hydrateStoreFromSnapshot = (
@@ -129,10 +166,17 @@ const hydrateStoreFromSnapshot = (
       resolution_serverNowAtSync: string
       resolution_maxDurationMinutes: number
       resolution_pin: number | null
+      resolution_serverStateToken: string | null
+      resolution_hasUnsyncedLocalChanges: boolean
+      resolution_successfulResumeIdentityKey: string | null
     }) => void
     storeLastUpload: (value: string | null) => void
   },
 ) => {
+  if (!_snapshotHasCompleteServerTimingMetadata(snapshot)) {
+    throw new Error('Missing required server timing metadata in local snapshot')
+  }
+
   if (snapshot.state) {
     actions.storeResolutionState(snapshot.state)
   }
@@ -141,26 +185,26 @@ const hydrateStoreFromSnapshot = (
     actions.storeEvaluationToResolve(snapshot.evaluation)
   }
 
-  if (
-    snapshot.metadata.resolution_startedAt !== null &&
-    snapshot.metadata.resolution_maxDurationMinutes !== null
-  ) {
-    const fallbackSubmitByTime = snapshot.metadata.resolution_submitByTime
-      ?? new Date(
-        new Date(snapshot.metadata.resolution_startedAt).getTime() +
-          snapshot.metadata.resolution_maxDurationMinutes * 60 * 1000,
-      ).toISOString()
-
-    actions.storeMetadata({
-      resolution_startedAt: snapshot.metadata.resolution_startedAt,
-      resolution_submitByTime: fallbackSubmitByTime,
-      resolution_serverNowAtSync: snapshot.metadata.resolution_serverNowAtSync ?? new Date().toISOString(),
-      resolution_maxDurationMinutes: snapshot.metadata.resolution_maxDurationMinutes,
-      resolution_pin: snapshot.metadata.resolution_pin,
-    })
-  }
+  actions.storeMetadata({
+    resolution_startedAt: snapshot.metadata.resolution_startedAt!,
+    resolution_submitByTime: snapshot.metadata.resolution_submitByTime!,
+    resolution_serverNowAtSync: snapshot.metadata.resolution_serverNowAtSync!,
+    resolution_maxDurationMinutes: snapshot.metadata.resolution_maxDurationMinutes!,
+    resolution_pin: snapshot.metadata.resolution_pin,
+    resolution_serverStateToken: snapshot.metadata.resolution_serverStateToken,
+    resolution_hasUnsyncedLocalChanges: snapshot.metadata.resolution_hasUnsyncedLocalChanges,
+    resolution_successfulResumeIdentityKey: snapshot.metadata.resolution_successfulResumeIdentityKey,
+  })
 
   actions.storeLastUpload(snapshot.metadata.resolution_lastUpload)
+}
+
+const getUsableLocalStartupSnapshot = async (): Promise<I_ResolutionOfflineSnapshot | null> => {
+  const snapshot = await getStrictActiveResolutionSnapshot()
+  if (!snapshot?.state || !snapshot?.evaluation) return null
+  if (!_snapshotMatchesSuccessfulResumeIdentity(snapshot)) return null
+  if (!_snapshotHasCompleteServerTimingMetadata(snapshot)) return null
+  return snapshot
 }
 
 const getCurrentSnapshotMetadata = () => {
@@ -172,34 +216,19 @@ const getCurrentSnapshotMetadata = () => {
     resolution_serverNowAtSync: state.resolution_serverNowAtSync,
     resolution_pin: state.resolution_pin,
     resolution_lastUpload: state.resolution_lastUpload,
+    resolution_serverStateToken: state.resolution_serverStateToken,
+    resolution_hasUnsyncedLocalChanges: state.resolution_hasUnsyncedLocalChanges,
+    resolution_successfulResumeIdentityKey: state.resolution_successfulResumeIdentityKey,
   }
 }
 
-
-const _snapshotSubmitByTime = (snapshot: I_ResolutionOfflineSnapshot): string | null => {
-  if (snapshot.metadata.resolution_submitByTime) return snapshot.metadata.resolution_submitByTime
-
-  if (snapshot.metadata.resolution_startedAt && snapshot.metadata.resolution_maxDurationMinutes !== null) {
-    return new Date(
-      new Date(snapshot.metadata.resolution_startedAt).getTime() +
-        snapshot.metadata.resolution_maxDurationMinutes * 60 * 1000,
-    ).toISOString()
-  }
-
-  return null
-}
-
-const _snapshotLooksExpiredLocally = (snapshot: I_ResolutionOfflineSnapshot): boolean => {
-  const submitByTime = _snapshotSubmitByTime(snapshot)
-  if (!submitByTime) return false
-  return new Date(submitByTime).getTime() <= Date.now()
-}
 
 const persistCurrentResolutionContext = async (args?: {
   state?: I_ResolutionState | null
   evaluation?: I_ResolutionOfflineSnapshot['evaluation']
   metadata?: Partial<ReturnType<typeof getCurrentSnapshotMetadata>>
 }) => {
+
   const storeState = useStore.getState()
   const resolutionState = args?.state ?? storeState.resolution_state
 
@@ -216,18 +245,23 @@ const persistCurrentResolutionContext = async (args?: {
   })
 }
 
-const _lastUploadedStateIsOlderThanLocal = (
+const _shouldPreferLocalState = (
   response: I_ResumeResolutionResponse,
   localResolutionState: I_ResolutionState | null,
-) =>
-  response.resolution.last_uploaded_state !== null &&
-  localResolutionState !== null &&
-  localResolutionState.last_update_datetime !== null &&
-  response.resolution.last_uploaded_state.last_update_datetime !== null &&
-  new Date(localResolutionState.last_update_datetime) >
-    new Date(response.resolution.last_uploaded_state.last_update_datetime)
+  metadata: ReturnType<typeof getCurrentSnapshotMetadata> | I_ResolutionOfflineSnapshot['metadata'] | null,
+) => {
+  if (localResolutionState === null || metadata === null) return false
 
-type T_ResolutionResumeOutcome = 'active' | 'offline_recovery' | 'timeout_pending_confirmation' | 'expired' | 'resume_error'
+  const serverToken = response.resolution.last_uploaded_state_server_created_at
+  const localBaseToken = metadata.resolution_serverStateToken
+  const localIsDirty = metadata.resolution_hasUnsyncedLocalChanges
+
+  if (!localIsDirty) return false
+  if (serverToken === null) return true
+  return localBaseToken === serverToken
+}
+
+type T_ResolutionResumeOutcome = 'active' | 'offline_recovery' | 'awaiting_server_validation' | 'timeout_pending_confirmation' | 'expired' | 'resume_error'
 
 const useResolutionResume = () => {
   const { isOnline } = useNetworkStatus()
@@ -241,14 +275,132 @@ const useResolutionResume = () => {
   const storeLastUpload = useResolutionStoreLastUpload()
   const resetStateStore = useResolutionResetStateStore()
   const setOfflineSubmitted = useStore((state) => state.resolution_setOfflineSubmitted)
+  const setRequiresFinalizationOnAction = useStore((state) => state.resolution_setRequiresFinalizationOnAction)
   const storeNewPage = useStore((state) => state.resolution_storeCurrentPage)
   const { setIsNotInProgress, setIsInProgress } = useInProgress()
   const { storeRuntime } = useResolutionRuntime()
 
+  const requestResumeWithBackgroundTimeout = useCallback(async () => {
+    return await Promise.race([
+      requestResume({}),
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Resume request timed out')), STARTUP_BACKGROUND_RESUME_TIMEOUT_MS)
+      }),
+    ])
+  }, [requestResume])
+
+  const applyResumeResponse = useCallback(
+    async (response: I_ResumeResolutionResponse, options?: { preserveCurrentPage?: boolean }) => {
+      const { preserveCurrentPage = true } = options ?? {}
+
+      if (!_hasCompleteServerTimingData(response.resolution)) {
+        throw new Error('Missing required server timing metadata in resume response')
+      }
+
+      const inMemoryState = useStore.getState().resolution_state
+      const offlineSnapshot = await getResolutionSnapshotByIdentity(
+        response.appointment_id,
+        response.student_personal_id,
+      )
+
+      const candidateLocalState =
+        inMemoryState &&
+        inMemoryState.appointment_id === response.appointment_id &&
+        inMemoryState.student_personal_id === response.student_personal_id
+          ? inMemoryState
+          : offlineSnapshot?.state ?? null
+
+      const candidateLocalMetadata =
+        candidateLocalState === inMemoryState ? getCurrentSnapshotMetadata() : offlineSnapshot?.metadata ?? null
+
+      const uploadedState = response.resolution.last_uploaded_state
+      const alreadyHasAnUploadedState = uploadedState !== null
+      const preferLocalState = _shouldPreferLocalState(response, candidateLocalState, candidateLocalMetadata)
+
+      const chosenState: I_ResolutionState =
+        preferLocalState && candidateLocalState !== null
+          ? candidateLocalState
+          : uploadedState !== null
+            ? uploadedState
+            : candidateLocalState ?? initialState(response.student_personal_id, response.appointment_id)
+
+      const metadata = {
+        resolution_startedAt: response.resolution.started_at,
+        resolution_submitByTime: response.resolution.submit_by_time,
+        resolution_serverNowAtSync: response.resolution.server_now,
+        resolution_maxDurationMinutes: response.resolution.max_duration_minutes,
+        resolution_pin: response.appointment_pin,
+        resolution_serverStateToken: response.resolution.last_uploaded_state_server_created_at,
+        resolution_hasUnsyncedLocalChanges:
+          preferLocalState && candidateLocalMetadata
+            ? candidateLocalMetadata.resolution_hasUnsyncedLocalChanges
+            : false,
+        resolution_successfulResumeIdentityKey: _buildSuccessfulResumeIdentityKey(response.appointment_id, response.student_personal_id),
+      }
+
+      const hydratedLastUpload = alreadyHasAnUploadedState
+        ? response.resolution.last_uploaded_state_server_created_at
+        : null
+
+      storeResolutionState(chosenState)
+      storeEvaluationToResolve(response.evaluation)
+      storeMetadata(metadata)
+      storeLastUpload(hydratedLastUpload)
+      setRequiresFinalizationOnAction(false)
+      storeRuntime({ status: 'active', message: null })
+
+      if (!preserveCurrentPage) {
+        storeNewPage(1)
+      }
+
+      await persistResolutionSnapshot({
+        key: buildResolutionOfflineKeyFromState(chosenState),
+        state: chosenState,
+        evaluation: response.evaluation,
+        metadata: {
+          ...metadata,
+          resolution_lastUpload: hydratedLastUpload,
+        },
+      })
+
+      return 'active' as T_ResolutionResumeOutcome
+    },
+    [
+      setRequiresFinalizationOnAction,
+      storeEvaluationToResolve,
+      storeLastUpload,
+      storeMetadata,
+      storeNewPage,
+      storeResolutionState,
+      storeRuntime,
+    ],
+  )
+
+  const resumeAgainstServerInBackground = useCallback(
+    async () => {
+      try {
+        const response = await requestResumeWithBackgroundTimeout()
+        await applyResumeResponse(response, { preserveCurrentPage: true })
+      } catch (err: any) {
+        if (err instanceof ApiError && ApiError.errorCode(err) === ErrorCode.RESOLUTION_ALREADY_SUBMITTED) {
+          setRequiresFinalizationOnAction(true)
+          warningToast(
+            'El servidor indicó que la evaluación ya no está activa. Al tocar Siguiente, Anterior o Entregar intentaremos enviar lo guardado.',
+          )
+          return
+        }
+
+        warningToast('No se pudo validar con el servidor. Se continúa con las respuestas guardadas localmente en este dispositivo.')
+      }
+    },
+    [applyResumeResponse, requestResumeWithBackgroundTimeout, setRequiresFinalizationOnAction],
+  )
+
   const hydrateOfflineSnapshot = useCallback(
     async (options?: {
-      whenExpiredStatus?: 'offline_recovery' | 'timeout_pending_confirmation'
-      expiredMessage?: string | null
+      statusOnHydrate?: 'offline_recovery' | 'awaiting_server_validation' | 'timeout_pending_confirmation'
+      message?: string | null
+      requireSuccessfulResumeForCurrentIdentity?: boolean
     }): Promise<{ outcome: T_ResolutionResumeOutcome; snapshot: I_ResolutionOfflineSnapshot | null }> => {
       const snapshot = await getStrictActiveResolutionSnapshot()
 
@@ -261,6 +413,24 @@ const useResolutionResume = () => {
         return { outcome: 'resume_error', snapshot: null }
       }
 
+      if (options?.requireSuccessfulResumeForCurrentIdentity && !_snapshotMatchesSuccessfulResumeIdentity(snapshot)) {
+        storeRuntime({
+          status: 'resume_error',
+          message: 'No es posible iniciar la evaluación sin validar primero el turno actual con el servidor. Revisá tu conexión y reintentá.',
+        })
+        warningToast('No es posible iniciar la evaluación sin validar primero con el servidor')
+        return { outcome: 'resume_error', snapshot: null }
+      }
+
+      if (!_snapshotHasCompleteServerTimingMetadata(snapshot)) {
+        storeRuntime({
+          status: 'resume_error',
+          message: 'La resolución guardada localmente no tiene metadatos de tiempo válidos del servidor. Reintentá con conexión para recuperar el estado correcto.',
+        })
+        errorToast('La resolución guardada localmente no tiene metadatos de tiempo válidos del servidor')
+        return { outcome: 'resume_error', snapshot: null }
+      }
+
       hydrateStoreFromSnapshot(snapshot, {
         storeEvaluationToResolve,
         storeResolutionState,
@@ -268,18 +438,9 @@ const useResolutionResume = () => {
         storeLastUpload,
       })
 
-      const whenExpiredStatus = options?.whenExpiredStatus ?? 'timeout_pending_confirmation'
-      const expiredMessage =
-        options?.expiredMessage ??
-        'Se alcanzó el tiempo límite. La evaluación quedó pausada en este dispositivo y vamos a reintentar el envío automáticamente cuando haya conexión.'
-
-      if (!useStore.getState().resolution_offlineSubmitted && _snapshotLooksExpiredLocally(snapshot)) {
-        storeRuntime({ status: whenExpiredStatus, message: expiredMessage })
-        return { outcome: whenExpiredStatus, snapshot }
-      }
-
-      storeRuntime({ status: 'offline_recovery', message: null })
-      return { outcome: 'offline_recovery', snapshot }
+      const nextStatus = options?.statusOnHydrate ?? 'offline_recovery'
+      storeRuntime({ status: nextStatus, message: options?.message ?? null })
+      return { outcome: nextStatus, snapshot }
     },
     [storeEvaluationToResolve, storeResolutionState, storeMetadata, storeLastUpload, storeRuntime],
   )
@@ -343,6 +504,10 @@ const useResolutionResume = () => {
         const result = await finalizeTimeout(snapshot.state)
 
         if (result.result === 'ACTIVE') {
+          if (!_hasCompleteServerTimingData(result.resolution)) {
+            throw new Error('Missing required server timing metadata in finalize-timeout response')
+          }
+
           const pin = snapshot.metadata.resolution_pin ?? useStore.getState().resolution_pin
           storeMetadata({
             resolution_startedAt: result.resolution.started_at,
@@ -350,8 +515,12 @@ const useResolutionResume = () => {
             resolution_serverNowAtSync: result.resolution.server_now,
             resolution_maxDurationMinutes: result.resolution.max_duration_minutes,
             resolution_pin: pin,
+            resolution_serverStateToken: result.resolution.last_uploaded_state_server_created_at,
+            resolution_hasUnsyncedLocalChanges: false,
+            resolution_successfulResumeIdentityKey: _buildSuccessfulResumeIdentityKey(result.appointment_id, result.student_personal_id),
           })
-          storeRuntime({ status: 'active', message: null })
+          setRequiresFinalizationOnAction(false)
+        storeRuntime({ status: 'active', message: null })
           await persistResolutionSnapshot({
             key: snapshot.key,
             state: snapshot.state,
@@ -363,6 +532,9 @@ const useResolutionResume = () => {
               resolution_serverNowAtSync: result.resolution.server_now,
               resolution_maxDurationMinutes: result.resolution.max_duration_minutes,
               resolution_pin: pin,
+              resolution_serverStateToken: result.resolution.last_uploaded_state_server_created_at,
+              resolution_hasUnsyncedLocalChanges: false,
+              resolution_successfulResumeIdentityKey: _buildSuccessfulResumeIdentityKey(result.appointment_id, result.student_personal_id),
             },
           })
           return 'active'
@@ -410,9 +582,31 @@ const useResolutionResume = () => {
 
       const isOfflineSubmitted = useStore.getState().resolution_offlineSubmitted
 
+      if (reason === 'startup') {
+        const startupSnapshot = await getUsableLocalStartupSnapshot()
+
+        if (startupSnapshot) {
+          hydrateStoreFromSnapshot(startupSnapshot, {
+            storeEvaluationToResolve,
+            storeResolutionState,
+            storeMetadata,
+            storeLastUpload,
+          })
+          storeRuntime({ status: 'offline_recovery', message: null })
+
+          if (isOnline) {
+            void resumeAgainstServerInBackground()
+          } else {
+            warningToast('No hay conexión con el servidor. Se continúa con las respuestas guardadas localmente en este dispositivo.')
+          }
+
+          return 'offline_recovery'
+        }
+      }
+
       if (isOfflineSubmitted) {
         try {
-          const hydrated = await hydrateOfflineSnapshot({ whenExpiredStatus: 'offline_recovery' })
+          const hydrated = await hydrateOfflineSnapshot({ statusOnHydrate: 'offline_recovery' })
           if (hydrated.outcome === 'resume_error' || !hydrated.snapshot) return hydrated.outcome
           if (isOnline) {
             return await trySubmitRecoveredSnapshot(hydrated.snapshot)
@@ -431,17 +625,21 @@ const useResolutionResume = () => {
       if (!isOnline) {
         try {
           const hydrated = await hydrateOfflineSnapshot({
-            whenExpiredStatus: 'timeout_pending_confirmation',
-            expiredMessage:
-              'Se alcanzó el tiempo límite y este dispositivo no tiene conexión. La evaluación quedó pausada y vamos a reintentar el envío automáticamente cuando vuelva la conexión. Podés descargar las respuestas por seguridad.',
+            statusOnHydrate: 'offline_recovery',
+            message:
+              'No hay conexión con el servidor para validar el estado actual. Se continúa con las respuestas guardadas localmente en este dispositivo.',
+            requireSuccessfulResumeForCurrentIdentity: true,
           })
+          if (hydrated.snapshot) {
+            warningToast('No hay conexión con el servidor. Se continúa con las respuestas guardadas localmente en este dispositivo.')
+          }
           return hydrated.outcome
         } catch {
           storeRuntime({
             status: 'resume_error',
-            message: 'No hay conexión a internet y no hay una resolución guardada en este dispositivo.',
+            message: 'No hay conexión con el servidor para iniciar o recuperar la evaluación. Revisá tu conexión y reintentá.',
           })
-          warningToast('No hay conexión a internet y no hay una resolución guardada en este dispositivo')
+          warningToast('No hay conexión con el servidor para iniciar o recuperar la evaluación')
           return 'resume_error'
         }
       }
@@ -450,81 +648,27 @@ const useResolutionResume = () => {
       if (setGlobalInProgress) setIsInProgress()
 
       try {
-        const response = await requestResume({})
-        const inMemoryState = useStore.getState().resolution_state
-        const offlineSnapshot = await getResolutionSnapshotByIdentity(
-          response.appointment_id,
-          response.student_personal_id,
-        )
-
-        const candidateLocalState =
-          inMemoryState &&
-          inMemoryState.appointment_id === response.appointment_id &&
-          inMemoryState.student_personal_id === response.student_personal_id
-            ? inMemoryState
-            : offlineSnapshot?.state ?? null
-
-        const uploadedState = response.resolution.last_uploaded_state
-        const alreadyHasAnUploadedState = uploadedState !== null
-        const localStateIsNewer = _lastUploadedStateIsOlderThanLocal(response, candidateLocalState)
-
-        const chosenState: I_ResolutionState =
-          localStateIsNewer && candidateLocalState !== null
-            ? candidateLocalState
-            : uploadedState !== null
-              ? uploadedState
-              : initialState(response.student_personal_id, response.appointment_id)
-
-        const metadata = {
-          resolution_startedAt: response.resolution.started_at,
-          resolution_submitByTime: response.resolution.submit_by_time,
-          resolution_serverNowAtSync: response.resolution.server_now,
-          resolution_maxDurationMinutes: response.resolution.max_duration_minutes,
-          resolution_pin: response.appointment_pin,
-        }
-
-        const hydratedLastUpload =
-          !localStateIsNewer && alreadyHasAnUploadedState
-            ? response.resolution.last_uploaded_state?.last_update_datetime ?? null
-            : offlineSnapshot?.metadata.resolution_lastUpload ?? useStore.getState().resolution_lastUpload
-
-        storeResolutionState(chosenState)
-        storeEvaluationToResolve(response.evaluation)
-        storeMetadata(metadata)
-        storeLastUpload(hydratedLastUpload)
-        storeRuntime({ status: 'active', message: null })
-
-
-        if (!preserveCurrentPage) {
-          storeNewPage(1)
-        }
-
-        await persistResolutionSnapshot({
-          key: buildResolutionOfflineKeyFromState(chosenState),
-          state: chosenState,
-          evaluation: response.evaluation,
-          metadata: {
-            ...metadata,
-            resolution_lastUpload: hydratedLastUpload,
-          },
-        })
-
-        return 'active'
+        const response = await requestResumeWithBackgroundTimeout()
+        return await applyResumeResponse(response, { preserveCurrentPage })
       } catch (err: any) {
-        if (err.status !== -1 && ApiError.errorCode(err) === ErrorCode.RESOLUTION_ALREADY_SUBMITTED) {
+        if (err instanceof ApiError && ApiError.errorCode(err) === ErrorCode.RESOLUTION_ALREADY_SUBMITTED) {
           try {
             const hydrated = await hydrateOfflineSnapshot({
-              whenExpiredStatus: 'timeout_pending_confirmation',
-              expiredMessage:
+              statusOnHydrate: 'offline_recovery',
+              message:
                 ApiError.message(err) ||
-                'El tiempo de la evaluación terminó. Vamos a intentar enviar automáticamente las respuestas guardadas en este dispositivo.',
+                'El servidor indicó que la evaluación ya no está activa. Podés seguir revisando localmente y al tocar Siguiente, Anterior o Entregar intentaremos enviar lo guardado.',
+              requireSuccessfulResumeForCurrentIdentity: true,
             })
 
-
             if (hydrated.snapshot) {
-              return await tryFinalizeRecoveredExpiredSnapshot(hydrated.snapshot)
+              setRequiresFinalizationOnAction(true)
+              warningToast('El servidor indicó que la evaluación ya no está activa. Al tocar Siguiente, Anterior o Entregar intentaremos enviar lo guardado.')
+              return 'offline_recovery'
             }
-          } catch {}
+          } catch {
+            // fall through to expired terminal state
+          }
 
           storeRuntime({
             status: 'expired',
@@ -534,27 +678,52 @@ const useResolutionResume = () => {
           return 'expired'
         }
 
+        try {
+          const hydrated = await hydrateOfflineSnapshot({
+            statusOnHydrate: 'offline_recovery',
+            message: 'No se pudo validar con el servidor el estado actual. Se continúa con las respuestas guardadas localmente en este dispositivo.',
+            requireSuccessfulResumeForCurrentIdentity: true,
+          })
+
+          if (hydrated.snapshot) {
+            warningToast('No se pudo validar con el servidor. Se continúa con las respuestas guardadas localmente en este dispositivo.')
+            return hydrated.outcome
+          }
+        } catch {
+          // no local snapshot available, fall through to blocking error
+        }
+
         storeRuntime({
           status: 'resume_error',
-          message: 'No se pudo validar el estado actual de la resolución con el servidor.',
+          message:
+            reason === 'startup'
+              ? 'No es posible conectarse al servidor para iniciar o recuperar la evaluación. Revisá tu conexión y reintentá.'
+              : 'No se pudo validar el estado actual de la evaluación con el servidor.',
         })
-        errorToast('No se pudo validar el estado actual de la resolución con el servidor.')
+
+        if (!(err instanceof ApiError && err.status === -1)) {
+          handleServiceError(err)
+        }
         return 'resume_error'
       } finally {
         if (setGlobalInProgress) setIsNotInProgress()
       }
     },
     [
+      applyResumeResponse,
       clearRecoveredResolutionAndNavigateToSubmitted,
       finalizeTimeout,
       hydrateOfflineSnapshot,
       isOnline,
       navigateToResolutionSubmittedPage,
       requestResume,
+      requestResumeWithBackgroundTimeout,
       requestSubmit,
+      resumeAgainstServerInBackground,
       setIsInProgress,
       setIsNotInProgress,
       setOfflineSubmitted,
+      setRequiresFinalizationOnAction,
       storeEvaluationToResolve,
       storeLastUpload,
       storeMetadata,
@@ -566,7 +735,6 @@ const useResolutionResume = () => {
       resetStateStore,
     ],
   )
-
   return { resume }
 }
 
@@ -614,13 +782,17 @@ const _resolutionStateWithNewAnswer = (
 
 const useResolutionStateUpdateAnswer = () => {
   const storeResolutionState = useStore((state) => state.resolution_storeState)
+  const markLocalChangesDirty = useStore((state) => state.resolution_markLocalChangesDirty)
 
   const commitState = useCallback(
     (nextState: I_ResolutionState) => {
+      markLocalChangesDirty()
       storeResolutionState(nextState)
-      void persistResolutionStateSnapshot(nextState).catch(() => undefined)
+      void persistResolutionStateSnapshot(nextState, {
+        resolution_hasUnsyncedLocalChanges: true,
+      }).catch(() => undefined)
     },
-    [storeResolutionState],
+    [markLocalChangesDirty, storeResolutionState],
   )
 
   const Numeric = useCallback(
@@ -707,41 +879,44 @@ const useResolutionManageUploadState = () => {
   const { isOnline } = useNetworkStatus()
   const uploadState = _useResolutionUploadState()
   const storeLastUpload = useResolutionStoreLastUpload()
+  const storeServerSync = useStore((state) => state.resolution_storeServerSync)
 
   const manageUpload = useCallback(() => {
     if (!isOnline) return
 
     const resolutionState = useStore.getState().resolution_state
-    const lastUploadDatetime = useStore.getState().resolution_lastUpload
+    const hasUnsyncedLocalChanges = useStore.getState().resolution_hasUnsyncedLocalChanges
 
     if (resolutionState === null) return
     if (resolutionState.last_update_datetime === null) return
-
-    if (
-      lastUploadDatetime !== null &&
-      new Date(resolutionState.last_update_datetime) <= new Date(lastUploadDatetime)
-    ) {
-      return
-    }
+    if (!hasUnsyncedLocalChanges) return
 
     void (async () => {
       try {
-        await uploadState(resolutionState)
+        const result = await uploadState(resolutionState)
 
-        const uploadedAt = new Date().toISOString()
+        const uploadedAt = result.last_uploaded_state_server_created_at
         storeLastUpload(uploadedAt)
+        storeServerSync({
+          resolution_serverStateToken: result.last_uploaded_state_server_created_at,
+          resolution_serverNowAtSync: result.server_now,
+          resolution_lastUpload: uploadedAt,
+        })
 
         await persistCurrentResolutionContext({
           state: resolutionState,
           metadata: {
             resolution_lastUpload: uploadedAt,
+            resolution_serverStateToken: result.last_uploaded_state_server_created_at,
+            resolution_hasUnsyncedLocalChanges: false,
+            resolution_serverNowAtSync: result.server_now,
           },
         })
       } catch {
         // no-op
       }
     })()
-  }, [isOnline, storeLastUpload, uploadState])
+  }, [isOnline, storeLastUpload, storeServerSync, uploadState])
 
   return manageUpload
 }
@@ -804,7 +979,7 @@ export {
   useResolutionFinalizeTimeout,
   useResolutionSubmitByTime,
   useResolutionServerNowAtSync,
-  useResolutionTimerSyncedClientEpochMs,
+  useResolutionTimerSyncedMonotonicMs,
   useResolutionPin,
   useResolutionRemainingTimeWarningAlreadyDisplayed,
   useResolutionRequestSubmit,
@@ -816,4 +991,7 @@ export {
   useResolutionStoreEvaluation,
   useResolutionStoreMetadata,
   useResolutionUpdateLastUploadDatetime,
+  useResolutionServerStateToken,
+  useResolutionHasUnsyncedLocalChanges,
+  useResolutionRequiresFinalizationOnAction,
 }
