@@ -131,7 +131,7 @@ const useResolutionExit = () => {
   }
 }
 
-const SUBMIT_CONFIRMATION_TIMEOUT_MS = 4000
+const SUBMIT_CONFIRMATION_TIMEOUT_MS = 20000
 
 const _buildSubmitConfirmationTimeoutError = () =>
   new ApiError({

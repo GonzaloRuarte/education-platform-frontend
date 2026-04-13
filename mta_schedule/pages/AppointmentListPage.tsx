@@ -246,10 +246,7 @@ const AppointmentListPage = () => {
   const navToUploadOfflineStates = useNavigateToAppointmentUploadOfflineStates()
   const navToAdminDashboard = useNavigateToAppointmentAdminDashboard()
 
-  const useList = useAppointmentList
-
-  const list = useAppointmentList()
-  const { startExport, exporting } = useExportAppointments(list)
+  const { startExport, exporting } = useExportAppointments()
 
   const [target, setTarget] = useState<I_AppointmentListItem | null>(null)
   const openReschedule = (row: I_AppointmentListItem) => setTarget(row)
@@ -263,28 +260,35 @@ const AppointmentListPage = () => {
       <ListPage
         key={refresh}
         columns={columns({ navToProcess, navToEditStudents, navToDetail, openReschedule })}
-        useList={useList}
+        useList={useAppointmentList}
         entityName={APPOINTMENT_NAME}
         onCreate={navToCreate}
         useBatchDelete={useAppointmentBatchDelete}
         onRowClick={ListPage.mapNavToOnRowClick(navToDetail)}
-        customButtons={
-
+        customButtons={({ requestFilters, requestSort }) => (
           <Stack direction="row" spacing={2}>
             <Button startIcon={<DashboardIcon />} onClick={navToAdminDashboard}>
               Ver tablero
             </Button>
+
             <Button startIcon={<UploadIcon />} onClick={navToUploadOfflineStates}>
               Cargar Resoluciones Offline
             </Button>
+
             <Button
               startIcon={<DownloadIcon />}
-              onClick={startExport}>
+              onClick={() =>
+                startExport({
+                  filters: requestFilters,
+                  sort: requestSort,
+                })
+              }
+              disabled={exporting}
+            >
               {exporting ? 'Exportando...' : 'Exportar turnos'}
             </Button>
-
           </Stack>
-        }
+        )}
       />
 
       <RescheduleDialog
@@ -296,6 +300,7 @@ const AppointmentListPage = () => {
     </>
   )
 }
+
 
 export default withAuth(AppointmentListPage, {
   allowedCapabilities: ['manage_appointment_slots'],
