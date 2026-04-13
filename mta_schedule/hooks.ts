@@ -32,8 +32,9 @@ import {
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { I_CreationCommonResponse, T_VoidFn } from '@/shared/types'
-import { useState, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { apiUrl } from '@/config'
+import { GridFilterModel, GridSortModel } from '@mui/x-data-grid'
 
 // Data Service
 const APPOINTMENTS_PATH = '/appointments'
@@ -124,6 +125,11 @@ export interface I_AppointmentExport_RequestData {
   sort?: string
 }
 
+export interface I_AppointmentExportQuery {
+  filters?: GridFilterModel
+  sort?: GridSortModel
+}
+
 /** What the export endpoint returns when starting the job */
 export interface I_AppointmentExport_Response {
   job_id: number
@@ -139,19 +145,11 @@ export interface I_AppointmentExportStatus_Response {
   download_url?: string
 }
 
-/**
- * Hook to start the export job.
- * Uses the same pattern as useAppointmentApprove, etc.
- */
 export const useAppointmentExport = actionHook<
   I_AppointmentExport_RequestData,
   I_AppointmentExport_Response
 >(`${APPOINTMENTS_PATH}/export`, axiosPost, useAuthResources)
 
-/**
- * Hook to query the export status.
- * Reuses axiosGet + apiUrl so it hits the same backend as everything else.
- */
 export const useAppointmentExportStatus = () => {
   const requestSetup = useAuthResources()
 
@@ -160,83 +158,86 @@ export const useAppointmentExportStatus = () => {
       url: `${apiUrl(`${APPOINTMENTS_PATH}/export-status`)}/`,
       requestSetup,
       options: {
-        // axiosGet expects options and will turn filters into query params
         filters: { job_id: jobId },
       } as any,
     })
   }
 }
 
-
-function useExportAppointments(list: any) {
+function useExportAppointments() {
   const [exporting, setExporting] = useState(false)
   const pollRef = useRef<number | null>(null)
-  const auth = useAuthResources();
+  const auth = useAuthResources()
   const startExportRequest = useAppointmentExport()
   const checkStatus = useAppointmentExportStatus()
 
-  const startExport = async () => {
-    if (exporting) return
-    setExporting(true)
-
-    // Pull filters/sort from whatever the list hook exposes.
-    // Adjust these lines if you know the exact shape.
-    const filtersJson =
-      list?.filtersJson ??
-      list?.grid?.filtersJson ??
-      list?.query?.filtersJson
-
-    const sortJson =
-      list?.sortJson ??
-      list?.grid?.sortJson ??
-      list?.query?.sortJson
-
-    // 1) Start export job (POST → .../export/)
-    const { job_id } = await startExportRequest({
-      filters: filtersJson,
-      sort: sortJson,
-    })
-
-    const stop = () => {
-      if (pollRef.current) window.clearInterval(pollRef.current)
-      pollRef.current = null
-    }
-
-    const poll = async () => {
-      try {
-        // 2) Ask backend about status (GET → .../export-status/?job_id=...)
-        const st = await checkStatus(job_id)
-
-        if (st.status === 'DONE') {
-          const downloadUrl = apiUrl(`${APPOINTMENTS_PATH}/export-download`) + `/?job_id=${job_id}`;
-
-          const blob = await axiosGetBlob({
-            url: downloadUrl,
-            requestSetup: auth,   // from useAuthResources()
-          });
-
-          const blobUrl = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = blobUrl;
-          a.download = `turnos_${job_id}.xlsx`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          window.URL.revokeObjectURL(blobUrl);
-
-          stop();
-          setExporting(false);
-        } else if (st.status === 'FAILED') {
-          stop()
-          setExporting(false)
-          alert(`Error exportando archivo: ${st.error_message || 'Error desconocido'}`)
-        }
-      } catch {
-        // transient error; ignore and let next poll try again
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) {
+        window.clearInterval(pollRef.current)
+        pollRef.current = null
       }
     }
+  }, [])
 
-    pollRef.current = window.setInterval(poll, 1500)
+  const startExport = async (query?: I_AppointmentExportQuery) => {
+    if (exporting) return
+
+    setExporting(true)
+
+    const filtersJson = query?.filters ? JSON.stringify(query.filters) : undefined
+    const sortJson = query?.sort ? JSON.stringify(query.sort) : undefined
+
+    try {
+      const { job_id } = await startExportRequest({
+        filters: filtersJson,
+        sort: sortJson,
+      })
+
+      const stop = () => {
+        if (pollRef.current) window.clearInterval(pollRef.current)
+        pollRef.current = null
+      }
+
+      const poll = async () => {
+        try {
+          const st = await checkStatus(job_id)
+
+          if (st.status === 'DONE') {
+            const downloadUrl = apiUrl(`${APPOINTMENTS_PATH}/export-download`) + `/?job_id=${job_id}`
+
+            const blob = await axiosGetBlob({
+              url: downloadUrl,
+              requestSetup: auth,
+            })
+
+            const blobUrl = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = blobUrl
+            a.download = `turnos_${job_id}.xlsx`
+            document.body.appendChild(a)
+            a.click()
+            a.remove()
+            window.URL.revokeObjectURL(blobUrl)
+
+            stop()
+            setExporting(false)
+          } else if (st.status === 'FAILED') {
+            stop()
+            setExporting(false)
+            alert(`Error exportando archivo: ${st.error_message || 'Error desconocido'}`)
+          }
+        } catch {
+          // transient error; next poll will retry
+        }
+      }
+
+      await poll()
+      pollRef.current = window.setInterval(poll, 1500)
+    } catch (error) {
+      setExporting(false)
+      handleServiceError(error as any)
+    }
   }
 
   return { startExport, exporting }

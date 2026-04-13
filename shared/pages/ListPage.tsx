@@ -86,7 +86,13 @@ interface I_Props<
   onRowClick?: (params: GridRowParams) => void
   onCreate?: T_VoidFn
   useBatchDelete?: T_BatchDeletionServiceHook<T_Id>
-  customButtons?: React.ReactNode
+  customButtons?:
+  | React.ReactNode
+  | ((args: {
+    requestFilters: GridFilterModel
+    requestSort: GridSortModel
+    reload: T_VoidFn
+  }) => React.ReactNode)
   filtersComponents?: React.ReactNode
   filtersData?: T_Filters
   singleSelectionButtons?: (id: T_Id) => React.ReactNode
@@ -1230,7 +1236,13 @@ function ListPage<
           p.singleSelectionButtons &&
           p.singleSelectionButtons(rowSelectionModel[0] as T_Id)}
 
-        {p.customButtons}
+        {typeof p.customButtons === 'function'
+          ? p.customButtons({
+            requestFilters: requestFilterModel,
+            requestSort: requestSortModel,
+            reload,
+          })
+          : p.customButtons}
       </Page.Toolbar>
 
       <Page.Toolbar>

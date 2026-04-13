@@ -35,7 +35,7 @@ import { errorToast, warningToast } from '@/shared/toasts'
 import { I_CreationCommonResponse, T_EmptyPayload } from '@/shared/types'
 import { useCallback } from 'react'
 
-const STARTUP_BACKGROUND_RESUME_TIMEOUT_MS = 4000
+const STARTUP_BACKGROUND_RESUME_TIMEOUT_MS = 20000
 
 const RESOLUTIONS_PATH = '/resolutions'
 
