@@ -23,6 +23,7 @@ import {
 } from '@/mta_resolutions/types'
 import pages from '@/pages'
 import ApiError from '@/shared/data/errors'
+import { errorToast } from '@/shared/toasts'
 import { useInProgress, useInterval } from '@/shared/hooks'
 import { useNetworkStatus } from '@/shared/offline/hooks'
 import { useStore } from '@/shared/state'
@@ -156,6 +157,11 @@ const withConfirmationTimeout = async <T,>(promise: Promise<T>): Promise<T> => {
   ])
 }
 
+const _stateHasSubmittableAnswers = (state: I_ResolutionState | null | undefined): boolean => {
+  if (!state) return false
+  return state.last_update_datetime !== null && Object.keys(state.answers ?? {}).length > 0
+}
+
 const useResolutionActionDrivenFinalize = () => {
   const { isOnline } = useNetworkStatus()
   const submit = useResolutionRequestSubmit()
@@ -216,7 +222,12 @@ const useResolutionActionDrivenFinalize = () => {
 
     if (!isOnline) {
       await downloadResolutionState()
-      setOfflineSubmitted(true)
+      if (_stateHasSubmittableAnswers(state)) {
+        setOfflineSubmitted(true)
+      } else {
+        setOfflineSubmitted(false)
+        errorToast('No hay respuestas guardadas para enviar.')
+      }
       setIsNotInProgress()
       return
     }
@@ -252,7 +263,12 @@ const useResolutionActionDrivenFinalize = () => {
         await finishAndLeave()
       } else {
         await downloadResolutionState()
-        setOfflineSubmitted(true)
+        if (_stateHasSubmittableAnswers(useStore.getState().resolution_state ?? state)) {
+          setOfflineSubmitted(true)
+        } else {
+          setOfflineSubmitted(false)
+          errorToast('No hay respuestas guardadas para enviar.')
+        }
       }
     } finally {
       setIsNotInProgress()
@@ -272,12 +288,18 @@ const useResolutionHandlePageAction = () => {
 
 const useResolutionRetrySubmit = () => {
   const submit = useResolutionRequestSubmit()
+  const setOfflineSubmitted = useStore((s) => s.resolution_setOfflineSubmitted)
 
   return async () => {
     await flushPendingResolutionEdits()
 
     const state = useStore.getState().resolution_state
     if (!state) throw new Error('No resolution state')
+    if (!_stateHasSubmittableAnswers(state)) {
+      setOfflineSubmitted(false)
+      errorToast('No hay respuestas guardadas para enviar.')
+      return
+    }
     await withConfirmationTimeout(submit(state))
   }
 }
