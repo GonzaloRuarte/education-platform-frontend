@@ -13,7 +13,7 @@ import {
   useNavigateToAppointmentProcess,
   useNavigateToAppointmentUploadOfflineStates,
   useNavigateToAppointmentAdminDashboard,
-  useExportAppointments
+  useLatestAppointmentExport
 } from '@/mta_schedule/hooks'
 import { AppointmentOccurrenceStatus, AppointmentStatus, I_AppointmentListItem } from '@/mta_schedule/types'
 import { appointmentShowPostProcessingResources } from '@/mta_schedule/utils'
@@ -27,7 +27,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard'
 import UploadIcon from '@mui/icons-material/Upload'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import { GridColDef } from '@mui/x-data-grid'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import RescheduleDialog from '@/mta_schedule/components/AppointmentRescheduleDialog'
 import { IconButton, Menu, MenuItem, Box } from '@mui/material'
 import DownloadIcon from '@mui/icons-material/Download'
@@ -246,7 +246,14 @@ const AppointmentListPage = () => {
   const navToUploadOfflineStates = useNavigateToAppointmentUploadOfflineStates()
   const navToAdminDashboard = useNavigateToAppointmentAdminDashboard()
 
-  const { startExport, exporting } = useExportAppointments()
+  const { latest, loading: exportLoading, downloadLatest } = useLatestAppointmentExport()
+
+  const exportLabel = useMemo(() => {
+    if (!latest?.available) return 'No hay exportación disponible'
+    if (!latest.generated_at) return 'Descargar última exportación'
+    const d = new Date(latest.generated_at)
+    return `Descargar exportación (${d.toLocaleDateString('es-AR')})`
+  }, [latest])
 
   const [target, setTarget] = useState<I_AppointmentListItem | null>(null)
   const openReschedule = (row: I_AppointmentListItem) => setTarget(row)
@@ -265,7 +272,7 @@ const AppointmentListPage = () => {
         onCreate={navToCreate}
         useBatchDelete={useAppointmentBatchDelete}
         onRowClick={ListPage.mapNavToOnRowClick(navToDetail)}
-        customButtons={({ requestFilters, requestSort }) => (
+        customButtons={() => (
           <Stack direction="row" spacing={2}>
             <Button startIcon={<DashboardIcon />} onClick={navToAdminDashboard}>
               Ver tablero
@@ -277,15 +284,10 @@ const AppointmentListPage = () => {
 
             <Button
               startIcon={<DownloadIcon />}
-              onClick={() =>
-                startExport({
-                  filters: requestFilters,
-                  sort: requestSort,
-                })
-              }
-              disabled={exporting}
+              onClick={downloadLatest}
+              disabled={exportLoading || !latest?.available}
             >
-              {exporting ? 'Exportando...' : 'Exportar turnos'}
+              {exportLoading ? 'Descargando...' : exportLabel}
             </Button>
           </Stack>
         )}

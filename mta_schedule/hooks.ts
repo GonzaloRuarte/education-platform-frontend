@@ -32,9 +32,8 @@ import {
 import { handleServiceError } from '@/shared/service'
 import { successToast } from '@/shared/toasts'
 import { I_CreationCommonResponse, T_VoidFn } from '@/shared/types'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { apiUrl } from '@/config'
-import { GridFilterModel, GridSortModel } from '@mui/x-data-grid'
 
 // Data Service
 const APPOINTMENTS_PATH = '/appointments'
@@ -120,130 +119,72 @@ const useAppointmentReschedule = actionHook<I_AppointmentReschedule_RequestData,
 )
 
 
-export interface I_AppointmentExport_RequestData {
-  filters?: string
-  sort?: string
-}
-
-export interface I_AppointmentExportQuery {
-  filters?: GridFilterModel
-  sort?: GridSortModel
-}
-
-/** What the export endpoint returns when starting the job */
-export interface I_AppointmentExport_Response {
-  job_id: number
-  status: string
-}
-
-/** What the status endpoint returns */
-export interface I_AppointmentExportStatus_Response {
-  job_id: number
-  status: 'PENDING' | 'RUNNING' | 'DONE' | 'FAILED'
-  total_rows: number
-  error_message?: string
+export interface I_AppointmentLatestExportStatus_Response {
+  available: boolean
+  generated_at: string | null
   download_url?: string
 }
 
-export const useAppointmentExport = actionHook<
-  I_AppointmentExport_RequestData,
-  I_AppointmentExport_Response
->(`${APPOINTMENTS_PATH}/export`, axiosPost, useAuthResources)
-
-export const useAppointmentExportStatus = () => {
-  const requestSetup = useAuthResources()
-
-  return (jobId: number | string) => {
-    return axiosGet<I_AppointmentExportStatus_Response>({
-      url: `${apiUrl(`${APPOINTMENTS_PATH}/export-status`)}/`,
-      requestSetup,
-      options: {
-        filters: { job_id: jobId },
-      } as any,
-    })
-  }
-}
-
-function useExportAppointments() {
-  const [exporting, setExporting] = useState(false)
-  const pollRef = useRef<number | null>(null)
+function useLatestAppointmentExport() {
   const auth = useAuthResources()
-  const startExportRequest = useAppointmentExport()
-  const checkStatus = useAppointmentExportStatus()
+  const [loading, setLoading] = useState(false)
+  const [refreshToken, setRefreshToken] = useState(0)
+  const [latest, setLatest] = useState<I_AppointmentLatestExportStatus_Response | null>(null)
 
   useEffect(() => {
-    return () => {
-      if (pollRef.current) {
-        window.clearInterval(pollRef.current)
-        pollRef.current = null
-      }
-    }
-  }, [])
-
-  const startExport = async (query?: I_AppointmentExportQuery) => {
-    if (exporting) return
-
-    setExporting(true)
-
-    const filtersJson = query?.filters ? JSON.stringify(query.filters) : undefined
-    const sortJson = query?.sort ? JSON.stringify(query.sort) : undefined
-
-    try {
-      const { job_id } = await startExportRequest({
-        filters: filtersJson,
-        sort: sortJson,
+    let cancelled = false
+    setLoading(true)
+    axiosGet<I_AppointmentLatestExportStatus_Response>({
+      url: `${apiUrl(`${APPOINTMENTS_PATH}/latest-export-status`)}/`,
+      requestSetup: auth,
+      options: {} as any,
+    })
+      .then((resp) => {
+        if (!cancelled) setLatest(resp)
       })
-
-      const stop = () => {
-        if (pollRef.current) window.clearInterval(pollRef.current)
-        pollRef.current = null
-      }
-
-      const poll = async () => {
-        try {
-          const st = await checkStatus(job_id)
-
-          if (st.status === 'DONE') {
-            const downloadUrl = apiUrl(`${APPOINTMENTS_PATH}/export-download`) + `/?job_id=${job_id}`
-
-            const blob = await axiosGetBlob({
-              url: downloadUrl,
-              requestSetup: auth,
-            })
-
-            const blobUrl = window.URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = blobUrl
-            a.download = `turnos_${job_id}.xlsx`
-            document.body.appendChild(a)
-            a.click()
-            a.remove()
-            window.URL.revokeObjectURL(blobUrl)
-
-            stop()
-            setExporting(false)
-          } else if (st.status === 'FAILED') {
-            stop()
-            setExporting(false)
-            alert(`Error exportando archivo: ${st.error_message || 'Error desconocido'}`)
-          }
-        } catch {
-          // transient error; next poll will retry
+      .catch((error) => {
+        if (!cancelled) {
+          setLatest({ available: false, generated_at: null })
+          handleServiceError(error as any)
         }
-      }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [auth.accessToken, refreshToken])
 
-      await poll()
-      pollRef.current = window.setInterval(poll, 1500)
+  const refresh = () => setRefreshToken((v) => v + 1)
+
+  const downloadLatest = async () => {
+    if (!latest?.available) return
+    setLoading(true)
+    try {
+      const blob = await axiosGetBlob({
+        url: `${apiUrl(`${APPOINTMENTS_PATH}/latest-export-download`)}/`,
+        requestSetup: auth,
+      })
+      const blobUrl = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = blobUrl
+      const suffix = latest.generated_at ? latest.generated_at.slice(0, 10).replaceAll('-', '') : 'latest'
+      a.download = `turnos_${suffix}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(blobUrl)
     } catch (error) {
-      setExporting(false)
       handleServiceError(error as any)
+    } finally {
+      setLoading(false)
     }
   }
 
-  return { startExport, exporting }
+  return { latest, loading, refresh, downloadLatest }
 }
 
-// Navigation
 const useNavigateToAppointmentList = navigationHook(pages.D._.turnos.path)
 const useNavigateToAppointmentProcess = dynamicNavigationHook(appointmentsProcessPath)
 const useNavigateToAppointmentEditStudents = dynamicNavigationHook(appointmentsEditStudentsPath)
@@ -280,5 +221,5 @@ export {
   useAppointmentRequestPostProcess,
   useAppointmentReschedule,
   APPOINTMENTS_PATH,
-  useExportAppointments,
+  useLatestAppointmentExport,
 }
