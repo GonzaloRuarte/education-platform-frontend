@@ -38,6 +38,15 @@ import { useCallback } from 'react'
 const STARTUP_BACKGROUND_RESUME_TIMEOUT_MS = 20000
 
 const RESOLUTIONS_PATH = '/resolutions'
+const _hasNonEmptyAnswers = (state: I_ResolutionState | null | undefined): boolean => {
+  if (!state) return false
+  return Object.keys(state.answers ?? {}).length > 0
+}
+
+const _isRecoverableSubmittedState = (state: I_ResolutionState | null | undefined): boolean => {
+  return !!state && state.last_update_datetime !== null && _hasNonEmptyAnswers(state)
+}
+
 
 const useResolutionAuthorizeStudent = () => {
   return postService<I_AuthorizeStudentRequestData, I_AuthorizeStudentResponseData>(
@@ -346,6 +355,7 @@ const useResolutionResume = () => {
       storeEvaluationToResolve(response.evaluation)
       storeMetadata(metadata)
       storeLastUpload(hydratedLastUpload)
+      setOfflineSubmitted(false)
       setRequiresFinalizationOnAction(false)
       storeRuntime({ status: 'active', message: null })
 
@@ -457,10 +467,11 @@ const useResolutionResume = () => {
 
   const trySubmitRecoveredSnapshot = useCallback(
     async (snapshot: I_ResolutionOfflineSnapshot): Promise<T_ResolutionResumeOutcome> => {
-      if (!snapshot.state) {
+      if (!snapshot.state || !_isRecoverableSubmittedState(snapshot.state)) {
+        setOfflineSubmitted(false)
         storeRuntime({
           status: 'resume_error',
-          message: 'No hay respuestas locales para enviar al servidor.',
+          message: 'No hay respuestas locales válidas para enviar al servidor.',
         })
         return 'resume_error'
       }
@@ -487,7 +498,7 @@ const useResolutionResume = () => {
         return 'resume_error'
       }
     },
-    [clearRecoveredResolutionAndNavigateToSubmitted, requestSubmit, storeRuntime],
+    [clearRecoveredResolutionAndNavigateToSubmitted, requestSubmit, setOfflineSubmitted, storeRuntime],
   )
 
   const tryFinalizeRecoveredExpiredSnapshot = useCallback(
@@ -606,19 +617,19 @@ const useResolutionResume = () => {
 
       if (isOfflineSubmitted) {
         try {
-          const hydrated = await hydrateOfflineSnapshot({ statusOnHydrate: 'offline_recovery' })
-          if (hydrated.outcome === 'resume_error' || !hydrated.snapshot) return hydrated.outcome
-          if (isOnline) {
-            return await trySubmitRecoveredSnapshot(hydrated.snapshot)
+          const activeSnapshot = await getStrictActiveResolutionSnapshot()
+          if (!activeSnapshot?.state || !_isRecoverableSubmittedState(activeSnapshot.state)) {
+            setOfflineSubmitted(false)
+          } else {
+            const hydrated = await hydrateOfflineSnapshot({ statusOnHydrate: 'offline_recovery' })
+            if (hydrated.outcome === 'resume_error' || !hydrated.snapshot) return hydrated.outcome
+            if (isOnline) {
+              return await trySubmitRecoveredSnapshot(hydrated.snapshot)
+            }
+            return hydrated.outcome
           }
-          return hydrated.outcome
         } catch {
-          storeRuntime({
-            status: 'resume_error',
-            message: 'No se pudo recuperar la resolución local guardada.',
-          })
-          warningToast('No se pudo recuperar la resolución local guardada')
-          return 'resume_error'
+          setOfflineSubmitted(false)
         }
       }
 
