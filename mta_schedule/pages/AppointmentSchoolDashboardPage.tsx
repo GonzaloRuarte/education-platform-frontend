@@ -12,7 +12,9 @@ import Spinner from '@/shared/components/Spinner'
 import EditCalendarIcon from '@mui/icons-material/EditCalendar'
 import { Box, Grid2, Pagination } from '@mui/material'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { I_AppointmentSchoolCardItem } from '../types'
+import RescheduleDialog from '@/mta_schedule/components/AppointmentRescheduleDialog'
 
 const pageCount = (itemsCount: number) => Math.ceil(itemsCount / DEFAULT_PAGE_SIZE)
 
@@ -29,7 +31,7 @@ const AppointmentSchoolDashboardPage = ({ canViewDetail, canEditStudents, canRes
   const currentPage = parseInt(searchParams.get('page') || '1', 10)
   const { selectedSchool, isLoading: isSchoolScopeLoading } = useSchoolScopeResources()
   const previousSchoolId = useRef<number | null | undefined>(selectedSchool?.id)
-
+  const [selectedAppointment, setSelectedAppointment] = useState<I_AppointmentSchoolCardItem | null>(null)
   useEffect(() => {
     const nextSchoolId = selectedSchool?.id
     if (previousSchoolId.current !== nextSchoolId) {
@@ -51,50 +53,59 @@ const AppointmentSchoolDashboardPage = ({ canViewDetail, canEditStudents, canRes
   }
 
   return (
-    <Page>
-      <Page.Title>Listado de {APPOINTMENT_NAME.plural}</Page.Title>
-      <Page.Toolbar>
-        <ReloadButton onClick={reload} />
-        <Button color="warning" startIcon={<EditCalendarIcon />} onClick={navToAppointmentRequest}>
-          Solicitar {APPOINTMENT_NAME.singular}
-        </Button>
-      </Page.Toolbar>
-      {data === undefined || isSchoolScopeLoading ? (
-        <Spinner />
-      ) : (
-        <Page.Content>
-          <Box>
-            <Grid2 container spacing={5}>
-              {data.results.map((appointment) => (
-                <Grid2
-                  key={appointment.id}
-                  size={{
-                    xs: 12,
-                    sm: 12,
-                    md: 12,
-                    lg: 6,
-                    xl: 4,
-                  }}
-                >
-                  <AppointmentSchoolCard
-                    data={appointment}
-                    onRescheduled={reload}
-                    canViewDetail={canViewDetail}
-                    canEditStudents={canEditStudents}
-                    canReschedule={canReschedule}
-                  />
-                </Grid2>
-              ))}
-            </Grid2>
-          </Box>
-          {pageCount(data.count) > 1 && (
-            <Box display="flex" justifyContent="center" mt={4}>
-              <Pagination count={pageCount(data.count)} page={currentPage} onChange={handlePageChange} color="primary" />
+    <>
+      <Page>
+        <Page.Title>Listado de {APPOINTMENT_NAME.plural}</Page.Title>
+        <Page.Toolbar>
+          <ReloadButton onClick={reload} />
+          <Button color="warning" startIcon={<EditCalendarIcon />} onClick={navToAppointmentRequest}>
+            Solicitar {APPOINTMENT_NAME.singular}
+          </Button>
+        </Page.Toolbar>
+        {data === undefined || isSchoolScopeLoading ? (
+          <Spinner />
+        ) : (
+          <Page.Content>
+            <Box>
+              <Grid2 container spacing={5}>
+                {data.results.map((appointment) => (
+                  <Grid2
+                    key={appointment.id}
+                    size={{
+                      xs: 12,
+                      sm: 12,
+                      md: 12,
+                      lg: 6,
+                      xl: 4,
+                    }}
+                  >
+                    <AppointmentSchoolCard
+                      data={appointment}
+                      canViewDetail={canViewDetail}
+                      canEditStudents={canEditStudents}
+                      canReschedule={canReschedule}
+                      onOpenReschedule={setSelectedAppointment}
+                    />
+                  </Grid2>
+                ))}
+              </Grid2>
             </Box>
-          )}
-        </Page.Content>
-      )}
-    </Page>
+            {pageCount(data.count) > 1 && (
+              <Box display="flex" justifyContent="center" mt={4}>
+                <Pagination count={pageCount(data.count)} page={currentPage} onChange={handlePageChange} color="primary" />
+              </Box>
+            )}
+          </Page.Content>
+        )}
+      </Page>
+      <RescheduleDialog
+        open={selectedAppointment !== null}
+        onClose={() => setSelectedAppointment(null)}
+        originalAppointment={selectedAppointment}
+        onRescheduled={reload}
+
+      />
+    </>
   )
 }
 

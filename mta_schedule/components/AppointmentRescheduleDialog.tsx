@@ -86,10 +86,12 @@ const RescheduleDialog: React.FC<Props> = ({ open, onClose, originalAppointment,
       appointment_id: undefined,
     })
   }, [open, originalAppointment, reset])
-  const { data: freeByMonth } = useAppointmentFreeListByMonth({
-    month: refDate.month() + 1,
-    year: refDate.year(),
-  })
+  const { data: freeByMonth } = useAppointmentFreeListByMonth(
+    {
+      month: refDate.month() + 1,
+      year: refDate.year(),
+    }
+  )
   /* whenever date or data changes, rebuild time-slot list */
   const handleDateChange = () => {
     if (freeByMonth === undefined) return
