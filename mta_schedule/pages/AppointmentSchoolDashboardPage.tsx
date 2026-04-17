@@ -45,7 +45,7 @@ const AppointmentSchoolDashboardPage = ({ canViewDetail, canEditStudents, canRes
   const { data, reload } = useAppointmentListByUserSchool({
     page: currentPage,
     page_size: DEFAULT_PAGE_SIZE,
-    externalFilters: selectedSchool !== undefined && selectedSchool !== null ? { school_id: selectedSchool.id } : undefined,
+
   })
 
   const handlePageChange = (_: React.ChangeEvent<unknown>, newPage: number) => {

@@ -1,8 +1,9 @@
 import { useAuthResources } from '@/mta_auth/hooks'
 import { T_AppointmentId } from '@/mta_schedule/types'
-import { axiosDelete, axiosGet, axiosPost } from '@/shared/data/axios'
+import { axiosDelete, axiosGet, axiosGetBlob, axiosPost } from '@/shared/data/axios'
 import { actionHookV3 } from '@/shared/hooks/dataServices/v3'
 import { T_EmptyPayload } from '@/shared/types'
+import { apiUrl } from '@/config'
 
 // const DEV_PATH = '/development'
 const DEV_APPOINTMENT_FAKERIZE_PATH = '/development/appointments/fakerize/'
@@ -96,11 +97,38 @@ const useDevAppointmentDeleteTest = actionHookV3<
 
 const DEV_REPORTS_FAKERIZE_PATH = '/development/reports/fakerize/'
 
+const DEV_REPORTS_EXPORT_STEP_ZERO_PATH = '/development/reports/export-step-zero/'
+
 const useDevReportsFakerize = actionHookV3<typeof DEV_REPORTS_FAKERIZE_PATH, T_EmptyPayload, T_EmptyPayload>(
   DEV_REPORTS_FAKERIZE_PATH,
   axiosPost,
   useAuthResources,
 )
+
+function useDevReportsExportStepZero() {
+  const auth = useAuthResources()
+
+  const executeAction = async () => {
+    const blob = await axiosGetBlob({
+      url: apiUrl(DEV_REPORTS_EXPORT_STEP_ZERO_PATH),
+      requestSetup: auth,
+    })
+
+    const blobUrl = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = blobUrl
+    const suffix = new Date().toISOString().slice(0, 19).replaceAll(':', '-').replace('T', '_')
+    a.download = `paso_0_respuestas_desde_20260401_${suffix}.xlsx`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    window.URL.revokeObjectURL(blobUrl)
+
+    return { message: 'Descarga iniciada.' }
+  }
+
+  return { executeAction }
+}
 
 export {
   useDevAppointmentDeleteTest,
@@ -116,4 +144,5 @@ export {
   useDevEvaluationsFakerizeComplete,
   useDevAppointmentMakeResolutionsLeft10Seconds,
   useDevReportsFakerize,
+  useDevReportsExportStepZero,
 }
