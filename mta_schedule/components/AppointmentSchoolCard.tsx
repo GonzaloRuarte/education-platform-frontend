@@ -1,5 +1,4 @@
 import AppointmentBriefCard from '@/mta_schedule/components/AppointmentBriefCard'
-import RescheduleDialog from '@/mta_schedule/components/AppointmentRescheduleDialog'
 import { useNavigateToAppointmentDetail, useNavigateToAppointmentEditStudents } from '@/mta_schedule/hooks'
 import { AppointmentOccurrenceStatus, AppointmentStatus, I_AppointmentSchoolCardItem } from '@/mta_schedule/types'
 import Bold from '@/shared/components/Bold'
@@ -7,26 +6,24 @@ import Button from '@/shared/components/Button'
 import MagicGrid from '@/shared/components/MagicGrid'
 import { Body1 } from '@/shared/components/Typography'
 import Box from '@mui/material/Box'
-import { useState } from 'react'
 
 interface I_Props {
   data: I_AppointmentSchoolCardItem
-  onRescheduled?: () => void
   canViewDetail?: boolean
   canEditStudents?: boolean
   canReschedule?: boolean
+  onOpenReschedule?: (appointment: I_AppointmentSchoolCardItem) => void,
 }
 
 const AppointmentSchoolCard = ({
   data,
-  onRescheduled,
   canViewDetail = true,
   canEditStudents = true,
   canReschedule = true,
+  onOpenReschedule,
 }: I_Props) => {
   const navToEditStudents = useNavigateToAppointmentEditStudents()
   const navToDetail = useNavigateToAppointmentDetail()
-  const [open, setOpen] = useState(false)
 
   const canManageStudentsForAppointment =
     canEditStudents &&
@@ -82,7 +79,7 @@ const AppointmentSchoolCard = ({
               )}
 
               {canReschedule && (
-                <Button fullWidth color="info" onClick={() => setOpen(true)}>
+                <Button fullWidth color="info" onClick={() => onOpenReschedule?.(data)}>
                   Reprogramar
                 </Button>
               )}
@@ -97,12 +94,7 @@ const AppointmentSchoolCard = ({
         </Box>
       </MagicGrid>
 
-      <RescheduleDialog
-        open={open}
-        onClose={() => setOpen(false)}
-        originalAppointment={data}
-        onRescheduled={onRescheduled}
-      />
+
     </Box>
   )
 }
