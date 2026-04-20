@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Autocomplete, CircularProgress, TextField } from '@mui/material'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 import { useEvaluationList } from '@/mta_evaluations/hooks'
 import { EvaluationStatus } from '@/mta_evaluations/types'
 import { SchoolGrade } from '@/mta_schools/constants'
+
 interface I_EvaluationOption {
   id: string
   title: string
 }
 
-// EvaluationSelect Component
 export const EvaluationSelect: React.FC<{
   value: I_EvaluationOption | null
   onChange: (value: I_EvaluationOption | null) => void
@@ -17,10 +17,10 @@ export const EvaluationSelect: React.FC<{
   placeholder?: string
   error?: boolean
   helperText?: string
-  filterTitle?: string // Optional filter for evaluations
-  onlyPublished?: boolean // Optional filter for published evaluations
-  subject_id?: string // Optional subject filter
-  grade?: SchoolGrade // Optional grade filter
+  filterTitle?: string
+  onlyPublished?: boolean
+  subject_id?: string
+  grade?: SchoolGrade
 }> = ({
   value,
   onChange,
@@ -29,80 +29,71 @@ export const EvaluationSelect: React.FC<{
   error,
   helperText,
   filterTitle,
-  onlyPublished = false, // Default to false
+  onlyPublished = false,
   subject_id,
   grade,
 }) => {
-  const [options, setOptions] = useState<I_EvaluationOption[]>([])
-  const [loading, setLoading] = useState(false)
+    const [options, setOptions] = useState<I_EvaluationOption[]>([])
 
-  // simple KV filters for your API
-  const [extFilters, setExtFilters] = useState<Record<string, any>>({
-    status: EvaluationStatus.Published,
-  })
+    const extFilters = useMemo(
+      () => ({
+        ...(onlyPublished && { status: EvaluationStatus.Published }),
+        ...(filterTitle && { title__contains: filterTitle }),
+        ...(subject_id && { subject_id }),
+        ...(grade && { grade }),
+      }),
+      [filterTitle, onlyPublished, subject_id, grade],
+    )
 
-  useEffect(() => {
-    setExtFilters({
-      ...(onlyPublished && { status: EvaluationStatus.Published }),
-      ...(filterTitle && { title__contains: filterTitle }),
-      ...(subject_id && { subject_id }),
-      ...(grade && { grade }),
+    const { data, isLoading } = useEvaluationList({
+      page_size: 0,
+      externalFilters: extFilters,
     })
-  }, [filterTitle, onlyPublished, subject_id, grade]) // ← include all deps
 
-  const { data, isLoading, reload } = useEvaluationList({
-    page_size: 0,             // your API convention for "all"
-    externalFilters: extFilters,  // ← use externalFilters, not filters
-  })
+    useEffect(() => {
+      if (data) {
+        setOptions(
+          data.results.map((e) => ({
+            id: String(e.id),
+            title: `${e.title} (${e.code})`,
+          })),
+        )
+      } else {
+        setOptions([])
+      }
+    }, [data])
 
-  useEffect(() => {
-    if (data) {
-      setOptions(
-        data.results.map((e) => ({
-          id: String(e.id),
-          title: `${e.title} (${e.code})`,
-        })),
-      )
-    }
-    setLoading(isLoading)
-  }, [data, isLoading])
+    return (
+      <Autocomplete
+        options={options}
+        getOptionLabel={(option) => option.title}
+        value={value}
+        onChange={(_, newValue) => onChange(newValue)}
+        loading={isLoading}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label={label}
+            placeholder={placeholder}
+            error={error}
+            helperText={helperText}
+            slotProps={{
+              input: {
+                ...params.InputProps,
+                endAdornment: (
+                  <>
+                    {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                    {params.InputProps.endAdornment}
+                  </>
+                ),
+              },
+            }}
+          />
+        )}
+      />
+    )
+  }
 
-  useEffect(() => {
-    reload()
-  }, [reload, extFilters]) // include reload in deps
-
-  return (
-    <Autocomplete
-      options={options}
-      getOptionLabel={(option) => option.title}
-      value={value}
-      onChange={(_, newValue) => onChange(newValue)}
-      loading={loading}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label={label}
-          placeholder={placeholder}
-          error={error}
-          helperText={helperText}
-          slotProps={{
-            input: {
-              ...params.InputProps,
-              endAdornment: (
-                <>
-                  {loading ? <CircularProgress color="inherit" size={20} /> : null}
-                  {params.InputProps.endAdornment}
-                </>
-              ),
-            },
-          }}
-        />
-      )}
-    />
-  )
-}
-
-// EvaluationSelectControlled Component
 export const EvaluationSelectControlled = <T_FormFields extends FieldValues>({
   name,
   rules,
@@ -123,7 +114,14 @@ export const EvaluationSelectControlled = <T_FormFields extends FieldValues>({
   subject_id?: string
   grade?: SchoolGrade
 }) => {
-  const { field, fieldState } = useController({ name, rules, shouldUnregister, defaultValue, control })
+  const { field, fieldState } = useController({
+    name,
+    rules,
+    shouldUnregister,
+    defaultValue,
+    control,
+  })
+
   const hasError = fieldState.error !== undefined
 
   return (
