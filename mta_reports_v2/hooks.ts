@@ -43,22 +43,22 @@ const useNavigateToReportCreate = navigationHook(pages.D._.reportes._.agregar.pa
 const useNavigateToReportEdit = dynamicNavigationHook(reportEditPath)
 const useNavigateToReportList = navigationHook(pages.D._.reportes.path)
 
-// ─── META Report visualization ───────────────────────────────────────────────
+// ─── React Report visualization ──────────────────────────────────────────────
 
-interface I_FiltrosMETA {
+interface I_FiltrosReact {
   materia: string
   anio: string
   division: string
   toma: string
 }
 
-interface I_ItemMETA {
+interface I_ItemReact {
   n: string
   mi: number
   t: number
 }
 
-interface I_BoxplotMETA {
+interface I_BoxplotReact {
   min: number
   q1: number
   md: number
@@ -67,7 +67,7 @@ interface I_BoxplotMETA {
   av: number
 }
 
-interface I_ReporteMETAData {
+interface I_ReporteReactData {
   colegio: string
   general: {
     muestra: { mi: number; todos: number }
@@ -80,14 +80,14 @@ interface I_ReporteMETAData {
     miId: string
   }
   detalle: {
-    contenido: I_ItemMETA[]
-    competencia: I_ItemMETA[]
-    boxplotMi: I_BoxplotMETA
-    boxplotTodos: I_BoxplotMETA
-    lenComp?: I_ItemMETA[]
-    lenCont?: I_ItemMETA[]
-    boxplotMiLenguaje?: I_BoxplotMETA
-    boxplotTodosLenguaje?: I_BoxplotMETA
+    contenido: I_ItemReact[]
+    competencia: I_ItemReact[]
+    boxplotMi: I_BoxplotReact
+    boxplotTodos: I_BoxplotReact
+    lenComp?: I_ItemReact[]
+    lenCont?: I_ItemReact[]
+    boxplotMiLenguaje?: I_BoxplotReact
+    boxplotTodosLenguaje?: I_BoxplotReact
   }
 }
 
@@ -107,7 +107,7 @@ interface I_RawTodos {
   por_escuela: Array<{ id: string; pct: number; n: number }>
 }
 
-interface I_RawReporteMETA {
+interface I_RawReporteReact {
   colegio: string
   colegio_meta_id: string
   preguntas: I_RawPregunta[]
@@ -148,7 +148,7 @@ function _quantile(sorted: number[], p: number): number {
   return lo === hi ? sorted[lo] : (sorted[lo] + sorted[hi]) / 2
 }
 
-function _boxplot(scores: number[]): I_BoxplotMETA {
+function _boxplot(scores: number[]): I_BoxplotReact {
   if (!scores.length) return { min: 0, q1: 0, md: 0, q3: 0, max: 0, av: 0 }
   const s = [...scores].sort((a, b) => a - b)
   return {
@@ -194,7 +194,7 @@ function _groupBy(
   preguntas: I_RawPregunta[],
   pp: Record<string, { n_correctas: number; n_total: number }>,
   estudiantes: Array<Record<string, boolean>>,
-): I_ItemMETA[] {
+): I_ItemReact[] {
   const groups: Record<string, Set<string>> = {}
   for (const q of preguntas) {
     if (q.es_pisa) continue
@@ -210,7 +210,7 @@ function _groupBy(
   }))
 }
 
-function _transformReporteMETA(raw: I_RawReporteMETA, materia: string): I_ReporteMETAData {
+function _transformReporteReact(raw: I_RawReporteReact, materia: string): I_ReporteReactData {
   const { preguntas, estudiantes_mi, todos, colegio, colegio_meta_id } = raw
   const pp = todos.por_pregunta
 
@@ -261,7 +261,7 @@ function _transformReporteMETA(raw: I_RawReporteMETA, materia: string): I_Report
 
 // ─── All-data hook (one fetch, frontend filtering) ───────────────────────────
 
-const useEscuelaReporteMETA = (escuelaId: number | null) => {
+const useEscuelaReporteReact = (escuelaId: number | null) => {
   const [rawData, setRawData] = useState<I_RawEscuelaDatos | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -309,7 +309,7 @@ const useEscuelaReporteMETA = (escuelaId: number | null) => {
     return divs.length > 1 ? ['Todas', ...divs] : divs
   }, [rawData])
 
-  const getReporte = useCallback((filtros: I_FiltrosMETA): I_ReporteMETAData | null => {
+  const getReporte = useCallback((filtros: I_FiltrosReact): I_ReporteReactData | null => {
     if (!rawData) return null
     const combo = rawData.datos.find(
       d => d.materia === filtros.materia && d.anio === filtros.anio && d.toma === filtros.toma
@@ -323,7 +323,7 @@ const useEscuelaReporteMETA = (escuelaId: number | null) => {
             .filter(s => !s.division || s.division === filtros.division)
             .map(s => s.respuestas)
 
-    return _transformReporteMETA(
+    return _transformReporteReact(
       {
         colegio: rawData.colegio,
         colegio_meta_id: rawData.colegio_meta_id,
@@ -340,7 +340,7 @@ const useEscuelaReporteMETA = (escuelaId: number | null) => {
 
 // ─── Filtros disponibles ──────────────────────────────────────────────────────
 
-const useFiltrosMETA = () => {
+const useFiltrosReact = () => {
   const [tomas, setTomas] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const authResources = useAuthResources()
@@ -360,8 +360,8 @@ const useFiltrosMETA = () => {
 
 // ─── Hook ────────────────────────────────────────────────────────────────────
 
-const useReporteMETA = (escuelaId: number | null, filtros: I_FiltrosMETA) => {
-  const [data, setData] = useState<I_ReporteMETAData | null>(null)
+const useReporteReact = (escuelaId: number | null, filtros: I_FiltrosReact) => {
+  const [data, setData] = useState<I_ReporteReactData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const authResources = useAuthResources()
@@ -373,12 +373,12 @@ const useReporteMETA = (escuelaId: number | null, filtros: I_FiltrosMETA) => {
     setError(null)
     try {
       const params = new URLSearchParams({ materia, anio, division, toma })
-      const raw = await axiosGet<I_RawReporteMETA>({
+      const raw = await axiosGet<I_RawReporteReact>({
         url: `${apiUrl(`/reportes/meta/${escuelaId}/`)}?${params}`,
         requestSetup: authResources,
         options: {},
       })
-      setData(_transformReporteMETA(raw, materia))
+      setData(_transformReporteReact(raw, materia))
     } catch (err: any) {
       setError(err?.message ?? 'Error al cargar el reporte')
     } finally {
@@ -393,5 +393,63 @@ const useReporteMETA = (escuelaId: number | null, filtros: I_FiltrosMETA) => {
   return { data, loading, error, refetch: fetchData }
 }
 
-export type { I_FiltrosMETA, I_ReporteMETAData, I_ItemMETA, I_BoxplotMETA }
-export { useReportCreate, useReportList, useReportListByUserSchool, useReportDetail, useReportUpdate, useReportDelete, useReportBatchDelete, useNavigateToReportCreate, useNavigateToReportEdit, useNavigateToReportList, useReporteMETA, useFiltrosMETA, useEscuelaReporteMETA, REPORTS_PATH }
+// ─── School list + cache-bust hooks ──────────────────────────────────────────
+
+interface I_EscuelaListItem {
+  id: number
+  nombre: string
+  meta_id: string
+  tomas: string[]
+  ultima_toma: string | null
+}
+
+const useEscuelaReporteReactList = () => {
+  const [data, setData] = useState<I_EscuelaListItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const authResources = useAuthResources()
+
+  useEffect(() => {
+    let alive = true
+    setLoading(true)
+    axiosGet<I_EscuelaListItem[]>({
+      url: apiUrl('/reportes/escuela/'),
+      requestSetup: authResources,
+      options: {},
+    })
+      .then(res => { if (alive) setData(res) })
+      .catch(err => { if (alive) setError(err?.message ?? 'Error al cargar') })
+      .finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
+  }, [authResources.accessToken]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  return { data, loading, error }
+}
+
+const useBustCacheEscuela = () => {
+  const [bustingId, setBustingId] = useState<number | null>(null)
+  const authResources = useAuthResources()
+
+  const bust = async (schoolId: number): Promise<void> => {
+    setBustingId(schoolId)
+    try {
+      await axiosPost<Record<string, never>, { ok: boolean }>({
+        url: apiUrl(`/reportes/escuela/${schoolId}/bust-cache/`),
+        requestSetup: authResources,
+        data: {},
+        options: {},
+      })
+    } finally {
+      setBustingId(null)
+    }
+  }
+
+  return { bust, bustingId }
+}
+
+const useNavigateToEscuelaReporte = dynamicNavigationHook(
+  '/dashboard/reportes_meta/escuela/{escuelaId:number}'
+)
+
+export type { I_FiltrosReact, I_ReporteReactData, I_ItemReact, I_BoxplotReact, I_EscuelaListItem }
+export { useReportCreate, useReportList, useReportListByUserSchool, useReportDetail, useReportUpdate, useReportDelete, useReportBatchDelete, useNavigateToReportCreate, useNavigateToReportEdit, useNavigateToReportList, useReporteReact, useFiltrosReact, useEscuelaReporteReact, useEscuelaReporteReactList, useBustCacheEscuela, useNavigateToEscuelaReporte, REPORTS_PATH }

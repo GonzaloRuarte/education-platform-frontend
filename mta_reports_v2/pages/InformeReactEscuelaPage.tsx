@@ -5,8 +5,8 @@ import { useParams } from 'next/navigation'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import Logo from '@/shared/components/Logo'
 import LogoAustral from '@/shared/components/LogoAustral'
-import { useEscuelaReporteMETA } from '@/mta_reports_v2/hooks'
-import type { I_ReporteMETAData, I_BoxplotMETA } from '@/mta_reports_v2/hooks'
+import { useEscuelaReporteReact } from '@/mta_reports_v2/hooks'
+import type { I_ReporteReactData, I_BoxplotReact } from '@/mta_reports_v2/hooks'
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
 const C = {
@@ -72,7 +72,7 @@ function HBar({ label, mi, todos, w = 200 }: { label: string; mi: number; todos:
   )
 }
 
-function BP({ d, w = 80, h = 240 }: { d: I_BoxplotMETA; w?: number; h?: number }) {
+function BP({ d, w = 80, h = 240 }: { d: I_BoxplotReact; w?: number; h?: number }) {
   const pad = 24, ch = h - pad * 2
   const y = (v: number) => pad + ch - (v / 100) * ch
   const cx = w / 2, bw = 32
@@ -159,7 +159,7 @@ const TABS = [
   { key: 'detalle', label: 'Contenido y competencia' },
 ]
 
-function ResumenTab({ data }: { data: I_ReporteMETAData }) {
+function ResumenTab({ data }: { data: I_ReporteReactData }) {
   const g = data.general
   return (
     <>
@@ -199,7 +199,7 @@ function ResumenTab({ data }: { data: I_ReporteMETAData }) {
   )
 }
 
-function DetalleTab({ data }: { data: I_ReporteMETAData }) {
+function DetalleTab({ data }: { data: I_ReporteReactData }) {
   const d = data.detalle
   const isLenguaje = (d.lenComp?.length ?? 0) > 0
   const cont = isLenguaje ? (d.lenCont ?? []) : d.contenido
@@ -243,7 +243,7 @@ function DetalleTab({ data }: { data: I_ReporteMETAData }) {
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
-function InformeMETAEscuelaPage() {
+function InformeReactEscuelaPage() {
   const params = useParams<{ escuelaId: string }>()
   const escuelaId = params?.escuelaId ? Number(params.escuelaId) : null
 
@@ -253,7 +253,7 @@ function InformeMETAEscuelaPage() {
   const [division, setDivision] = useState('Única')
   const [toma, setToma] = useState('')
 
-  const { loading, error, tomas, getMaterias, getAnios, getDivisiones, getReporte } = useEscuelaReporteMETA(escuelaId)
+  const { loading, error, tomas, getMaterias, getAnios, getDivisiones, getReporte } = useEscuelaReporteReact(escuelaId)
 
   // Auto-select latest toma once data arrives
   useEffect(() => {
@@ -365,14 +365,14 @@ function InformeMETAEscuelaPage() {
         </div>
 
         <div style={{ textAlign: 'center', padding: '12px 28px', fontSize: 10, color: C.tm, borderTop: `1px solid ${C.bdr}`, background: C.white }}>
-          Proyecto META · Reporte por Escuela · Universidad Austral – Escuela de Educación
+          Reportes React · Reporte por Escuela · Universidad Austral – Escuela de Educación
         </div>
       </div>
     </div>
   )
 }
 
-export default withAuth(InformeMETAEscuelaPage, {
+export default withAuth(InformeReactEscuelaPage, {
   allowedCapabilities: ['view_reports'],
   logoutDestination: 'dashboard',
 })
