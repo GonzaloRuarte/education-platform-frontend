@@ -51,7 +51,6 @@ function SchoolRow({
       onMouseLeave={e => (e.currentTarget.style.background = C.white)}
     >
       <td style={{ padding: '12px 20px', fontWeight: 600, color: C.txt }}>{school.nombre}</td>
-      <td style={{ padding: '12px 16px', color: C.tm, fontSize: 12 }}>{school.meta_id}</td>
       <td style={{ padding: '12px 16px' }}>
         {school.tomas.map(t => <TomaBadge key={t} toma={t} />)}
       </td>
@@ -141,7 +140,7 @@ function ReportesReactListPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ background: C.off }}>
-                    {['Escuela', 'ID', 'Tomas disponibles', 'Última toma', ''].map(h => (
+                    {['Escuela', 'Tomas disponibles', 'Última toma', ''].map(h => (
                       <th key={h} style={{
                         padding: '10px 16px', textAlign: 'left', fontWeight: 600,
                         color: C.tm, fontSize: 11, borderBottom: `1px solid ${C.bdr}`,
