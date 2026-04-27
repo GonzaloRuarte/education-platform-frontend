@@ -12,8 +12,10 @@ import { creationHook, deletionHook, detailHook, listHook, updateHook, batchDele
 import pages from '@/pages'
 import { reportEditPath } from '@/pages'
 import { apiUrl } from '@/config'
+import { getMockEscuelaDatos } from '@/mta_reports_v2/mock_data'
 
 const REPORTS_PATH = '/reports'
+const USE_REACT_REPORTS_MOCK = process.env.NEXT_PUBLIC_USE_REACT_REPORTS_MOCK === 'true'
 
 const useReportList = listHook<T_ReportList>(REPORTS_PATH, axiosGet, useAuthResources)
 const useReportListByUserSchool = listHook<T_ReportList>(
@@ -268,6 +270,12 @@ const useEscuelaReporteReact = (escuelaId: number | null) => {
   const authResources = useAuthResources()
 
   useEffect(() => {
+    if (USE_REACT_REPORTS_MOCK) {
+      setRawData(getMockEscuelaDatos())
+      setLoading(false)
+      setError(null)
+      return
+    }
     if (!escuelaId) return
     let alive = true
     setLoading(true)
@@ -497,6 +505,20 @@ const useEscuelaReporteReactList = () => {
   const authResources = useAuthResources()
 
   useEffect(() => {
+    if (USE_REACT_REPORTS_MOCK) {
+      const mockData = getMockEscuelaDatos()
+      const tomas = [...new Set(mockData.datos.map(d => d.toma))].sort()
+      setData([{
+        id: 1,
+        nombre: mockData.colegio,
+        meta_id: mockData.colegio_meta_id,
+        tomas,
+        ultima_toma: tomas[tomas.length - 1] ?? null,
+      }])
+      setLoading(false)
+      setError(null)
+      return
+    }
     let alive = true
     setLoading(true)
     axiosGet<I_EscuelaListItem[]>({
