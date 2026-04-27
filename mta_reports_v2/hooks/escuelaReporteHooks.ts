@@ -1,118 +1,27 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuthResources } from '@/mta_auth/hooks'
-import {
-  I_ReportDetail,
-  I_ReportUpdateRequestData,
-  I_ReportCreateRequestData,
-  T_ReportId,
-} from '@/mta_reports/types'
-import { axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
-import { creationHook, updateHook, dynamicNavigationHook, navigationHook } from '@/shared/hooks'
-import pages from '@/pages'
+import { axiosGet, axiosPost } from '@/shared/data/axios'
+import { dynamicNavigationHook } from '@/shared/hooks'
+import { I_PaginatedResponse } from '@/shared/data/types'
 import { apiUrl } from '@/config'
 import { getMockEscuelaDatos } from '@/mta_reports_v2/mock_data'
-
-const USE_REACT_REPORTS_MOCK = process.env.NEXT_PUBLIC_USE_REACT_REPORTS_MOCK === 'true'
-
-const useReportCreate = creationHook<I_ReportCreateRequestData, I_ReportDetail>(
-  '/reports',
-  axiosPost,
-  useAuthResources,
-)
-const useReportUpdate = updateHook<T_ReportId, I_ReportUpdateRequestData, I_ReportDetail>(
-  '/reports',
-  axiosPatch,
-  useAuthResources,
-)
-const useNavigateToReportList = navigationHook(pages.D._.reportes.path)
-
-// ─── React Report visualization ──────────────────────────────────────────────
-
-interface I_FiltrosReact {
-  materia: string
-  anio: string
-  division: string
-  toma: string
-}
-
-interface I_ItemReact {
-  n: string
-  mi: number
-  t: number
-}
-
-interface I_BoxplotReact {
-  min: number
-  q1: number
-  md: number
-  q3: number
-  max: number
-  av: number
-}
-
-interface I_ReporteReactData {
-  colegio: string
-  general: {
-    muestra: { mi: number; todos: number }
-    pct40: { mi: number; todos: number }
-    pctPISA: { mi: number; todos: number }
-    pct45: { mi: number; todos: number }
-  }
-  por_colegio: {
-    bars: Array<{ id: string; p: number }>
-    miId: string
-  }
-  detalle: {
-    contenido: I_ItemReact[]
-    competencia: I_ItemReact[]
-    boxplotMi: I_BoxplotReact
-    boxplotTodos: I_BoxplotReact
-    lenComp?: I_ItemReact[]
-    lenCont?: I_ItemReact[]
-    boxplotMiLenguaje?: I_BoxplotReact
-    boxplotTodosLenguaje?: I_BoxplotReact
-  }
-}
-
-// ─── Raw backend response types ───────────────────────────────────────────────
-
-interface I_RawPregunta {
-  id: number
-  orden: number
-  competencia: string
-  contenido: string
-  es_pisa: boolean
-}
-
-interface I_RawTodos {
-  por_pregunta: Record<string, { n_correctas: number; n_total: number }>
-  puntajes: number[]
-  por_escuela: Array<{ id: string; pct: number; n: number }>
-}
-
-interface I_RawReporteReact {
-  colegio: string
-  colegio_meta_id: string
-  preguntas: I_RawPregunta[]
-  estudiantes_mi: Array<Record<string, boolean>>
-  todos: I_RawTodos
-}
-
-// Raw shape from GET /reportes/escuela/{school_id}/
-interface I_RawComboDato {
-  materia: string
-  anio: string
-  toma: string
-  preguntas: I_RawPregunta[]
-  estudiantes_mi: Array<{ division: string | null; respuestas: Record<string, boolean> }>
-  todos: I_RawTodos
-}
-
-interface I_RawEscuelaDatos {
-  colegio: string
-  colegio_meta_id: string
-  datos: I_RawComboDato[]
-}
+import { USE_REACT_REPORTS_MOCK, ANIO_ORDER } from '@/mta_reports_v2/constants'
+import type {
+  I_FiltrosReact,
+  I_ReporteReactData,
+  I_ItemReact,
+  I_BoxplotReact,
+  I_RawPregunta,
+  I_RawTodos,
+  I_RawReporteReact,
+  I_RawComboDato,
+  I_RawEscuelaDatos,
+  I_SemaforoBandas,
+  I_ScatterPoint,
+  I_TablaRow,
+  I_EscuelaListItem,
+} from '@/mta_reports_v2/types'
+import type { T_ListServiceHook } from '@/shared/types'
 
 // ─── Transformation helpers ───────────────────────────────────────────────────
 
@@ -144,7 +53,6 @@ function _boxplot(scores: number[]): I_BoxplotReact {
   }
 }
 
-// Per-student percentage-correct scores over a subset of question IDs.
 function _studentScores(
   qids: Set<string>,
   estudiantes: Array<Record<string, boolean>>,
@@ -158,7 +66,6 @@ function _studentScores(
   return out
 }
 
-// Aggregate % correct from todos.por_pregunta for a set of question IDs.
 function _todosRate(
   qids: Set<string>,
   pp: Record<string, { n_correctas: number; n_total: number }>,
@@ -171,7 +78,6 @@ function _todosRate(
   return sumT > 0 ? _r1(sumC / sumT * 100) : 0
 }
 
-// Group non-PISA questions by a tag field and compute mi/t rates.
 function _groupBy(
   field: 'contenido' | 'competencia',
   preguntas: I_RawPregunta[],
@@ -281,7 +187,6 @@ const useEscuelaReporteReact = (escuelaId: number | null) => {
     return [...new Set(rawData.datos.filter(d => d.toma === toma).map(d => d.materia))]
   }, [rawData])
 
-  const ANIO_ORDER = ['3ro', '6to', '9no', '12mo']
   const getAnios = useCallback((toma: string, materia: string): string[] => {
     if (!rawData) return []
     const available = new Set(
@@ -348,7 +253,7 @@ const useEscuelaReporteReact = (escuelaId: number | null) => {
   const getSemaforoBandas = useCallback((materia: string, division: string, toma: string): Record<string, I_SemaforoBandas> => {
     if (!rawData) return {}
     const result: Record<string, I_SemaforoBandas> = {}
-    for (const anio of ['3ro', '6to', '9no', '12mo']) {
+    for (const anio of ANIO_ORDER) {
       const combo = _findCombo(materia, anio, toma)
       if (!combo) continue
       const estudiantes = _filterEstudiantes(combo, division)
@@ -416,14 +321,6 @@ const useEscuelaReporteReact = (escuelaId: number | null) => {
 
 // ─── School list + cache-bust hooks ──────────────────────────────────────────
 
-interface I_EscuelaListItem {
-  id: number
-  nombre: string
-  meta_id: string
-  tomas: string[]
-  ultima_toma: string | null
-}
-
 const useEscuelaReporteReactList = () => {
   const [data, setData] = useState<I_EscuelaListItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -461,6 +358,15 @@ const useEscuelaReporteReactList = () => {
   return { data, loading, error }
 }
 
+const useEscuelaReporteReactListForPage: T_ListServiceHook<I_PaginatedResponse<I_EscuelaListItem>> = () => {
+  const { data, loading: isLoading } = useEscuelaReporteReactList()
+  return {
+    data: data ? { results: data, count: data.length, next: '', previous: '' } : undefined,
+    isLoading,
+    reload: () => {},
+  }
+}
+
 const useBustCacheEscuela = () => {
   const [bustingId, setBustingId] = useState<number | null>(null)
   const authResources = useAuthResources()
@@ -486,17 +392,10 @@ const useNavigateToEscuelaReporte = dynamicNavigationHook(
   '/dashboard/reportes_react/escuela/{escuelaId:number}'
 )
 
-export interface I_SemaforoBandas {
-  verde: number; amarillo: number; naranja: number; rojo: number; total: number
+export {
+  useEscuelaReporteReact,
+  useEscuelaReporteReactList,
+  useEscuelaReporteReactListForPage,
+  useBustCacheEscuela,
+  useNavigateToEscuelaReporte,
 }
-
-export interface I_ScatterPoint {
-  id: number; pdl: number; mat: number
-}
-
-export interface I_TablaRow {
-  id: number; mat?: number; len?: number
-}
-
-export type { I_FiltrosReact, I_ReporteReactData, I_ItemReact, I_BoxplotReact, I_EscuelaListItem }
-export { useReportCreate, useReportUpdate, useNavigateToReportList, useEscuelaReporteReact, useEscuelaReporteReactList, useBustCacheEscuela, useNavigateToEscuelaReporte }
