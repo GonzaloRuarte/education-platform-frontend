@@ -335,7 +335,94 @@ const useEscuelaReporteReact = (escuelaId: number | null) => {
     )
   }, [rawData])
 
-  return { loading, error, tomas, getMaterias, getAnios, getDivisiones, getReporte }
+  const _filterEstudiantes = (combo: I_RawComboDato, division: string) =>
+    division.toLowerCase() === 'todas'
+      ? combo.estudiantes_mi
+      : combo.estudiantes_mi.filter(s => !s.division || s.division === division)
+
+  const _findCombo = (materia: string, anio: string, toma: string): I_RawComboDato | undefined =>
+    rawData?.datos.find(d => d.materia === materia && d.anio === anio && d.toma === toma)
+
+  const _calcPercentage = (answered: string[], responses: Record<string, boolean>): number => {
+    if (!answered.length) return 0
+    const correct = answered.filter(k => responses[k]).length
+    return Math.round(correct / answered.length * 100)
+  }
+
+  const _bandForCount = (correct: number): keyof I_SemaforoBandas => {
+    if (correct >= 31) return 'verde'
+    if (correct >= 20) return 'amarillo'
+    if (correct >= 11) return 'naranja'
+    return 'rojo'
+  }
+
+  const getSemaforoBandas = useCallback((materia: string, division: string, toma: string): Record<string, I_SemaforoBandas> => {
+    if (!rawData) return {}
+    const result: Record<string, I_SemaforoBandas> = {}
+    for (const anio of ['3ro', '6to', '9no', '12mo']) {
+      const combo = _findCombo(materia, anio, toma)
+      if (!combo) continue
+      const estudiantes = _filterEstudiantes(combo, division)
+      const nonPisaIds = combo.preguntas.filter(q => !q.es_pisa).map(q => String(q.id))
+      const bands = { verde: 0, amarillo: 0, naranja: 0, rojo: 0 }
+      for (const est of estudiantes) {
+        const correct = nonPisaIds.filter(k => k in est.respuestas && est.respuestas[k]).length
+        const band = _bandForCount(correct)
+        bands[band]++
+      }
+      result[anio] = { ...bands, total: Object.values(bands).reduce((s, v) => s + v, 0) }
+    }
+    return result
+  }, [rawData]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const getScatterPoints = useCallback((anio: string, division: string, toma: string): I_ScatterPoint[] => {
+    if (!rawData) return []
+    const lenCombo = _findCombo('Prácticas del Lenguaje', anio, toma)
+    const matCombo = _findCombo('Matemática', anio, toma)
+    if (!lenCombo || !matCombo) return []
+    const lenStudents = _filterEstudiantes(lenCombo, division)
+    const matStudents = _filterEstudiantes(matCombo, division)
+    const lenIds = lenCombo.preguntas.map(q => String(q.id))
+    const matIds = matCombo.preguntas.map(q => String(q.id))
+    const count = Math.min(lenStudents.length, matStudents.length)
+    return Array.from({ length: count }, (_, i) => {
+      const lenR = lenStudents[i].respuestas
+      const matR = matStudents[i].respuestas
+      const lenAns = lenIds.filter(k => k in lenR)
+      const matAns = matIds.filter(k => k in matR)
+      return {
+        id: i + 1,
+        pdl: _calcPercentage(lenAns, lenR),
+        mat: _calcPercentage(matAns, matR),
+      }
+    })
+  }, [rawData]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const getTablaData = useCallback((anio: string, division: string, toma: string): I_TablaRow[] => {
+    if (!rawData) return []
+    const MATS = [
+      { materia: 'Matemática', key: 'mat' as const },
+      { materia: 'Prácticas del Lenguaje', key: 'len' as const },
+    ]
+    const infos = MATS.flatMap(({ materia, key }) => {
+      const combo = _findCombo(materia, anio, toma)
+      if (!combo) return []
+      const qids = combo.preguntas.map(q => String(q.id))
+      return [{ students: _filterEstudiantes(combo, division), qids, key }]
+    })
+    const maxLen = Math.max(...infos.map(m => m.students.length), 0)
+    return Array.from({ length: maxLen }, (_, i) => {
+      const row: I_TablaRow = { id: i + 1 }
+      for (const { students, qids, key } of infos) {
+        if (i >= students.length) continue
+        const answered = qids.filter(k => k in students[i].respuestas)
+        row[key] = _calcPercentage(answered, students[i].respuestas)
+      }
+      return row
+    })
+  }, [rawData]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  return { loading, error, tomas, getMaterias, getAnios, getDivisiones, getReporte, getSemaforoBandas, getScatterPoints, getTablaData }
 }
 
 // ─── Filtros disponibles ──────────────────────────────────────────────────────
@@ -448,8 +535,20 @@ const useBustCacheEscuela = () => {
 }
 
 const useNavigateToEscuelaReporte = dynamicNavigationHook(
-  '/dashboard/reportes_meta/escuela/{escuelaId:number}'
+  '/dashboard/reportes_react/escuela/{escuelaId:number}'
 )
+
+export interface I_SemaforoBandas {
+  verde: number; amarillo: number; naranja: number; rojo: number; total: number
+}
+
+export interface I_ScatterPoint {
+  id: number; pdl: number; mat: number
+}
+
+export interface I_TablaRow {
+  id: number; mat?: number; len?: number
+}
 
 export type { I_FiltrosReact, I_ReporteReactData, I_ItemReact, I_BoxplotReact, I_EscuelaListItem }
 export { useReportCreate, useReportList, useReportListByUserSchool, useReportDetail, useReportUpdate, useReportDelete, useReportBatchDelete, useNavigateToReportCreate, useNavigateToReportEdit, useNavigateToReportList, useReporteReact, useFiltrosReact, useEscuelaReporteReact, useEscuelaReporteReactList, useBustCacheEscuela, useNavigateToEscuelaReporte, REPORTS_PATH }

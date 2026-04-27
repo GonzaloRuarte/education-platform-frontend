@@ -39,6 +39,8 @@ const C = {
 const ANIO_ORDER = ['3ro', '6to', '9no', '12mo'] as const
 const TAB_IDS = { RESUMEN: 'resumen', DETALLE: 'detalle', SEMAFORO: 'semaforo', SCATTER: 'scatter', TABLA: 'tabla' } as const
 
+// ── Shared atoms ──────────────────────────────────────────────────────────────
+
 function Leg({ c, t }: { c: string; t: string }) {
   return (
     <Stack direction="row" alignItems="center" spacing={0.5} component="span" sx={{ mr: 2, display: 'inline-flex' }}>
@@ -47,6 +49,8 @@ function Leg({ c, t }: { c: string; t: string }) {
     </Stack>
   )
 }
+
+// ── Recharts: vertical bar chart (schools comparison) ─────────────────────────
 
 function AllSchoolsBarChart({ bars, miId }: { bars: { id: string; p: number }[]; miId: string }) {
   const sorted = [...bars].sort((a, b) => b.p - a.p)
@@ -83,6 +87,8 @@ function AllSchoolsBarChart({ bars, miId }: { bars: { id: string; p: number }[];
   )
 }
 
+// ── Recharts: horizontal bar chart (competencia / contenido) ──────────────────
+
 interface HBarItem { n: string; mi: number; t: number }
 
 function HorizontalBarChart({ items }: { items: HBarItem[] }) {
@@ -106,6 +112,8 @@ function HorizontalBarChart({ items }: { items: HBarItem[] }) {
   )
 }
 
+// ── Boxplot (SVG) ─────────────────────────────────────────────────────────────
+
 function BP({ d, color, w = 90, h = 280 }: { d: I_BoxplotReact; color: string; w?: number; h?: number }) {
   const pad = 28, ch = h - pad * 2
   const y = (v: number) => pad + ch - (v / 100) * ch
@@ -128,6 +136,8 @@ function BP({ d, color, w = 90, h = 280 }: { d: I_BoxplotReact; color: string; w
     </svg>
   )
 }
+
+// ── KPI Card ──────────────────────────────────────────────────────────────────
 
 interface KPICardProps {
   title: string; subtitle: string
@@ -154,6 +164,8 @@ function KPICard({ title, subtitle, mi, todos, suffix = '%' }: KPICardProps) {
   )
 }
 
+// ── Chart section wrapper ─────────────────────────────────────────────────────
+
 function ChartCard({ num, title, subtitle, legend, children }: {
   num: string; title: string; subtitle?: string
   legend?: React.ReactNode; children: React.ReactNode
@@ -167,6 +179,8 @@ function ChartCard({ num, title, subtitle, legend, children }: {
     </Paper>
   )
 }
+
+// ── Tab: Resumen ──────────────────────────────────────────────────────────────
 
 function ResumenTab({ data }: { data: I_ReporteReactData }) {
   const g = data.general
@@ -184,6 +198,8 @@ function ResumenTab({ data }: { data: I_ReporteReactData }) {
     </>
   )
 }
+
+// ── Tab: Contenido y competencia ──────────────────────────────────────────────
 
 function DetalleTab({ data }: { data: I_ReporteReactData }) {
   const d = data.detalle
@@ -233,10 +249,10 @@ function DetalleTab({ data }: { data: I_ReporteReactData }) {
               </Box>
             </Stack>
             <Typography variant="caption" sx={{ color: C.tm, display: 'block', mt: 1.5 }}>
-              *Informacion del grafico de distribucion sobre el circulo ●
+              *Información del gráfico de distribución sobre el círculo ●
             </Typography>
           </ChartCard>
-          <ChartCard num="04" title="Calificacion por alumno">
+          <ChartCard num="04" title="Calificación por alumno">
             <Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 1 }}>
               <Typography variant="body2" sx={{ fontWeight: 600, color: C.navy, whiteSpace: 'nowrap' }}>
                 ID del alumno
@@ -258,6 +274,8 @@ function DetalleTab({ data }: { data: I_ReporteReactData }) {
     </Grid2>
   )
 }
+
+// ── Tab: Semáforo ─────────────────────────────────────────────────────────────
 
 function GruposList({ grupos }: { grupos: SemaforoNivel['col1'] }) {
   return (
@@ -349,6 +367,8 @@ function SemaforoTab({
   )
 }
 
+// ── Tab: Resultados por alumno (Scatter) ─────────────────────────────────────
+
 function ScatterTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null
   const d = payload[0]?.payload as I_ScatterPoint
@@ -373,7 +393,7 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
   return (
     <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2.5 }}>
       <Typography sx={{ fontSize: 13, color: C.accent, fontWeight: 500, mb: 1.5 }}>
-        Resultados por alumno — % PDL vs % Matematica
+        Resultados por alumno — % PDL vs % Matemática
       </Typography>
       {points.length === 0 ? (
         <Typography sx={{ color: C.tm }}>Sin datos para los filtros seleccionados</Typography>
@@ -386,13 +406,13 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
                 type="number" dataKey="pdl" name="PDL"
                 domain={[0, 100]} tickFormatter={v => `${v}%`}
                 tick={{ fontSize: 11, fill: C.tm }}
-                label={{ value: '% Practicas del Lenguaje', position: 'insideBottom', offset: -20, fontSize: 12, fill: C.navy }}
+                label={{ value: '% Prácticas del Lenguaje', position: 'insideBottom', offset: -20, fontSize: 12, fill: C.navy }}
               />
               <YAxis
                 type="number" dataKey="mat" name="Mat"
                 domain={[0, 100]} tickFormatter={v => `${v}%`}
                 tick={{ fontSize: 11, fill: C.tm }}
-                label={{ value: '% Matematica', angle: -90, position: 'insideLeft', offset: 12, fontSize: 12, fill: C.navy }}
+                label={{ value: '% Matemática', angle: -90, position: 'insideLeft', offset: 12, fontSize: 12, fill: C.navy }}
               />
               {avg && <ReferenceLine x={avg.pdl} stroke={C.tm} strokeDasharray="4 3" strokeWidth={1} />}
               {avg && <ReferenceLine y={avg.mat} stroke={C.tm} strokeDasharray="4 3" strokeWidth={1} />}
@@ -414,6 +434,8 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
   )
 }
 
+// ── Tab: Resumen por estudiante (Tabla) ───────────────────────────────────────
+
 function TablaTab({ rows }: { rows: I_TablaRow[] }) {
   const dot = (v: number | undefined) => {
     if (v == null) return null
@@ -433,7 +455,7 @@ function TablaTab({ rows }: { rows: I_TablaRow[] }) {
           <TableHead>
             <TableRow>
               <TableCell sx={{ fontWeight: 700, color: C.navy, bgcolor: C.lightBlue }}>ID Alumno</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, color: C.navy, bgcolor: C.lightBlue }}>Matematica %</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, color: C.navy, bgcolor: C.lightBlue }}>Matemática %</TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, color: C.navy, bgcolor: C.lightBlue }}>PDL %</TableCell>
             </TableRow>
           </TableHead>
@@ -466,6 +488,8 @@ function TablaTab({ rows }: { rows: I_TablaRow[] }) {
     </Paper>
   )
 }
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
 
 interface FilterDef { label: string; value: string; opts: string[]; set: (v: string) => void }
 
@@ -506,9 +530,11 @@ function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => vo
   )
 }
 
+// ── Main ──────────────────────────────────────────────────────────────────────
+
 type TabId = 'resumen' | 'detalle' | 'semaforo' | 'scatter' | 'tabla'
 
-function InformeReactEscuelaPage() {
+function InformeReactEscuelaNuevaPage() {
   const params = useParams<{ escuelaId: string }>()
   const escuelaId = params?.escuelaId ? Number(params.escuelaId) : null
 
@@ -557,9 +583,9 @@ function InformeReactEscuelaPage() {
   )
 
   const tomaFilter: FilterDef = { label: 'Toma', value: toma, opts: tomas.length > 0 ? tomas : [toma].filter(Boolean), set: setToma }
-  const divFilter: FilterDef = { label: 'Division', value: division, opts: divisiones, set: setDivision }
+  const divFilter: FilterDef = { label: 'División', value: division, opts: divisiones, set: setDivision }
   const materiaFilter: FilterDef = { label: 'Materia', value: materia, opts: materias.length > 0 ? materias : [materia], set: setMateria }
-  const anioFilter: FilterDef = { label: 'Ano', value: anio, opts: anios.length > 0 ? anios : ANIO_ORDER.slice(), set: setAnio }
+  const anioFilter: FilterDef = { label: 'Año', value: anio, opts: anios.length > 0 ? anios : ANIO_ORDER.slice(), set: setAnio }
 
   const sidebarFilters = useMemo((): FilterDef[] => {
     const FILTER_LAYOUTS: Record<TabId, FilterDef[]> = {
@@ -604,7 +630,7 @@ function InformeReactEscuelaPage() {
   const tabLabels: Record<TabId, string> = {
     [TAB_IDS.RESUMEN]: 'Resultados generales',
     [TAB_IDS.DETALLE]: materia,
-    [TAB_IDS.SEMAFORO]: 'Semaforo',
+    [TAB_IDS.SEMAFORO]: 'Semáforo',
     [TAB_IDS.SCATTER]: 'Resultados por alumno',
     [TAB_IDS.TABLA]: 'Resumen por estudiante',
   }
@@ -615,9 +641,9 @@ function InformeReactEscuelaPage() {
       pills.push({ label: `Materia: ${materia || '—'}` })
     }
     if (tab !== TAB_IDS.SEMAFORO) {
-      pills.push({ label: `Ano: ${anio || '—'}` })
+      pills.push({ label: `Año: ${anio || '—'}` })
     }
-    if (divisiones.length > 1) pills.push({ label: `Division: ${division || '—'}` })
+    if (divisiones.length > 1) pills.push({ label: `División: ${division || '—'}` })
     if (toma) pills.push({ label: `Toma: ${toma}` })
     return pills
   }, [tab, materia, materias, anio, division, divisiones, toma])
@@ -627,6 +653,7 @@ function InformeReactEscuelaPage() {
       <Sidebar filters={sidebarFilters} onReset={resetFilters} />
 
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, pt: 2.5, pb: 0.5, bgcolor: 'background.paper' }}>
           <Typography variant="h5" sx={{ color: C.navy, fontWeight: 800 }}>
             {schoolName} — {tabLabels[tab]}
@@ -634,26 +661,29 @@ function InformeReactEscuelaPage() {
           <Logo width={80} height={26} />
         </Box>
 
+        {/* Filter pills */}
         <Stack direction="row" spacing={1} sx={{ px: 3, py: 1.25, bgcolor: 'background.paper', flexWrap: 'wrap' }}>
           {filterPills.map(p => (
             <Chip key={p.label} label={p.label} size="small" sx={{ bgcolor: C.lightBlue, color: C.navy, fontWeight: 600 }} />
           ))}
         </Stack>
 
+        {/* Tabs */}
         <Box sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2 }}>
             <Tab value={TAB_IDS.RESUMEN} label="Resumen" />
             <Tab value={TAB_IDS.DETALLE} label="Contenido y competencia" />
-            <Tab value={TAB_IDS.SEMAFORO} label="Semaforo" />
+            <Tab value={TAB_IDS.SEMAFORO} label="Semáforo" />
             <Tab value={TAB_IDS.SCATTER} label="Resultados por alumno" />
             <Tab value={TAB_IDS.TABLA} label="Resumen por estudiante" />
           </Tabs>
         </Box>
 
+        {/* Content */}
         <Box sx={{ flex: 1, overflow: 'auto', p: '22px 24px 40px' }}>
           {loading && (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
-              <Typography color="text.secondary">Cargando reporte...</Typography>
+              <Typography color="text.secondary">Cargando reporte…</Typography>
             </Box>
           )}
           {!loading && error && (
@@ -679,12 +709,18 @@ function InformeReactEscuelaPage() {
           )}
         </Box>
 
+        {/* Footer */}
         <Box sx={{ textAlign: 'center', py: 1.5, px: 3.5, borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
           <Typography variant="caption" color="text.secondary">
-            Reportes React · Reporte por Escuela · Universidad Austral - Escuela de Educacion
+            Reportes React · Reporte por Escuela · Universidad Austral – Escuela de Educación
           </Typography>
         </Box>
       </Box>
     </Box>
   )
 }
+
+export default withAuth(InformeReactEscuelaNuevaPage, {
+  allowedCapabilities: ['view_reports'],
+  logoutDestination: 'dashboard',
+})

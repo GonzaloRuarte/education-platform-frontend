@@ -20,8 +20,8 @@ const dashboardResetPasswordPath = '/dashboard/login/restablecer-password/{uid:s
 // META report bundles (computed artifacts)
 const metaReportsListPath = '/dashboard/reportes/meta'
 const metaReportsDetailPath = '/dashboard/reportes/meta/{bundleId:number}'
-const reportesReactListPath = '/dashboard/reportes_meta'
-const reportesReactEscuelaPath = '/dashboard/reportes_meta/escuela/{escuelaId:number}'
+const reportesReactListPath = '/dashboard/reportes_react'
+const reportesReactEscuelaPath = '/dashboard/reportes_react/escuela/{escuelaId:number}'
 
 const userChangePasswordPath = '/dashboard/usuarios/{userId:number}/cambiar-password'
 
