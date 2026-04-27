@@ -53,11 +53,23 @@ function ReporteEscuelaPage() {
   }, [tab, materia, anio, toma, getDivisiones])
 
   useEffect(() => {
-    if (tomas.length > 0 && !toma) setToma(tomas[tomas.length - 1])
+    setToma(t => {
+      if (tomas.length > 0 && !t) return tomas[tomas.length - 1]
+      return t
+    })
+  }, [tomas])
+
+  useEffect(() => {
     if (materias.length > 0 && !materias.includes(materia)) setMateria(materias[0])
+  }, [materias, materia])
+
+  useEffect(() => {
     if (anios.length > 0 && !anios.includes(anio)) setAnio(anios[0])
+  }, [anios, anio])
+
+  useEffect(() => {
     if (divisiones.length > 0 && !divisiones.includes(division)) setDivision(divisiones[0])
-  }, [tomas, materias, anios, divisiones, toma, materia, anio, division])
+  }, [divisiones, division])
 
   const data = toma ? getReporte({ materia, anio, division, toma }) : null
   const schoolName = data?.colegio ?? (loading ? 'Cargando…' : 'Escuela')
@@ -72,10 +84,10 @@ function ReporteEscuelaPage() {
     [anio, division, toma, getTablaData],
   )
 
-  const tomaFilter: FilterDef = { label: 'Toma', value: toma, opts: tomas.length > 0 ? tomas : [toma].filter(Boolean), set: setToma }
-  const divFilter: FilterDef = { label: 'División', value: division, opts: divisiones, set: setDivision }
-  const materiaFilter: FilterDef = { label: 'Materia', value: materia, opts: materias.length > 0 ? materias : [materia], set: setMateria }
-  const anioFilter: FilterDef = { label: 'Año', value: anio, opts: anios.length > 0 ? anios : ANIO_ORDER.slice(), set: setAnio }
+  const tomaFilter = useMemo(() => ({ label: 'Toma', value: toma, opts: tomas.length > 0 ? tomas : [toma].filter(Boolean), set: setToma }), [toma, tomas])
+  const divFilter = useMemo(() => ({ label: 'División', value: division, opts: divisiones, set: setDivision }), [division, divisiones])
+  const materiaFilter = useMemo(() => ({ label: 'Materia', value: materia, opts: materias.length > 0 ? materias : [materia], set: setMateria }), [materia, materias])
+  const anioFilter = useMemo(() => ({ label: 'Año', value: anio, opts: anios.length > 0 ? anios : ANIO_ORDER.slice(), set: setAnio }), [anio, anios])
 
   const sidebarFilters = useMemo((): FilterDef[] => {
     const FILTER_LAYOUTS: Record<TabId, FilterDef[]> = {
@@ -108,7 +120,7 @@ function ReporteEscuelaPage() {
       ],
     }
     return FILTER_LAYOUTS[tab] ?? []
-  }, [tab, materia, materias, anio, anios, division, divisiones, toma, tomas, materiaFilter, anioFilter, divFilter, tomaFilter])
+  }, [tab, materias.length, anios.length, divisiones.length, materiaFilter, anioFilter, divFilter, tomaFilter])
 
   const resetFilters = () => {
     setMateria('Matemática')
@@ -136,7 +148,7 @@ function ReporteEscuelaPage() {
     if (divisiones.length > 1) pills.push({ label: `División: ${division || '—'}` })
     if (toma) pills.push({ label: `Toma: ${toma}` })
     return pills
-  }, [tab, materia, materias, anio, division, divisiones, toma])
+  }, [tab, materia, materias.length, anio, division, divisiones.length, toma])
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>

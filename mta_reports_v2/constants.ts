@@ -17,6 +17,4 @@ export const COLORS = {
 
 export const ANIO_ORDER = ['3ro', '6to', '9no', '12mo'] as const
 
-export const USE_REACT_REPORTS_MOCK = process.env.NEXT_PUBLIC_USE_REACT_REPORTS_MOCK === 'true'
-
 export { REPORT_NAME, ESCUELA_REPORTE_NAME }

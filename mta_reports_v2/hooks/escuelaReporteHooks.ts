@@ -4,8 +4,7 @@ import { axiosGet, axiosPost } from '@/shared/data/axios'
 import { dynamicNavigationHook } from '@/shared/hooks'
 import { I_PaginatedResponse } from '@/shared/data/types'
 import { apiUrl } from '@/config'
-import { getMockEscuelaDatos } from '@/mta_reports_v2/mock_data'
-import { USE_REACT_REPORTS_MOCK, ANIO_ORDER } from '@/mta_reports_v2/constants'
+import { ANIO_ORDER } from '@/mta_reports_v2/constants'
 import type {
   I_FiltrosReact,
   I_ReporteReactData,
@@ -157,12 +156,6 @@ const useEscuelaReporteReact = (escuelaId: number | null) => {
   const authResources = useAuthResources()
 
   useEffect(() => {
-    if (USE_REACT_REPORTS_MOCK) {
-      setRawData(getMockEscuelaDatos())
-      setLoading(false)
-      setError(null)
-      return
-    }
     if (!escuelaId) return
     let alive = true
     setLoading(true)
@@ -267,7 +260,7 @@ const useEscuelaReporteReact = (escuelaId: number | null) => {
       result[anio] = { ...bands, total: Object.values(bands).reduce((s, v) => s + v, 0) }
     }
     return result
-  }, [rawData]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [rawData])
 
   const getScatterPoints = useCallback((anio: string, division: string, toma: string): I_ScatterPoint[] => {
     if (!rawData) return []
@@ -328,20 +321,6 @@ const useEscuelaReporteReactList = () => {
   const authResources = useAuthResources()
 
   useEffect(() => {
-    if (USE_REACT_REPORTS_MOCK) {
-      const mockData = getMockEscuelaDatos()
-      const tomas = [...new Set(mockData.datos.map(d => d.toma))].sort()
-      setData([{
-        id: 1,
-        nombre: mockData.colegio,
-        meta_id: mockData.colegio_meta_id,
-        tomas,
-        ultima_toma: tomas[tomas.length - 1] ?? null,
-      }])
-      setLoading(false)
-      setError(null)
-      return
-    }
     let alive = true
     setLoading(true)
     axiosGet<I_EscuelaListItem[]>({
