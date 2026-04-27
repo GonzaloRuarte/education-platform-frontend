@@ -4,6 +4,4 @@ const reportLabels = {
   powerBILink: 'Link de PowerBI',
 }
 
-
-
 export { reportLabels }

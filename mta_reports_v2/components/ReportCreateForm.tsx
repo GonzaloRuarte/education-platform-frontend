@@ -56,8 +56,6 @@ const ReportCreateForm = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <MagicGrid>
-        
-
         <SchoolSelectControlled control={control} name="school" rules={{ ...rules.required() }} />
         <InputControlled<I_FormFields>
           control={control}

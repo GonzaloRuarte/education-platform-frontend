@@ -5,44 +5,25 @@ import {
   I_ReportUpdateRequestData,
   I_ReportCreateRequestData,
   T_ReportId,
-  T_ReportList,
 } from '@/mta_reports/types'
-import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
-import { creationHook, deletionHook, detailHook, listHook, updateHook, batchDeletionHook, dynamicNavigationHook, navigationHook } from '@/shared/hooks'
+import { axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
+import { creationHook, updateHook, dynamicNavigationHook, navigationHook } from '@/shared/hooks'
 import pages from '@/pages'
-import { reportEditPath } from '@/pages'
 import { apiUrl } from '@/config'
 import { getMockEscuelaDatos } from '@/mta_reports_v2/mock_data'
 
-const REPORTS_PATH = '/reports'
 const USE_REACT_REPORTS_MOCK = process.env.NEXT_PUBLIC_USE_REACT_REPORTS_MOCK === 'true'
 
-const useReportList = listHook<T_ReportList>(REPORTS_PATH, axiosGet, useAuthResources)
-const useReportListByUserSchool = listHook<T_ReportList>(
-  `${REPORTS_PATH}/list-by-user-school`,
-  axiosGet,
-  useAuthResources,
-)
-
-
-
-const useReportDetail = detailHook<T_ReportId, I_ReportDetail>(REPORTS_PATH, axiosGet, useAuthResources)
-
 const useReportCreate = creationHook<I_ReportCreateRequestData, I_ReportDetail>(
-  REPORTS_PATH,
+  '/reports',
   axiosPost,
   useAuthResources,
 )
 const useReportUpdate = updateHook<T_ReportId, I_ReportUpdateRequestData, I_ReportDetail>(
-  REPORTS_PATH,
+  '/reports',
   axiosPatch,
   useAuthResources,
 )
-const useReportDelete = deletionHook<T_ReportId>(REPORTS_PATH, axiosDelete, useAuthResources)
-const useReportBatchDelete = batchDeletionHook<T_ReportId>(REPORTS_PATH, axiosDelete, useAuthResources)
-
-const useNavigateToReportCreate = navigationHook(pages.D._.reportes._.agregar.path)
-const useNavigateToReportEdit = dynamicNavigationHook(reportEditPath)
 const useNavigateToReportList = navigationHook(pages.D._.reportes.path)
 
 // ─── React Report visualization ──────────────────────────────────────────────
@@ -433,61 +414,6 @@ const useEscuelaReporteReact = (escuelaId: number | null) => {
   return { loading, error, tomas, getMaterias, getAnios, getDivisiones, getReporte, getSemaforoBandas, getScatterPoints, getTablaData }
 }
 
-// ─── Filtros disponibles ──────────────────────────────────────────────────────
-
-const useFiltrosReact = () => {
-  const [tomas, setTomas] = useState<string[]>([])
-  const [loading, setLoading] = useState(true)
-  const authResources = useAuthResources()
-
-  useEffect(() => {
-    axiosGet<{ tomas: string[] }>({
-      url: apiUrl('/reportes/meta/filtros/'),
-      requestSetup: authResources,
-      options: {},
-    })
-      .then(res => setTomas(res.tomas))
-      .finally(() => setLoading(false))
-  }, [authResources.accessToken]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  return { tomas, loading }
-}
-
-// ─── Hook ────────────────────────────────────────────────────────────────────
-
-const useReporteReact = (escuelaId: number | null, filtros: I_FiltrosReact) => {
-  const [data, setData] = useState<I_ReporteReactData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const authResources = useAuthResources()
-  const { materia, anio, division, toma } = filtros
-
-  const fetchData = useCallback(async () => {
-    if (!escuelaId) return
-    setLoading(true)
-    setError(null)
-    try {
-      const params = new URLSearchParams({ materia, anio, division, toma })
-      const raw = await axiosGet<I_RawReporteReact>({
-        url: `${apiUrl(`/reportes/meta/${escuelaId}/`)}?${params}`,
-        requestSetup: authResources,
-        options: {},
-      })
-      setData(_transformReporteReact(raw, materia))
-    } catch (err: any) {
-      setError(err?.message ?? 'Error al cargar el reporte')
-    } finally {
-      setLoading(false)
-    }
-  }, [escuelaId, materia, anio, division, toma, authResources.accessToken]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    fetchData()
-  }, [fetchData])
-
-  return { data, loading, error, refetch: fetchData }
-}
-
 // ─── School list + cache-bust hooks ──────────────────────────────────────────
 
 interface I_EscuelaListItem {
@@ -573,4 +499,4 @@ export interface I_TablaRow {
 }
 
 export type { I_FiltrosReact, I_ReporteReactData, I_ItemReact, I_BoxplotReact, I_EscuelaListItem }
-export { useReportCreate, useReportList, useReportListByUserSchool, useReportDetail, useReportUpdate, useReportDelete, useReportBatchDelete, useNavigateToReportCreate, useNavigateToReportEdit, useNavigateToReportList, useReporteReact, useFiltrosReact, useEscuelaReporteReact, useEscuelaReporteReactList, useBustCacheEscuela, useNavigateToEscuelaReporte, REPORTS_PATH }
+export { useReportCreate, useReportUpdate, useNavigateToReportList, useEscuelaReporteReact, useEscuelaReporteReactList, useBustCacheEscuela, useNavigateToEscuelaReporte }

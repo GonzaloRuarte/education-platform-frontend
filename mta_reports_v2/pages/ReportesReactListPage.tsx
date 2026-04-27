@@ -1,174 +1,159 @@
 'use client'
 
+import { Box, Stack, Typography, Paper, Chip, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { useHasCapabilities } from '@/mta_auth/hooks'
 import Logo from '@/shared/components/Logo'
 import LogoAustral from '@/shared/components/LogoAustral'
+import Spinner from '@/shared/components/Spinner'
 import {
   useEscuelaReporteReactList,
   useBustCacheEscuela,
   useNavigateToEscuelaReporte,
 } from '@/mta_reports_v2/hooks'
-import type { I_EscuelaListItem } from '@/mta_reports_v2/hooks'
 
-// ── Theme ─────────────────────────────────────────────────────────────────────
 const C = {
-  navy: '#041552', blue: '#0b2280',
-  accent: '#00a6e6', barFill: '#1a3080',
-  white: '#fff', off: '#f4f5f8', bdr: '#dde0e8',
-  txt: '#041552', tb: '#333', tm: '#7a8399',
-  red: '#e84c4c', orange: '#ff9800',
-}
-const F = "'Segoe UI',-apple-system,system-ui,sans-serif"
-
-// ── Toma badge ────────────────────────────────────────────────────────────────
-function TomaBadge({ toma }: { toma: string }) {
-  return (
-    <span style={{
-      fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 10,
-      background: C.off, border: `1px solid ${C.bdr}`, color: C.tb, marginRight: 4,
-    }}>
-      {toma}
-    </span>
-  )
+  navy: '#041552',
+  blue: '#0b2280',
+  accent: '#00a6e6',
+  lightBlue: '#C3D9FF',
+  tm: '#7a8399',
+  off: '#f4f5f8',
 }
 
-// ── Row ───────────────────────────────────────────────────────────────────────
-function SchoolRow({
-  school, canManage, onView, onBust, busting,
-}: {
-  school: I_EscuelaListItem
-  canManage: boolean
-  onView: () => void
-  onBust: (e: React.MouseEvent) => void
-  busting: boolean
-}) {
-  return (
-    <tr
-      onClick={onView}
-      style={{ borderBottom: `1px solid ${C.bdr}`, cursor: 'pointer', transition: 'background 0.1s' }}
-      onMouseEnter={e => (e.currentTarget.style.background = C.off)}
-      onMouseLeave={e => (e.currentTarget.style.background = C.white)}
-    >
-      <td style={{ padding: '12px 20px', fontWeight: 600, color: C.txt }}>{school.nombre}</td>
-      <td style={{ padding: '12px 16px' }}>
-        {school.tomas.map(t => <TomaBadge key={t} toma={t} />)}
-      </td>
-      <td style={{ padding: '12px 16px', fontWeight: 600, color: C.accent, fontSize: 13 }}>
-        {school.ultima_toma ?? '—'}
-      </td>
-      <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-        <button
-          onClick={e => { e.stopPropagation(); onView() }}
-          style={{
-            padding: '5px 14px', borderRadius: 4, border: `1px solid ${C.accent}`,
-            background: C.white, color: C.accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', marginRight: 8,
-          }}
-        >
-          Ver reporte
-        </button>
-        {canManage && (
-          <button
-            onClick={onBust}
-            disabled={busting}
-            style={{
-              padding: '5px 14px', borderRadius: 4, border: `1px solid ${C.bdr}`,
-              background: C.white, color: busting ? C.tm : C.tb, fontSize: 12, cursor: busting ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {busting ? 'Regenerando…' : 'Regenerar'}
-          </button>
-        )}
-      </td>
-    </tr>
-  )
-}
-
-// ── Main ──────────────────────────────────────────────────────────────────────
 function ReportesReactListPage() {
   const { data, loading, error } = useEscuelaReporteReactList()
   const { bust, bustingId } = useBustCacheEscuela()
   const navigateToEscuela = useNavigateToEscuelaReporte()
   const canManage = useHasCapabilities(['manage_reports'])
 
+  if (loading) return <Spinner />
+
   return (
-    <div style={{ fontFamily: F, minHeight: '100vh', background: C.off }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: C.off }}>
       {/* Header */}
-      <div style={{
-        background: `linear-gradient(90deg,${C.navy} 0%,${C.blue} 100%)`,
-        padding: '18px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.5)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 2 }}>
-            PROYECTO REACT
-          </div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: C.white }}>Reportes por escuela</div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+      <Box
+        sx={{
+          background: `linear-gradient(90deg, ${C.navy} 0%, ${C.blue} 100%)`,
+          px: 4,
+          py: 2.25,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Box>
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'rgba(255, 255, 255, 0.5)',
+              fontWeight: 700,
+              letterSpacing: 1,
+              textTransform: 'uppercase',
+              display: 'block',
+              mb: 0.25,
+            }}
+          >
+            Proyecto React
+          </Typography>
+          <Typography variant="h5" sx={{ color: 'white', fontWeight: 800 }}>
+            Reportes por escuela
+          </Typography>
+        </Box>
+        <Stack direction="row" spacing={2.5} sx={{ alignItems: 'center' }}>
           <Logo width={80} height={26} variant="white" />
           <LogoAustral width={100} height={26} />
-        </div>
-      </div>
+        </Stack>
+      </Box>
 
       {/* Content */}
-      <div style={{ maxWidth: 1100, margin: '32px auto', padding: '0 24px' }}>
-        {loading && (
-          <div style={{ textAlign: 'center', padding: 60, color: C.tm, fontSize: 14 }}>
-            Cargando escuelas…
-          </div>
+      <Box sx={{ maxWidth: 1100, mx: 'auto', my: 4, px: 3 }}>
+        {error && (
+          <Paper elevation={0} sx={{ bgcolor: '#ffebee', border: '1px solid #f44336', borderRadius: 2, p: 2.5 }}>
+            <Typography color="error">Error al cargar: {error}</Typography>
+          </Paper>
         )}
 
-        {!loading && error && (
-          <div style={{ background: '#ffebee', border: '1px solid #f44336', borderRadius: 8, padding: 20, color: C.red }}>
-            Error al cargar: {error}
-          </div>
-        )}
-
-        {!loading && !error && (
-          <div style={{ background: C.white, borderRadius: 8, border: `1px solid ${C.bdr}`, overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: `1px solid ${C.bdr}`, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: C.txt }}>
+        {!error && (
+          <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
+            <Box sx={{ px: 2.5, py: 2, borderBottom: 1, borderColor: 'divider' }}>
+              <Typography variant="subtitle1" sx={{ color: C.navy, fontWeight: 600 }}>
                 {data.length} {data.length === 1 ? 'escuela' : 'escuelas'} con datos
-              </div>
-            </div>
+              </Typography>
+            </Box>
 
             {data.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: C.tm, fontSize: 14 }}>
-                No hay datos disponibles aún.
-              </div>
+              <Box sx={{ py: 5, textAlign: 'center' }}>
+                <Typography color="text.secondary">No hay datos disponibles aún.</Typography>
+              </Box>
             ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                <thead>
-                  <tr style={{ background: C.off }}>
-                    {['Escuela', 'Tomas disponibles', 'Última toma', ''].map(h => (
-                      <th key={h} style={{
-                        padding: '10px 16px', textAlign: 'left', fontWeight: 600,
-                        color: C.tm, fontSize: 11, borderBottom: `1px solid ${C.bdr}`,
-                        ...(h === '' ? { textAlign: 'right' as const, paddingRight: 20 } : {}),
-                      }}>
-                        {h}
-                      </th>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: C.off }}>
+                      <TableCell sx={{ fontWeight: 600, color: C.tm, fontSize: 12 }}>Escuela</TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: C.tm, fontSize: 12 }}>Tomas disponibles</TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: C.tm, fontSize: 12 }}>Última toma</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: C.tm, fontSize: 12 }} />
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {data.map(school => (
+                      <TableRow
+                        key={school.id}
+                        onClick={() => navigateToEscuela({ escuelaId: school.id })}
+                        hover
+                        sx={{ cursor: 'pointer' }}
+                      >
+                        <TableCell sx={{ fontWeight: 600, color: C.navy }}>{school.nombre}</TableCell>
+                        <TableCell>
+                          <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+                            {school.tomas.map(t => (
+                              <Chip key={t} label={t} size="small" variant="outlined" sx={{ height: 24 }} />
+                            ))}
+                          </Stack>
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: C.accent, fontSize: 13 }}>
+                          {school.ultima_toma ?? '—'}
+                        </TableCell>
+                        <TableCell align="right">
+                          <Stack direction="row" spacing={1} justifyContent="flex-end">
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={e => {
+                                e.stopPropagation()
+                                navigateToEscuela({ escuelaId: school.id })
+                              }}
+                              sx={{ color: C.accent, borderColor: C.accent }}
+                            >
+                              Ver reporte
+                            </Button>
+                            {canManage && (
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                disabled={bustingId === school.id}
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  bust(school.id)
+                                }}
+                              >
+                                {bustingId === school.id ? 'Regenerando…' : 'Regenerar'}
+                              </Button>
+                            )}
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.map(school => (
-                    <SchoolRow
-                      key={school.id}
-                      school={school}
-                      canManage={canManage}
-                      onView={() => navigateToEscuela({ escuelaId: school.id })}
-                      onBust={e => { e.stopPropagation(); bust(school.id) }}
-                      busting={bustingId === school.id}
-                    />
-                  ))}
-                </tbody>
-              </table>
+                  </TableBody>
+                </Table>
+              </TableContainer>
             )}
-          </div>
+          </Paper>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   )
 }
 
