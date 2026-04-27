@@ -17,6 +17,7 @@ import { withAuth } from '@/mta_auth/hocs/withAuth'
 import Logo from '@/shared/components/Logo'
 import LogoAustral from '@/shared/components/LogoAustral'
 import Button from '@/shared/components/Button'
+import { ImageSize } from '@/shared/utils'
 import { useEscuelaReporteReact } from '@/mta_reports_v2/hooks'
 import type { I_ReporteReactData, I_BoxplotReact, I_SemaforoBandas, I_ScatterPoint, I_TablaRow } from '@/mta_reports_v2/hooks'
 import {
@@ -38,6 +39,8 @@ const C = {
 
 const ANIO_ORDER = ['3ro', '6to', '9no', '12mo'] as const
 const TAB_IDS = { RESUMEN: 'resumen', DETALLE: 'detalle', SEMAFORO: 'semaforo', SCATTER: 'scatter', TABLA: 'tabla' } as const
+const headerLogoSize = new ImageSize(257, 73, { scale: 0.31 })
+const sidebarAustralLogoSize = new ImageSize(412, 72, { scale: 0.29 })
 
 // ── Shared atoms ──────────────────────────────────────────────────────────────
 
@@ -524,7 +527,7 @@ function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => vo
       </Button>
       <Box sx={{ flex: 1 }} />
       <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.15)', pt: 1.5, display: 'flex', justifyContent: 'center' }}>
-        <LogoAustral width={120} height={30} />
+        <LogoAustral width={sidebarAustralLogoSize.w} height={sidebarAustralLogoSize.h} />
       </Box>
     </Box>
   )
@@ -534,7 +537,7 @@ function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => vo
 
 type TabId = 'resumen' | 'detalle' | 'semaforo' | 'scatter' | 'tabla'
 
-function InformeReactEscuelaNuevaPage() {
+function ReporteEscuelaPage() {
   const params = useParams<{ escuelaId: string }>()
   const escuelaId = params?.escuelaId ? Number(params.escuelaId) : null
 
@@ -658,7 +661,7 @@ function InformeReactEscuelaNuevaPage() {
           <Typography variant="h5" sx={{ color: C.navy, fontWeight: 800 }}>
             {schoolName} — {tabLabels[tab]}
           </Typography>
-          <Logo width={80} height={26} />
+          <Logo width={headerLogoSize.w} height={headerLogoSize.h} />
         </Box>
 
         {/* Filter pills */}
@@ -720,7 +723,7 @@ function InformeReactEscuelaNuevaPage() {
   )
 }
 
-export default withAuth(InformeReactEscuelaNuevaPage, {
+export default withAuth(ReporteEscuelaPage, {
   allowedCapabilities: ['view_reports'],
   logoutDestination: 'dashboard',
 })
