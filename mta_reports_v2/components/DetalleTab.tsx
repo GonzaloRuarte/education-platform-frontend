@@ -1,12 +1,13 @@
 'use client'
 
-import { Box, Stack, Typography, FormControl, InputLabel, Select, MenuItem, Grid2 } from '@mui/material'
+import { Box, Stack, Typography, FormControl, InputLabel, Select, MenuItem, Grid2, Tooltip } from '@mui/material'
 import Paper from '@mui/material/Paper'
 import { BP, HorizontalBarChart, Leg, ChartCard } from '@/mta_reports_v2/components/EscuelaReporteCharts'
-import { COLORS } from '@/mta_reports_v2/constants'
+import { COLORS, FONT_SIZES } from '@/mta_reports_v2/constants'
 import type { I_ReporteReactData } from '@/mta_reports_v2/types'
 
 const C = COLORS
+const F = FONT_SIZES
 
 function DetalleTab({ data }: { data: I_ReporteReactData }) {
   const d = data.detalle
@@ -45,18 +46,27 @@ function DetalleTab({ data }: { data: I_ReporteReactData }) {
       <Grid2 size={{ xs: 12, md: 5 }}>
         <Stack spacing={2.5}>
           <ChartCard num="03" title="Distribución de calificaciones">
-            <Stack direction="row" justifyContent="center" spacing={1} sx={{ mt: 1 }}>
-              <Box sx={{ textAlign: 'center' }}>
+            <Stack direction="row" justifyContent="center" spacing={1} sx={{ mt: 1, width: '100%' }}>
+              <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0 }}>
                 <BP d={d.boxplotMi} color={C.barFill} />
                 <Typography variant="caption" sx={{ color: C.tm }}>Mi escuela</Typography>
               </Box>
-              <Box sx={{ textAlign: 'center' }}>
+              <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0 }}>
                 <BP d={d.boxplotTodos} color={C.boxLight} />
                 <Typography variant="caption" sx={{ color: C.tm }}>Todos los colegios</Typography>
               </Box>
             </Stack>
             <Typography variant="caption" sx={{ color: C.tm, display: 'block', mt: 1.5 }}>
-              *Información del gráfico de distribución sobre el círculo ●
+              *Información del gráfico de distribución sobre el círculo {' '}
+              <Tooltip
+                title="Diagrama de dispersión de resultados (diagrama de caja): Las líneas que se extienden hacia arriba y hacia abajo de la caja suelen ser llamadas 'bigotes', su extensión total indica entre qué valores se distribuyen los resultados (línea horizontal de arriba, el más alto y línea horizontal de abajo el más bajo). La línea horizontal central de la caja indica la mediana de los resultados: una mitad de los datos está por debajo de este valor y la otra mitad por encima. El punto negro señala la media de los resultados. La línea vertical superior a partir de la caja abarca el 25 % de resultados, la línea vertical de abajo a partir de la caja abarca el otro 25 % de resultados. Por lo tanto, en la 'caja' se halla el otro 50 % de los resultados; 25 % por arriba de la mediana y 25 % por debajo de la mediana."
+                arrow
+                slotProps={{
+                  popper: { modifiers: [{ name: 'offset', options: { offset: [0, -10] } }] }
+                }}
+              >
+                <Box component="span" sx={{ cursor: 'help', fontWeight: 500, textDecoration: 'underline dotted' }}>●</Box>
+              </Tooltip>
             </Typography>
           </ChartCard>
           <ChartCard num="04" title="Calificación por alumno">
@@ -71,7 +81,7 @@ function DetalleTab({ data }: { data: I_ReporteReactData }) {
               </FormControl>
             </Stack>
             <Paper elevation={0} sx={{ bgcolor: C.navy, borderRadius: 2, p: 2.5, mt: 2, textAlign: 'center' }}>
-              <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 18 }}>
+              <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 22 }}>
                 Seleccione el ID del alumno
               </Typography>
             </Paper>

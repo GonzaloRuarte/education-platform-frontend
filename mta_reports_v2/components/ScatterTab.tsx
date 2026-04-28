@@ -3,10 +3,11 @@
 import { Box, Paper, Stack, Typography } from '@mui/material'
 import { ResponsiveContainer, ScatterChart, Scatter, CartesianGrid, XAxis, YAxis, Tooltip, ReferenceLine } from 'recharts'
 import { useMemo } from 'react'
-import { COLORS } from '@/mta_reports_v2/constants'
+import { COLORS, FONT_SIZES } from '@/mta_reports_v2/constants'
 import type { I_ScatterPoint } from '@/mta_reports_v2/types'
 
 const C = COLORS
+const F = FONT_SIZES
 
 function ScatterTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null
@@ -31,7 +32,7 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
 
   return (
     <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2.5 }}>
-      <Typography sx={{ fontSize: 13, color: C.accent, fontWeight: 500, mb: 1.5 }}>
+      <Typography sx={{ fontSize: F.lg, color: C.accent, fontWeight: 500, mb: 1.5 }}>
         Resultados por alumno — % PDL vs % Matemática
       </Typography>
       {points.length === 0 ? (
@@ -47,8 +48,8 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
                 name="PDL"
                 domain={[0, 100]}
                 tickFormatter={v => `${v}%`}
-                tick={{ fontSize: 11, fill: C.tm }}
-                label={{ value: '% Prácticas del Lenguaje', position: 'insideBottom', offset: -20, fontSize: 12, fill: C.navy }}
+                tick={{ fontSize: F.chart.lg, fill: C.tm }}
+                label={{ value: '% Prácticas del Lenguaje', position: 'insideBottom', offset: -20, fontSize: F.chart.md, fill: C.navy }}
               />
               <YAxis
                 type="number"
@@ -56,8 +57,8 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
                 name="Mat"
                 domain={[0, 100]}
                 tickFormatter={v => `${v}%`}
-                tick={{ fontSize: 11, fill: C.tm }}
-                label={{ value: '% Matemática', angle: -90, position: 'insideLeft', offset: 12, fontSize: 12, fill: C.navy }}
+                tick={{ fontSize: F.chart.lg, fill: C.tm }}
+                label={{ value: '% Matemática', angle: -90, position: 'insideLeft', offset: 12, fontSize: F.chart.md, fill: C.navy }}
               />
               {avg && <ReferenceLine x={avg.pdl} stroke={C.tm} strokeDasharray="4 3" strokeWidth={1} />}
               {avg && <ReferenceLine y={avg.mat} stroke={C.tm} strokeDasharray="4 3" strokeWidth={1} />}

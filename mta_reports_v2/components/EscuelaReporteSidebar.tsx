@@ -21,8 +21,9 @@ function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => vo
   const selectSx = {
     bgcolor: 'white',
     fontSize: 13,
+    borderRadius: 1,
     '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-    '& .MuiSelect-select': { py: '7px' },
+    '& .MuiSelect-select': { py: '8px', px: '12px' },
   }
   const labelSx = {
     color: '#cfe1ff',
@@ -32,25 +33,25 @@ function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => vo
   }
   return (
     <Box sx={{
-      width: 200,
+      width: 220,
       minHeight: '100vh',
       flexShrink: 0,
       background: `linear-gradient(180deg, ${C.navy} 0%, ${C.blue} 100%)`,
-      px: 1.75,
-      pt: 2.5,
+      px: 2,
+      pt: 2.75,
       pb: 2,
       display: 'flex',
       flexDirection: 'column',
     }}>
       {filters.map(({ label, value, opts, set }) => (
-        <FormControl key={label} fullWidth size="small" sx={{ mb: 2.25 }}>
+        <FormControl key={label} fullWidth size="small" sx={{ mb: 2.5 }}>
           <Typography sx={labelSx}>{label}</Typography>
           <Select value={value} label={label} onChange={e => set(e.target.value)} sx={selectSx}>
             {opts.map(o => <MenuItem key={o} value={o} sx={{ fontSize: 13 }}>{o}</MenuItem>)}
           </Select>
         </FormControl>
       ))}
-      <Button bgcolor="red" fullWidth onClick={onReset} sx={{ mt: 0.5, fontSize: 12 }}>
+      <Button bgcolor="purple" fullWidth onClick={onReset} sx={{ mt: 1, fontSize: 12, fontWeight: 700, color: 'white' }}>
         Borrar filtros
       </Button>
       <Box sx={{ flex: 1 }} />

@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { Box, Stack, Tabs, Tab, Chip, IconButton, Tooltip } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import Logo from '@/shared/components/Logo'
 import { ImageSize } from '@/shared/utils'
@@ -28,6 +30,7 @@ type TabId = 'resumen' | 'detalle' | 'semaforo' | 'scatter' | 'tabla'
 function ReporteEscuelaPage() {
   const params = useParams<{ escuelaId: string }>()
   const escuelaId = params?.escuelaId ? Number(params.escuelaId) : null
+  const tabsRef = useRef<HTMLDivElement>(null)
 
   const [tab, setTab] = useState<TabId>(TAB_IDS.RESUMEN)
   const [toma, setToma] = useState('')
@@ -151,6 +154,16 @@ function ReporteEscuelaPage() {
     return pills
   }, [tab, materia, materias.length, anio, division, divisiones.length, toma])
 
+  const scrollTabs = (direction: 'left' | 'right') => {
+    if (tabsRef.current) {
+      const scrollAmount = 200
+      tabsRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      })
+    }
+  }
+
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
       <Sidebar filters={sidebarFilters} onReset={resetFilters} />
@@ -167,19 +180,27 @@ function ReporteEscuelaPage() {
         {/* Filter pills */}
         <Stack direction="row" spacing={1} sx={{ px: 3, py: 1.25, bgcolor: 'background.paper', flexWrap: 'wrap' }}>
           {filterPills.map(p => (
-            <Chip key={p.label} label={p.label} size="small" sx={{ bgcolor: C.lightBlue, color: C.navy, fontWeight: 600 }} />
+            <Chip key={p.label} label={p.label} size="medium" sx={{ bgcolor: C.lightBlue, color: C.navy, fontWeight: 600 }} />
           ))}
         </Stack>
 
         {/* Tabs */}
-        <Box sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2 }}>
-            <Tab value={TAB_IDS.RESUMEN} label="Resumen" />
-            <Tab value={TAB_IDS.DETALLE} label="Contenido y competencia" />
-            <Tab value={TAB_IDS.SEMAFORO} label="Semáforo" />
-            <Tab value={TAB_IDS.SCATTER} label="Resultados por alumno" />
-            <Tab value={TAB_IDS.TABLA} label="Resumen por estudiante" />
-          </Tabs>
+        <Box sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
+          <IconButton size="small" onClick={() => scrollTabs('left')} sx={{ color: C.navy, flexShrink: 0 }}>
+            <ChevronLeftIcon />
+          </IconButton>
+          <Box ref={tabsRef} sx={{ overflowX: 'auto', flex: 1, '&::-webkit-scrollbar': { display: 'none' } }}>
+            <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, minWidth: 'max-content' }}>
+              <Tab value={TAB_IDS.RESUMEN} label="Resumen" />
+              <Tab value={TAB_IDS.DETALLE} label="Contenido y competencia" />
+              <Tab value={TAB_IDS.SEMAFORO} label="Semáforo" />
+              <Tab value={TAB_IDS.SCATTER} label="Resultados por alumno" />
+              <Tab value={TAB_IDS.TABLA} label="Resumen por estudiante" />
+            </Tabs>
+          </Box>
+          <IconButton size="small" onClick={() => scrollTabs('right')} sx={{ color: C.navy, flexShrink: 0 }}>
+            <ChevronRightIcon />
+          </IconButton>
         </Box>
 
         {/* Content */}

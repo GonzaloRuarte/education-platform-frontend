@@ -2,12 +2,13 @@
 
 import { Box, Chip, Stack, Tabs, Tab, Typography } from '@mui/material'
 import { useState, useMemo } from 'react'
-import { COLORS, ANIO_ORDER } from '@/mta_reports_v2/constants'
+import { COLORS, ANIO_ORDER, FONT_SIZES } from '@/mta_reports_v2/constants'
 import { SEMAFORO_NIVELES, NIVEL_COLORS, NIVEL_KEYS, ANIO_LABELS } from '@/mta_reports_v2/semaforo_data'
 import type { SemaforoNivel } from '@/mta_reports_v2/semaforo_data'
 import type { I_SemaforoBandas } from '@/mta_reports_v2/types'
 
 const C = COLORS
+const F = FONT_SIZES
 
 function GruposList({ grupos }: { grupos: SemaforoNivel['col1'] }) {
   return (
@@ -15,12 +16,12 @@ function GruposList({ grupos }: { grupos: SemaforoNivel['col1'] }) {
       {grupos.map((g, gi) => (
         <Box key={gi} sx={{ mb: g.titulo ? 1 : 0 }}>
           {g.titulo && (
-            <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 12, mb: 0.25, textDecoration: 'underline' }}>
+            <Typography sx={{ color: 'white', fontWeight: 700, fontSize: F.md, mb: 0.25, textDecoration: 'underline' }}>
               {g.titulo}
             </Typography>
           )}
           {g.items.map((item, ii) => (
-            <Typography key={ii} sx={{ color: 'white', fontSize: 12, lineHeight: 1.5, pl: g.titulo ? 1 : 0 }}>
+            <Typography key={ii} sx={{ color: 'white', fontSize: F.md, lineHeight: 1.5, pl: g.titulo ? 1 : 0 }}>
               • {item}
             </Typography>
           ))}
@@ -38,16 +39,16 @@ function NivelRow({ nivel, bandas, nivelKey }: { nivel: SemaforoNivel; bandas: I
   return (
     <Box component="article" sx={{ bgcolor: color, borderRadius: 1.5, p: 2, mb: 1.5 }}>
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
-        <Typography sx={{ color: 'white', fontWeight: 800, fontSize: 14, minWidth: 90 }}>
+        <Typography sx={{ color: 'white', fontWeight: 800, fontSize: F.lg, minWidth: 90 }}>
           {nivel.rango}
         </Typography>
         <Chip
           label={`${pct}%`}
           size="small"
-          sx={{ bgcolor: 'rgba(255,255,255,0.92)', color, fontWeight: 800, fontSize: 13 }}
+          sx={{ bgcolor: 'rgba(255,255,255,0.92)', color, fontWeight: 800, fontSize: F.lg }}
         />
         {bandas && (
-          <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>
+          <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: F.md }}>
             {count} alumno{count !== 1 ? 's' : ''}
           </Typography>
         )}

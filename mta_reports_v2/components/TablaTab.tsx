@@ -2,11 +2,12 @@
 
 import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
 import Paper from '@mui/material/Paper'
-import { COLORS } from '@/mta_reports_v2/constants'
+import { COLORS, FONT_SIZES } from '@/mta_reports_v2/constants'
 import { NIVEL_COLORS } from '@/mta_reports_v2/semaforo_data'
 import type { I_TablaRow } from '@/mta_reports_v2/types'
 
 const C = COLORS
+const F = FONT_SIZES
 
 function TablaTab({ rows }: { rows: I_TablaRow[] }) {
   const dot = (v: number | undefined) => {
@@ -18,7 +19,7 @@ function TablaTab({ rows }: { rows: I_TablaRow[] }) {
   return (
     <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
       <Box sx={{ px: 2.5, pt: 2, pb: 1 }}>
-        <Typography sx={{ fontSize: 13, color: C.accent, fontWeight: 500 }}>
+        <Typography sx={{ fontSize: F.lg, color: C.accent, fontWeight: 500 }}>
           Resumen de respuestas correctas por alumno
         </Typography>
       </Box>
