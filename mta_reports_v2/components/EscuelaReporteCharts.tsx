@@ -95,42 +95,54 @@ function HorizontalBarChart({ items }: { items: HBarItem[] }) {
 }
 
 function BP({ d, color, w = 90, h = 280 }: { d: I_BoxplotReact; color: string; w?: number; h?: number }) {
-  const ref = useRef<SVGSVGElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ w, h })
 
   useEffect(() => {
     const observer = new ResizeObserver(() => {
-      if (ref.current?.parentElement) {
-        const rect = ref.current.parentElement.getBoundingClientRect()
+      if (containerRef.current?.parentElement) {
+        const rect = containerRef.current.parentElement.getBoundingClientRect()
         const available = Math.max(100, Math.min(rect.width - 16, 180))
         setDimensions({ w: available, h: Math.max(280, rect.height * 0.8) })
       }
     })
-    if (ref.current?.parentElement) {
-      observer.observe(ref.current.parentElement)
+    if (containerRef.current?.parentElement) {
+      observer.observe(containerRef.current.parentElement)
     }
     return () => observer.disconnect()
   }, [])
 
-  const pad = 28, ch = dimensions.h - pad * 2
-  const y = (v: number) => pad + ch - (v / 100) * ch
-  const cx = dimensions.w / 2, bw = 36
+  const data = [{ name: 'box', q1: d.q1, q3: d.q3, md: d.md, av: d.av, min: d.min, max: d.max }]
+
+  const renderBox = (props: any) => {
+    const { x, width } = props
+    const chartHeight = dimensions.h - 40
+    const yScale = (v: number) => dimensions.h - 20 - (v / 100) * chartHeight
+
+    return (
+      <g>
+        <rect x={x + width / 2 - 18} y={yScale(d.q3)} width={36} height={yScale(d.q1) - yScale(d.q3)} fill={color} stroke={color} strokeWidth={1} rx={1} opacity={0.9} />
+        <line x1={x + width / 2} y1={yScale(d.max)} x2={x + width / 2} y2={yScale(d.q3)} stroke={color} strokeWidth={1.5} />
+        <line x1={x + width / 2} y1={yScale(d.q1)} x2={x + width / 2} y2={yScale(d.min)} stroke={color} strokeWidth={1.5} />
+        <line x1={x + width / 2 - 10} y1={yScale(d.max)} x2={x + width / 2 + 10} y2={yScale(d.max)} stroke={color} strokeWidth={1.5} />
+        <line x1={x + width / 2 - 10} y1={yScale(d.min)} x2={x + width / 2 + 10} y2={yScale(d.min)} stroke={color} strokeWidth={1.5} />
+        <line x1={x + width / 2 - 18} y1={yScale(d.md)} x2={x + width / 2 + 18} y2={yScale(d.md)} stroke="white" strokeWidth={2.5} />
+        <circle cx={x + width / 2} cy={yScale(d.av)} r={3.5} fill="#555" stroke="white" strokeWidth={1} />
+      </g>
+    )
+  }
+
   return (
-    <svg ref={ref} width={dimensions.w} height={dimensions.h}>
-      {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map(v => (
-        <g key={v}>
-          <line x1={16} y1={y(v)} x2={w - 2} y2={y(v)} stroke="#eaeaea" strokeWidth={0.5} />
-          <text x={14} y={y(v) + 3} fontSize={F.md} fill={C.tm} textAnchor="end">{v}%</text>
-        </g>
-      ))}
-      <line x1={cx} y1={y(d.max)} x2={cx} y2={y(d.q3)} stroke={color} strokeWidth={1.5} />
-      <line x1={cx} y1={y(d.q1)} x2={cx} y2={y(d.min)} stroke={color} strokeWidth={1.5} />
-      <line x1={cx - 10} y1={y(d.max)} x2={cx + 10} y2={y(d.max)} stroke={color} strokeWidth={1.5} />
-      <line x1={cx - 10} y1={y(d.min)} x2={cx + 10} y2={y(d.min)} stroke={color} strokeWidth={1.5} />
-      <rect x={cx - bw / 2} y={y(d.q3)} width={bw} height={y(d.q1) - y(d.q3)} fill={color} stroke={color} strokeWidth={1} rx={1} opacity={0.9} />
-      <line x1={cx - bw / 2} y1={y(d.md)} x2={cx + bw / 2} y2={y(d.md)} stroke="white" strokeWidth={2.5} />
-      <circle cx={cx} cy={y(d.av)} r={3.5} fill="#555" stroke="white" strokeWidth={1} />
-    </svg>
+    <Box ref={containerRef} sx={{ width: dimensions.w, height: dimensions.h }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 16, right: 8, bottom: 8, left: 40 }}>
+          <CartesianGrid horizontal={true} vertical={false} stroke="#eaeaea" strokeWidth={0.5} />
+          <XAxis dataKey="name" hide />
+          <YAxis domain={[0, 100]} ticks={[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]} tick={{ fontSize: F.md, fill: C.tm }} />
+          <Bar dataKey="q1" shape={renderBox} fill={color} isAnimationActive={false} />
+        </BarChart>
+      </ResponsiveContainer>
+    </Box>
   )
 }
 
