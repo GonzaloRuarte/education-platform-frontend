@@ -1,19 +1,25 @@
 'use client'
 
+import { useState } from 'react'
 import { Box, Stack, Typography, FormControl, InputLabel, Select, MenuItem, Grid2, Tooltip } from '@mui/material'
 import Paper from '@mui/material/Paper'
 import { BP, HorizontalBarChart, Leg, ChartCard } from '@/mta_reports_v2/components/EscuelaReporteCharts'
 import { COLORS, FONT_SIZES } from '@/mta_reports_v2/constants'
-import type { I_ReporteReactData } from '@/mta_reports_v2/types'
+import type { I_ReporteAuroraData } from '@/mta_reports_v2/types'
 
 const C = COLORS
 const F = FONT_SIZES
 
-function DetalleTab({ data }: { data: I_ReporteReactData }) {
+function DetalleTab({ data }: { data: I_ReporteAuroraData }) {
   const d = data.detalle
   const isLenguaje = (d.lenComp?.length ?? 0) > 0
   const compItems = isLenguaje ? (d.lenComp ?? []) : d.competencia
   const contItems = isLenguaje ? (d.lenCont ?? []) : d.contenido
+
+  const [selectedStudentId, setSelectedStudentId] = useState<string | number>('all')
+  const selectedStudent = selectedStudentId !== 'all'
+    ? d.estudiantes.find(e => e.id === selectedStudentId)
+    : null
 
   const barLegend = (
     <>
@@ -75,14 +81,19 @@ function DetalleTab({ data }: { data: I_ReporteReactData }) {
                 ID del alumno
               </Typography>
               <FormControl size="small" sx={{ minWidth: 100 }}>
-                <Select defaultValue="all" displayEmpty>
-                  <MenuItem value="all">All</MenuItem>
+                <Select value={selectedStudentId} onChange={(e) => setSelectedStudentId(e.target.value)} displayEmpty>
+                  <MenuItem value="all">Todos</MenuItem>
+                  {d.estudiantes.map(est => (
+                    <MenuItem key={est.id} value={est.id}>
+                      Alumno {est.id}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Stack>
             <Paper elevation={0} sx={{ bgcolor: C.navy, borderRadius: 2, p: 2.5, mt: 2, textAlign: 'center' }}>
               <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 22 }}>
-                Seleccione el ID del alumno
+                {selectedStudent ? `${selectedStudent.score}%` : 'Seleccione el ID del alumno'}
               </Typography>
             </Paper>
           </ChartCard>

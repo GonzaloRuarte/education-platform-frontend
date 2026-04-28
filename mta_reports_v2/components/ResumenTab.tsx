@@ -2,9 +2,9 @@
 
 import { Stack, Box } from '@mui/material'
 import { KPICard, AllSchoolsBarChart, ChartCard } from '@/mta_reports_v2/components/EscuelaReporteCharts'
-import type { I_ReporteReactData } from '@/mta_reports_v2/types'
+import type { I_ReporteAuroraData } from '@/mta_reports_v2/types'
 
-function ResumenTab({ data }: { data: I_ReporteReactData }) {
+function ResumenTab({ data }: { data: I_ReporteAuroraData }) {
   const g = data.general
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>

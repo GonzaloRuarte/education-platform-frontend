@@ -1,1 +1,1 @@
-export { default } from '@/mta_reports_v2/pages/ReportesReactListPage'
+export { default } from '@/mta_reports_v2/pages/ReportesAuroraListPage'

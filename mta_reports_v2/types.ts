@@ -27,22 +27,22 @@ interface I_ReportUpdateRequestData {
   power_bi_link: string | URL
 }
 
-// ─── React Report visualization ──────────────────────────────────────────────
+// ─── Aurora Report visualization ──────────────────────────────────────────────
 
-interface I_FiltrosReact {
+interface I_FiltrosAurora {
   materia: string
   anio: string
   division: string
   toma: string
 }
 
-interface I_ItemReact {
+interface I_ItemAurora {
   n: string
   mi: number
   t: number
 }
 
-interface I_BoxplotReact {
+interface I_BoxplotAurora {
   min: number
   q1: number
   md: number
@@ -51,7 +51,7 @@ interface I_BoxplotReact {
   av: number
 }
 
-interface I_ReporteReactData {
+interface I_ReporteAuroraData {
   colegio: string
   general: {
     muestra: { mi: number; todos: number }
@@ -64,14 +64,15 @@ interface I_ReporteReactData {
     miId: string
   }
   detalle: {
-    contenido: I_ItemReact[]
-    competencia: I_ItemReact[]
-    boxplotMi: I_BoxplotReact
-    boxplotTodos: I_BoxplotReact
-    lenComp?: I_ItemReact[]
-    lenCont?: I_ItemReact[]
-    boxplotMiLenguaje?: I_BoxplotReact
-    boxplotTodosLenguaje?: I_BoxplotReact
+    contenido: I_ItemAurora[]
+    competencia: I_ItemAurora[]
+    boxplotMi: I_BoxplotAurora
+    boxplotTodos: I_BoxplotAurora
+    lenComp?: I_ItemAurora[]
+    lenCont?: I_ItemAurora[]
+    boxplotMiLenguaje?: I_BoxplotAurora
+    boxplotTodosLenguaje?: I_BoxplotAurora
+    estudiantes: Array<{ id: number; score: number }>
   }
 }
 
@@ -91,7 +92,7 @@ interface I_RawTodos {
   por_escuela: Array<{ id: string; pct: number; n: number }>
 }
 
-interface I_RawReporteReact {
+interface I_RawReporteAurora {
   colegio: string
   colegio_meta_id: string
   preguntas: I_RawPregunta[]
@@ -151,13 +152,13 @@ export type {
   I_ReportCreateRequestData,
   I_ReportUpdateRequestData,
   T_ReportList,
-  I_FiltrosReact,
-  I_ReporteReactData,
-  I_ItemReact,
-  I_BoxplotReact,
+  I_FiltrosAurora,
+  I_ReporteAuroraData,
+  I_ItemAurora,
+  I_BoxplotAurora,
   I_RawPregunta,
   I_RawTodos,
-  I_RawReporteReact,
+  I_RawReporteAurora,
   I_RawComboDato,
   I_RawEscuelaDatos,
   I_SemaforoBandas,

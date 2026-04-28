@@ -1,8 +1,8 @@
 export * from './reportHooks'
 export {
-  useEscuelaReporteReact,
-  useEscuelaReporteReactList,
-  useEscuelaReporteReactListForPage,
+  useEscuelaReporteAurora,
+  useEscuelaReporteAuroraList,
+  useEscuelaReporteAuroraListForPage,
   useBustCacheEscuela,
   useNavigateToEscuelaReporte,
 } from './escuelaReporteHooks'

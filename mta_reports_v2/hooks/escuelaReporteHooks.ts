@@ -6,13 +6,13 @@ import { I_PaginatedResponse } from '@/shared/data/types'
 import { apiUrl } from '@/config'
 import { ANIO_ORDER } from '@/mta_reports_v2/constants'
 import type {
-  I_FiltrosReact,
-  I_ReporteReactData,
-  I_ItemReact,
-  I_BoxplotReact,
+  I_FiltrosAurora,
+  I_ReporteAuroraData,
+  I_ItemAurora,
+  I_BoxplotAurora,
   I_RawPregunta,
   I_RawTodos,
-  I_RawReporteReact,
+  I_RawReporteAurora,
   I_RawComboDato,
   I_RawEscuelaDatos,
   I_SemaforoBandas,
@@ -39,7 +39,7 @@ function _quantile(sorted: number[], p: number): number {
   return lo === hi ? sorted[lo] : (sorted[lo] + sorted[hi]) / 2
 }
 
-function _boxplot(scores: number[]): I_BoxplotReact {
+function _boxplot(scores: number[]): I_BoxplotAurora {
   if (!scores.length) return { min: 0, q1: 0, md: 0, q3: 0, max: 0, av: 0 }
   const s = [...scores].sort((a, b) => a - b)
   return {
@@ -82,7 +82,7 @@ function _groupBy(
   preguntas: I_RawPregunta[],
   pp: Record<string, { n_correctas: number; n_total: number }>,
   estudiantes: Array<Record<string, boolean>>,
-): I_ItemReact[] {
+): I_ItemAurora[] {
   const groups: Record<string, Set<string>> = {}
   for (const q of preguntas) {
     if (q.es_pisa) continue
@@ -98,7 +98,7 @@ function _groupBy(
   }))
 }
 
-function _transformReporteReact(raw: I_RawReporteReact, materia: string): I_ReporteReactData {
+function _transformReporteAurora(raw: I_RawReporteAurora, materia: string): I_ReporteAuroraData {
   const { preguntas, estudiantes_mi, todos, colegio, colegio_meta_id } = raw
   const pp = todos.por_pregunta
 
@@ -116,6 +116,12 @@ function _transformReporteReact(raw: I_RawReporteReact, materia: string): I_Repo
   const bpTodos = _boxplot(todos.puntajes)
 
   const isLenguaje = materia === 'Prácticas del Lenguaje'
+
+  const estudiantes = estudiantes_mi.map((respuestas, idx) => {
+    const answered = [...allIds].filter(k => k in respuestas)
+    const score = answered.length ? _r1(answered.filter(k => respuestas[k]).length / answered.length * 100) : 0
+    return { id: idx + 1, score }
+  })
 
   return {
     colegio,
@@ -137,6 +143,7 @@ function _transformReporteReact(raw: I_RawReporteReact, materia: string): I_Repo
       competencia: isLenguaje ? [] : competencia,
       boxplotMi:    bpMi,
       boxplotTodos: bpTodos,
+      estudiantes,
       ...(isLenguaje && {
         lenComp: competencia,
         lenCont: contenido,
@@ -149,7 +156,7 @@ function _transformReporteReact(raw: I_RawReporteReact, materia: string): I_Repo
 
 // ─── All-data hook (one fetch, frontend filtering) ───────────────────────────
 
-const useEscuelaReporteReact = (escuelaId: number | null) => {
+const useEscuelaReporteAurora = (escuelaId: number | null) => {
   const [rawData, setRawData] = useState<I_RawEscuelaDatos | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -196,7 +203,7 @@ const useEscuelaReporteReact = (escuelaId: number | null) => {
     return divs.length > 1 ? ['Todas', ...divs] : divs
   }, [rawData])
 
-  const getReporte = useCallback((filtros: I_FiltrosReact): I_ReporteReactData | null => {
+  const getReporte = useCallback((filtros: I_FiltrosAurora): I_ReporteAuroraData | null => {
     if (!rawData) return null
     const combo = rawData.datos.find(
       d => d.materia === filtros.materia && d.anio === filtros.anio && d.toma === filtros.toma
@@ -210,7 +217,7 @@ const useEscuelaReporteReact = (escuelaId: number | null) => {
             .filter(s => !s.division || s.division === filtros.division)
             .map(s => s.respuestas)
 
-    return _transformReporteReact(
+    return _transformReporteAurora(
       {
         colegio: rawData.colegio,
         colegio_meta_id: rawData.colegio_meta_id,
@@ -314,7 +321,7 @@ const useEscuelaReporteReact = (escuelaId: number | null) => {
 
 // ─── School list + cache-bust hooks ──────────────────────────────────────────
 
-const useEscuelaReporteReactList = () => {
+const useEscuelaReporteAuroraList = () => {
   const [data, setData] = useState<I_EscuelaListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -337,8 +344,8 @@ const useEscuelaReporteReactList = () => {
   return { data, loading, error }
 }
 
-const useEscuelaReporteReactListForPage: T_ListServiceHook<I_PaginatedResponse<I_EscuelaListItem>> = () => {
-  const { data, loading: isLoading } = useEscuelaReporteReactList()
+const useEscuelaReporteAuroraListForPage: T_ListServiceHook<I_PaginatedResponse<I_EscuelaListItem>> = () => {
+  const { data, loading: isLoading } = useEscuelaReporteAuroraList()
   return {
     data: data ? { results: data, count: data.length, next: '', previous: '' } : undefined,
     isLoading,
@@ -372,9 +379,9 @@ const useNavigateToEscuelaReporte = dynamicNavigationHook(
 )
 
 export {
-  useEscuelaReporteReact,
-  useEscuelaReporteReactList,
-  useEscuelaReporteReactListForPage,
+  useEscuelaReporteAurora,
+  useEscuelaReporteAuroraList,
+  useEscuelaReporteAuroraListForPage,
   useBustCacheEscuela,
   useNavigateToEscuelaReporte,
 }

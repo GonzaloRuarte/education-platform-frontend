@@ -10,7 +10,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import Logo from '@/shared/components/Logo'
 import { ImageSize } from '@/shared/utils'
-import { useEscuelaReporteReact } from '@/mta_reports_v2/hooks'
+import { useEscuelaReporteAurora } from '@/mta_reports_v2/hooks'
 import { COLORS, ANIO_ORDER } from '@/mta_reports_v2/constants'
 import Paper from '@mui/material/Paper'
 import { ResumenTab } from '@/mta_reports_v2/components/ResumenTab'
@@ -39,7 +39,7 @@ function ReporteEscuelaPage() {
   const [division, setDivision] = useState('Todas')
 
   const { loading, error, tomas, getMaterias, getAnios, getDivisiones, getReporte, getSemaforoBandas, getScatterPoints, getTablaData } =
-    useEscuelaReporteReact(escuelaId)
+    useEscuelaReporteAurora(escuelaId)
 
   const materias = getMaterias(toma)
   const anios = getAnios(toma, materia)
@@ -236,7 +236,7 @@ function ReporteEscuelaPage() {
         {/* Footer */}
         <Box sx={{ textAlign: 'center', py: 1.5, px: 3.5, borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
           <Typography variant="caption" color="text.secondary">
-            Reportes React · Reporte por Escuela · Universidad Austral – Escuela de Educación
+            Reportes Aurora · Reporte por Escuela · Universidad Austral – Escuela de Educación
           </Typography>
         </Box>
       </Box>

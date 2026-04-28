@@ -1,5 +1,5 @@
 // Mock data for local development / testing without backend.
-// Usage: replace the axiosGet call in useEscuelaReporteReact with this data.
+// Usage: replace the axiosGet call in useEscuelaReporteAurora with this data.
 
 const ANIOS = ['3ro', '6to', '9no', '12mo']
 const MATERIAS = ['Matemática', 'Prácticas del Lenguaje']

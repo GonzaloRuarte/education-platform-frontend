@@ -6,7 +6,7 @@ import { useHasCapabilities } from '@/mta_auth/hooks'
 import Button from '@/shared/components/Button'
 import ListPage from '@/shared/pages/ListPage'
 import { ESCUELA_REPORTE_NAME } from '@/mta_reports_v2/constants'
-import { useEscuelaReporteReactListForPage, useBustCacheEscuela } from '@/mta_reports_v2/hooks'
+import { useEscuelaReporteAuroraListForPage, useBustCacheEscuela } from '@/mta_reports_v2/hooks'
 import type { I_EscuelaListItem } from '@/mta_reports_v2/types'
 import { GridColDef } from '@mui/x-data-grid'
 
@@ -27,14 +27,14 @@ const columns: Array<GridColDef<I_EscuelaListItem>> = [
   { field: 'ultima_toma', headerName: 'Última toma', flex: 1 },
 ]
 
-function ReportesReactListPage() {
+function ReportesAuroraListPage() {
   const { bust, bustingId } = useBustCacheEscuela()
   const canManage = useHasCapabilities(['manage_reports'])
 
   return (
     <ListPage
       columns={columns}
-      useList={useEscuelaReporteReactListForPage}
+      useList={useEscuelaReporteAuroraListForPage}
       entityName={ESCUELA_REPORTE_NAME}
       onRowClick={ListPage.mapNavToOnRowClick((id) => window.open(`/reports/escuela/${id}`, '_blank'))}
       singleSelectionButtons={(id) =>
@@ -53,7 +53,7 @@ function ReportesReactListPage() {
   )
 }
 
-export default withAuth(ReportesReactListPage, {
+export default withAuth(ReportesAuroraListPage, {
   allowedCapabilities: ['view_reports'],
   logoutDestination: 'dashboard',
 })

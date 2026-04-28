@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from 'react'
 import { Box, Stack, Typography } from '@mui/material'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Rectangle, LabelList, ReferenceLine } from 'recharts'
 import { COLORS, FONT_SIZES, SPACING } from '@/mta_reports_v2/constants'
-import type { I_BoxplotReact, I_ItemReact } from '@/mta_reports_v2/types'
+import type { I_BoxplotAurora, I_ItemAurora } from '@/mta_reports_v2/types'
 
 const C = COLORS
 const F = FONT_SIZES
@@ -71,9 +71,7 @@ function AllSchoolsBarChart({ bars, miId }: { bars: { id: string; p: number }[];
   )
 }
 
-interface HBarItem { n: string; mi: number; t: number }
-
-function HorizontalBarChart({ items }: { items: HBarItem[] }) {
+function HorizontalBarChart({ items }: { items: I_ItemAurora[] }) {
   const data = items.map(item => ({ name: item.n, mi: item.mi, todos: item.t }))
   const chartH = Math.max(80, data.length * 50 + 50)
 
@@ -94,7 +92,7 @@ function HorizontalBarChart({ items }: { items: HBarItem[] }) {
   )
 }
 
-function BP({ d, color, w = 90, h = 280 }: { d: I_BoxplotReact; color: string; w?: number; h?: number }) {
+function BP({ d, color, w = 90, h = 280 }: { d: I_BoxplotAurora; color: string; w?: number; h?: number }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ w, h })
 
