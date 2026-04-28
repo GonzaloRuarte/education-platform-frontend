@@ -140,7 +140,7 @@ const Menu = () => {
               <MenuBlock isSubMenu>
                 <MenuItem label={'Reportes Power BI'} href={P.D._.reportes.path} />
                 <MenuItem label={P.D._.reportes._.meta.label} href={P.D._.reportes._.meta.path} />
-                <MenuItem label={P.D._.reportesReact.label} href={P.D._.reportesReact.path} />
+                <MenuItem label={P.D._.reportesAurora.label} href={P.D._.reportesAurora.path} />
               </MenuBlock>
             }
           />

@@ -20,8 +20,8 @@ const dashboardResetPasswordPath = '/dashboard/login/restablecer-password/{uid:s
 // META report bundles (computed artifacts)
 const metaReportsListPath = '/dashboard/reportes/meta'
 const metaReportsDetailPath = '/dashboard/reportes/meta/{bundleId:number}'
-const reportesReactListPath = '/dashboard/reportes_react'
-const reportesReactEscuelaPath = '/dashboard/reportes_react/escuela/{escuelaId:number}'
+const reportesAuroraListPath = '/dashboard/reportes_aurora'
+const reportesAuroraEscuelaPath = '/dashboard/reportes_aurora/escuela/{escuelaId:number}'
 
 const userChangePasswordPath = '/dashboard/usuarios/{userId:number}/cambiar-password'
 
@@ -198,12 +198,12 @@ const pages = {
           },
         },
       },
-      reportesReact: {
-        path: reportesReactListPath,
-        label: 'Reportes React',
+      reportesAurora: {
+        path: reportesAuroraListPath,
+        label: 'Reportes Aurora',
         _: {
           escuela: {
-            path: reportesReactEscuelaPath,
+            path: reportesAuroraEscuelaPath,
             label: 'Reporte por escuela',
           },
         },
