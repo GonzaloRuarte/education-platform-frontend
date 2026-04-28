@@ -6,7 +6,7 @@ import { useHasCapabilities } from '@/mta_auth/hooks'
 import Button from '@/shared/components/Button'
 import ListPage from '@/shared/pages/ListPage'
 import { ESCUELA_REPORTE_NAME } from '@/mta_reports_v2/constants'
-import { useEscuelaReporteReactListForPage, useBustCacheEscuela, useNavigateToEscuelaReporte } from '@/mta_reports_v2/hooks'
+import { useEscuelaReporteReactListForPage, useBustCacheEscuela } from '@/mta_reports_v2/hooks'
 import type { I_EscuelaListItem } from '@/mta_reports_v2/types'
 import { GridColDef } from '@mui/x-data-grid'
 
@@ -28,7 +28,6 @@ const columns: Array<GridColDef<I_EscuelaListItem>> = [
 ]
 
 function ReportesReactListPage() {
-  const navToEscuela = useNavigateToEscuelaReporte()
   const { bust, bustingId } = useBustCacheEscuela()
   const canManage = useHasCapabilities(['manage_reports'])
 
@@ -37,7 +36,7 @@ function ReportesReactListPage() {
       columns={columns}
       useList={useEscuelaReporteReactListForPage}
       entityName={ESCUELA_REPORTE_NAME}
-      onRowClick={ListPage.mapNavToOnRowClick((id) => navToEscuela({ escuelaId: id as number }))}
+      onRowClick={ListPage.mapNavToOnRowClick((id) => window.open(`/reports/escuela/${id}`, '_blank'))}
       singleSelectionButtons={(id) =>
         canManage ? (
           <Button

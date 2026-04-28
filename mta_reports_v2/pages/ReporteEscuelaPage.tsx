@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { useParams } from 'next/navigation'
-import { Box, Stack, Tabs, Tab, Chip } from '@mui/material'
+import { Box, Stack, Tabs, Tab, Chip, IconButton, Tooltip } from '@mui/material'
 import Typography from '@mui/material/Typography'
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import Logo from '@/shared/components/Logo'
 import { ImageSize } from '@/shared/utils'
