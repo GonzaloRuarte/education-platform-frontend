@@ -1,4 +1,3 @@
-export * from './reportHooks'
 export {
   useEscuelaReporteAurora,
   useEscuelaReporteAuroraList,
