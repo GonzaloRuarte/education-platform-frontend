@@ -54,6 +54,6 @@ function ReportesAuroraListPage() {
 }
 
 export default withAuth(ReportesAuroraListPage, {
-  allowedCapabilities: ['view_reports'],
+  allowedCapabilities: ['manage_admin_users'],
   logoutDestination: 'dashboard',
 })

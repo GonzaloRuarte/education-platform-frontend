@@ -13,6 +13,8 @@ import { useEscuelaReporteAurora } from '@/mta_reports_v2/hooks'
 import { COLORS, ANIO_ORDER } from '@/mta_reports_v2/constants'
 import Paper from '@mui/material/Paper'
 import { IntroduccionTab } from '@/mta_reports_v2/components/IntroduccionTab'
+import { PortadaTab } from '@/mta_reports_v2/components/PortadaTab'
+import { PruebasTab } from '@/mta_reports_v2/components/PruebasTab'
 import { ResumenTab } from '@/mta_reports_v2/components/ResumenTab'
 import { DetalleTab } from '@/mta_reports_v2/components/DetalleTab'
 import { SemaforoTab } from '@/mta_reports_v2/components/SemaforoTab'
@@ -22,10 +24,10 @@ import { Sidebar } from '@/mta_reports_v2/components/EscuelaReporteSidebar'
 import type { FilterDef } from '@/mta_reports_v2/components/EscuelaReporteSidebar'
 
 const C = COLORS
-const TAB_IDS = { INTRO: 'intro', RESUMEN: 'resumen', DETALLE: 'detalle', SEMAFORO: 'semaforo', SCATTER: 'scatter', TABLA: 'tabla' } as const
+const TAB_IDS = { INTRO: 'intro', COVER: 'cover', PRUEBAS: 'pruebas', RESUMEN: 'resumen', DETALLE: 'detalle', SEMAFORO: 'semaforo', SCATTER: 'scatter', TABLA: 'tabla' } as const
 const headerLogoSize = new ImageSize(257, 73, { scale: 0.31 })
 
-type TabId = 'intro' | 'resumen' | 'detalle' | 'semaforo' | 'scatter' | 'tabla'
+type TabId = 'intro' | 'cover' | 'pruebas' | 'resumen' | 'detalle' | 'semaforo' | 'scatter' | 'tabla'
 
 const ReporteEscuelaPage = () => {
   const params = useParams<{ escuelaId: string }>()
@@ -96,6 +98,8 @@ const ReporteEscuelaPage = () => {
   const sidebarFilters = useMemo((): Array<FilterDef> => {
     const FILTER_LAYOUTS: Record<TabId, Array<FilterDef>> = {
       [TAB_IDS.INTRO]: [],
+      [TAB_IDS.COVER]: [],
+      [TAB_IDS.PRUEBAS]: [],
       [TAB_IDS.RESUMEN]: [
         ...(materias.length > 1 ? [materiaFilter] : []),
         anioFilter,
@@ -136,6 +140,8 @@ const ReporteEscuelaPage = () => {
 
   const tabLabels: Record<TabId, string> = {
     [TAB_IDS.INTRO]: 'Introducción',
+    [TAB_IDS.COVER]: 'Portada',
+    [TAB_IDS.PRUEBAS]: 'Las pruebas',
     [TAB_IDS.RESUMEN]: 'Resultados generales',
     [TAB_IDS.DETALLE]: materia,
     [TAB_IDS.SEMAFORO]: 'Semáforo',
@@ -145,7 +151,7 @@ const ReporteEscuelaPage = () => {
 
   const filterPills = useMemo(() => {
     const pills: Array<{ label: string }> = []
-    if (tab === TAB_IDS.INTRO) return pills
+    if (tab === TAB_IDS.INTRO || tab === TAB_IDS.COVER || tab === TAB_IDS.PRUEBAS) return pills
     if ((tab === TAB_IDS.RESUMEN || tab === TAB_IDS.DETALLE || tab === TAB_IDS.SEMAFORO) && materias.length > 1) {
       pills.push({ label: `Materia: ${materia || '—'}` })
     }
@@ -167,7 +173,7 @@ const ReporteEscuelaPage = () => {
     }
   }
 
-  const isIntroTab = tab === TAB_IDS.INTRO
+  const isIntroTab = tab === TAB_IDS.INTRO || tab === TAB_IDS.COVER || tab === TAB_IDS.PRUEBAS
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -200,7 +206,9 @@ const ReporteEscuelaPage = () => {
           </IconButton>
           <Box ref={tabsRef} sx={{ overflowX: 'auto', flex: 1, '&::-webkit-scrollbar': { display: 'none' } }}>
             <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, minWidth: 'max-content' }}>
+              <Tab value={TAB_IDS.COVER} label="Portada" />
               <Tab value={TAB_IDS.INTRO} label="Introducción" />
+              <Tab value={TAB_IDS.PRUEBAS} label="Las pruebas" />
               <Tab value={TAB_IDS.RESUMEN} label="Resumen" />
               <Tab value={TAB_IDS.DETALLE} label="Contenido y competencia" />
               <Tab value={TAB_IDS.SEMAFORO} label="Semáforo" />
@@ -228,6 +236,8 @@ const ReporteEscuelaPage = () => {
           {!loading && !error && (
             <>
               {tab === TAB_IDS.INTRO && escuelaId !== null && <IntroduccionTab schoolId={escuelaId} />}
+              {tab === TAB_IDS.COVER && escuelaId !== null && <PortadaTab schoolId={escuelaId} />}
+              {tab === TAB_IDS.PRUEBAS && escuelaId !== null && <PruebasTab schoolId={escuelaId} />}
               {tab === TAB_IDS.RESUMEN && data && <ResumenTab data={data} />}
               {tab === TAB_IDS.DETALLE && data && <DetalleTab data={data} />}
               {(tab === TAB_IDS.RESUMEN || tab === TAB_IDS.DETALLE) && !data && toma && (
@@ -258,6 +268,6 @@ const ReporteEscuelaPage = () => {
 }
 
 export default withAuth(ReporteEscuelaPage, {
-  allowedCapabilities: ['view_reports'],
+  allowedCapabilities: ['manage_admin_users'],
   logoutDestination: 'dashboard',
 })
