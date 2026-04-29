@@ -1,15 +1,16 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { Box, Stack } from '@mui/material'
-import { useHasCapabilities } from '@/mta_auth/hooks'
+import { Box, Stack, Typography } from '@mui/material'
+import { useAuthResources, useHasCapabilities } from '@/mta_auth/hooks'
+import { apiUrl } from '@/config'
 import { COLORS } from '@/mta_reports_v2/constants'
+import { axiosGet, axiosPatch } from '@/shared/data/axios'
 import Logo from '@/shared/components/Logo'
 import LogoAustral from '@/shared/components/LogoAustral'
-import HTMLParser from '@/shared/components/HTMLParser'
 import Button from '@/shared/components/Button'
-import { successToast } from '@/shared/toasts'
+import { errorToast, successToast } from '@/shared/toasts'
 import { ImageSize } from '@/shared/utils'
 import 'react-quill-new/dist/quill.snow.css'
 
@@ -18,12 +19,15 @@ const ReactQuill = dynamic(async () => (await import('react-quill-new')).default
 const C = COLORS
 const metaLogoSize = new ImageSize(257, 73, { scale: 0.74 })
 const australLogoSize = new ImageSize(412, 72, { scale: 0.7 })
-const INTRO_CONTENT_STORAGE_KEY = 'mta_reports_v2:reporte_escuela:intro-content'
 
 interface I_IntroContent {
   title: string
   paragraph1: string
   paragraph2: string
+}
+
+interface IntroduccionTabProps {
+  schoolId: number
 }
 
 const defaultContent: I_IntroContent = {
@@ -32,24 +36,6 @@ const defaultContent: I_IntroContent = {
     '<p>META (Medición y Evaluación para la Transformación de los Aprendizajes) es un programa de la Escuela de Educación de la Universidad Austral, orientado a medir y evaluar los desempeños de aprendizaje escolar en Matemática y Prácticas del Lenguaje, con el objetivo de contribuir a la mejora de la calidad y equidad educativa.</p>',
   paragraph2:
     '<p>A través de evaluaciones estandarizadas que se realizan dos veces al año, META brinda información precisa sobre el desarrollo de los estudiantes al finalizar el primer y segundo ciclo del nivel primario (3° y 6° grado), así como al término del ciclo básico y de la orientación del nivel secundario (9° y 12° año).</p>',
-}
-
-const readStoredContent = (): I_IntroContent => {
-  if (typeof window === 'undefined') return defaultContent
-
-  try {
-    const raw = window.localStorage.getItem(INTRO_CONTENT_STORAGE_KEY)
-    if (!raw) return defaultContent
-
-    const parsed = JSON.parse(raw) as Partial<I_IntroContent>
-    return {
-      title: parsed.title || defaultContent.title,
-      paragraph1: parsed.paragraph1 || defaultContent.paragraph1,
-      paragraph2: parsed.paragraph2 || defaultContent.paragraph2,
-    }
-  } catch {
-    return defaultContent
-  }
 }
 
 const isEffectivelyEmpty = (html: string) => html.replace(/<(.|\n)*?>/g, '').replace(/&nbsp;/g, ' ').trim().length === 0
@@ -74,22 +60,45 @@ const editorModules = {
 
 const editorFormats = ['header', 'bold', 'italic', 'underline', 'color', 'background', 'align', 'list', 'link', 'blockquote']
 
-const IntroduccionTab = () => {
+const IntroduccionTab = ({ schoolId }: IntroduccionTabProps) => {
+  const authResources = useAuthResources()
   const canEdit = useHasCapabilities(['manage_reports'])
   const [content, setContent] = useState<I_IntroContent>(defaultContent)
   const [draft, setDraft] = useState<I_IntroContent>(defaultContent)
   const [isEditing, setIsEditing] = useState(false)
-  const [isHydrated, setIsHydrated] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
   const [activeEditor, setActiveEditor] = useState<keyof I_IntroContent | null>(null)
 
   useEffect(() => {
-    const storedContent = readStoredContent()
-    setContent(storedContent)
-    setDraft(storedContent)
-    setIsHydrated(true)
-  }, [])
+    let alive = true
 
-  const previewContent = useMemo(() => (isHydrated ? content : defaultContent), [content, isHydrated])
+    setIsLoading(true)
+    axiosGet<I_IntroContent>({
+      url: apiUrl(`/reportes/escuela/${schoolId}/intro-content/`),
+      requestSetup: authResources,
+      options: {},
+    })
+      .then(response => {
+        if (!alive) return
+        const nextContent = normalizeContent(response)
+        setContent(nextContent)
+        setDraft(nextContent)
+      })
+      .catch(error => {
+        if (!alive) return
+        setContent(defaultContent)
+        setDraft(defaultContent)
+        errorToast(error.message)
+      })
+      .finally(() => {
+        if (alive) setIsLoading(false)
+      })
+
+    return () => {
+      alive = false
+    }
+  }, [authResources.accessToken, schoolId])
 
   const startEditing = () => {
     setDraft(content)
@@ -103,45 +112,55 @@ const IntroduccionTab = () => {
     setIsEditing(false)
   }
 
-  const saveEditing = () => {
+  const saveEditing = async () => {
     const nextContent = normalizeContent(draft)
-    window.localStorage.setItem(INTRO_CONTENT_STORAGE_KEY, JSON.stringify(nextContent))
-    setContent(nextContent)
-    setDraft(nextContent)
-    setActiveEditor(null)
-    setIsEditing(false)
-    successToast('Introducción actualizada correctamente')
+
+    try {
+      setIsSaving(true)
+      const savedContent = await axiosPatch<I_IntroContent, I_IntroContent>({
+        url: apiUrl(`/reportes/escuela/${schoolId}/intro-content/`),
+        requestSetup: authResources,
+        options: {},
+        data: nextContent,
+      })
+      const normalizedSavedContent = normalizeContent(savedContent)
+      setContent(normalizedSavedContent)
+      setDraft(normalizedSavedContent)
+      setActiveEditor(null)
+      setIsEditing(false)
+      successToast('Introducción actualizada correctamente')
+    } catch (error) {
+      errorToast(error instanceof Error ? error.message : 'No se pudo guardar la introducción')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const updateDraft = (field: keyof I_IntroContent, value: string) => {
     setDraft(current => ({ ...current, [field]: value }))
   }
 
-  const renderPreviewBlock = (html: string, sx: Record<string, unknown>) => (
+  const renderEditorBlock = (field: keyof I_IntroContent, className: string, sx: Record<string, unknown>) => (
     <Box
-      sx={{
-        color: C.navy,
-        whiteSpace: 'normal',
-        overflowWrap: 'anywhere',
-        wordBreak: 'break-word',
-        '& .htmlParsedContent': {
-          whiteSpace: 'inherit !important',
-          overflowWrap: 'inherit',
-          wordBreak: 'inherit',
-        },
-        '& p': { m: 0 },
-        '& ul, & ol': { my: 0, pl: 3 },
-        '& a': { color: C.blue },
-        '& blockquote': {
-          borderLeft: `4px solid ${C.lightBlue}`,
-          m: 0,
-          pl: 2,
-          fontStyle: 'italic',
-        },
-        ...sx,
-      }}
+      className={`intro-inline-editor ${className} ${isEditing && activeEditor === field ? 'is-active' : ''} ${!isEditing ? 'is-readonly' : ''}`}
+      sx={sx}
     >
-      <HTMLParser htmlContent={html} />
+      <ReactQuill
+        theme="snow"
+        value={draft[field]}
+        readOnly={!isEditing}
+        onChange={(value) => updateDraft(field, value)}
+        modules={isEditing ? editorModules : { toolbar: false }}
+        formats={editorFormats}
+        onFocus={() => {
+          if (isEditing) setActiveEditor(field)
+        }}
+        onBlur={() => {
+          if (isEditing) {
+            setActiveEditor(current => (current === field ? null : current))
+          }
+        }}
+      />
     </Box>
   )
 
@@ -156,20 +175,19 @@ const IntroduccionTab = () => {
         py: { xs: 4, md: 5 },
       }}
     >
-      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
-        <Box />
+      <Stack direction="row" justifyContent="flex-end" alignItems="flex-start" spacing={2}>
         <Stack direction="row" alignItems="center" spacing={1.25}>
           {canEdit && !isEditing && (
-            <Button size="small" bgcolor="purple" onClick={startEditing}>
+            <Button size="small" bgcolor="purple" onClick={startEditing} disabled={isLoading}>
               Editar
             </Button>
           )}
           {canEdit && isEditing && (
             <>
-              <Button size="small" bgcolor="green" onClick={saveEditing}>
-                Guardar
+              <Button size="small" bgcolor="green" onClick={saveEditing} disabled={isSaving}>
+                {isSaving ? 'Guardando...' : 'Guardar'}
               </Button>
-              <Button size="small" variant="outlined" onClick={cancelEditing}>
+              <Button size="small" variant="outlined" onClick={cancelEditing} disabled={isSaving}>
                 Cancelar
               </Button>
             </>
@@ -179,63 +197,13 @@ const IntroduccionTab = () => {
       </Stack>
 
       <Box sx={{ maxWidth: 820, pt: { xs: 6, md: 16 } }}>
-        {isEditing ? (
-          <>
-            <Box className={`intro-inline-editor title-editor ${activeEditor === 'title' ? 'is-active' : ''}`} sx={{ mb: 4 }}>
-              <ReactQuill
-                theme="snow"
-                value={draft.title}
-                onChange={(value) => updateDraft('title', value)}
-                modules={editorModules}
-                formats={editorFormats}
-                onFocus={() => setActiveEditor('title')}
-                onBlur={() => setActiveEditor(current => (current === 'title' ? null : current))}
-              />
-            </Box>
-
-            <Box className={`intro-inline-editor body-editor ${activeEditor === 'paragraph1' ? 'is-active' : ''}`} sx={{ mb: 4 }}>
-              <ReactQuill
-                theme="snow"
-                value={draft.paragraph1}
-                onChange={(value) => updateDraft('paragraph1', value)}
-                modules={editorModules}
-                formats={editorFormats}
-                onFocus={() => setActiveEditor('paragraph1')}
-                onBlur={() => setActiveEditor(current => (current === 'paragraph1' ? null : current))}
-              />
-            </Box>
-
-            <Box className={`intro-inline-editor body-editor ${activeEditor === 'paragraph2' ? 'is-active' : ''}`}>
-              <ReactQuill
-                theme="snow"
-                value={draft.paragraph2}
-                onChange={(value) => updateDraft('paragraph2', value)}
-                modules={editorModules}
-                formats={editorFormats}
-                onFocus={() => setActiveEditor('paragraph2')}
-                onBlur={() => setActiveEditor(current => (current === 'paragraph2' ? null : current))}
-              />
-            </Box>
-          </>
+        {isLoading ? (
+          <Typography sx={{ color: C.tm }}>Cargando introducción...</Typography>
         ) : (
           <>
-            {renderPreviewBlock(previewContent.title, {
-              fontSize: { xs: 36, md: 52 },
-              fontWeight: 800,
-              lineHeight: 1.05,
-              mb: 4,
-            })}
-
-            {renderPreviewBlock(previewContent.paragraph1, {
-              fontSize: { xs: 18, md: 24 },
-              lineHeight: 1.48,
-              mb: 4,
-            })}
-
-            {renderPreviewBlock(previewContent.paragraph2, {
-              fontSize: { xs: 18, md: 24 },
-              lineHeight: 1.48,
-            })}
+            {renderEditorBlock('title', 'title-editor', { mb: 4 })}
+            {renderEditorBlock('paragraph1', 'body-editor', { mb: 4 })}
+            {renderEditorBlock('paragraph2', 'body-editor', {})}
           </>
         )}
       </Box>
@@ -282,6 +250,8 @@ const IntroduccionTab = () => {
           color: ${C.navy};
           padding: 0;
           white-space: normal;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .intro-inline-editor .ql-editor p {
@@ -296,6 +266,14 @@ const IntroduccionTab = () => {
         .intro-inline-editor .ql-editor blockquote {
           border-left: 4px solid ${C.lightBlue};
           padding-left: 16px;
+        }
+
+        .intro-inline-editor.is-readonly .ql-container.ql-snow {
+          pointer-events: none;
+        }
+
+        .intro-inline-editor.is-readonly .ql-editor {
+          cursor: default;
         }
 
         .title-editor .ql-editor {

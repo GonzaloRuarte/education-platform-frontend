@@ -227,7 +227,7 @@ const ReporteEscuelaPage = () => {
           )}
           {!loading && !error && (
             <>
-              {tab === TAB_IDS.INTRO && <IntroduccionTab />}
+              {tab === TAB_IDS.INTRO && escuelaId !== null && <IntroduccionTab schoolId={escuelaId} />}
               {tab === TAB_IDS.RESUMEN && data && <ResumenTab data={data} />}
               {tab === TAB_IDS.DETALLE && data && <DetalleTab data={data} />}
               {(tab === TAB_IDS.RESUMEN || tab === TAB_IDS.DETALLE) && !data && toma && (
