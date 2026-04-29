@@ -2,7 +2,7 @@
 
 import { Box, Paper, Stack, Typography } from '@mui/material'
 import { ResponsiveContainer, ScatterChart, Scatter, CartesianGrid, XAxis, YAxis, Tooltip, ReferenceLine } from 'recharts'
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { COLORS, FONT_SIZES } from '@/mta_reports_v2/constants'
 import type { I_ScatterPoint } from '@/mta_reports_v2/types'
 
@@ -22,6 +22,18 @@ function ScatterTooltip({ active, payload }: any) {
 }
 
 function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
+  const [chartHeight, setChartHeight] = useState(420)
+
+  useEffect(() => {
+    const calculateHeight = () => {
+      const availableHeight = window.innerHeight - 300
+      setChartHeight(Math.max(400, Math.min(availableHeight, 700)))
+    }
+    calculateHeight()
+    window.addEventListener('resize', calculateHeight)
+    return () => window.removeEventListener('resize', calculateHeight)
+  }, [])
+
   const avg = useMemo(() => {
     if (!points.length) return null
     return {
@@ -39,7 +51,7 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
         <Typography sx={{ color: C.tm }}>Sin datos para los filtros seleccionados</Typography>
       ) : (
         <>
-          <ResponsiveContainer width="100%" height={420}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <ScatterChart margin={{ top: 16, right: 24, bottom: 36, left: 16 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
               <XAxis
