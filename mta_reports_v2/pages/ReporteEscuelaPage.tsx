@@ -2,9 +2,8 @@
 
 import { useEffect, useState, useMemo, useRef } from 'react'
 import { useParams } from 'next/navigation'
-import { Box, Stack, Tabs, Tab, Chip, IconButton, Tooltip } from '@mui/material'
+import { Box, Stack, Tabs, Tab, Chip, IconButton } from '@mui/material'
 import Typography from '@mui/material/Typography'
-import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
@@ -13,6 +12,7 @@ import { ImageSize } from '@/shared/utils'
 import { useEscuelaReporteAurora } from '@/mta_reports_v2/hooks'
 import { COLORS, ANIO_ORDER } from '@/mta_reports_v2/constants'
 import Paper from '@mui/material/Paper'
+import { IntroduccionTab } from '@/mta_reports_v2/components/IntroduccionTab'
 import { ResumenTab } from '@/mta_reports_v2/components/ResumenTab'
 import { DetalleTab } from '@/mta_reports_v2/components/DetalleTab'
 import { SemaforoTab } from '@/mta_reports_v2/components/SemaforoTab'
@@ -22,12 +22,12 @@ import { Sidebar } from '@/mta_reports_v2/components/EscuelaReporteSidebar'
 import type { FilterDef } from '@/mta_reports_v2/components/EscuelaReporteSidebar'
 
 const C = COLORS
-const TAB_IDS = { RESUMEN: 'resumen', DETALLE: 'detalle', SEMAFORO: 'semaforo', SCATTER: 'scatter', TABLA: 'tabla' } as const
+const TAB_IDS = { INTRO: 'intro', RESUMEN: 'resumen', DETALLE: 'detalle', SEMAFORO: 'semaforo', SCATTER: 'scatter', TABLA: 'tabla' } as const
 const headerLogoSize = new ImageSize(257, 73, { scale: 0.31 })
 
-type TabId = 'resumen' | 'detalle' | 'semaforo' | 'scatter' | 'tabla'
+type TabId = 'intro' | 'resumen' | 'detalle' | 'semaforo' | 'scatter' | 'tabla'
 
-function ReporteEscuelaPage() {
+const ReporteEscuelaPage = () => {
   const params = useParams<{ escuelaId: string }>()
   const escuelaId = params?.escuelaId ? Number(params.escuelaId) : null
   const tabsRef = useRef<HTMLDivElement>(null)
@@ -93,8 +93,9 @@ function ReporteEscuelaPage() {
   const materiaFilter = useMemo(() => ({ label: 'Materia', value: materia, opts: materias.length > 0 ? materias : [materia], set: setMateria }), [materia, materias])
   const anioFilter = useMemo(() => ({ label: 'Año', value: anio, opts: anios.length > 0 ? anios : ANIO_ORDER.slice(), set: setAnio }), [anio, anios])
 
-  const sidebarFilters = useMemo((): FilterDef[] => {
-    const FILTER_LAYOUTS: Record<TabId, FilterDef[]> = {
+  const sidebarFilters = useMemo((): Array<FilterDef> => {
+    const FILTER_LAYOUTS: Record<TabId, Array<FilterDef>> = {
+      [TAB_IDS.INTRO]: [],
       [TAB_IDS.RESUMEN]: [
         ...(materias.length > 1 ? [materiaFilter] : []),
         anioFilter,
@@ -134,6 +135,7 @@ function ReporteEscuelaPage() {
   }
 
   const tabLabels: Record<TabId, string> = {
+    [TAB_IDS.INTRO]: 'Introducción',
     [TAB_IDS.RESUMEN]: 'Resultados generales',
     [TAB_IDS.DETALLE]: materia,
     [TAB_IDS.SEMAFORO]: 'Semáforo',
@@ -142,7 +144,8 @@ function ReporteEscuelaPage() {
   }
 
   const filterPills = useMemo(() => {
-    const pills: { label: string }[] = []
+    const pills: Array<{ label: string }> = []
+    if (tab === TAB_IDS.INTRO) return pills
     if ((tab === TAB_IDS.RESUMEN || tab === TAB_IDS.DETALLE || tab === TAB_IDS.SEMAFORO) && materias.length > 1) {
       pills.push({ label: `Materia: ${materia || '—'}` })
     }
@@ -164,25 +167,31 @@ function ReporteEscuelaPage() {
     }
   }
 
+  const isIntroTab = tab === TAB_IDS.INTRO
+
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
-      <Sidebar filters={sidebarFilters} onReset={resetFilters} />
+      {!isIntroTab && <Sidebar filters={sidebarFilters} onReset={resetFilters} />}
 
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, pt: 2.5, pb: 0.5, bgcolor: 'background.paper' }}>
-          <Typography variant="h5" sx={{ color: C.navy, fontWeight: 800 }}>
-            {schoolName} — {tabLabels[tab]}
-          </Typography>
-          <Logo width={headerLogoSize.w} height={headerLogoSize.h} />
-        </Box>
+        {!isIntroTab && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, pt: 2.5, pb: 0.5, bgcolor: 'background.paper' }}>
+            <Typography variant="h5" sx={{ color: C.navy, fontWeight: 800 }}>
+              {schoolName} — {tabLabels[tab]}
+            </Typography>
+            <Logo width={headerLogoSize.w} height={headerLogoSize.h} />
+          </Box>
+        )}
 
         {/* Filter pills */}
-        <Stack direction="row" spacing={1} sx={{ px: 3, py: 1.25, bgcolor: 'background.paper', flexWrap: 'wrap' }}>
-          {filterPills.map(p => (
-            <Chip key={p.label} label={p.label} size="medium" sx={{ bgcolor: C.lightBlue, color: C.navy, fontWeight: 600 }} />
-          ))}
-        </Stack>
+        {!isIntroTab && (
+          <Stack direction="row" spacing={1} sx={{ px: 3, py: 1.25, bgcolor: 'background.paper', flexWrap: 'wrap' }}>
+            {filterPills.map(p => (
+              <Chip key={p.label} label={p.label} size="medium" sx={{ bgcolor: C.lightBlue, color: C.navy, fontWeight: 600 }} />
+            ))}
+          </Stack>
+        )}
 
         {/* Tabs */}
         <Box sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
@@ -191,6 +200,7 @@ function ReporteEscuelaPage() {
           </IconButton>
           <Box ref={tabsRef} sx={{ overflowX: 'auto', flex: 1, '&::-webkit-scrollbar': { display: 'none' } }}>
             <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, minWidth: 'max-content' }}>
+              <Tab value={TAB_IDS.INTRO} label="Introducción" />
               <Tab value={TAB_IDS.RESUMEN} label="Resumen" />
               <Tab value={TAB_IDS.DETALLE} label="Contenido y competencia" />
               <Tab value={TAB_IDS.SEMAFORO} label="Semáforo" />
@@ -204,7 +214,7 @@ function ReporteEscuelaPage() {
         </Box>
 
         {/* Content */}
-        <Box sx={{ flex: 1, overflow: 'auto', p: '22px 24px 40px' }}>
+        <Box sx={{ flex: 1, overflow: 'auto', p: isIntroTab ? 0 : '22px 24px 40px' }}>
           {loading && (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
               <Typography color="text.secondary">Cargando reporte…</Typography>
@@ -217,6 +227,7 @@ function ReporteEscuelaPage() {
           )}
           {!loading && !error && (
             <>
+              {tab === TAB_IDS.INTRO && <IntroduccionTab />}
               {tab === TAB_IDS.RESUMEN && data && <ResumenTab data={data} />}
               {tab === TAB_IDS.DETALLE && data && <DetalleTab data={data} />}
               {(tab === TAB_IDS.RESUMEN || tab === TAB_IDS.DETALLE) && !data && toma && (
@@ -234,11 +245,13 @@ function ReporteEscuelaPage() {
         </Box>
 
         {/* Footer */}
-        <Box sx={{ textAlign: 'center', py: 1.5, px: 3.5, borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
-          <Typography variant="caption" color="text.secondary">
-            Reportes Aurora · Reporte por Escuela · Universidad Austral – Escuela de Educación
-          </Typography>
-        </Box>
+        {!isIntroTab && (
+          <Box sx={{ textAlign: 'center', py: 1.5, px: 3.5, borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
+            <Typography variant="caption" color="text.secondary">
+              Reportes Aurora · Reporte por Escuela · Universidad Austral – Escuela de Educación
+            </Typography>
+          </Box>
+        )}
       </Box>
     </Box>
   )
