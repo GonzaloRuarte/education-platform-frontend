@@ -61,7 +61,7 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
                 domain={[0, 100]}
                 tickFormatter={v => `${v}%`}
                 tick={{ fontSize: F.chart.lg, fill: C.tm }}
-                label={{ value: '% Prácticas del Lenguaje', position: 'insideBottom', offset: -20, fontSize: F.chart.md, fill: C.navy }}
+                label={{ value: '% Prácticas del Lenguaje', position: 'insideBottom', offset: -25, fontSize: F.lg, fill: 'black' }}
               />
               <YAxis
                 type="number"
@@ -69,13 +69,13 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
                 name="Mat"
                 domain={[0, 100]}
                 tickFormatter={v => `${v}%`}
-                tick={{ fontSize: F.chart.lg, fill: C.tm }}
-                label={{ value: '% Matemática', angle: -90, position: 'insideLeft', offset: 12, fontSize: F.chart.md, fill: C.navy }}
+                tick={{ fontSize: F.lg, fill: 'grey' }}
+                label={{ value: '% Matemática', angle: -90, position: 'insideLeft', fontSize: F.lg, fill: 'black' }}
               />
               {avg && <ReferenceLine x={avg.pdl} stroke={C.tm} strokeDasharray="4 3" strokeWidth={1} />}
               {avg && <ReferenceLine y={avg.mat} stroke={C.tm} strokeDasharray="4 3" strokeWidth={1} />}
               <Tooltip content={<ScatterTooltip />} />
-              <Scatter data={points} fill={C.barFill} opacity={0.75} r={5} />
+              <Scatter data={points} fill={C.barFill} opacity={0.75} r={20} />
             </ScatterChart>
           </ResponsiveContainer>
           <Stack direction="row" spacing={3} sx={{ mt: 1.5 }}>
