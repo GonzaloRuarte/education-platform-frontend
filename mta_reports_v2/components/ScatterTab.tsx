@@ -1,7 +1,7 @@
 'use client'
 
 import { Box, Paper, Stack, Typography } from '@mui/material'
-import { ResponsiveContainer, ScatterChart, Scatter, CartesianGrid, XAxis, YAxis, Tooltip, ReferenceLine } from 'recharts'
+import { ResponsiveContainer, ScatterChart, Scatter, CartesianGrid, XAxis, YAxis, ZAxis, Tooltip, ReferenceLine } from 'recharts'
 import { useMemo, useState, useEffect } from 'react'
 import { COLORS, FONT_SIZES } from '@/mta_reports_v2/constants'
 import type { I_ScatterPoint } from '@/mta_reports_v2/types'
@@ -60,7 +60,7 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
                 name="PDL"
                 domain={[0, 100]}
                 tickFormatter={v => `${v}%`}
-                tick={{ fontSize: F.chart.lg, fill: C.tm }}
+                tick={{ fontSize: F.lg, fill: 'grey' }}
                 label={{ value: '% Prácticas del Lenguaje', position: 'insideBottom', offset: -25, fontSize: F.lg, fill: 'black' }}
               />
               <YAxis
@@ -72,6 +72,9 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
                 tick={{ fontSize: F.lg, fill: 'grey' }}
                 label={{ value: '% Matemática', angle: -90, position: 'insideLeft', fontSize: F.lg, fill: 'black' }}
               />
+              <ZAxis type="number"
+                dataKey="mat"
+                name="Mat" range={[500, 1000]} />
               {avg && <ReferenceLine x={avg.pdl} stroke={C.tm} strokeDasharray="4 3" strokeWidth={1} />}
               {avg && <ReferenceLine y={avg.mat} stroke={C.tm} strokeDasharray="4 3" strokeWidth={1} />}
               <Tooltip content={<ScatterTooltip />} />
