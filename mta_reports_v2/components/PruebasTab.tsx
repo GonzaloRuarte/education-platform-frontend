@@ -5,6 +5,7 @@ import { EditableContentSection } from '@/mta_reports_v2/components/EditableCont
 
 interface PruebasTabProps {
   schoolId: number
+  initialEditing?: boolean
 }
 
 const fields = {
@@ -30,12 +31,13 @@ const fields = {
   },
 }
 
-const PruebasTab = ({ schoolId }: PruebasTabProps) => (
+const PruebasTab = ({ schoolId, initialEditing }: PruebasTabProps) => (
   <EditableContentSection
     schoolId={schoolId}
     diapositivaId={2}
     successMessage='Sección "Las pruebas" actualizada correctamente'
     fields={fields}
+    initialEditing={initialEditing}
   >
     {({ renderField }) => (
       <Box sx={{ maxWidth: 820 }}>

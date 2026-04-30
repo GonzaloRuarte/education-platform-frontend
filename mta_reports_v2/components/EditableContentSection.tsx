@@ -37,6 +37,7 @@ interface EditableContentSectionProps<F extends string> {
   diapositivaId: number
   successMessage: string
   fields: Record<F, FieldConfig>
+  initialEditing?: boolean
   children: (args: RenderFieldArgs<F>) => ReactNode
 }
 
@@ -62,6 +63,7 @@ const EditableContentSection = <F extends string,>({
   diapositivaId,
   successMessage,
   fields,
+  initialEditing = false,
   children,
 }: EditableContentSectionProps<F>) => {
   const authResources = useAuthResources()
@@ -84,7 +86,7 @@ const EditableContentSection = <F extends string,>({
 
   const [content, setContent] = useState<Record<F, string>>(buildDefault)
   const [draft, setDraft] = useState<Record<F, string>>(buildDefault)
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditing, setIsEditing] = useState(() => Boolean(initialEditing && canEdit))
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [activeEditor, setActiveEditor] = useState<F | null>(null)
@@ -208,10 +210,10 @@ const EditableContentSection = <F extends string,>({
           )}
           {canEdit && isEditing && (
             <>
-              <Button size="small" bgcolor="green" onClick={saveEditing} disabled={isSaving}>
+              <Button size="small" bgcolor="green" onClick={saveEditing} disabled={isSaving || isLoading}>
                 {isSaving ? 'Guardando...' : 'Guardar'}
               </Button>
-              <Button size="small" variant="outlined" onClick={cancelEditing} disabled={isSaving}>
+              <Button size="small" variant="outlined" onClick={cancelEditing} disabled={isSaving || isLoading}>
                 Cancelar
               </Button>
             </>

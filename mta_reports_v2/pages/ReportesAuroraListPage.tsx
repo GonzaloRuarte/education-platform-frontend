@@ -1,6 +1,10 @@
 'use client'
 
+import { useMemo } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@mui/material'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
+import { useHasCapabilities } from '@/mta_auth/hooks'
 import ListPage from '@/shared/pages/ListPage'
 import { idExposeColumn } from '@/shared/pages/utils'
 import { AURORA_REPORT_NAME } from '@/mta_reports_v2/constants'
@@ -8,36 +12,51 @@ import {
   useAuroraReportBatchDelete,
   useAuroraReportList,
   useNavigateToAuroraReportCreate,
-  useNavigateToEscuelaReporte,
 } from '@/mta_reports_v2/hooks'
 import type { I_AuroraReportListItem } from '@/mta_reports_v2/types'
 import { GridColDef, GridRowParams } from '@mui/x-data-grid'
 
-const formatDateTime = (value: string | null): string => {
-  if (!value) return '-'
-  const d = new Date(value)
-  if (Number.isNaN(d.getTime())) return value
-  return d.toLocaleString('es-AR')
-}
-
-const columns: Array<GridColDef<I_AuroraReportListItem>> = [
+const baseColumns: Array<GridColDef<I_AuroraReportListItem>> = [
   idExposeColumn({ field: 'school_name', headerName: 'Escuela', flex: 1.6 }),
   { field: 'toma', headerName: 'Toma', flex: 0.6 },
-  {
-    field: 'last_generated_at',
-    headerName: 'Última generación',
-    flex: 1,
-    renderCell: ({ value }) => <>{formatDateTime(value as string | null)}</>,
-  },
 ]
 
 function ReportesAuroraListPage() {
+  const router = useRouter()
   const navigateToAuroraReportCreate = useNavigateToAuroraReportCreate()
-  const navigateToEscuelaReporte = useNavigateToEscuelaReporte()
+  const canEdit = useHasCapabilities(['manage_reports'])
 
   const handleRowClick = (params: GridRowParams<I_AuroraReportListItem>) => {
-    navigateToEscuelaReporte({ escuelaId: params.row.school })
+    window.open(`/reports/escuela/${params.row.school}`, '_blank')
   }
+
+  const columns = useMemo<Array<GridColDef<I_AuroraReportListItem>>>(() => {
+    if (!canEdit) return baseColumns
+    return [
+      ...baseColumns,
+      {
+        field: 'actions',
+        headerName: 'Acciones',
+        flex: 0.4,
+        sortable: false,
+        filterable: false,
+        align: 'center',
+        headerAlign: 'center',
+        renderCell: ({ row }) => (
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={(e) => {
+              e.stopPropagation()
+              router.push(`/reports/escuela/${row.school}?edit=1`)
+            }}
+          >
+            Editar
+          </Button>
+        ),
+      },
+    ]
+  }, [canEdit, router])
 
   return (
     <ListPage

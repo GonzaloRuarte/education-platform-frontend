@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo, useRef } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { Box, Stack, Tabs, Tab, Chip, IconButton } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
@@ -42,10 +42,12 @@ const TAB_ORDER: Array<TabId> = [
 
 const ReporteAuroraEscuelaPage = () => {
   const params = useParams<{ escuelaId: string }>()
+  const searchParams = useSearchParams()
   const escuelaId = params?.escuelaId ? Number(params.escuelaId) : null
+  const editRequested = searchParams?.get('edit') === '1'
   const tabsRef = useRef<HTMLDivElement>(null)
 
-  const [tab, setTab] = useState<TabId>(TAB_IDS.COVER)
+  const [tab, setTab] = useState<TabId>(editRequested ? TAB_IDS.INTRO : TAB_IDS.COVER)
   const [toma, setToma] = useState('')
   const [materia, setMateria] = useState('Matemática')
   const [anio, setAnio] = useState('3ro')
@@ -249,9 +251,9 @@ const ReporteAuroraEscuelaPage = () => {
 
         {/* Content */}
         <Box sx={{ flex: 1, overflow: 'auto', p: isIntroTab ? 0 : '22px 24px 40px' }}>
-          {tab === TAB_IDS.INTRO && escuelaId !== null && <IntroduccionTab schoolId={escuelaId} />}
+          {tab === TAB_IDS.INTRO && escuelaId !== null && <IntroduccionTab schoolId={escuelaId} initialEditing={editRequested} />}
           {tab === TAB_IDS.COVER && escuelaId !== null && <PortadaTab schoolId={escuelaId} />}
-          {tab === TAB_IDS.PRUEBAS && escuelaId !== null && <PruebasTab schoolId={escuelaId} />}
+          {tab === TAB_IDS.PRUEBAS && escuelaId !== null && <PruebasTab schoolId={escuelaId} initialEditing={editRequested} />}
           {!isIntroTab && loading && (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
               <Typography color="text.secondary">Cargando reporte…</Typography>
