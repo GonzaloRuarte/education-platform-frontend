@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { Box, Stack, Tabs, Tab, Chip, IconButton } from '@mui/material'
 import Typography from '@mui/material/Typography'
@@ -45,7 +45,6 @@ const ReporteAurora = () => {
   const searchParams = useSearchParams()
   const escuelaId = params?.escuelaId ? Number(params.escuelaId) : null
   const editRequested = searchParams?.get('edit') === '1'
-  const tabsRef = useRef<HTMLDivElement>(null)
 
   const [tab, setTab] = useState<TabId>(editRequested ? TAB_IDS.INTRO : TAB_IDS.COVER)
   const [toma, setToma] = useState('')
@@ -191,43 +190,36 @@ const ReporteAurora = () => {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [tab])
 
-  const scrollTabs = (direction: 'left' | 'right') => {
-    if (tabsRef.current) {
-      const scrollAmount = 200
-      tabsRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
-      })
-    }
+  const goToTab = (direction: 'prev' | 'next') => {
+    const idx = TAB_ORDER.indexOf(tab)
+    if (idx === -1) return
+    const nextIdx = direction === 'prev' ? idx - 1 : idx + 1
+    if (nextIdx < 0 || nextIdx >= TAB_ORDER.length) return
+    setTab(TAB_ORDER[nextIdx])
   }
 
+  const tabIdx = TAB_ORDER.indexOf(tab)
+  const isFirstTab = tabIdx <= 0
+  const isLastTab = tabIdx === -1 || tabIdx >= TAB_ORDER.length - 1
   const isIntroTab = tab === TAB_IDS.INTRO || tab === TAB_IDS.COVER || tab === TAB_IDS.PRUEBAS
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
       {!isIntroTab && <Sidebar filters={sidebarFilters} onReset={resetFilters} />}
 
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
         {/* Tabs */}
-        <Box sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
-          <IconButton size="small" onClick={() => scrollTabs('left')} sx={{ color: C.navy, flexShrink: 0 }}>
-            <ChevronLeftIcon />
-          </IconButton>
-          <Box ref={tabsRef} sx={{ overflowX: 'auto', flex: 1, '&::-webkit-scrollbar': { display: 'none' } }}>
-            <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, minWidth: 'max-content' }}>
-              <Tab value={TAB_IDS.COVER} label="Portada" />
-              <Tab value={TAB_IDS.INTRO} label="Introducción" />
-              <Tab value={TAB_IDS.PRUEBAS} label="Las pruebas" />
-              <Tab value={TAB_IDS.RESUMEN} label="Resumen" />
-              <Tab value={TAB_IDS.DETALLE} label="Contenido y competencia" />
-              <Tab value={TAB_IDS.SEMAFORO} label="Semáforo" />
-              <Tab value={TAB_IDS.SCATTER} label="Resultados por alumno" />
-              <Tab value={TAB_IDS.TABLA} label="Resumen por estudiante" />
-            </Tabs>
-          </Box>
-          <IconButton size="small" onClick={() => scrollTabs('right')} sx={{ color: C.navy, flexShrink: 0 }}>
-            <ChevronRightIcon />
-          </IconButton>
+        <Box sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' } }}>
+          <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, minWidth: 'max-content' }}>
+            <Tab value={TAB_IDS.COVER} label="Portada" />
+            <Tab value={TAB_IDS.INTRO} label="Introducción" />
+            <Tab value={TAB_IDS.PRUEBAS} label="Las pruebas" />
+            <Tab value={TAB_IDS.RESUMEN} label="Resumen" />
+            <Tab value={TAB_IDS.DETALLE} label="Contenido y competencia" />
+            <Tab value={TAB_IDS.SEMAFORO} label="Semáforo" />
+            <Tab value={TAB_IDS.SCATTER} label="Resultados por alumno" />
+            <Tab value={TAB_IDS.TABLA} label="Resumen por estudiante" />
+          </Tabs>
         </Box>
 
         {/* Header */}
@@ -290,6 +282,31 @@ const ReporteAurora = () => {
             </Typography>
           </Box>
         )}
+
+        {/* Floating tab nav */}
+        <Box
+          sx={{
+            position: 'fixed',
+            bottom: 24,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            gap: 1,
+            zIndex: theme => theme.zIndex.fab,
+            bgcolor: 'background.paper',
+            borderRadius: 999,
+            boxShadow: 3,
+            px: 0.5,
+            py: 0.5,
+          }}
+        >
+          <IconButton size="medium" onClick={() => goToTab('prev')} disabled={isFirstTab} sx={{ color: C.navy }}>
+            <ChevronLeftIcon />
+          </IconButton>
+          <IconButton size="medium" onClick={() => goToTab('next')} disabled={isLastTab} sx={{ color: C.navy }}>
+            <ChevronRightIcon />
+          </IconButton>
+        </Box>
       </Box>
     </Box>
   )
