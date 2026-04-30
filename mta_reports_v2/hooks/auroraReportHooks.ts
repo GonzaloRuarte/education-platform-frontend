@@ -1,7 +1,7 @@
 import pages from '@/pages'
 import { useAuthResources } from '@/mta_auth/hooks'
-import { axiosGet, axiosPost } from '@/shared/data/axios'
-import { creationHook, listHook, navigationHook } from '@/shared/hooks'
+import { axiosDelete, axiosGet, axiosPost } from '@/shared/data/axios'
+import { batchDeletionHook, creationHook, listHook, navigationHook } from '@/shared/hooks'
 import { I_CreationCommonResponse } from '@/shared/types'
 import type { I_AuroraReportCreateRequestData, T_AuroraReportList } from '@/mta_reports_v2/types'
 
@@ -13,6 +13,7 @@ const useAuroraReportCreate = creationHook<I_AuroraReportCreateRequestData, I_Cr
   axiosPost,
   useAuthResources,
 )
+const useAuroraReportBatchDelete = batchDeletionHook<number>(AURORA_REPORTS_PATH, axiosDelete, useAuthResources)
 
 const useNavigateToAuroraReportList = navigationHook(pages.D._.reportesAurora.path)
 const useNavigateToAuroraReportCreate = navigationHook(pages.D._.reportesAurora._.agregar.path)
@@ -20,6 +21,7 @@ const useNavigateToAuroraReportCreate = navigationHook(pages.D._.reportesAurora.
 export {
   useAuroraReportList,
   useAuroraReportCreate,
+  useAuroraReportBatchDelete,
   useNavigateToAuroraReportList,
   useNavigateToAuroraReportCreate,
   AURORA_REPORTS_PATH,

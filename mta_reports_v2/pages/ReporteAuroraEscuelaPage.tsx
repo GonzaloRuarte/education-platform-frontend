@@ -29,7 +29,7 @@ const headerLogoSize = new ImageSize(257, 73, { scale: 0.31 })
 
 type TabId = 'intro' | 'cover' | 'pruebas' | 'resumen' | 'detalle' | 'semaforo' | 'scatter' | 'tabla'
 
-const ReporteEscuelaPage = () => {
+const ReporteAuroraEscuelaPage = () => {
   const params = useParams<{ escuelaId: string }>()
   const escuelaId = params?.escuelaId ? Number(params.escuelaId) : null
   const tabsRef = useRef<HTMLDivElement>(null)
@@ -267,7 +267,7 @@ const ReporteEscuelaPage = () => {
   )
 }
 
-export default withAuth(ReporteEscuelaPage, {
+export default withAuth(ReporteAuroraEscuelaPage, {
   allowedCapabilities: ['manage_admin_users'],
   logoutDestination: 'dashboard',
 })

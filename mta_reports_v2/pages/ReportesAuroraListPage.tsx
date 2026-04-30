@@ -5,6 +5,7 @@ import ListPage from '@/shared/pages/ListPage'
 import { idExposeColumn } from '@/shared/pages/utils'
 import { AURORA_REPORT_NAME } from '@/mta_reports_v2/constants'
 import {
+  useAuroraReportBatchDelete,
   useAuroraReportList,
   useNavigateToAuroraReportCreate,
   useNavigateToEscuelaReporte,
@@ -42,6 +43,7 @@ function ReportesAuroraListPage() {
     <ListPage
       columns={columns}
       useList={useAuroraReportList}
+      useBatchDelete={useAuroraReportBatchDelete}
       entityName={AURORA_REPORT_NAME}
       onCreate={navigateToAuroraReportCreate}
       onRowClick={handleRowClick}

@@ -6,7 +6,7 @@ import { AURORA_REPORT_NAME } from '@/mta_reports_v2/constants'
 import { useNavigateToAuroraReportList } from '@/mta_reports_v2/hooks'
 import CreationPage from '@/shared/pages/CreationPage'
 
-const AuroraReportCreatePage = () => {
+const ReporteAuroraCreatePage = () => {
   const navigateToAuroraReportList = useNavigateToAuroraReportList()
 
   return (
@@ -18,7 +18,7 @@ const AuroraReportCreatePage = () => {
   )
 }
 
-export default withAuth(AuroraReportCreatePage, {
+export default withAuth(ReporteAuroraCreatePage, {
   allowedCapabilities: ['manage_admin_users'],
   logoutDestination: 'dashboard',
 })

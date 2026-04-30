@@ -7,6 +7,7 @@ export {
 export {
   useAuroraReportList,
   useAuroraReportCreate,
+  useAuroraReportBatchDelete,
   useNavigateToAuroraReportList,
   useNavigateToAuroraReportCreate,
 } from './auroraReportHooks'
