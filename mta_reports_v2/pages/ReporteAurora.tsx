@@ -204,108 +204,110 @@ const ReporteAurora = () => {
   const isIntroTab = tab === TAB_IDS.INTRO || tab === TAB_IDS.COVER || tab === TAB_IDS.PRUEBAS
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
-      {!isIntroTab && <Sidebar filters={sidebarFilters} onReset={resetFilters} />}
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
+      {/* Tabs */}
+      <Box sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' } }}>
+        <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, minWidth: 'max-content' }}>
+          <Tab value={TAB_IDS.COVER} label="Portada" />
+          <Tab value={TAB_IDS.INTRO} label="Introducción" />
+          <Tab value={TAB_IDS.PRUEBAS} label="Las pruebas" />
+          <Tab value={TAB_IDS.RESUMEN} label="Resumen" />
+          <Tab value={TAB_IDS.DETALLE} label="Contenido y competencia" />
+          <Tab value={TAB_IDS.SEMAFORO} label="Semáforo" />
+          <Tab value={TAB_IDS.SCATTER} label="Resultados por alumno" />
+          <Tab value={TAB_IDS.TABLA} label="Resumen por estudiante" />
+        </Tabs>
+      </Box>
 
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
-        {/* Tabs */}
-        <Box sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' } }}>
-          <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, minWidth: 'max-content' }}>
-            <Tab value={TAB_IDS.COVER} label="Portada" />
-            <Tab value={TAB_IDS.INTRO} label="Introducción" />
-            <Tab value={TAB_IDS.PRUEBAS} label="Las pruebas" />
-            <Tab value={TAB_IDS.RESUMEN} label="Resumen" />
-            <Tab value={TAB_IDS.DETALLE} label="Contenido y competencia" />
-            <Tab value={TAB_IDS.SEMAFORO} label="Semáforo" />
-            <Tab value={TAB_IDS.SCATTER} label="Resultados por alumno" />
-            <Tab value={TAB_IDS.TABLA} label="Resumen por estudiante" />
-          </Tabs>
-        </Box>
+      <Box sx={{ display: 'flex', flex: 1, minHeight: 0 }}>
+        {!isIntroTab && <Sidebar filters={sidebarFilters} onReset={resetFilters} />}
 
-        {/* Header */}
-        {!isIntroTab && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, pt: 2.5, pb: 0.5, bgcolor: 'background.paper' }}>
-            <Typography variant="h5" sx={{ color: C.navy, fontWeight: 800 }}>
-              {schoolName} — {tabLabels[tab]}
-            </Typography>
-            <Logo width={headerLogoSize.w} height={headerLogoSize.h} />
-          </Box>
-        )}
-
-        {/* Filter pills */}
-        {!isIntroTab && (
-          <Stack direction="row" spacing={1} sx={{ px: 3, py: 1.25, bgcolor: 'background.paper', flexWrap: 'wrap' }}>
-            {filterPills.map(p => (
-              <Chip key={p.label} label={p.label} size="medium" sx={{ bgcolor: C.lightBlue, color: C.navy, fontWeight: 600 }} />
-            ))}
-          </Stack>
-        )}
-
-        {/* Content */}
-        <Box sx={{ flex: 1, overflow: 'auto', p: isIntroTab ? 0 : '22px 24px 40px' }}>
-          {tab === TAB_IDS.INTRO && escuelaId !== null && <IntroduccionTab schoolId={escuelaId} initialEditing={editRequested} />}
-          {tab === TAB_IDS.COVER && escuelaId !== null && <PortadaTab />}
-          {tab === TAB_IDS.PRUEBAS && escuelaId !== null && <PruebasTab schoolId={escuelaId} initialEditing={editRequested} />}
-          {!isIntroTab && loading && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
-              <Typography color="text.secondary">Cargando reporte…</Typography>
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
+          {/* Header */}
+          {!isIntroTab && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, pt: 2.5, pb: 0.5, bgcolor: 'background.paper' }}>
+              <Typography variant="h5" sx={{ color: C.navy, fontWeight: 800 }}>
+                {schoolName} — {tabLabels[tab]}
+              </Typography>
+              <Logo width={headerLogoSize.w} height={headerLogoSize.h} />
             </Box>
           )}
-          {!isIntroTab && !loading && error && (
-            <Paper elevation={0} sx={{ bgcolor: '#ffebee', border: '1px solid #f44336', borderRadius: 3, p: 2.5 }}>
-              <Typography color="error">Error al cargar: {error}</Typography>
-            </Paper>
-          )}
-          {!isIntroTab && !loading && !error && (
-            <>
-              {tab === TAB_IDS.RESUMEN && data && <ResumenTab data={data} />}
-              {tab === TAB_IDS.DETALLE && data && <DetalleTab data={data} />}
-              {(tab === TAB_IDS.RESUMEN || tab === TAB_IDS.DETALLE) && !data && toma && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
-                  <Typography color="text.secondary">Sin datos para {materia} · {anio} · {toma}</Typography>
-                </Box>
-              )}
-              {tab === TAB_IDS.SEMAFORO && (
-                <SemaforoTab materia={materia} division={division} toma={toma} getSemaforoBandas={getSemaforoBandas} />
-              )}
-              {tab === TAB_IDS.SCATTER && <ScatterTab points={scatterPoints} />}
-              {tab === TAB_IDS.TABLA && <TablaTab rows={tablaRows} />}
-            </>
-          )}
-        </Box>
 
-        {/* Footer */}
-        {!isIntroTab && (
-          <Box sx={{ textAlign: 'center', py: 1.5, px: 3.5, borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
-            <Typography variant="caption" color="text.secondary">
-              Reportes Aurora · Reporte por Escuela · Universidad Austral – Escuela de Educación
-            </Typography>
+          {/* Filter pills */}
+          {!isIntroTab && (
+            <Stack direction="row" spacing={1} sx={{ px: 3, py: 1.25, bgcolor: 'background.paper', flexWrap: 'wrap' }}>
+              {filterPills.map(p => (
+                <Chip key={p.label} label={p.label} size="medium" sx={{ bgcolor: C.lightBlue, color: C.navy, fontWeight: 600 }} />
+              ))}
+            </Stack>
+          )}
+
+          {/* Content */}
+          <Box sx={{ flex: 1, overflow: 'auto', p: isIntroTab ? 0 : '22px 24px 40px' }}>
+            {tab === TAB_IDS.INTRO && escuelaId !== null && <IntroduccionTab schoolId={escuelaId} initialEditing={editRequested} />}
+            {tab === TAB_IDS.COVER && escuelaId !== null && <PortadaTab />}
+            {tab === TAB_IDS.PRUEBAS && escuelaId !== null && <PruebasTab schoolId={escuelaId} initialEditing={editRequested} />}
+            {!isIntroTab && loading && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
+                <Typography color="text.secondary">Cargando reporte…</Typography>
+              </Box>
+            )}
+            {!isIntroTab && !loading && error && (
+              <Paper elevation={0} sx={{ bgcolor: '#ffebee', border: '1px solid #f44336', borderRadius: 3, p: 2.5 }}>
+                <Typography color="error">Error al cargar: {error}</Typography>
+              </Paper>
+            )}
+            {!isIntroTab && !loading && !error && (
+              <>
+                {tab === TAB_IDS.RESUMEN && data && <ResumenTab data={data} />}
+                {tab === TAB_IDS.DETALLE && data && <DetalleTab data={data} />}
+                {(tab === TAB_IDS.RESUMEN || tab === TAB_IDS.DETALLE) && !data && toma && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
+                    <Typography color="text.secondary">Sin datos para {materia} · {anio} · {toma}</Typography>
+                  </Box>
+                )}
+                {tab === TAB_IDS.SEMAFORO && (
+                  <SemaforoTab materia={materia} division={division} toma={toma} getSemaforoBandas={getSemaforoBandas} />
+                )}
+                {tab === TAB_IDS.SCATTER && <ScatterTab points={scatterPoints} />}
+                {tab === TAB_IDS.TABLA && <TablaTab rows={tablaRows} />}
+              </>
+            )}
           </Box>
-        )}
 
-        {/* Floating tab nav */}
-        <Box
-          sx={{
-            position: 'fixed',
-            bottom: 24,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            display: 'flex',
-            gap: 1,
-            zIndex: theme => theme.zIndex.fab,
-            bgcolor: 'background.paper',
-            borderRadius: 999,
-            boxShadow: 3,
-            px: 0.5,
-            py: 0.5,
-          }}
-        >
-          <IconButton size="medium" onClick={() => goToTab('prev')} disabled={isFirstTab} sx={{ color: C.navy }}>
-            <ChevronLeftIcon />
-          </IconButton>
-          <IconButton size="medium" onClick={() => goToTab('next')} disabled={isLastTab} sx={{ color: C.navy }}>
-            <ChevronRightIcon />
-          </IconButton>
+          {/* Footer */}
+          {!isIntroTab && (
+            <Box sx={{ textAlign: 'center', py: 1.5, px: 3.5, borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
+              <Typography variant="caption" color="text.secondary">
+                Reportes Aurora · Reporte por Escuela · Universidad Austral – Escuela de Educación
+              </Typography>
+            </Box>
+          )}
+
+          {/* Floating tab nav */}
+          <Box
+            sx={{
+              position: 'fixed',
+              bottom: 24,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              gap: 1,
+              zIndex: theme => theme.zIndex.fab,
+              bgcolor: 'background.paper',
+              borderRadius: 999,
+              boxShadow: 3,
+              px: 0.5,
+              py: 0.5,
+            }}
+          >
+            <IconButton size="medium" onClick={() => goToTab('prev')} disabled={isFirstTab} sx={{ color: C.navy }}>
+              <ChevronLeftIcon />
+            </IconButton>
+            <IconButton size="medium" onClick={() => goToTab('next')} disabled={isLastTab} sx={{ color: C.navy }}>
+              <ChevronRightIcon />
+            </IconButton>
+          </Box>
         </Box>
       </Box>
     </Box>
