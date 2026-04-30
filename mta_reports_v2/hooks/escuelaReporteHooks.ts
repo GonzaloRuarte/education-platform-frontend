@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuthResources } from '@/mta_auth/hooks'
 import { axiosGet, axiosPost } from '@/shared/data/axios'
 import { dynamicNavigationHook } from '@/shared/hooks'
-import { I_PaginatedResponse } from '@/shared/data/types'
 import { apiUrl } from '@/config'
 import { ANIO_ORDER } from '@/mta_reports_v2/constants'
 import type {
@@ -18,9 +17,7 @@ import type {
   I_SemaforoBandas,
   I_ScatterPoint,
   I_TablaRow,
-  I_EscuelaListItem,
 } from '@/mta_reports_v2/types'
-import type { T_ListServiceHook } from '@/shared/types'
 
 // ─── Transformation helpers ───────────────────────────────────────────────────
 
@@ -319,40 +316,6 @@ const useEscuelaReporteAurora = (escuelaId: number | null) => {
   return { loading, error, tomas, getMaterias, getAnios, getDivisiones, getReporte, getSemaforoBandas, getScatterPoints, getTablaData }
 }
 
-// ─── School list + cache-bust hooks ──────────────────────────────────────────
-
-const useEscuelaReporteAuroraList = () => {
-  const [data, setData] = useState<I_EscuelaListItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const authResources = useAuthResources()
-
-  useEffect(() => {
-    let alive = true
-    setLoading(true)
-    axiosGet<I_EscuelaListItem[]>({
-      url: apiUrl('/reportes/escuela/'),
-      requestSetup: authResources,
-      options: {},
-    })
-      .then(res => { if (alive) setData(res) })
-      .catch(err => { if (alive) setError(err?.message ?? 'Error al cargar') })
-      .finally(() => { if (alive) setLoading(false) })
-    return () => { alive = false }
-  }, [authResources.accessToken]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  return { data, loading, error }
-}
-
-const useEscuelaReporteAuroraListForPage: T_ListServiceHook<I_PaginatedResponse<I_EscuelaListItem>> = () => {
-  const { data, loading: isLoading } = useEscuelaReporteAuroraList()
-  return {
-    data: data ? { results: data, count: data.length, next: '', previous: '' } : undefined,
-    isLoading,
-    reload: () => {},
-  }
-}
-
 const useBustCacheEscuela = () => {
   const [bustingId, setBustingId] = useState<number | null>(null)
   const authResources = useAuthResources()
@@ -375,13 +338,11 @@ const useBustCacheEscuela = () => {
 }
 
 const useNavigateToEscuelaReporte = dynamicNavigationHook(
-  '/dashboard/reportes_react/escuela/{escuelaId:number}'
+  '/reports/escuela/{escuelaId:number}'
 )
 
 export {
   useEscuelaReporteAurora,
-  useEscuelaReporteAuroraList,
-  useEscuelaReporteAuroraListForPage,
   useBustCacheEscuela,
   useNavigateToEscuelaReporte,
 }

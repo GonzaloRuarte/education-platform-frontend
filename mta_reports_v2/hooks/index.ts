@@ -1,7 +1,12 @@
 export {
   useEscuelaReporteAurora,
-  useEscuelaReporteAuroraList,
-  useEscuelaReporteAuroraListForPage,
   useBustCacheEscuela,
   useNavigateToEscuelaReporte,
 } from './escuelaReporteHooks'
+
+export {
+  useAuroraReportList,
+  useAuroraReportCreate,
+  useNavigateToAuroraReportList,
+  useNavigateToAuroraReportCreate,
+} from './auroraReportHooks'

@@ -2,6 +2,11 @@ import { EntityName } from '@/shared/utils'
 
 const REPORT_NAME = new EntityName({ gender: 'M', plural: 'reportes', singular: 'reporte' })
 const ESCUELA_REPORTE_NAME = new EntityName({ gender: 'F', plural: 'escuelas', singular: 'escuela' })
+const AURORA_REPORT_NAME = new EntityName({
+  gender: 'M',
+  plural: 'reportes Aurora',
+  singular: 'reporte Aurora',
+})
 
 export const COLORS = {
   navy: '#041552',
@@ -40,4 +45,4 @@ export const SPACING = {
   cardInnerPy: 1.8,
 } as const
 
-export { REPORT_NAME, ESCUELA_REPORTE_NAME }
+export { REPORT_NAME, ESCUELA_REPORTE_NAME, AURORA_REPORT_NAME }

@@ -137,12 +137,19 @@ interface I_TablaRow {
   len?: number
 }
 
-interface I_EscuelaListItem {
+interface I_AuroraReportListItem {
   id: number
-  nombre: string
-  meta_id: string
-  tomas: string[]
-  ultima_toma: string | null
+  school: number
+  school_name: string
+  toma: string
+  blob_path: string
+  last_generated_at: string | null
+}
+type T_AuroraReportList = I_PaginatedResponse<I_AuroraReportListItem>
+
+interface I_AuroraReportCreateRequestData {
+  school: number
+  toma: string
 }
 
 export type {
@@ -164,5 +171,7 @@ export type {
   I_SemaforoBandas,
   I_ScatterPoint,
   I_TablaRow,
-  I_EscuelaListItem,
+  I_AuroraReportListItem,
+  T_AuroraReportList,
+  I_AuroraReportCreateRequestData,
 }

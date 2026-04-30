@@ -206,6 +206,10 @@ const pages = {
             path: reportesAuroraEscuelaPath,
             label: 'Reporte por escuela',
           },
+          agregar: {
+            path: '/dashboard/reportes_aurora/agregar',
+            label: 'Agregar reporte Aurora',
+          },
         },
       },
       comisiones: {
