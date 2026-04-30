@@ -13,7 +13,7 @@ function ScatterTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null
   const d = payload[0]?.payload as I_ScatterPoint
   return (
-    <Paper elevation={2} sx={{ p: 1.25, border: '1px solid', borderColor: 'divider' }}>
+    <Paper elevation={2} sx={{ bgcolor: C.white, p: 1.25, border: '1px solid', borderColor: 'divider' }}>
       <Typography variant="caption" sx={{ color: C.navy, fontWeight: 700 }}>Alumno #{d.id}</Typography>
       <Typography variant="caption" sx={{ display: 'block', color: C.tm }}>PDL: {d.pdl}%</Typography>
       <Typography variant="caption" sx={{ display: 'block', color: C.tm }}>Mat: {d.mat}%</Typography>
@@ -43,25 +43,25 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
   }, [points])
 
   return (
-    <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: 2.5 }}>
+    <Paper elevation={0} sx={{ bgcolor: C.white, border: '1px solid', borderColor: 'divider', borderRadius: 5, p: 2.5 }}>
       <Typography sx={{ fontSize: F.lg, color: C.accent, fontWeight: 500, mb: 1.5 }}>
         Resultados por alumno — % PDL vs % Matemática
       </Typography>
       {points.length === 0 ? (
-        <Typography sx={{ color: C.tm }}>Sin datos para los filtros seleccionados</Typography>
+        <Typography sx={{ color: C.navy }}>Sin datos para los filtros seleccionados</Typography>
       ) : (
         <>
           <ResponsiveContainer width="100%" height={chartHeight}>
             <ScatterChart margin={{ top: 16, right: 24, bottom: 36, left: 16 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+              <CartesianGrid strokeDasharray="3 3" stroke={C.gridLight} />
               <XAxis
                 type="number"
                 dataKey="pdl"
                 name="PDL"
                 domain={[0, 100]}
                 tickFormatter={v => `${v}%`}
-                tick={{ fontSize: F.lg, fill: 'grey' }}
-                label={{ value: '% Prácticas del Lenguaje', position: 'insideBottom', offset: -25, fontSize: F.lg, fill: 'black' }}
+                tick={{ fontSize: F.lg, fill: C.textGrey }}
+                label={{ value: '% Prácticas del Lenguaje', position: 'insideBottom', offset: -25, fontSize: F.lg, fill: C.black }}
               />
               <YAxis
                 type="number"
@@ -69,8 +69,8 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
                 name="Mat"
                 domain={[0, 100]}
                 tickFormatter={v => `${v}%`}
-                tick={{ fontSize: F.lg, fill: 'grey' }}
-                label={{ value: '% Matemática', angle: -90, position: 'insideLeft', fontSize: F.lg, fill: 'black' }}
+                tick={{ fontSize: F.lg, fill: C.textGrey }}
+                label={{ value: '% Matemática', angle: -90, position: 'insideLeft', fontSize: F.lg, fill: C.black }}
               />
               <ZAxis type="number"
                 dataKey="mat"

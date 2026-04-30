@@ -4,9 +4,12 @@ import Box from '@mui/material/Box'
 import Image from 'next/image'
 import { Stack, Typography } from '@mui/material'
 import { useEscuelaReporteAurora } from '@/mta_reports_v2/hooks'
+import { COLORS } from '@/mta_reports_v2/constants'
 import Footer from '@/shared/layout/Footer'
 import Logo from '@/shared/components/Logo'
 import { ImageSize } from '@/shared/utils'
+
+const C = COLORS
 
 const metaLogoSize = new ImageSize(350, 100)
 
@@ -23,7 +26,7 @@ const ORDINAL_TOMA_LABELS: Record<string, string> = {
 
 const PortadaTab = () => {
   return (
-    <Box sx={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden', flexDirection: 'column' }}>
+    <Box sx={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden', flexDirection: 'column', bgcolor: C.white }}>
       <Box height="auto" flex={1} display="flex" minWidth={0}>
         <Box flex={1} position="relative" minWidth={0}>
           <Box
@@ -46,7 +49,7 @@ const PortadaTab = () => {
             <Logo width={metaLogoSize.w} height={metaLogoSize.h} variant='color' />
             <Typography
               sx={{
-                color: '#0040a3',
+                color: C.royal,
                 fontSize: 'clamp(48px, 6vw, 72px)',
                 fontWeight: 900,
                 textAlign: 'left',
@@ -57,7 +60,7 @@ const PortadaTab = () => {
             </Typography>
             <Typography
               sx={{
-                color: '#0040a3',
+                color: C.royal,
                 fontSize: 'clamp(32px, 4vw, 56px)',
                 fontWeight: 700,
                 textAlign: 'left',

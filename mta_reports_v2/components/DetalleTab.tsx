@@ -3,15 +3,15 @@
 import { useState } from 'react'
 import { Box, Stack, Typography, FormControl, InputLabel, Select, MenuItem, Grid2, Tooltip } from '@mui/material'
 import Paper from '@mui/material/Paper'
-import { BP, HorizontalBarChart, Leg, ChartCard } from '@/mta_reports_v2/components/EscuelaReporteCharts'
+import { BP, HorizontalBarChart, Leg, ChartCard } from '@/mta_reports_v2/components/ReporteAuroraCharts'
 import { COLORS, FONT_SIZES } from '@/mta_reports_v2/constants'
-import type { I_ReporteAuroraData } from '@/mta_reports_v2/types'
+import type { I_DetalleTabData } from '@/mta_reports_v2/types'
 
 const C = COLORS
 const F = FONT_SIZES
 
-function DetalleTab({ data }: { data: I_ReporteAuroraData }) {
-  const d = data.detalle
+function DetalleTab({ data }: { data: I_DetalleTabData }) {
+  const d = data
   const isLenguaje = (d.lenComp?.length ?? 0) > 0
   const compItems = isLenguaje ? (d.lenComp ?? []) : d.competencia
   const contItems = isLenguaje ? (d.lenCont ?? []) : d.contenido
@@ -91,8 +91,8 @@ function DetalleTab({ data }: { data: I_ReporteAuroraData }) {
                 </Select>
               </FormControl>
             </Stack>
-            <Paper elevation={0} sx={{ bgcolor: C.navy, borderRadius: 3, p: 2.5, mt: 2, textAlign: 'center' }}>
-              <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 22 }}>
+            <Paper elevation={0} sx={{ bgcolor: C.navy, borderRadius: 5, p: 2.5, mt: 2, textAlign: 'center' }}>
+              <Typography sx={{ color: C.white, fontWeight: 700, fontSize: 22 }}>
                 {selectedStudent ? `${selectedStudent.score}%` : 'Seleccione el ID del alumno'}
               </Typography>
             </Paper>

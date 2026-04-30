@@ -16,12 +16,17 @@ import { IntroduccionTab } from '@/mta_reports_v2/components/IntroduccionTab'
 import { PortadaTab } from '@/mta_reports_v2/components/PortadaTab'
 import { PruebasTab } from '@/mta_reports_v2/components/PruebasTab'
 import { ResumenTab } from '@/mta_reports_v2/components/ResumenTab'
+import { calcResumen } from '@/mta_reports_v2/components/calc/ResumenTab'
 import { DetalleTab } from '@/mta_reports_v2/components/DetalleTab'
+import { calcDetalle } from '@/mta_reports_v2/components/calc/DetalleTab'
 import { SemaforoTab } from '@/mta_reports_v2/components/SemaforoTab'
+import { calcSemaforo } from '@/mta_reports_v2/components/calc/SemaforoTab'
 import { ScatterTab } from '@/mta_reports_v2/components/ScatterTab'
+import { calcScatter } from '@/mta_reports_v2/components/calc/ScatterTab'
 import { TablaTab } from '@/mta_reports_v2/components/TablaTab'
-import { Sidebar } from '@/mta_reports_v2/components/EscuelaReporteSidebar'
-import type { FilterDef } from '@/mta_reports_v2/components/EscuelaReporteSidebar'
+import { calcTabla } from '@/mta_reports_v2/components/calc/TablaTab'
+import { Sidebar } from '@/mta_reports_v2/components/ReporteAuroraSidebar'
+import type { FilterDef } from '@/mta_reports_v2/components/ReporteAuroraSidebar'
 
 const C = COLORS
 const TAB_IDS = { INTRO: 'intro', COVER: 'cover', PRUEBAS: 'pruebas', RESUMEN: 'resumen', DETALLE: 'detalle', SEMAFORO: 'semaforo', SCATTER: 'scatter', TABLA: 'tabla' } as const
@@ -52,7 +57,7 @@ const ReporteAurora = () => {
   const [anio, setAnio] = useState('3ro')
   const [division, setDivision] = useState('Todas')
 
-  const { loading, error, tomas, getMaterias, getAnios, getDivisiones, getReporte, getSemaforoBandas, getScatterPoints, getTablaData } =
+  const { rawData, loading, error, tomas, getMaterias, getAnios, getDivisiones } =
     useEscuelaReporteAurora(escuelaId)
 
   const materias = getMaterias(toma)
@@ -89,18 +94,27 @@ const ReporteAurora = () => {
     if (divisiones.length > 0 && !divisiones.includes(division)) setDivision(divisiones[0])
   }, [divisiones, division])
 
-  const data = toma ? getReporte({ materia, anio, division, toma }) : null
-  const schoolName = data?.colegio ?? (loading ? 'Cargando…' : 'Escuela')
-
+  const resumenData = useMemo(
+    () => (rawData && toma ? calcResumen(rawData, { materia, anio, division, toma }) : null),
+    [rawData, materia, anio, division, toma],
+  )
+  const detalleData = useMemo(
+    () => (rawData && toma ? calcDetalle(rawData, { materia, anio, division, toma }) : null),
+    [rawData, materia, anio, division, toma],
+  )
+  const semaforoBandas = useMemo(
+    () => (rawData && toma ? calcSemaforo(rawData, materia, division, toma) : {}),
+    [rawData, materia, division, toma],
+  )
   const scatterPoints = useMemo(
-    () => (toma ? getScatterPoints(anio, division, toma) : []),
-    [anio, division, toma, getScatterPoints],
+    () => (rawData && toma ? calcScatter(rawData, anio, division, toma) : []),
+    [rawData, anio, division, toma],
   )
-
   const tablaRows = useMemo(
-    () => (toma ? getTablaData(anio, division, toma) : []),
-    [anio, division, toma, getTablaData],
+    () => (rawData && toma ? calcTabla(rawData, anio, division, toma) : []),
+    [rawData, anio, division, toma],
   )
+  const schoolName = rawData?.colegio ?? (loading ? 'Cargando…' : 'Escuela')
 
   const tomaFilter = useMemo(() => ({ label: 'Toma', value: toma, opts: tomas.length > 0 ? tomas : [toma].filter(Boolean), set: setToma }), [toma, tomas])
   const divFilter = useMemo(() => ({ label: 'División', value: division, opts: divisiones, set: setDivision }), [division, divisiones])
@@ -204,9 +218,9 @@ const ReporteAurora = () => {
   const isIntroTab = tab === TAB_IDS.INTRO || tab === TAB_IDS.COVER || tab === TAB_IDS.PRUEBAS
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'rgb(230, 230, 230)' }}>
       {/* Tabs */}
-      <Box sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' } }}>
+      <Box sx={{ bgcolor: 'white', borderBottom: 1, borderColor: 'divider', overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' } }}>
         <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, minWidth: 'max-content' }}>
           <Tab value={TAB_IDS.COVER} label="Portada" />
           <Tab value={TAB_IDS.INTRO} label="Introducción" />
@@ -223,9 +237,47 @@ const ReporteAurora = () => {
         {!isIntroTab && <Sidebar filters={sidebarFilters} onReset={resetFilters} />}
 
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
+          {/* Content */}
+          <Box sx={{ flex: 1, overflow: 'auto', p: isIntroTab ? 0 : '22px 24px 40px' }}>
+            {tab === TAB_IDS.INTRO && escuelaId !== null && <IntroduccionTab schoolId={escuelaId} initialEditing={editRequested} />}
+            {tab === TAB_IDS.COVER && escuelaId !== null && <PortadaTab />}
+            {tab === TAB_IDS.PRUEBAS && escuelaId !== null && <PruebasTab schoolId={escuelaId} initialEditing={editRequested} />}
+            {!isIntroTab && loading && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
+                <Typography sx={{ color: C.navy }}>Cargando reporte…</Typography>
+              </Box>
+            )}
+            {!isIntroTab && !loading && error && (
+              <Paper elevation={0} sx={{ bgcolor: '#ffebee', border: '1px solid #f44336', borderRadius: 5, p: 2.5 }}>
+                <Typography color="error">Error al cargar: {error}</Typography>
+              </Paper>
+            )}
+            {!isIntroTab && !loading && !error && (
+              <>
+                {tab === TAB_IDS.RESUMEN && resumenData && <ResumenTab data={resumenData} />}
+                {tab === TAB_IDS.DETALLE && detalleData && <DetalleTab data={detalleData} />}
+                {tab === TAB_IDS.RESUMEN && !resumenData && toma && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
+                    <Typography sx={{ color: C.navy }}>Sin datos para {materia} · {anio} · {toma}</Typography>
+                  </Box>
+                )}
+                {tab === TAB_IDS.DETALLE && !detalleData && toma && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
+                    <Typography sx={{ color: C.navy }}>Sin datos para {materia} · {anio} · {toma}</Typography>
+                  </Box>
+                )}
+                {tab === TAB_IDS.SEMAFORO && (
+                  <SemaforoTab materia={materia} bandasMap={semaforoBandas} />
+                )}
+                {tab === TAB_IDS.SCATTER && <ScatterTab points={scatterPoints} />}
+                {tab === TAB_IDS.TABLA && <TablaTab rows={tablaRows} />}
+              </>
+            )}
+          </Box>
+
           {/* Header */}
           {!isIntroTab && (
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, pt: 2.5, pb: 0.5, bgcolor: 'background.paper' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, pt: 2.5, pb: 0.5, bgcolor: 'white' }}>
               <Typography variant="h5" sx={{ color: C.navy, fontWeight: 800 }}>
                 {schoolName} — {tabLabels[tab]}
               </Typography>
@@ -235,50 +287,17 @@ const ReporteAurora = () => {
 
           {/* Filter pills */}
           {!isIntroTab && (
-            <Stack direction="row" spacing={1} sx={{ px: 3, py: 1.25, bgcolor: 'background.paper', flexWrap: 'wrap' }}>
+            <Stack direction="row" spacing={1} sx={{ px: 3, py: 1.25, bgcolor: 'white', flexWrap: 'wrap' }}>
               {filterPills.map(p => (
                 <Chip key={p.label} label={p.label} size="medium" sx={{ bgcolor: C.lightBlue, color: C.navy, fontWeight: 600 }} />
               ))}
             </Stack>
           )}
 
-          {/* Content */}
-          <Box sx={{ flex: 1, overflow: 'auto', p: isIntroTab ? 0 : '22px 24px 40px' }}>
-            {tab === TAB_IDS.INTRO && escuelaId !== null && <IntroduccionTab schoolId={escuelaId} initialEditing={editRequested} />}
-            {tab === TAB_IDS.COVER && escuelaId !== null && <PortadaTab />}
-            {tab === TAB_IDS.PRUEBAS && escuelaId !== null && <PruebasTab schoolId={escuelaId} initialEditing={editRequested} />}
-            {!isIntroTab && loading && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
-                <Typography color="text.secondary">Cargando reporte…</Typography>
-              </Box>
-            )}
-            {!isIntroTab && !loading && error && (
-              <Paper elevation={0} sx={{ bgcolor: '#ffebee', border: '1px solid #f44336', borderRadius: 3, p: 2.5 }}>
-                <Typography color="error">Error al cargar: {error}</Typography>
-              </Paper>
-            )}
-            {!isIntroTab && !loading && !error && (
-              <>
-                {tab === TAB_IDS.RESUMEN && data && <ResumenTab data={data} />}
-                {tab === TAB_IDS.DETALLE && data && <DetalleTab data={data} />}
-                {(tab === TAB_IDS.RESUMEN || tab === TAB_IDS.DETALLE) && !data && toma && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
-                    <Typography color="text.secondary">Sin datos para {materia} · {anio} · {toma}</Typography>
-                  </Box>
-                )}
-                {tab === TAB_IDS.SEMAFORO && (
-                  <SemaforoTab materia={materia} division={division} toma={toma} getSemaforoBandas={getSemaforoBandas} />
-                )}
-                {tab === TAB_IDS.SCATTER && <ScatterTab points={scatterPoints} />}
-                {tab === TAB_IDS.TABLA && <TablaTab rows={tablaRows} />}
-              </>
-            )}
-          </Box>
-
           {/* Footer */}
           {!isIntroTab && (
-            <Box sx={{ textAlign: 'center', py: 1.5, px: 3.5, borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
-              <Typography variant="caption" color="text.secondary">
+            <Box sx={{ textAlign: 'center', py: 1.5, px: 3.5, borderTop: 1, borderColor: 'divider', bgcolor: 'white' }}>
+              <Typography variant="caption" sx={{ color: C.navy }}>
                 Reportes Aurora · Reporte por Escuela · Universidad Austral – Escuela de Educación
               </Typography>
             </Box>
@@ -294,7 +313,7 @@ const ReporteAurora = () => {
               display: 'flex',
               gap: 1,
               zIndex: theme => theme.zIndex.fab,
-              bgcolor: 'background.paper',
+              bgcolor: 'white',
               borderRadius: 999,
               boxShadow: 3,
               px: 0.5,

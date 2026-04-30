@@ -11,6 +11,7 @@ const AURORA_REPORT_NAME = new EntityName({
 export const COLORS = {
   navy: '#041552',
   blue: '#0b2280',
+  royal: '#0040a3',
   accent: '#00a6e6',
   barFill: '#1a3080',
   barLight: '#4a7cc7',
@@ -18,6 +19,21 @@ export const COLORS = {
   lightBlue: '#C3D9FF',
   boxLight: '#7ecef4',
   tm: '#7a8399',
+  white: '#ffffff',
+  black: '#000000',
+  textGrey: 'grey',
+  darkGrey: '#555555',
+  mutedGrey: '#999999',
+  bgGrey: 'rgb(230, 230, 230)',
+  gridLight: '#eeeeee',
+  gridLighter: '#eaeaea',
+  refRed: '#e84c4c',
+  whiteAlpha92: 'rgba(255, 255, 255, 0.92)',
+  whiteAlpha85: 'rgba(255, 255, 255, 0.85)',
+  navyAlpha12: 'rgba(4, 21, 82, 0.12)',
+  navyAlpha15: 'rgba(4, 21, 82, 0.15)',
+  lightBlueAlpha22: 'rgba(195, 217, 255, 0.22)',
+  blackAlpha15: 'rgba(0, 0, 0, 0.15)',
 } as const
 
 export const ANIO_ORDER = ['3ro', '6to', '9no', '12mo'] as const

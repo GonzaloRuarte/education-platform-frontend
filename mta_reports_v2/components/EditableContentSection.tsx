@@ -195,7 +195,7 @@ const EditableContentSection = <F extends string,>({
       sx={{
         position: 'relative',
         minHeight: 'calc(100vh - 220px)',
-        bgcolor: 'common.white',
+        bgcolor: C.bgGrey,
         overflow: 'hidden',
         px: { xs: 3, md: 8 },
         py: { xs: 4, md: 5 },
@@ -245,8 +245,8 @@ const EditableContentSection = <F extends string,>({
           left: 0;
           right: 0;
           z-index: 2;
-          border: 1px solid rgba(4, 21, 82, 0.12);
-          background: rgba(195, 217, 255, 0.22);
+          border: 1px solid ${C.navyAlpha12};
+          background: ${C.lightBlueAlpha22};
           border-radius: 18px;
           padding: 10px 12px;
           opacity: 0;

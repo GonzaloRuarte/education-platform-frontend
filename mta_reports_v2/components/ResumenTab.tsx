@@ -1,10 +1,10 @@
 'use client'
 
 import { Stack, Box } from '@mui/material'
-import { KPICard, AllSchoolsBarChart, ChartCard } from '@/mta_reports_v2/components/EscuelaReporteCharts'
-import type { I_ReporteAuroraData } from '@/mta_reports_v2/types'
+import { KPICard, AllSchoolsBarChart, ChartCard } from '@/mta_reports_v2/components/ReporteAuroraCharts'
+import type { I_ResumenTabData } from '@/mta_reports_v2/types'
 
-function ResumenTab({ data }: { data: I_ReporteAuroraData }) {
+function ResumenTab({ data }: { data: I_ResumenTabData }) {
   const g = data.general
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>

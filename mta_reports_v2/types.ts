@@ -51,8 +51,7 @@ interface I_BoxplotAurora {
   av: number
 }
 
-interface I_ReporteAuroraData {
-  colegio: string
+interface I_ResumenTabData {
   general: {
     muestra: { mi: number; todos: number }
     pct40: { mi: number; todos: number }
@@ -63,17 +62,18 @@ interface I_ReporteAuroraData {
     bars: Array<{ id: string; p: number }>
     miId: string
   }
-  detalle: {
-    contenido: I_ItemAurora[]
-    competencia: I_ItemAurora[]
-    boxplotMi: I_BoxplotAurora
-    boxplotTodos: I_BoxplotAurora
-    lenComp?: I_ItemAurora[]
-    lenCont?: I_ItemAurora[]
-    boxplotMiLenguaje?: I_BoxplotAurora
-    boxplotTodosLenguaje?: I_BoxplotAurora
-    estudiantes: Array<{ id: number; score: number }>
-  }
+}
+
+interface I_DetalleTabData {
+  contenido: I_ItemAurora[]
+  competencia: I_ItemAurora[]
+  boxplotMi: I_BoxplotAurora
+  boxplotTodos: I_BoxplotAurora
+  lenComp?: I_ItemAurora[]
+  lenCont?: I_ItemAurora[]
+  boxplotMiLenguaje?: I_BoxplotAurora
+  boxplotTodosLenguaje?: I_BoxplotAurora
+  estudiantes: Array<{ id: number; score: number }>
 }
 
 // ─── Raw backend response types ───────────────────────────────────────────────
@@ -90,14 +90,6 @@ interface I_RawTodos {
   por_pregunta: Record<string, { n_correctas: number; n_total: number }>
   puntajes: number[]
   por_escuela: Array<{ id: string; pct: number; n: number }>
-}
-
-interface I_RawReporteAurora {
-  colegio: string
-  colegio_meta_id: string
-  preguntas: I_RawPregunta[]
-  estudiantes_mi: Array<Record<string, boolean>>
-  todos: I_RawTodos
 }
 
 interface I_RawComboDato {
@@ -160,12 +152,12 @@ export type {
   I_ReportUpdateRequestData,
   T_ReportList,
   I_FiltrosAurora,
-  I_ReporteAuroraData,
+  I_ResumenTabData,
+  I_DetalleTabData,
   I_ItemAurora,
   I_BoxplotAurora,
   I_RawPregunta,
   I_RawTodos,
-  I_RawReporteAurora,
   I_RawComboDato,
   I_RawEscuelaDatos,
   I_SemaforoBandas,

@@ -2,7 +2,6 @@
 
 import { Box } from '@mui/material'
 import { EditableContentSection } from '@/mta_reports_v2/components/EditableContentSection'
-import LogoAustral from '@/shared/components/LogoAustral'
 
 interface IntroduccionTabProps {
   schoolId: number
@@ -27,7 +26,14 @@ const fields = {
 }
 
 const IntroduccionTab = ({ schoolId, initialEditing }: IntroduccionTabProps) => (
-  <>
+  <Box
+    sx={{
+      '& img[alt="Universidad Austral"]': {
+        filter:
+          'brightness(0) saturate(100%) invert(13%) sepia(91%) saturate(3500%) hue-rotate(228deg) brightness(85%) contrast(105%)',
+      },
+    }}
+  >
     <EditableContentSection
       schoolId={schoolId}
       diapositivaId={1}
@@ -43,20 +49,7 @@ const IntroduccionTab = ({ schoolId, initialEditing }: IntroduccionTabProps) => 
         </Box>
       )}
     </EditableContentSection>
-    <Box
-      sx={{
-        position: 'fixed',
-        bottom: 16,
-        right: 16,
-        zIndex: 9999,
-        pointerEvents: 'none',
-        filter:
-          'brightness(0) saturate(100%) invert(13%) sepia(91%) saturate(3500%) hue-rotate(228deg) brightness(85%) contrast(105%)',
-      }}
-    >
-      <LogoAustral width={440} height={80} />
-    </Box>
-  </>
+  </Box>
 )
 
 export { IntroduccionTab }
