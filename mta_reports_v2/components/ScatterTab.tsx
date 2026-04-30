@@ -43,7 +43,7 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
   }, [points])
 
   return (
-    <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2.5 }}>
+    <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: 2.5 }}>
       <Typography sx={{ fontSize: F.lg, color: C.accent, fontWeight: 500, mb: 1.5 }}>
         Resultados por alumno — % PDL vs % Matemática
       </Typography>

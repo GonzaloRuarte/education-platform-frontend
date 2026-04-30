@@ -96,7 +96,7 @@ const EditableContentSection = <F extends string,>({
 
     setIsLoading(true)
     axiosGet<Record<F, string>>({
-      url: apiUrl(`/reportes/escuela/${schoolId}/diapositiva/${diapositivaId}/`),
+      url: apiUrl(`/reportes-aurora/escuela/${schoolId}/diapositiva/${diapositivaId}/`),
       requestSetup: authResources,
       options: {},
     })
@@ -141,7 +141,7 @@ const EditableContentSection = <F extends string,>({
     try {
       setIsSaving(true)
       const saved = await axiosPatch<Record<F, string>, Record<F, string>>({
-        url: apiUrl(`/reportes/escuela/${schoolId}/diapositiva/${diapositivaId}/`),
+        url: apiUrl(`/reportes-aurora/escuela/${schoolId}/diapositiva/${diapositivaId}/`),
         requestSetup: authResources,
         options: {},
         data: nextContent,
@@ -247,7 +247,7 @@ const EditableContentSection = <F extends string,>({
           z-index: 2;
           border: 1px solid rgba(4, 21, 82, 0.12);
           background: rgba(195, 217, 255, 0.22);
-          border-radius: 14px;
+          border-radius: 18px;
           padding: 10px 12px;
           opacity: 0;
           pointer-events: none;

@@ -165,7 +165,7 @@ const useEscuelaReporteAurora = (escuelaId: number | null) => {
     setLoading(true)
     setError(null)
     axiosGet<I_RawEscuelaDatos>({
-      url: apiUrl(`/reportes/escuela/${escuelaId}/`),
+      url: apiUrl(`/reportes-aurora/escuela/${escuelaId}/`),
       requestSetup: authResources,
       options: {},
     })
@@ -324,7 +324,7 @@ const useBustCacheEscuela = () => {
     setBustingId(schoolId)
     try {
       await axiosPost<Record<string, never>, { ok: boolean }>({
-        url: apiUrl(`/reportes/escuela/${schoolId}/bust-cache/`),
+        url: apiUrl(`/reportes-aurora/escuela/${schoolId}/bust-cache/`),
         requestSetup: authResources,
         data: {},
         options: {},

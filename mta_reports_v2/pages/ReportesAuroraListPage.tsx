@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@mui/material'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { useHasCapabilities } from '@/mta_auth/hooks'
@@ -22,7 +21,6 @@ const baseColumns: Array<GridColDef<I_AuroraReportListItem>> = [
 ]
 
 function ReportesAuroraListPage() {
-  const router = useRouter()
   const navigateToAuroraReportCreate = useNavigateToAuroraReportCreate()
   const canEdit = useHasCapabilities(['manage_reports'])
 
@@ -44,11 +42,11 @@ function ReportesAuroraListPage() {
         headerAlign: 'center',
         renderCell: ({ row }) => (
           <Button
-            size="small"
-            variant="outlined"
+            size="medium"
+            variant="contained"
             onClick={(e) => {
               e.stopPropagation()
-              router.push(`/reports/escuela/${row.school}?edit=1`)
+              window.open(`/reports/escuela/${row.school}?edit=1`, '_blank')
             }}
           >
             Editar
@@ -56,7 +54,7 @@ function ReportesAuroraListPage() {
         ),
       },
     ]
-  }, [canEdit, router])
+  }, [canEdit])
 
   return (
     <ListPage

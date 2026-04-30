@@ -17,7 +17,7 @@ function TablaTab({ rows }: { rows: I_TablaRow[] }) {
   }
 
   return (
-    <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
+    <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, overflow: 'hidden' }}>
       <Box sx={{ px: 2.5, pt: 2, pb: 1 }}>
         <Typography sx={{ fontSize: F.lg, color: C.accent, fontWeight: 500 }}>
           Resumen de respuestas correctas por alumno

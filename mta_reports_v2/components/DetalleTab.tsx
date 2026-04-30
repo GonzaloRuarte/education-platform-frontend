@@ -91,7 +91,7 @@ function DetalleTab({ data }: { data: I_ReporteAuroraData }) {
                 </Select>
               </FormControl>
             </Stack>
-            <Paper elevation={0} sx={{ bgcolor: C.navy, borderRadius: 2, p: 2.5, mt: 2, textAlign: 'center' }}>
+            <Paper elevation={0} sx={{ bgcolor: C.navy, borderRadius: 3, p: 2.5, mt: 2, textAlign: 'center' }}>
               <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 22 }}>
                 {selectedStudent ? `${selectedStudent.score}%` : 'Seleccione el ID del alumno'}
               </Typography>

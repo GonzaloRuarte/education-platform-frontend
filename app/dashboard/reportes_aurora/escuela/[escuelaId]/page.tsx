@@ -1,1 +1,1 @@
-export { default } from '@/mta_reports_v2/pages/ReporteAuroraEscuelaPage'
+export { default } from '@/mta_reports_v2/pages/ReporteAurora'

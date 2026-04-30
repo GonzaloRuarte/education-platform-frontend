@@ -21,7 +21,7 @@ function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => vo
   const selectSx = {
     bgcolor: 'white',
     fontSize: 13,
-    borderRadius: 1,
+    borderRadius: 2,
     '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
     '& .MuiSelect-select': { py: '8px', px: '12px' },
   }

@@ -37,7 +37,7 @@ function NivelRow({ nivel, bandas, nivelKey }: { nivel: SemaforoNivel; bandas: I
   const pct = bandas && bandas.total > 0 ? Math.round((count / bandas.total) * 100) : 0
 
   return (
-    <Box component="article" sx={{ bgcolor: color, borderRadius: 1.5, p: 2, mb: 1.5 }}>
+    <Box component="article" sx={{ bgcolor: color, borderRadius: 2.5, p: 2, mb: 1.5 }}>
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
         <Typography sx={{ color: 'white', fontWeight: 800, fontSize: F.lg, minWidth: 90 }}>
           {nivel.rango}
@@ -88,7 +88,7 @@ function SemaforoTab({
       <Tabs
         value={anio}
         onChange={(_, v) => setAnio(v)}
-        sx={{ mb: 2, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}
+        sx={{ mb: 2, bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}
       >
         {ANIO_ORDER.map(a => (
           <Tab key={a} value={a} label={ANIO_LABELS[a]} />

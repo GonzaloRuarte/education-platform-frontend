@@ -5,7 +5,7 @@ import { batchDeletionHook, creationHook, listHook, navigationHook } from '@/sha
 import { I_CreationCommonResponse } from '@/shared/types'
 import type { I_AuroraReportCreateRequestData, T_AuroraReportList } from '@/mta_reports_v2/types'
 
-const AURORA_REPORTS_PATH = '/aurora-reports'
+const AURORA_REPORTS_PATH = '/reportes-aurora'
 
 const useAuroraReportList = listHook<T_AuroraReportList>(AURORA_REPORTS_PATH, axiosGet, useAuthResources)
 const useAuroraReportCreate = creationHook<I_AuroraReportCreateRequestData, I_CreationCommonResponse>(

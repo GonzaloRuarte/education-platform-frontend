@@ -155,17 +155,17 @@ interface KPICardProps {
 function KPICard({ title, subtitle, mi, todos, suffix = '%' }: KPICardProps) {
   const fmt = (v: number | string) => typeof v === 'number' ? `${v}${suffix}` : v
   return (
-    <Box component="article" sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, flex: 1, minWidth: 160, display: 'flex', flexDirection: 'column', p: S.cardPadding }}>
+    <Box component="article" sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, flex: 1, minWidth: 160, display: 'flex', flexDirection: 'column', p: S.cardPadding }}>
       <Box sx={{ mb: 1.5 }}>
         <Typography variant="subtitle2" sx={{ color: C.navy, fontWeight: 700, fontSize: F.lg }}>{title}</Typography>
         <Typography variant="caption" sx={{ color: C.tm, fontSize: F.md }}>{subtitle}</Typography>
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, flex: 1 }}>
-        <Box sx={{ bgcolor: C.navy, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: S.cardInnerPx, py: S.cardInnerPy, borderRadius: 1.5 }}>
+        <Box sx={{ bgcolor: C.navy, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: S.cardInnerPx, py: S.cardInnerPy, borderRadius: 2.5 }}>
           <Typography sx={{ color: 'white', fontSize: F.md }}>Mi Colegio</Typography>
           <Typography sx={{ color: 'white', fontWeight: 800, fontSize: F.xl }}>{fmt(mi)}</Typography>
         </Box>
-        <Box sx={{ bgcolor: C.lightBlue, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: S.cardInnerPx, py: S.cardInnerPy, borderRadius: 1.5 }}>
+        <Box sx={{ bgcolor: C.lightBlue, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: S.cardInnerPx, py: S.cardInnerPy, borderRadius: 2.5 }}>
           <Typography sx={{ color: C.navy, fontSize: F.md }}>Todos los colegios</Typography>
           <Typography sx={{ color: C.navy, fontWeight: 800, fontSize: F.xl }}>{fmt(todos)}</Typography>
         </Box>
@@ -182,7 +182,7 @@ function ChartCard({ num, title, subtitle, legend, children }: {
   children: React.ReactNode
 }) {
   return (
-    <Box component="article" sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: S.cardPaddingLarge }}>
+    <Box component="article" sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: S.cardPaddingLarge }}>
       <Typography sx={{ fontSize: F.lg, color: C.accent, fontWeight: 500, mb: 0.25 }}>{num}. {title}</Typography>
       {subtitle && <Typography variant="subtitle1" sx={{ fontWeight: 600, color: C.navy, mb: 0.75, fontSize: F.lg }}>{subtitle}</Typography>}
       {legend && <Box sx={{ mb: 1 }}>{legend}</Box>}

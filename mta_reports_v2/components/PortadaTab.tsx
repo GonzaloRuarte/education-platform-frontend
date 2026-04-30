@@ -19,14 +19,7 @@ const ORDINAL_TOMA_LABELS: Record<string, string> = {
   '4': 'Cuarta Toma',
 }
 
-const PortadaTab = ({ schoolId }: PortadaTabProps) => {
-  const { tomas } = useEscuelaReporteAurora(schoolId)
-  const latestToma = tomas[tomas.length - 1]
-  const fallbackYear = String(new Date().getFullYear())
-  const [tomaYear, ord] = latestToma?.split('-') ?? []
-  const titleText = (ord && ORDINAL_TOMA_LABELS[ord]) || 'Toma'
-  const year = tomaYear ?? fallbackYear
-
+const PortadaTab = () => {
   return (
     <LogInPageLayoutBoy >
       <Stack alignItems="left" spacing={4} sx={{ px: 4 }}>

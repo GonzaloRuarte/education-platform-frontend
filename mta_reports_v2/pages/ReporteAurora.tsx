@@ -40,7 +40,7 @@ const TAB_ORDER: Array<TabId> = [
   TAB_IDS.TABLA,
 ]
 
-const ReporteAuroraEscuelaPage = () => {
+const ReporteAurora = () => {
   const params = useParams<{ escuelaId: string }>()
   const searchParams = useSearchParams()
   const escuelaId = params?.escuelaId ? Number(params.escuelaId) : null
@@ -208,25 +208,6 @@ const ReporteAuroraEscuelaPage = () => {
       {!isIntroTab && <Sidebar filters={sidebarFilters} onReset={resetFilters} />}
 
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        {/* Header */}
-        {!isIntroTab && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, pt: 2.5, pb: 0.5, bgcolor: 'background.paper' }}>
-            <Typography variant="h5" sx={{ color: C.navy, fontWeight: 800 }}>
-              {schoolName} — {tabLabels[tab]}
-            </Typography>
-            <Logo width={headerLogoSize.w} height={headerLogoSize.h} />
-          </Box>
-        )}
-
-        {/* Filter pills */}
-        {!isIntroTab && (
-          <Stack direction="row" spacing={1} sx={{ px: 3, py: 1.25, bgcolor: 'background.paper', flexWrap: 'wrap' }}>
-            {filterPills.map(p => (
-              <Chip key={p.label} label={p.label} size="medium" sx={{ bgcolor: C.lightBlue, color: C.navy, fontWeight: 600 }} />
-            ))}
-          </Stack>
-        )}
-
         {/* Tabs */}
         <Box sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
           <IconButton size="small" onClick={() => scrollTabs('left')} sx={{ color: C.navy, flexShrink: 0 }}>
@@ -249,10 +230,29 @@ const ReporteAuroraEscuelaPage = () => {
           </IconButton>
         </Box>
 
+        {/* Header */}
+        {!isIntroTab && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, pt: 2.5, pb: 0.5, bgcolor: 'background.paper' }}>
+            <Typography variant="h5" sx={{ color: C.navy, fontWeight: 800 }}>
+              {schoolName} — {tabLabels[tab]}
+            </Typography>
+            <Logo width={headerLogoSize.w} height={headerLogoSize.h} />
+          </Box>
+        )}
+
+        {/* Filter pills */}
+        {!isIntroTab && (
+          <Stack direction="row" spacing={1} sx={{ px: 3, py: 1.25, bgcolor: 'background.paper', flexWrap: 'wrap' }}>
+            {filterPills.map(p => (
+              <Chip key={p.label} label={p.label} size="medium" sx={{ bgcolor: C.lightBlue, color: C.navy, fontWeight: 600 }} />
+            ))}
+          </Stack>
+        )}
+
         {/* Content */}
         <Box sx={{ flex: 1, overflow: 'auto', p: isIntroTab ? 0 : '22px 24px 40px' }}>
           {tab === TAB_IDS.INTRO && escuelaId !== null && <IntroduccionTab schoolId={escuelaId} initialEditing={editRequested} />}
-          {tab === TAB_IDS.COVER && escuelaId !== null && <PortadaTab schoolId={escuelaId} />}
+          {tab === TAB_IDS.COVER && escuelaId !== null && <PortadaTab />}
           {tab === TAB_IDS.PRUEBAS && escuelaId !== null && <PruebasTab schoolId={escuelaId} initialEditing={editRequested} />}
           {!isIntroTab && loading && (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
@@ -260,7 +260,7 @@ const ReporteAuroraEscuelaPage = () => {
             </Box>
           )}
           {!isIntroTab && !loading && error && (
-            <Paper elevation={0} sx={{ bgcolor: '#ffebee', border: '1px solid #f44336', borderRadius: 2, p: 2.5 }}>
+            <Paper elevation={0} sx={{ bgcolor: '#ffebee', border: '1px solid #f44336', borderRadius: 3, p: 2.5 }}>
               <Typography color="error">Error al cargar: {error}</Typography>
             </Paper>
           )}
@@ -295,7 +295,7 @@ const ReporteAuroraEscuelaPage = () => {
   )
 }
 
-export default withAuth(ReporteAuroraEscuelaPage, {
+export default withAuth(ReporteAurora, {
   allowedCapabilities: ['manage_admin_users'],
   logoutDestination: 'dashboard',
 })
