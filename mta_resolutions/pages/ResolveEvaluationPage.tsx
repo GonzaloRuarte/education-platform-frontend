@@ -5,16 +5,15 @@ import ResolutionHeader from '@/mta_resolutions/components/ResolutionHeader'
 import ResolutionPaginator from '@/mta_resolutions/components/ResolutionPaginator'
 import ResolutionQuestions from '@/mta_resolutions/components/ResolutionQuestions'
 import ResolutionReviewDisclaimer from '@/mta_resolutions/components/ResolutionReviewDisclaimer'
+import { useResolutionDownloadState, useResolutionExit, useResolutionPagination, useResolutionRetrySubmit } from '@/mta_resolutions/hooks'
 import {
-  useResolutionDownloadState,
-  useResolutionExit,
-  useResolutionLogout,
-  useResolutionPagination,
-  useResolutionRetrySubmit,
-} from '@/mta_resolutions/hooks'
-import { useResolutionDurationResources } from '@/mta_resolutions/hooks/duration'
-import { useResolutionEvaluationToResolve } from '@/mta_resolutions/hooks/data'
-import { submitNavigationGuard } from '@/mta_resolutions/hooks/navigation'
+  useResolutionEvaluationToResolve,
+  useResolutionResume,
+  useResolutionResetState,
+  useResolutionRuntime,
+  useResolutionState,
+} from '@/mta_resolutions/hooks/data'
+import { submitNavigationGuard, useNavigateToResolutionSubmittedPage } from '@/mta_resolutions/hooks/navigation'
 import ResolutionRemaingTimeManager from '@/mta_resolutions/services/ResolutionRemaingTimeManager'
 import ResolutionResumingManager from '@/mta_resolutions/services/ResolutionResumingManager'
 import Button from '@/shared/components/Button'
@@ -27,86 +26,153 @@ import { useStore } from '@/shared/state'
 import { HorizontalRule } from '@mui/icons-material'
 import { Box } from '@mui/material'
 import { StickyPinned } from '@/shared/components/StickyPinned'
-import { warningToast } from '@/shared/toasts'
-import { useEffect, useRef, useState } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import 'react-quill-new/dist/quill.snow.css'
 
-const RETRY_INTERVAL_MS = 8000
+const ResolutionStatusView = ({
+  title,
+  message,
+  children,
+}: {
+  title: string
+  message: string
+  children?: ReactNode
+}) => {
+  return (
+    <Page>
+      <Page.Content>
+        <Spacer />
+        <H3>{title}</H3>
+        <Body1>{message}</Body1>
+        <Spacer />
+        {children}
+      </Page.Content>
+    </Page>
+  )
+}
 
 const OfflineSubmittedView = () => {
   const { downloadResolutionState } = useResolutionDownloadState()
   const retrySubmit = useResolutionRetrySubmit()
+  const resetState = useResolutionResetState()
+  const navigateToResolutionSubmittedPage = useNavigateToResolutionSubmittedPage()
   const exit = useResolutionExit()
-  const [retryStatus, setRetryStatus] = useState<'waiting' | 'retrying' | 'success'>('waiting')
-  const inProgressRef = useRef(false)
-  const doneRef = useRef(false)
+  const [retryStatus, setRetryStatus] = useState<'waiting' | 'retrying'>('waiting')
 
-  useEffect(() => {
-    const attempt = () => {
-      if (inProgressRef.current || doneRef.current) return
-      inProgressRef.current = true
-      setRetryStatus('retrying')
+  const handleRetry = async () => {
+    if (retryStatus === 'retrying') return
 
-      retrySubmit()
-        .then(() => {
-          doneRef.current = true
-          setRetryStatus('success')
-        })
-        .catch(() => {
-          inProgressRef.current = false
-          setRetryStatus('waiting')
-        })
+    setRetryStatus('retrying')
+    try {
+      await retrySubmit()
+      await resetState()
+      navigateToResolutionSubmittedPage()
+    } catch {
+      setRetryStatus('waiting')
     }
-
-    const id = setInterval(attempt, RETRY_INTERVAL_MS)
-    return () => clearInterval(id)
-  }, [])
+  }
 
   const handleExit = () => {
     submitNavigationGuard.active = true
-    exit()
+    if (window.confirm('Si salís ahora, este dispositivo dejará de intentar el envío desde esta pantalla. ¿Querés salir igual?')) {
+      exit()
+    }
+  }
+
+  const handleDownload = async () => {
+    await downloadResolutionState()
+    if (window.confirm('Las respuestas se descargaron. ¿Querés salir ahora?')) {
+      handleExit()
+    }
   }
 
   if (retryStatus === 'retrying') {
     return (
-      <Page>
-        <Page.Content>
-          <H3>Enviando evaluación...</H3>
-          <Body1>Se restableció la conexión. Enviando las respuestas al servidor.</Body1>
-          <Spacer />
-          <Spinner />
-        </Page.Content>
-      </Page>
-    )
-  }
-
-  if (retryStatus === 'success') {
-    return (
-      <Page>
-        <Page.Content>
-          <H3>¡Felicitaciones!</H3>
-          <Body1>Tu evaluación fue enviada con éxito. Gracias por tu participación.</Body1>
-          <Spacer />
-          <Button onClick={handleExit}>Salir</Button>
-        </Page.Content>
-      </Page>
+      <ResolutionStatusView
+        title="Enviando evaluación..."
+        message="Intentando enviar las respuestas al servidor."
+      >
+        <Spinner />
+      </ResolutionStatusView>
     )
   }
 
   return (
-    <Page>
-      <Page.Content>
-        <OfflineIndicator />
-        <Spacer />
-        <H3>Evaluación finalizada</H3>
-        <Body1>
-          Por favor llamá al docente. El dispositivo no tiene internet. Las respuestas se enviarán
-          automáticamente cuando se restaure la conexión. Por favor, no cierres esta página.
-        </Body1>
-        <Spacer />
-        <Button onClick={downloadResolutionState}>Descargar respuestas</Button>
-      </Page.Content>
-    </Page>
+    <ResolutionStatusView
+      title="Evaluación finalizada"
+      message="No se pudo confirmar el envío al servidor. Podés reintentar manualmente o descargar las respuestas para cargarlas luego."
+    >
+      <Button onClick={() => void handleRetry()}>Reintentar</Button>
+      <Spacer />
+      <Button onClick={() => void handleDownload()}>Descargar respuestas</Button>
+      <Spacer />
+      <Button variant="contained" color="secondary" onClick={handleExit}>
+        Salir
+      </Button>
+    </ResolutionStatusView>
+  )
+}
+
+const ExpiredResolutionView = ({ message }: { message: string }) => {
+  const { downloadResolutionState } = useResolutionDownloadState()
+  const exit = useResolutionExit()
+  const resolutionState = useResolutionState()
+
+  const handleExit = () => {
+    submitNavigationGuard.active = true
+    if (window.confirm('Si salís ahora, este dispositivo dejará de intentar el envío desde esta pantalla. ¿Querés salir igual?')) {
+      exit()
+    }
+  }
+
+  const handleDownload = async () => {
+    await downloadResolutionState()
+    if (window.confirm('Las respuestas se descargaron. ¿Querés salir ahora?')) {
+      handleExit()
+    }
+  }
+
+  return (
+    <ResolutionStatusView title="El tiempo de la evaluación terminó" message={message}>
+      {resolutionState ? (
+        <>
+          <Button onClick={() => void handleDownload()}>Descargar respuestas guardadas</Button>
+          <Spacer />
+        </>
+      ) : null}
+      <Button variant="contained" color="secondary" onClick={handleExit}>
+        Salir
+      </Button>
+    </ResolutionStatusView>
+  )
+}
+
+const ResumeErrorView = ({ message }: { message: string }) => {
+  const { resume } = useResolutionResume()
+  const { downloadResolutionState } = useResolutionDownloadState()
+  const exit = useResolutionExit()
+
+  const handleRetry = () => {
+    void resume({ reason: 'manual_retry', preserveCurrentPage: true, setGlobalInProgress: true })
+  }
+
+  const handleExit = () => {
+    submitNavigationGuard.active = true
+    if (window.confirm('Si salís ahora, este dispositivo dejará de intentar el envío desde esta pantalla. ¿Querés salir igual?')) {
+      exit()
+    }
+  }
+
+  return (
+    <ResolutionStatusView title="No se pudo reanudar la evaluación" message={message}>
+      <Button onClick={handleRetry}>Reintentar</Button>
+      <Spacer />
+      <Button onClick={downloadResolutionState}>Descargar respuestas guardadas</Button>
+      <Spacer />
+      <Button variant="contained" color="secondary" onClick={handleExit}>
+        Salir
+      </Button>
+    </ResolutionStatusView>
   )
 }
 
@@ -114,21 +180,7 @@ const ResolveEvaluationPage = () => {
   const evaluationToResolve = useResolutionEvaluationToResolve()
   const { currentPage } = useResolutionPagination()
   const isOfflineSubmitted = useStore((state) => state.resolution_offlineSubmitted)
-
-  const { timeLeft } = useResolutionDurationResources()
-  const resolutionLogout = useResolutionLogout()
-
-  const didKickRef = useRef(false)
-
-  useEffect(() => {
-    if (didKickRef.current) return
-    if (timeLeft == null) return
-    if (timeLeft <= 0) {
-      didKickRef.current = true
-      warningToast('Se terminó el tiempo de la evaluación.')
-      resolutionLogout()
-    }
-  }, [timeLeft, resolutionLogout])
+  const { runtimeStatus, runtimeMessage } = useResolutionRuntime()
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -139,15 +191,31 @@ const ResolveEvaluationPage = () => {
     return () => window.removeEventListener('beforeunload', handler)
   }, [])
 
-  if (isOfflineSubmitted) return <OfflineSubmittedView />
+  let content: ReactNode
 
-  return (
-    <>
-      <OfflineIndicator />
-      <ResolutionResumingManager />
-
-      <ResolutionRemaingTimeManager />
-
+  if (isOfflineSubmitted) {
+    content = <OfflineSubmittedView />
+  } else if (runtimeStatus === 'resuming') {
+    content = (
+      <ResolutionStatusView
+        title='Recuperando evaluación...'
+        message='Estamos recuperando tu evaluación y las respuestas guardadas.'
+      >
+        <Spinner />
+      </ResolutionStatusView>
+    )
+  } else if (runtimeStatus === 'expired') {
+    content = (
+      <ExpiredResolutionView
+        message={runtimeMessage ?? 'La resolución ya fue enviada o el tiempo disponible para resolver expiró.'}
+      />
+    )
+  } else if (runtimeStatus === 'resume_error') {
+    content = (
+      <ResumeErrorView message={runtimeMessage ?? 'No pudimos validar el estado actual de la evaluación.'} />
+    )
+  } else {
+    content = (
       <Page>
         <Page.Content>
           {evaluationToResolve === null ? (
@@ -172,7 +240,7 @@ const ResolveEvaluationPage = () => {
 
                   <div className="quill">
                     <div className="ql-editor">
-                      <ResolutionQuestions {...{ evaluationToResolve, currentPage }} />
+                      <ResolutionQuestions evaluationToResolve={evaluationToResolve} currentPage={currentPage} />
                     </div>
                   </div>
 
@@ -189,6 +257,15 @@ const ResolveEvaluationPage = () => {
           )}
         </Page.Content>
       </Page>
+    )
+  }
+
+  return (
+    <>
+      <OfflineIndicator />
+      <ResolutionResumingManager />
+      <ResolutionRemaingTimeManager />
+      {content}
     </>
   )
 }

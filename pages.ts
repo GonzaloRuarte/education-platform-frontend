@@ -12,6 +12,7 @@ const evaluationsPreviewPath = '/preview/{evaluationId:number}'
 const appointmentsProcessPath = '/dashboard/turnos/{appointmentId:number}/procesar'
 const appointmentsEditStudentsPath = '/dashboard/turnos/{appointmentId:number}/editar-estudiantes'
 const appointmentAdminDashboardPath = '/dashboard/turnos/tablero'
+const resolutionInspectionPath = '/dashboard/turnos/estado-resolucion'
 const questionBankCreatePath = '/dashboard/banco-de-preguntas/crear'
 const questionBankEditPath = '/dashboard/banco-de-preguntas/{questionId:number}'
 const reportEditPath = '/dashboard/reportes/{reportId:number}'
@@ -118,6 +119,10 @@ const pages = {
           tablero: {
             path: appointmentAdminDashboardPath,
             label: 'Tablero de control',
+          },
+          estadoResolucion: {
+            path: resolutionInspectionPath,
+            label: 'Estados de resolución',
           },
         },
       },
@@ -301,6 +306,7 @@ export {
   appointmentsProcessPath,
   appointmentsEditStudentsPath,
   appointmentAdminDashboardPath,
+  resolutionInspectionPath,
   userChangePasswordPath,
   evaluationsPreviewPath,
   questionBankCreatePath,

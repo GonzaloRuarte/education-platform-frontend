@@ -1,9 +1,8 @@
 import SubmitEvaluation from '@/mta_resolutions/components/SubmitEvaluationButton'
-import { useResolutionManageSubmit, useResolutionPagination } from '@/mta_resolutions/hooks'
+import { useResolutionHandlePageAction, useResolutionPagination } from '@/mta_resolutions/hooks'
 import { useResolutionDurationResources } from '@/mta_resolutions/hooks/duration'
-import { useResolutionManageUploadState } from '@/mta_resolutions/hooks/data'
+import { useResolutionManageUploadState, useResolutionRequiresFinalizationOnAction } from '@/mta_resolutions/hooks/data'
 import { T_VoidFn } from '@/shared/types'
-import { warningToast } from '@/shared/toasts'
 import { Body1 } from '@/shared/components/Typography'
 
 import ResolutionPaginatorView from '@/mta_resolutions/components/ResolutionPaginatorView'
@@ -11,16 +10,16 @@ import ResolutionPaginatorView from '@/mta_resolutions/components/ResolutionPagi
 const ResolutionPaginator = () => {
   const { isLastPage, isFirstPage, goToPreviousPage, goToNextPage, canSubmitOrForwardPage } = useResolutionPagination()
   const { maxDurationReached } = useResolutionDurationResources()
-  const submit = useResolutionManageSubmit()
+  const requiresFinalizationOnAction = useResolutionRequiresFinalizationOnAction()
+  const handlePageAction = useResolutionHandlePageAction()
   const manageUpload = useResolutionManageUploadState()
+
+  const mustFinalizeOnAction = maxDurationReached === true || requiresFinalizationOnAction
 
   const safePageMovement = (fn: T_VoidFn) => {
     return () => {
-      if (maxDurationReached === null || !maxDurationReached) return fn()
-      warningToast(
-        'La evaluación se ha entregado porque has superado el tiempo máximo para realizarla. ¡Gracias por tu esfuerzo, bien hecho!',
-      )
-      submit()
+      if (!mustFinalizeOnAction) return fn()
+      void handlePageAction(fn)
     }
   }
 
@@ -40,7 +39,7 @@ const ResolutionPaginator = () => {
       canForward={canSubmitOrForwardPage}
       onPrev={safePageMovement(goToPreviousPage)}
       onNext={safePageMovement(nextPageWithUpload)}
-      nextLabel={!maxDurationReached ? 'Siguiente' : 'Entregar'}
+      nextLabel={!mustFinalizeOnAction ? 'Siguiente' : 'Entregar'}
       cantForwardText="Para avanzar necesitas completar todas las preguntas"
       renderLast={
         <>

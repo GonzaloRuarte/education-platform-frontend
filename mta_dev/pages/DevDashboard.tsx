@@ -12,6 +12,7 @@ import {
   useDevAppointmentSetAsFinished,
   useDevEvaluationsFakerize,
   useDevEvaluationsFakerizeComplete,
+  useDevReportsExportStepZero,
   useDevReportsFakerize,
   useDevSchoolsFakerize,
   useDevSchoolsFakerizeComplete,
@@ -46,6 +47,7 @@ const DevDashboard = () => {
   const { executeAction: evaluationsFakerizeComplete } = useDevEvaluationsFakerizeComplete()
 
   const { executeAction: reportFakerize } = useDevReportsFakerize()
+  const { executeAction: reportExportStepZero } = useDevReportsExportStepZero()
 
   const actionHandler = (action: () => Promise<any>, message?: string) => {
     return () => {
@@ -281,6 +283,16 @@ const DevDashboard = () => {
             <Grid2 size={2}>
               <DevButton fullWidth size="small" onClick={actionHandler(() => reportFakerize({}), 'Reporte creado')}>
                 Crear Reporte
+              </DevButton>
+            </Grid2>
+            <Grid2 size={3}>
+              <DevButton
+                fullWidth
+                size="small"
+                title="Descarga un archivo Excel con una hoja por evaluación elegida por mayor volumen de respuestas por grado y materia, considerando desde el 01/04/2026 y priorizando 5 escuelas con más estudiantes"
+                onClick={actionHandler(() => reportExportStepZero(), 'Exportación Paso 0 descargada')}
+              >
+                Exportar Paso 0 desde 01/04/2026 (Excel)
               </DevButton>
             </Grid2>
           </Grid2>

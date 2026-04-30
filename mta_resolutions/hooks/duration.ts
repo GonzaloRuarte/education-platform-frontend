@@ -1,16 +1,47 @@
-import { useResolutionElapsedTimeSeconds } from '@/mta_resolutions/hooks'
-import { useResolutionMaxDurationMinutes } from '@/mta_resolutions/hooks/data'
+import {
+  useResolutionServerNowAtSync,
+  useResolutionSubmitByTime,
+  useResolutionTimerSyncedMonotonicMs,
+} from '@/mta_resolutions/hooks/data'
+import { useMemo } from 'react'
 
 const useResolutionDurationResources = () => {
-  const maxDurationMinutes = useResolutionMaxDurationMinutes()
-  const elapsedTimeSeconds = useResolutionElapsedTimeSeconds()
-  const maxDurationOverflow =
-    maxDurationMinutes !== null ? Math.round(elapsedTimeSeconds - maxDurationMinutes * 60) : null
-  const timeLeft =
-    maxDurationMinutes !== null ? Math.max(Math.round(maxDurationMinutes * 60 - elapsedTimeSeconds), 0) : null
-  const maxDurationReached =
-    maxDurationMinutes !== null && maxDurationOverflow !== null ? maxDurationOverflow >= 0 : null
+  const submitByTime = useResolutionSubmitByTime()
+  const serverNowAtSync = useResolutionServerNowAtSync()
+  const timerSyncedMonotonicMs = useResolutionTimerSyncedMonotonicMs()
+  const monotonicNow = typeof performance !== 'undefined' ? performance.now() : 0
 
+  const { rawTimeLeftSeconds, computedTimeLeft, maxDurationOverflow } = useMemo(() => {
+    if (!submitByTime || !serverNowAtSync || timerSyncedMonotonicMs === null) {
+      return {
+        rawTimeLeftSeconds: null,
+        computedTimeLeft: null,
+        maxDurationOverflow: null,
+      }
+    }
+
+    const serverNowMs = new Date(serverNowAtSync).getTime()
+    const submitByTimeMs = new Date(submitByTime).getTime()
+
+    if (!Number.isFinite(serverNowMs) || !Number.isFinite(submitByTimeMs)) {
+      return {
+        rawTimeLeftSeconds: null,
+        computedTimeLeft: null,
+        maxDurationOverflow: null,
+      }
+    }
+
+    const estimatedServerNowMs = serverNowMs + Math.max(monotonicNow - timerSyncedMonotonicMs, 0)
+    const diffSeconds = Math.round((submitByTimeMs - estimatedServerNowMs) / 1000)
+    return {
+      rawTimeLeftSeconds: diffSeconds,
+      computedTimeLeft: Math.max(diffSeconds, 0),
+      maxDurationOverflow: Math.max(-diffSeconds, 0),
+    }
+  }, [monotonicNow, serverNowAtSync, submitByTime, timerSyncedMonotonicMs])
+
+  const timeLeft = computedTimeLeft
+  const maxDurationReached = rawTimeLeftSeconds !== null ? rawTimeLeftSeconds <= 0 : null
   const requiresMaxDurationWarning = timeLeft !== null ? 0 < timeLeft && timeLeft < 15 * 60 : null
 
   return {
@@ -20,4 +51,5 @@ const useResolutionDurationResources = () => {
     maxDurationOverflow,
   }
 }
+
 export { useResolutionDurationResources }

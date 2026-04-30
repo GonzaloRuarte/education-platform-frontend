@@ -12,11 +12,12 @@ class ApiError<T_RawError extends Error> extends Error implements I_ApiError {
     this.rawError = a.rawError
   }
 
-  public static errorCode(error): ErrorCode {
-    return error.rawError.response.data.error_code
+  public static errorCode(error): ErrorCode | null {
+    return error?.rawError?.response?.data?.error_code ?? null
   }
+
   public static message(error): string {
-    return error.rawError.response.data.message
+    return error?.rawError?.response?.data?.message ?? error?.message ?? 'Unexpected error'
   }
 }
 

@@ -59,27 +59,39 @@ const RescheduleDialog: React.FC<Props> = ({ open, onClose, originalAppointment,
   /* ── hooks ──────────────────────────────────────────── */
   const { setIsInProgress, setIsNotInProgress } = useInProgress()
 
-  
+
   const reschedule = useAppointmentReschedule()
 
-  const { control, handleSubmit, getValues, watch } = useForm<FormFields>({
+  const initialDate = dayjs(originalAppointment.begins_at)
+
+  const [refDate, setRefDate] = useState(initialDate)
+  const [selectedAppointmentData, setSelectedAppointmentData] = useState<I_AppointmentAvailable | null>(null)
+  const [appointmentOptions, setAppointmentOptions] = useState<Array<{ value: T_AppointmentId; label: string }>>([])
+
+  const { control, handleSubmit, getValues, reset } = useForm<FormFields>({
     defaultValues: {
-      date: dayjs(originalAppointment.begins_at),
+      date: initialDate,
       appointment_id: undefined,
     },
   })
 
-  /* free appointments for month/year of current date */
+  useEffect(() => {
+    if (!open || !originalAppointment) return
 
-  
-  /* options for toggle */
-  const [refDate, setRefDate] = useState(dayjs())
-  const [selectedAppointmentData, setSelectedAppointmentData] = useState<I_AppointmentAvailable | null>(null)
-  const [appointmentOptions, setAppointmentOptions] = useState<Array<{ value: T_AppointmentId; label: string }>>([])
-  const { data: freeByMonth } = useAppointmentFreeListByMonth({
-    month: refDate.month() + 1,
-    year: refDate.year(),
-  })
+    const fixedDate = dayjs(originalAppointment.begins_at)
+
+    setRefDate(fixedDate)
+    reset({
+      date: fixedDate,
+      appointment_id: undefined,
+    })
+  }, [open, originalAppointment, reset])
+  const { data: freeByMonth } = useAppointmentFreeListByMonth(
+    {
+      month: refDate.month() + 1,
+      year: refDate.year(),
+    }
+  )
   /* whenever date or data changes, rebuild time-slot list */
   const handleDateChange = () => {
     if (freeByMonth === undefined) return
@@ -125,9 +137,9 @@ const RescheduleDialog: React.FC<Props> = ({ open, onClose, originalAppointment,
       new_appointment_id: appointment_id,
     })
       .then(() => {
-        onClose()        
-        onRescheduled?.()          
-        
+        onClose()
+        onRescheduled?.()
+
       })
       .catch(handleServiceError)
       .finally(setIsNotInProgress)
