@@ -2,6 +2,7 @@
 
 import { Box } from '@mui/material'
 import { EditableContentSection } from '@/mta_reports_v2/components/EditableContentSection'
+import LogoAustral from '@/shared/components/LogoAustral'
 
 interface IntroduccionTabProps {
   schoolId: number
@@ -26,21 +27,36 @@ const fields = {
 }
 
 const IntroduccionTab = ({ schoolId, initialEditing }: IntroduccionTabProps) => (
-  <EditableContentSection
-    schoolId={schoolId}
-    diapositivaId={1}
-    successMessage="Introducción actualizada correctamente"
-    fields={fields}
-    initialEditing={initialEditing}
-  >
-    {({ renderField }) => (
-      <Box sx={{ maxWidth: 820 }}>
-        {renderField('title', { mb: 4 })}
-        {renderField('paragraph1', { mb: 4 })}
-        {renderField('paragraph2')}
-      </Box>
-    )}
-  </EditableContentSection>
+  <>
+    <EditableContentSection
+      schoolId={schoolId}
+      diapositivaId={1}
+      successMessage="Introducción actualizada correctamente"
+      fields={fields}
+      initialEditing={initialEditing}
+    >
+      {({ renderField }) => (
+        <Box sx={{ maxWidth: 820 }}>
+          {renderField('title', { mb: 4 })}
+          {renderField('paragraph1', { mb: 4 })}
+          {renderField('paragraph2')}
+        </Box>
+      )}
+    </EditableContentSection>
+    <Box
+      sx={{
+        position: 'fixed',
+        bottom: 16,
+        right: 16,
+        zIndex: 9999,
+        pointerEvents: 'none',
+        filter:
+          'brightness(0) saturate(100%) invert(13%) sepia(91%) saturate(3500%) hue-rotate(228deg) brightness(85%) contrast(105%)',
+      }}
+    >
+      <LogoAustral width={440} height={80} />
+    </Box>
+  </>
 )
 
 export { IntroduccionTab }
