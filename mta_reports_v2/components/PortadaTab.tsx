@@ -3,11 +3,23 @@
 import Box from '@mui/material/Box'
 import Image from 'next/image'
 import { Stack, Typography } from '@mui/material'
+import { useEscuelaReporteAurora } from '@/mta_reports_v2/hooks'
 import Footer from '@/shared/layout/Footer'
 import Logo from '@/shared/components/Logo'
 import { ImageSize } from '@/shared/utils'
 
 const metaLogoSize = new ImageSize(350, 100)
+
+interface PortadaTabProps {
+  schoolId: number
+}
+
+const ORDINAL_TOMA_LABELS: Record<string, string> = {
+  '1': 'Primera Toma',
+  '2': 'Segunda Toma',
+  '3': 'Tercera Toma',
+  '4': 'Cuarta Toma',
+}
 
 const PortadaTab = () => {
   return (
