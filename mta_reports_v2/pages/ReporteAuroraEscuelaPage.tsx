@@ -29,12 +29,23 @@ const headerLogoSize = new ImageSize(257, 73, { scale: 0.31 })
 
 type TabId = 'intro' | 'cover' | 'pruebas' | 'resumen' | 'detalle' | 'semaforo' | 'scatter' | 'tabla'
 
+const TAB_ORDER: Array<TabId> = [
+  TAB_IDS.COVER,
+  TAB_IDS.INTRO,
+  TAB_IDS.PRUEBAS,
+  TAB_IDS.RESUMEN,
+  TAB_IDS.DETALLE,
+  TAB_IDS.SEMAFORO,
+  TAB_IDS.SCATTER,
+  TAB_IDS.TABLA,
+]
+
 const ReporteAuroraEscuelaPage = () => {
   const params = useParams<{ escuelaId: string }>()
   const escuelaId = params?.escuelaId ? Number(params.escuelaId) : null
   const tabsRef = useRef<HTMLDivElement>(null)
 
-  const [tab, setTab] = useState<TabId>(TAB_IDS.RESUMEN)
+  const [tab, setTab] = useState<TabId>(TAB_IDS.COVER)
   const [toma, setToma] = useState('')
   const [materia, setMateria] = useState('Matemática')
   const [anio, setAnio] = useState('3ro')
@@ -163,6 +174,21 @@ const ReporteAuroraEscuelaPage = () => {
     return pills
   }, [tab, materia, materias.length, anio, division, divisiones.length, toma])
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+      const target = e.target as HTMLElement | null
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) return
+      const idx = TAB_ORDER.indexOf(tab)
+      if (idx === -1) return
+      const nextIdx = e.key === 'ArrowLeft' ? idx - 1 : idx + 1
+      if (nextIdx < 0 || nextIdx >= TAB_ORDER.length) return
+      setTab(TAB_ORDER[nextIdx])
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [tab])
+
   const scrollTabs = (direction: 'left' | 'right') => {
     if (tabsRef.current) {
       const scrollAmount = 200
@@ -223,21 +249,21 @@ const ReporteAuroraEscuelaPage = () => {
 
         {/* Content */}
         <Box sx={{ flex: 1, overflow: 'auto', p: isIntroTab ? 0 : '22px 24px 40px' }}>
-          {loading && (
+          {tab === TAB_IDS.INTRO && escuelaId !== null && <IntroduccionTab schoolId={escuelaId} />}
+          {tab === TAB_IDS.COVER && escuelaId !== null && <PortadaTab schoolId={escuelaId} />}
+          {tab === TAB_IDS.PRUEBAS && escuelaId !== null && <PruebasTab schoolId={escuelaId} />}
+          {!isIntroTab && loading && (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
               <Typography color="text.secondary">Cargando reporte…</Typography>
             </Box>
           )}
-          {!loading && error && (
+          {!isIntroTab && !loading && error && (
             <Paper elevation={0} sx={{ bgcolor: '#ffebee', border: '1px solid #f44336', borderRadius: 2, p: 2.5 }}>
               <Typography color="error">Error al cargar: {error}</Typography>
             </Paper>
           )}
-          {!loading && !error && (
+          {!isIntroTab && !loading && !error && (
             <>
-              {tab === TAB_IDS.INTRO && escuelaId !== null && <IntroduccionTab schoolId={escuelaId} />}
-              {tab === TAB_IDS.COVER && escuelaId !== null && <PortadaTab schoolId={escuelaId} />}
-              {tab === TAB_IDS.PRUEBAS && escuelaId !== null && <PruebasTab schoolId={escuelaId} />}
               {tab === TAB_IDS.RESUMEN && data && <ResumenTab data={data} />}
               {tab === TAB_IDS.DETALLE && data && <DetalleTab data={data} />}
               {(tab === TAB_IDS.RESUMEN || tab === TAB_IDS.DETALLE) && !data && toma && (
