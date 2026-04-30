@@ -48,6 +48,8 @@ interface I_Props<T_Id, T_Response extends I_PaginatedResponse, T_Filters extend
   filtersComponents?: React.ReactNode
   filtersData?: T_Filters
   singleSelectionButtons?: (id: T_Id) => React.ReactNode
+  /** Hide the toolbar's "Actualizar" button. Default: false. */
+  hideRefreshButton?: boolean
   /** Initial page size (defaults to 100) */
   initialPageSize?: T_PageSizeOptions
   /**
@@ -189,9 +191,11 @@ function ListPage<T_Id, T_Response extends I_PaginatedResponse, T_Filters extend
 
       {/* Toolbar with buttons */}
       <Page.Toolbar>
-        <Button onClick={reload} startIcon={<ReplayIcon />}>
-          Actualizar
-        </Button>
+        {!p.hideRefreshButton && (
+          <Button onClick={reload} startIcon={<ReplayIcon />}>
+            Actualizar
+          </Button>
+        )}
 
         {p.onCreate && (
           <Button onClick={p.onCreate} startIcon={<AddCircleIcon />}>
@@ -199,7 +203,9 @@ function ListPage<T_Id, T_Response extends I_PaginatedResponse, T_Filters extend
           </Button>
         )}
 
-        {p.useBatchDelete && (
+        {typeof p.customButtons === 'function' ? p.customButtons({ reload }) : p.customButtons}
+
+        {p.useBatchDelete && rowSelectionModel.length > 0 && (
           <BatchDeleteAction
             reload={reload}
             rowSelectionModel={rowSelectionModel}
@@ -211,8 +217,6 @@ function ListPage<T_Id, T_Response extends I_PaginatedResponse, T_Filters extend
         {rowSelectionModel.length === 1 &&
           p.singleSelectionButtons &&
           p.singleSelectionButtons(rowSelectionModel[0] as T_Id)}
-
-        {typeof p.customButtons === 'function' ? p.customButtons({ reload }) : p.customButtons}
       </Page.Toolbar>
 
       <Page.Toolbar>{p.filtersComponents}</Page.Toolbar>

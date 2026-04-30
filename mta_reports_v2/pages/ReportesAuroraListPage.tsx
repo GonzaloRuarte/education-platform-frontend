@@ -1,8 +1,10 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Button } from '@mui/material'
+import { Button as MuiButton, Stack } from '@mui/material'
+import AddCircleIcon from '@mui/icons-material/AddCircle'
 import AutorenewIcon from '@mui/icons-material/Autorenew'
+import Button from '@/shared/components/Button'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { useHasCapabilities } from '@/mta_auth/hooks'
 import ListPage from '@/shared/pages/ListPage'
@@ -40,12 +42,10 @@ function ReportesAuroraListPage() {
     regenerateAll()
       .then((res) => {
         if (res.status === 'generated') {
-          successToast(
-            `Se crearon ${res.created_count} reporte(s) faltante(s).`,
-          )
+          successToast('Se generaron los reportes.')
           reload()
         } else if (res.status === 'already_complete') {
-          warningToast('Todas las escuelas ya tienen reporte generado.')
+          warningToast('Ya se generaron todos los reportes.')
         } else if (res.status === 'no_eligible_schools') {
           warningToast('No hay escuelas con datos para reportar.')
         }
@@ -69,7 +69,7 @@ function ReportesAuroraListPage() {
         align: 'center',
         headerAlign: 'center',
         renderCell: ({ row }) => (
-          <Button
+          <MuiButton
             size="medium"
             variant="contained"
             onClick={(e) => {
@@ -78,7 +78,7 @@ function ReportesAuroraListPage() {
             }}
           >
             Editar
-          </Button>
+          </MuiButton>
         ),
       },
     ]
@@ -86,13 +86,18 @@ function ReportesAuroraListPage() {
 
   const customButtons = canEdit
     ? ({ reload }: { reload: () => void }) => (
-      <Button
-        onClick={() => handleRegenerateAll(reload)}
-        startIcon={<AutorenewIcon />}
-        disabled={isRegenerating}
-      >
-        {isRegenerating ? 'Generando…' : 'Generar reportes faltantes'}
-      </Button>
+      <Stack direction="row" spacing={2}>
+        <Button
+          onClick={() => handleRegenerateAll(reload)}
+          startIcon={<AutorenewIcon />}
+          disabled={isRegenerating}
+        >
+          {isRegenerating ? 'Generando…' : 'Generar reportes faltantes'}
+        </Button>
+        <Button onClick={navigateToAuroraReportCreate} startIcon={<AddCircleIcon />}>
+          Agregar
+        </Button>
+      </Stack>
     )
     : undefined
 
@@ -102,9 +107,10 @@ function ReportesAuroraListPage() {
       useList={useAuroraReportList}
       useBatchDelete={useAuroraReportBatchDelete}
       entityName={AURORA_REPORT_NAME}
-      onCreate={navigateToAuroraReportCreate}
+      onCreate={canEdit ? undefined : navigateToAuroraReportCreate}
       customButtons={customButtons}
       onRowClick={handleRowClick}
+      hideRefreshButton
     />
   )
 }

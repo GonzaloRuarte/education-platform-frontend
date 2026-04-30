@@ -60,8 +60,8 @@ const ReporteAurora = () => {
   const { rawData, loading, error, tomas, getMaterias, getAnios, getDivisiones } =
     useEscuelaReporteAurora(escuelaId)
 
-  const materias = getMaterias(toma)
-  const anios = getAnios(toma, materia)
+  const materias = useMemo(() => getMaterias(toma), [getMaterias, toma])
+  const anios = useMemo(() => getAnios(toma, materia), [getAnios, toma, materia])
 
   const divisiones = useMemo(() => {
     if (tab === TAB_IDS.SEMAFORO) {

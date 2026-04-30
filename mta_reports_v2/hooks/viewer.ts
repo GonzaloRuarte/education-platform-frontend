@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuthResources } from '@/mta_auth/hooks'
 import { axiosGet } from '@/shared/data/axios'
 import { apiUrl } from '@/config'
@@ -27,9 +27,10 @@ const useEscuelaReporteAurora = (escuelaId: number | null) => {
     return () => { alive = false }
   }, [escuelaId, authResources.accessToken]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const tomas = rawData
-    ? [...new Set(rawData.datos.map(d => d.toma))].sort()
-    : []
+  const tomas = useMemo(
+    () => (rawData ? [...new Set(rawData.datos.map(d => d.toma))].sort() : []),
+    [rawData],
+  )
 
   const getMaterias = useCallback((toma: string): string[] => {
     if (!rawData) return []
