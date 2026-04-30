@@ -1,15 +1,19 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Button } from '@mui/material'
+import AutorenewIcon from '@mui/icons-material/Autorenew'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { useHasCapabilities } from '@/mta_auth/hooks'
 import ListPage from '@/shared/pages/ListPage'
 import { idExposeColumn } from '@/shared/pages/utils'
+import { handleServiceError } from '@/shared/service'
+import { successToast, warningToast } from '@/shared/toasts'
 import { AURORA_REPORT_NAME } from '@/mta_reports_v2/constants'
 import {
   useAuroraReportBatchDelete,
   useAuroraReportList,
+  useAuroraReportRegenerateAll,
   useNavigateToAuroraReportCreate,
 } from '@/mta_reports_v2/hooks'
 import type { I_AuroraReportListItem } from '@/mta_reports_v2/types'
@@ -23,9 +27,33 @@ const baseColumns: Array<GridColDef<I_AuroraReportListItem>> = [
 function ReportesAuroraListPage() {
   const navigateToAuroraReportCreate = useNavigateToAuroraReportCreate()
   const canEdit = useHasCapabilities(['manage_reports'])
+  const regenerateAll = useAuroraReportRegenerateAll()
+  const [isRegenerating, setIsRegenerating] = useState(false)
 
   const handleRowClick = (params: GridRowParams<I_AuroraReportListItem>) => {
     window.open(`/reports/escuela/${params.row.school}`, '_blank')
+  }
+
+  const handleRegenerateAll = (reload: () => void) => {
+    if (isRegenerating) return
+    setIsRegenerating(true)
+    regenerateAll()
+      .then((res) => {
+        if (res.status === 'generated') {
+          successToast(
+            `Se crearon ${res.created_count} reporte(s) faltante(s).`,
+          )
+          reload()
+        } else if (res.status === 'already_complete') {
+          warningToast('Todas las escuelas ya tienen reporte generado.')
+        } else if (res.status === 'no_eligible_schools') {
+          warningToast('No hay escuelas con datos para reportar.')
+        }
+      })
+      .catch(handleServiceError)
+      .finally(() => {
+        setIsRegenerating(false)
+      })
   }
 
   const columns = useMemo<Array<GridColDef<I_AuroraReportListItem>>>(() => {
@@ -56,6 +84,18 @@ function ReportesAuroraListPage() {
     ]
   }, [canEdit])
 
+  const customButtons = canEdit
+    ? ({ reload }: { reload: () => void }) => (
+      <Button
+        onClick={() => handleRegenerateAll(reload)}
+        startIcon={<AutorenewIcon />}
+        disabled={isRegenerating}
+      >
+        {isRegenerating ? 'Generando…' : 'Generar reportes faltantes'}
+      </Button>
+    )
+    : undefined
+
   return (
     <ListPage
       columns={columns}
@@ -63,6 +103,7 @@ function ReportesAuroraListPage() {
       useBatchDelete={useAuroraReportBatchDelete}
       entityName={AURORA_REPORT_NAME}
       onCreate={navigateToAuroraReportCreate}
+      customButtons={customButtons}
       onRowClick={handleRowClick}
     />
   )

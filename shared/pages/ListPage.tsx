@@ -44,7 +44,7 @@ interface I_Props<T_Id, T_Response extends I_PaginatedResponse, T_Filters extend
   onRowClick?: (params: GridRowParams) => void
   onCreate?: T_VoidFn
   useBatchDelete?: T_BatchDeletionServiceHook<T_Id>
-  customButtons?: React.ReactNode
+  customButtons?: React.ReactNode | ((api: { reload: T_VoidFn }) => React.ReactNode)
   filtersComponents?: React.ReactNode
   filtersData?: T_Filters
   singleSelectionButtons?: (id: T_Id) => React.ReactNode
@@ -212,7 +212,7 @@ function ListPage<T_Id, T_Response extends I_PaginatedResponse, T_Filters extend
           p.singleSelectionButtons &&
           p.singleSelectionButtons(rowSelectionModel[0] as T_Id)}
 
-        {p.customButtons}
+        {typeof p.customButtons === 'function' ? p.customButtons({ reload }) : p.customButtons}
       </Page.Toolbar>
 
       <Page.Toolbar>{p.filtersComponents}</Page.Toolbar>
