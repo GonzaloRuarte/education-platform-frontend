@@ -1213,9 +1213,11 @@ function ListPage<
       <Page.Title>Listado de {p.entityName.plural}</Page.Title>
 
       <Page.Toolbar>
-        <Button onClick={reload} startIcon={<ReplayIcon />}>
-          Actualizar
-        </Button>
+        {!p.hideRefreshButton && (
+          <Button onClick={reload} startIcon={<ReplayIcon />}>
+            Actualizar
+          </Button>
+        )}
 
         {p.onCreate && (
           <Button onClick={p.onCreate} startIcon={<AddCircleIcon />}>
@@ -1223,7 +1225,7 @@ function ListPage<
           </Button>
         )}
 
-        {p.useBatchDelete && (
+        {p.useBatchDelete && rowSelectionModel.length > 0 && (
           <BatchDeleteAction
             reload={reload}
             rowSelectionModel={rowSelectionModel}
