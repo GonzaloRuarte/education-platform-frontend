@@ -98,6 +98,7 @@ interface I_Props<
   singleSelectionButtons?: (id: T_Id) => React.ReactNode
   initialPageSize?: T_PageSizeOptions
   stateKey?: string
+  hideRefreshButton?: boolean
 }
 
 // ----------------------------
