@@ -1,10 +1,8 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Button as MuiButton, Stack } from '@mui/material'
-import AddCircleIcon from '@mui/icons-material/AddCircle'
+import { Button } from '@mui/material'
 import AutorenewIcon from '@mui/icons-material/Autorenew'
-import Button from '@/shared/components/Button'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { useHasCapabilities } from '@/mta_auth/hooks'
 import ListPage from '@/shared/pages/ListPage'
@@ -69,7 +67,7 @@ function ReportesAuroraListPage() {
         align: 'center',
         headerAlign: 'center',
         renderCell: ({ row }) => (
-          <MuiButton
+          <Button
             size="medium"
             variant="contained"
             onClick={(e) => {
@@ -78,7 +76,7 @@ function ReportesAuroraListPage() {
             }}
           >
             Editar
-          </MuiButton>
+          </Button>
         ),
       },
     ]
@@ -86,18 +84,13 @@ function ReportesAuroraListPage() {
 
   const customButtons = canEdit
     ? ({ reload }: { reload: () => void }) => (
-      <Stack direction="row" spacing={2}>
-        <Button
-          onClick={() => handleRegenerateAll(reload)}
-          startIcon={<AutorenewIcon />}
-          disabled={isRegenerating}
-        >
-          {isRegenerating ? 'Generando…' : 'Generar reportes faltantes'}
-        </Button>
-        <Button onClick={navigateToAuroraReportCreate} startIcon={<AddCircleIcon />}>
-          Agregar
-        </Button>
-      </Stack>
+      <Button
+        onClick={() => handleRegenerateAll(reload)}
+        startIcon={<AutorenewIcon />}
+        disabled={isRegenerating}
+      >
+        {isRegenerating ? 'Generando…' : 'Generar reportes faltantes'}
+      </Button>
     )
     : undefined
 
@@ -107,10 +100,9 @@ function ReportesAuroraListPage() {
       useList={useAuroraReportList}
       useBatchDelete={useAuroraReportBatchDelete}
       entityName={AURORA_REPORT_NAME}
-      onCreate={canEdit ? undefined : navigateToAuroraReportCreate}
+      onCreate={navigateToAuroraReportCreate}
       customButtons={customButtons}
       onRowClick={handleRowClick}
-      hideRefreshButton
     />
   )
 }

@@ -1225,8 +1225,6 @@ function ListPage<
           </Button>
         )}
 
-        {typeof p.customButtons === 'function' ? p.customButtons({ reload }) : p.customButtons}
-
         {p.useBatchDelete && rowSelectionModel.length > 0 && (
           <BatchDeleteAction
             reload={reload}
