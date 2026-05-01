@@ -1214,11 +1214,9 @@ function ListPage<
       <Page.Title>Listado de {p.entityName.plural}</Page.Title>
 
       <Page.Toolbar>
-        {!p.hideRefreshButton && (
-          <Button onClick={reload} startIcon={<ReplayIcon />}>
-            Actualizar
-          </Button>
-        )}
+        <Button onClick={reload} startIcon={<ReplayIcon />}>
+          Actualizar
+        </Button>
 
         {p.onCreate && (
           <Button onClick={p.onCreate} startIcon={<AddCircleIcon />}>
