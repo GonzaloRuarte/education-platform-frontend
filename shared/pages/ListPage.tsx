@@ -253,7 +253,7 @@ function makeDraftFilterItem(columns: GridColDef[]): GridFilterItem {
 
 function normalizeSortModelForFetch(model: GridSortModel): GridSortModel {
   const seen = new Set<string>()
-  const result: GridSortModel = []
+  const result: { field: string; sort: 'asc' | 'desc' }[] = []
 
   for (const item of model) {
     if (!item.field) continue
