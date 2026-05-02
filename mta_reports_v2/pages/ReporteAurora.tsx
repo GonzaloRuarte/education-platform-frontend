@@ -7,9 +7,10 @@ import Typography from '@mui/material/Typography'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
+import { useHasCapabilities } from '@/mta_auth/hooks'
 import Logo from '@/shared/components/Logo'
 import { ImageSize } from '@/shared/utils'
-import { useEscuelaReporteAurora } from '@/mta_reports_v2/hooks'
+import { useEscuelaReporteAurora, useAuroraReportPublish, useAuroraReportUnpublish } from '@/mta_reports_v2/hooks'
 import { COLORS, ANIO_ORDER } from '@/mta_reports_v2/constants'
 import Paper from '@mui/material/Paper'
 import { IntroduccionTab } from '@/mta_reports_v2/components/IntroduccionTab'
@@ -50,6 +51,10 @@ const ReporteAurora = () => {
   const searchParams = useSearchParams()
   const escuelaId = params?.escuelaId ? Number(params.escuelaId) : null
   const editRequested = searchParams?.get('edit') === '1'
+  const canManage = useHasCapabilities(['manage_reports'])
+  const publish = useAuroraReportPublish()
+  const unpublish = useAuroraReportUnpublish()
+  const [statusBusy, setStatusBusy] = useState(false)
 
   const [tab, setTab] = useState<TabId>(editRequested ? TAB_IDS.INTRO : TAB_IDS.COVER)
   const [toma, setToma] = useState('')
@@ -115,6 +120,20 @@ const ReporteAurora = () => {
     [rawData, anio, division, toma],
   )
   const schoolName = rawData?.colegio ?? (loading ? 'Cargando…' : 'Escuela')
+  const reportStatus = rawData?.report_status
+  const reportId = rawData?.report_id
+
+  const handleTogglePublish = async () => {
+    if (!reportId || statusBusy) return
+    setStatusBusy(true)
+    try {
+      if (reportStatus === 'published') await unpublish(reportId)
+      else await publish(reportId)
+      window.location.reload()
+    } finally {
+      setStatusBusy(false)
+    }
+  }
 
   const tomaFilter = useMemo(() => ({ label: 'Toma', value: toma, opts: tomas.length > 0 ? tomas : [toma].filter(Boolean), set: setToma }), [toma, tomas])
   const divFilter = useMemo(() => ({ label: 'División', value: division, opts: divisiones, set: setDivision }), [division, divisiones])
@@ -278,9 +297,21 @@ const ReporteAurora = () => {
           {/* Header */}
           {!isIntroTab && (
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, pt: 2.5, pb: 0.5, bgcolor: 'white' }}>
-              <Typography variant="h5" sx={{ color: C.navy, fontWeight: 800 }}>
-                {schoolName} — {tabLabels[tab]}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="h5" sx={{ color: C.navy, fontWeight: 800 }}>
+                  {schoolName} — {tabLabels[tab]}
+                </Typography>
+                {!isIntroTab && canManage && reportId && (
+                  <Chip
+                    size="small"
+                    color={reportStatus === 'published' ? 'success' : 'warning'}
+                    label={reportStatus === 'published' ? 'Publicado' : 'Borrador'}
+                    onClick={handleTogglePublish}
+                    disabled={statusBusy}
+                    sx={{ ml: 2, cursor: 'pointer' }}
+                  />
+                )}
+              </Box>
               <Logo width={headerLogoSize.w} height={headerLogoSize.h} />
             </Box>
           )}

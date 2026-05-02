@@ -105,6 +105,8 @@ interface I_RawEscuelaDatos {
   colegio: string
   colegio_meta_id: string
   datos: I_RawComboDato[]
+  report_id?: number | null
+  report_status?: T_AuroraReportStatus | null
 }
 
 // ─── UI state types ──────────────────────────────────────────────────────────
