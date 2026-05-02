@@ -129,6 +129,8 @@ interface I_TablaRow {
   len?: number
 }
 
+type T_AuroraReportStatus = 'draft' | 'published'
+
 interface I_AuroraReportListItem {
   id: number
   school: number
@@ -136,6 +138,8 @@ interface I_AuroraReportListItem {
   toma: string
   blob_path: string
   last_generated_at: string | null
+  status: T_AuroraReportStatus
+  published_at: string | null
 }
 type T_AuroraReportList = I_PaginatedResponse<I_AuroraReportListItem>
 
@@ -166,4 +170,5 @@ export type {
   I_AuroraReportListItem,
   T_AuroraReportList,
   I_AuroraReportCreateRequestData,
+  T_AuroraReportStatus,
 }

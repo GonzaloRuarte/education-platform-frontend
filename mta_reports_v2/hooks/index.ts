@@ -7,6 +7,8 @@ export {
   useAuroraReportCreate,
   useAuroraReportBatchDelete,
   useAuroraReportRegenerateAll,
+  useAuroraReportPublish,
+  useAuroraReportUnpublish,
   useNavigateToAuroraReportList,
   useNavigateToAuroraReportCreate,
 } from './crud'
