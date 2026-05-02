@@ -7,6 +7,18 @@ import type {
   I_SemaforoBandas,
 } from '@/mta_reports_v2/types'
 
+// ─── Spec mapping ─────────────────────────────────────────────────────────────
+// pct_correctas              -> studentScores (per-student %) + todosRate (aggregate %)
+// pct_correctas_mi_colegio   -> studentScores(qids, estudiantes_mi)
+// pct_correctas_todos        -> todosRate(qids, pp)
+// pct_correctas_por_eval     -> studentScores returns one entry per evaluation_resolution
+// participantes_colegio      -> estudiantes_mi.length
+// participantes_todos        -> combo.todos.puntajes.length
+// pct_correctas_por_grupo    -> groupBy('contenido' | 'competencia', ...)
+// semaforo                   -> bandForCount + caller iterates students
+// boxplot_stats              -> boxplot()  (min/max are whisker fences using 1.5*IQR; outliers reported separately)
+// scatter_por_alumno         -> see calc/ScatterTab.ts (joins lengua and mate by array index — see structural assumption)
+
 export function r1(x: number): number {
   return Math.round(x * 10) / 10
 }
