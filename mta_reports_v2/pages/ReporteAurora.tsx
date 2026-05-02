@@ -16,6 +16,13 @@ import Paper from '@mui/material/Paper'
 import { IntroduccionTab } from '@/mta_reports_v2/components/IntroduccionTab'
 import { PortadaTab } from '@/mta_reports_v2/components/PortadaTab'
 import { PruebasTab } from '@/mta_reports_v2/components/PruebasTab'
+import { InformeTab } from '@/mta_reports_v2/components/InformeTab'
+import { MatematicaTab } from '@/mta_reports_v2/components/MatematicaTab'
+import { LenguajeTab } from '@/mta_reports_v2/components/LenguajeTab'
+import { PisaTab } from '@/mta_reports_v2/components/PisaTab'
+import { InstitucionesTab } from '@/mta_reports_v2/components/InstitucionesTab'
+import { PresentacionResultadosTab } from '@/mta_reports_v2/components/PresentacionResultadosTab'
+import { CierreTab } from '@/mta_reports_v2/components/CierreTab'
 import { ResumenTab } from '@/mta_reports_v2/components/ResumenTab'
 import { calcResumen } from '@/mta_reports_v2/components/calc/ResumenTab'
 import { DetalleTab } from '@/mta_reports_v2/components/DetalleTab'
@@ -30,21 +37,50 @@ import { Sidebar } from '@/mta_reports_v2/components/ReporteAuroraSidebar'
 import type { FilterDef } from '@/mta_reports_v2/components/ReporteAuroraSidebar'
 
 const C = COLORS
-const TAB_IDS = { INTRO: 'intro', COVER: 'cover', PRUEBAS: 'pruebas', RESUMEN: 'resumen', DETALLE: 'detalle', SEMAFORO: 'semaforo', SCATTER: 'scatter', TABLA: 'tabla' } as const
+const TAB_IDS = {
+  COVER: 'cover',
+  INTRO: 'intro',
+  INFORME: 'informe',
+  MATEMATICA: 'matematica',
+  LENGUAJE: 'lenguaje',
+  PISA: 'pisa',
+  PRUEBAS: 'pruebas',
+  INSTITUCIONES: 'instituciones',
+  PRESENTACION: 'presentacion',
+  RESUMEN: 'resumen',
+  DETALLE: 'detalle',
+  SEMAFORO: 'semaforo',
+  SCATTER: 'scatter',
+  TABLA: 'tabla',
+  CIERRE: 'cierre',
+} as const
 const headerLogoSize = new ImageSize(257, 73, { scale: 0.31 })
 
-type TabId = 'intro' | 'cover' | 'pruebas' | 'resumen' | 'detalle' | 'semaforo' | 'scatter' | 'tabla'
+type TabId = typeof TAB_IDS[keyof typeof TAB_IDS]
 
 const TAB_ORDER: Array<TabId> = [
   TAB_IDS.COVER,
   TAB_IDS.INTRO,
+  TAB_IDS.INFORME,
+  TAB_IDS.MATEMATICA,
+  TAB_IDS.LENGUAJE,
+  TAB_IDS.PISA,
   TAB_IDS.PRUEBAS,
+  TAB_IDS.INSTITUCIONES,
+  TAB_IDS.PRESENTACION,
   TAB_IDS.RESUMEN,
   TAB_IDS.DETALLE,
   TAB_IDS.SEMAFORO,
   TAB_IDS.SCATTER,
   TAB_IDS.TABLA,
+  TAB_IDS.CIERRE,
 ]
+
+const NON_DATA_TABS = new Set<TabId>([
+  TAB_IDS.COVER, TAB_IDS.INTRO, TAB_IDS.INFORME, TAB_IDS.MATEMATICA,
+  TAB_IDS.LENGUAJE, TAB_IDS.PISA, TAB_IDS.PRUEBAS, TAB_IDS.INSTITUCIONES,
+  TAB_IDS.PRESENTACION, TAB_IDS.CIERRE,
+])
 
 const ReporteAurora = () => {
   const params = useParams<{ escuelaId: string }>()
@@ -145,6 +181,13 @@ const ReporteAurora = () => {
       [TAB_IDS.INTRO]: [],
       [TAB_IDS.COVER]: [],
       [TAB_IDS.PRUEBAS]: [],
+      [TAB_IDS.INFORME]: [],
+      [TAB_IDS.MATEMATICA]: [],
+      [TAB_IDS.LENGUAJE]: [],
+      [TAB_IDS.PISA]: [],
+      [TAB_IDS.INSTITUCIONES]: [],
+      [TAB_IDS.PRESENTACION]: [],
+      [TAB_IDS.CIERRE]: [],
       [TAB_IDS.RESUMEN]: [
         ...(materias.length > 1 ? [materiaFilter] : []),
         anioFilter,
@@ -184,19 +227,26 @@ const ReporteAurora = () => {
   }
 
   const tabLabels: Record<TabId, string> = {
-    [TAB_IDS.INTRO]: 'Introducción',
     [TAB_IDS.COVER]: 'Portada',
+    [TAB_IDS.INTRO]: 'Introducción',
+    [TAB_IDS.INFORME]: 'El Informe',
+    [TAB_IDS.MATEMATICA]: 'Matemática',
+    [TAB_IDS.LENGUAJE]: 'Prácticas del Lenguaje',
+    [TAB_IDS.PISA]: 'PISA',
     [TAB_IDS.PRUEBAS]: 'Las pruebas',
+    [TAB_IDS.INSTITUCIONES]: 'Instituciones',
+    [TAB_IDS.PRESENTACION]: 'Presentación',
     [TAB_IDS.RESUMEN]: 'Resultados generales',
     [TAB_IDS.DETALLE]: materia,
     [TAB_IDS.SEMAFORO]: 'Semáforo',
     [TAB_IDS.SCATTER]: 'Resultados por alumno',
     [TAB_IDS.TABLA]: 'Resumen por estudiante',
+    [TAB_IDS.CIERRE]: 'Cierre',
   }
 
   const filterPills = useMemo(() => {
     const pills: Array<{ label: string }> = []
-    if (tab === TAB_IDS.INTRO || tab === TAB_IDS.COVER || tab === TAB_IDS.PRUEBAS) return pills
+    if (NON_DATA_TABS.has(tab)) return pills
     if ((tab === TAB_IDS.RESUMEN || tab === TAB_IDS.DETALLE || tab === TAB_IDS.SEMAFORO) && materias.length > 1) {
       pills.push({ label: `Materia: ${materia || '—'}` })
     }
@@ -234,7 +284,7 @@ const ReporteAurora = () => {
   const tabIdx = TAB_ORDER.indexOf(tab)
   const isFirstTab = tabIdx <= 0
   const isLastTab = tabIdx === -1 || tabIdx >= TAB_ORDER.length - 1
-  const isIntroTab = tab === TAB_IDS.INTRO || tab === TAB_IDS.COVER || tab === TAB_IDS.PRUEBAS
+  const isIntroTab = NON_DATA_TABS.has(tab)
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'rgb(230, 230, 230)' }}>
@@ -243,12 +293,19 @@ const ReporteAurora = () => {
         <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, minWidth: 'max-content' }}>
           <Tab value={TAB_IDS.COVER} label="Portada" />
           <Tab value={TAB_IDS.INTRO} label="Introducción" />
+          <Tab value={TAB_IDS.INFORME} label="El Informe" />
+          <Tab value={TAB_IDS.MATEMATICA} label="Matemática" />
+          <Tab value={TAB_IDS.LENGUAJE} label="Lenguaje" />
+          <Tab value={TAB_IDS.PISA} label="PISA" />
           <Tab value={TAB_IDS.PRUEBAS} label="Las pruebas" />
+          <Tab value={TAB_IDS.INSTITUCIONES} label="Instituciones" />
+          <Tab value={TAB_IDS.PRESENTACION} label="Presentación" />
           <Tab value={TAB_IDS.RESUMEN} label="Resumen" />
           <Tab value={TAB_IDS.DETALLE} label="Contenido y competencia" />
           <Tab value={TAB_IDS.SEMAFORO} label="Semáforo" />
           <Tab value={TAB_IDS.SCATTER} label="Resultados por alumno" />
           <Tab value={TAB_IDS.TABLA} label="Resumen por estudiante" />
+          <Tab value={TAB_IDS.CIERRE} label="Cierre" />
         </Tabs>
       </Box>
 
@@ -261,6 +318,13 @@ const ReporteAurora = () => {
             {tab === TAB_IDS.INTRO && escuelaId !== null && <IntroduccionTab schoolId={escuelaId} initialEditing={editRequested} />}
             {tab === TAB_IDS.COVER && escuelaId !== null && <PortadaTab />}
             {tab === TAB_IDS.PRUEBAS && escuelaId !== null && <PruebasTab schoolId={escuelaId} initialEditing={editRequested} />}
+            {tab === TAB_IDS.INFORME && escuelaId !== null && <InformeTab schoolId={escuelaId} initialEditing={editRequested} />}
+            {tab === TAB_IDS.MATEMATICA && escuelaId !== null && <MatematicaTab schoolId={escuelaId} initialEditing={editRequested} />}
+            {tab === TAB_IDS.LENGUAJE && escuelaId !== null && <LenguajeTab schoolId={escuelaId} initialEditing={editRequested} />}
+            {tab === TAB_IDS.PISA && escuelaId !== null && <PisaTab schoolId={escuelaId} initialEditing={editRequested} />}
+            {tab === TAB_IDS.INSTITUCIONES && escuelaId !== null && <InstitucionesTab schoolId={escuelaId} />}
+            {tab === TAB_IDS.PRESENTACION && <PresentacionResultadosTab />}
+            {tab === TAB_IDS.CIERRE && <CierreTab />}
             {!isIntroTab && loading && (
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
                 <Typography sx={{ color: C.navy }}>Cargando reporte…</Typography>
