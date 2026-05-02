@@ -2,6 +2,9 @@ export {
   useEscuelaReporteAurora,
 } from './viewer'
 
+export { useHistoricoEscuela } from './historico'
+export type { I_HistoricoData, I_HistoricoBar } from './historico'
+
 export {
   useAuroraReportList,
   useAuroraReportCreate,
