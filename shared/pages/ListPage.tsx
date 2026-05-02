@@ -98,6 +98,7 @@ interface I_Props<
   singleSelectionButtons?: (id: T_Id) => React.ReactNode
   initialPageSize?: T_PageSizeOptions
   stateKey?: string
+  hideRefreshButton?: boolean
 }
 
 // ----------------------------
@@ -253,7 +254,7 @@ function makeDraftFilterItem(columns: GridColDef[]): GridFilterItem {
 
 function normalizeSortModelForFetch(model: GridSortModel): GridSortModel {
   const seen = new Set<string>()
-  const result: GridSortModel = []
+  const result: { field: string; sort: 'asc' | 'desc' }[] = []
 
   for (const item of model) {
     if (!item.field) continue
@@ -1213,19 +1214,15 @@ function ListPage<
       <Page.Title>Listado de {p.entityName.plural}</Page.Title>
 
       <Page.Toolbar>
-        {!p.hideRefreshButton && (
-          <Button onClick={reload} startIcon={<ReplayIcon />}>
-            Actualizar
-          </Button>
-        )}
+        <Button onClick={reload} startIcon={<ReplayIcon />}>
+          Actualizar
+        </Button>
 
         {p.onCreate && (
           <Button onClick={p.onCreate} startIcon={<AddCircleIcon />}>
             Agregar
           </Button>
         )}
-
-        {typeof p.customButtons === 'function' ? p.customButtons({ reload }) : p.customButtons}
 
         {p.useBatchDelete && rowSelectionModel.length > 0 && (
           <BatchDeleteAction
