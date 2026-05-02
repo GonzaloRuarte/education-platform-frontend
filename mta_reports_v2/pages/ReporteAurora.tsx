@@ -24,6 +24,7 @@ import { InstitucionesTab } from '@/mta_reports_v2/components/InstitucionesTab'
 import { PresentacionResultadosTab } from '@/mta_reports_v2/components/PresentacionResultadosTab'
 import { CierreTab } from '@/mta_reports_v2/components/CierreTab'
 import { ResumenTab } from '@/mta_reports_v2/components/ResumenTab'
+import { HistoricoTab } from '@/mta_reports_v2/components/HistoricoTab'
 import { calcResumen } from '@/mta_reports_v2/components/calc/ResumenTab'
 import { DetalleTab } from '@/mta_reports_v2/components/DetalleTab'
 import { calcDetalle } from '@/mta_reports_v2/components/calc/DetalleTab'
@@ -48,6 +49,7 @@ const TAB_IDS = {
   INSTITUCIONES: 'instituciones',
   PRESENTACION: 'presentacion',
   RESUMEN: 'resumen',
+  HISTORICO: 'historico',
   DETALLE: 'detalle',
   SEMAFORO: 'semaforo',
   SCATTER: 'scatter',
@@ -69,6 +71,7 @@ const TAB_ORDER: Array<TabId> = [
   TAB_IDS.INSTITUCIONES,
   TAB_IDS.PRESENTACION,
   TAB_IDS.RESUMEN,
+  TAB_IDS.HISTORICO,
   TAB_IDS.DETALLE,
   TAB_IDS.SEMAFORO,
   TAB_IDS.SCATTER,
@@ -195,6 +198,7 @@ const ReporteAurora = () => {
         ...(divisiones.length > 1 ? [divFilter] : []),
         tomaFilter,
       ],
+      [TAB_IDS.HISTORICO]: [tomaFilter],
       [TAB_IDS.DETALLE]: [
         ...(materias.length > 1 ? [materiaFilter] : []),
         anioFilter,
@@ -238,6 +242,7 @@ const ReporteAurora = () => {
     [TAB_IDS.INSTITUCIONES]: 'Instituciones',
     [TAB_IDS.PRESENTACION]: 'Presentación',
     [TAB_IDS.RESUMEN]: 'Resultados generales',
+    [TAB_IDS.HISTORICO]: 'Histórico',
     [TAB_IDS.DETALLE]: materia,
     [TAB_IDS.SEMAFORO]: 'Semáforo',
     [TAB_IDS.SCATTER]: 'Resultados por alumno',
@@ -320,6 +325,7 @@ const ReporteAurora = () => {
           <Tab value={TAB_IDS.INSTITUCIONES} label="Instituciones" />
           <Tab value={TAB_IDS.PRESENTACION} label="Presentación" />
           <Tab value={TAB_IDS.RESUMEN} label="Resumen" />
+          <Tab value={TAB_IDS.HISTORICO} label="Histórico" />
           <Tab value={TAB_IDS.DETALLE} label="Contenido y competencia" />
           <Tab value={TAB_IDS.SEMAFORO} label="Semáforo" />
           <Tab value={TAB_IDS.SCATTER} label="Resultados por alumno" />
@@ -357,6 +363,7 @@ const ReporteAurora = () => {
             {!isIntroTab && !loading && !error && (
               <>
                 {tab === TAB_IDS.RESUMEN && resumenData && <ResumenTab data={resumenData} />}
+                {tab === TAB_IDS.HISTORICO && escuelaId !== null && <HistoricoTab schoolId={escuelaId} />}
                 {tab === TAB_IDS.DETALLE && detalleData && <DetalleTab data={detalleData} />}
                 {tab === TAB_IDS.RESUMEN && !resumenData && toma && (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
