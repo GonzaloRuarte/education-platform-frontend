@@ -97,6 +97,7 @@ const ReporteAurora = () => {
   const [materia, setMateria] = useState('Matemática')
   const [anio, setAnio] = useState('3ro')
   const [division, setDivision] = useState('Todas')
+  const [semaforoAnio, setSemaforoAnio] = useState<string>('3ro')
 
   const { rawData, loading, error, tomas, getMaterias, getAnios, getDivisiones } =
     useEscuelaReporteAurora(escuelaId)
@@ -258,28 +259,46 @@ const ReporteAurora = () => {
     return pills
   }, [tab, materia, materias.length, anio, division, divisiones.length, toma])
 
+  const SEMAFORO_ANIOS = ANIO_ORDER
+
+  const advance = (direction: 'prev' | 'next') => {
+    if (tab === TAB_IDS.SEMAFORO) {
+      const idx = SEMAFORO_ANIOS.indexOf(semaforoAnio as typeof SEMAFORO_ANIOS[number])
+      const nextSubIdx = direction === 'prev' ? idx - 1 : idx + 1
+      if (nextSubIdx >= 0 && nextSubIdx < SEMAFORO_ANIOS.length) {
+        setSemaforoAnio(SEMAFORO_ANIOS[nextSubIdx])
+        return
+      }
+      // exiting Semáforo: continue to next/prev top-level tab
+      const tabIdx = TAB_ORDER.indexOf(tab)
+      const nextTabIdx = direction === 'prev' ? tabIdx - 1 : tabIdx + 1
+      if (nextTabIdx < 0 || nextTabIdx >= TAB_ORDER.length) return
+      setTab(TAB_ORDER[nextTabIdx])
+      return
+    }
+
+    const tabIdx = TAB_ORDER.indexOf(tab)
+    const nextTabIdx = direction === 'prev' ? tabIdx - 1 : tabIdx + 1
+    if (nextTabIdx < 0 || nextTabIdx >= TAB_ORDER.length) return
+    const nextTab = TAB_ORDER[nextTabIdx]
+    if (nextTab === TAB_IDS.SEMAFORO) {
+      // entering Semáforo: position anio at the appropriate end
+      setSemaforoAnio(direction === 'next' ? SEMAFORO_ANIOS[0] : SEMAFORO_ANIOS[SEMAFORO_ANIOS.length - 1])
+    }
+    setTab(nextTab)
+  }
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
       const target = e.target as HTMLElement | null
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) return
-      const idx = TAB_ORDER.indexOf(tab)
-      if (idx === -1) return
-      const nextIdx = e.key === 'ArrowLeft' ? idx - 1 : idx + 1
-      if (nextIdx < 0 || nextIdx >= TAB_ORDER.length) return
-      setTab(TAB_ORDER[nextIdx])
+      advance(e.key === 'ArrowLeft' ? 'prev' : 'next')
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [tab])
-
-  const goToTab = (direction: 'prev' | 'next') => {
-    const idx = TAB_ORDER.indexOf(tab)
-    if (idx === -1) return
-    const nextIdx = direction === 'prev' ? idx - 1 : idx + 1
-    if (nextIdx < 0 || nextIdx >= TAB_ORDER.length) return
-    setTab(TAB_ORDER[nextIdx])
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, semaforoAnio])
 
   const tabIdx = TAB_ORDER.indexOf(tab)
   const isFirstTab = tabIdx <= 0
@@ -350,7 +369,12 @@ const ReporteAurora = () => {
                   </Box>
                 )}
                 {tab === TAB_IDS.SEMAFORO && (
-                  <SemaforoTab materia={materia} bandasMap={semaforoBandas} />
+                  <SemaforoTab
+                    materia={materia}
+                    bandasMap={semaforoBandas}
+                    anio={semaforoAnio}
+                    onAnioChange={setSemaforoAnio}
+                  />
                 )}
                 {tab === TAB_IDS.SCATTER && <ScatterTab points={scatterPoints} />}
                 {tab === TAB_IDS.TABLA && <TablaTab rows={tablaRows} />}
@@ -415,10 +439,10 @@ const ReporteAurora = () => {
               py: 0.5,
             }}
           >
-            <IconButton size="medium" onClick={() => goToTab('prev')} disabled={isFirstTab} sx={{ color: C.navy }}>
+            <IconButton size="medium" onClick={() => advance('prev')} disabled={isFirstTab} sx={{ color: C.navy }}>
               <ChevronLeftIcon />
             </IconButton>
-            <IconButton size="medium" onClick={() => goToTab('next')} disabled={isLastTab} sx={{ color: C.navy }}>
+            <IconButton size="medium" onClick={() => advance('next')} disabled={isLastTab} sx={{ color: C.navy }}>
               <ChevronRightIcon />
             </IconButton>
           </Box>

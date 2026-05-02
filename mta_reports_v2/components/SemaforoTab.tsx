@@ -65,14 +65,20 @@ function NivelRow({ nivel, bandas, nivelKey }: { nivel: SemaforoNivel; bandas: I
   )
 }
 
-function SemaforoTab({
-  materia,
-  bandasMap,
-}: {
+interface SemaforoTabProps {
   materia: string
   bandasMap: Record<string, I_SemaforoBandas>
-}) {
-  const [anio, setAnio] = useState('3ro')
+  anio?: string
+  onAnioChange?: (anio: string) => void
+}
+
+function SemaforoTab({ materia, bandasMap, anio: anioProp, onAnioChange }: SemaforoTabProps) {
+  const [internalAnio, setInternalAnio] = useState('3ro')
+  const anio = anioProp ?? internalAnio
+  const setAnio = (v: string) => {
+    if (onAnioChange) onAnioChange(v)
+    else setInternalAnio(v)
+  }
   const niveles = SEMAFORO_NIVELES[anio]?.[materia] ?? []
 
   return (
