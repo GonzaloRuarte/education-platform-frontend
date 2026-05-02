@@ -35,15 +35,28 @@ function quantile(sorted: number[], p: number): number {
 }
 
 export function boxplot(scores: number[]): I_BoxplotAurora {
-  if (!scores.length) return { min: 0, q1: 0, md: 0, q3: 0, max: 0, av: 0 }
+  if (!scores.length) return { min: 0, q1: 0, md: 0, q3: 0, max: 0, av: 0, outliers: [], rawMin: 0, rawMax: 0 }
   const s = [...scores].sort((a, b) => a - b)
+  const q1 = quantile(s, 0.25)
+  const md = quantile(s, 0.5)
+  const q3 = quantile(s, 0.75)
+  const iqr = q3 - q1
+  const fenceLo = q1 - 1.5 * iqr
+  const fenceHi = q3 + 1.5 * iqr
+  const inFence = s.filter(v => v >= fenceLo && v <= fenceHi)
+  const outliers = s.filter(v => v < fenceLo || v > fenceHi)
+  const whiskerLo = inFence.length ? inFence[0] : s[0]
+  const whiskerHi = inFence.length ? inFence[inFence.length - 1] : s[s.length - 1]
   return {
-    min: r1(s[0]),
-    q1:  r1(quantile(s, 0.25)),
-    md:  r1(quantile(s, 0.5)),
-    q3:  r1(quantile(s, 0.75)),
-    max: r1(s[s.length - 1]),
-    av:  r1(mean(scores)),
+    min: r1(whiskerLo),
+    q1: r1(q1),
+    md: r1(md),
+    q3: r1(q3),
+    max: r1(whiskerHi),
+    av: r1(mean(scores)),
+    outliers: outliers.map(r1),
+    rawMin: r1(s[0]),
+    rawMax: r1(s[s.length - 1]),
   }
 }
 

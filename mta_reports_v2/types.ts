@@ -43,12 +43,15 @@ interface I_ItemAurora {
 }
 
 interface I_BoxplotAurora {
-  min: number
+  min: number       // whisker low (q1 - 1.5*IQR clamped to data min)
   q1: number
   md: number
   q3: number
-  max: number
+  max: number       // whisker high (q3 + 1.5*IQR clamped to data max)
   av: number
+  outliers?: number[]
+  rawMin?: number   // actual data min (for tooltip)
+  rawMax?: number
 }
 
 interface I_ResumenTabData {
