@@ -18,6 +18,7 @@ export function calcDetalle(
 ): I_DetalleTabData | null {
   const combo = findCombo(raw, f.materia, f.anio, f.toma)
   if (!combo) return null
+  if (!combo.todos?.por_pregunta) return null
 
   const estudiantes_mi = filterEstudiantes(combo, f.division).map(s => s.respuestas)
   const pp = combo.todos.por_pregunta
