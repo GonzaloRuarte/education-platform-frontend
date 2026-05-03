@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
-import { Box, Stack, Tabs, Tab, Chip, IconButton } from '@mui/material'
+import { Box, Stack, Chip, IconButton, Select, MenuItem } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
@@ -311,29 +311,7 @@ const ReporteAurora = () => {
   const isIntroTab = NON_DATA_TABS.has(tab)
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'rgb(230, 230, 230)' }}>
-      {/* Tabs */}
-      <Box sx={{ bgcolor: 'white', borderBottom: 1, borderColor: 'divider', overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' } }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, minWidth: 'max-content' }}>
-          <Tab value={TAB_IDS.COVER} label="Portada" />
-          <Tab value={TAB_IDS.INTRO} label="Introducción" />
-          <Tab value={TAB_IDS.INFORME} label="El Informe" />
-          <Tab value={TAB_IDS.MATEMATICA} label="Matemática" />
-          <Tab value={TAB_IDS.LENGUAJE} label="Lenguaje" />
-          <Tab value={TAB_IDS.PISA} label="PISA" />
-          <Tab value={TAB_IDS.PRUEBAS} label="Las pruebas" />
-          <Tab value={TAB_IDS.INSTITUCIONES} label="Instituciones" />
-          <Tab value={TAB_IDS.PRESENTACION} label="Presentación" />
-          <Tab value={TAB_IDS.RESUMEN} label="Resumen" />
-          <Tab value={TAB_IDS.HISTORICO} label="Histórico" />
-          <Tab value={TAB_IDS.DETALLE} label="Contenido y competencia" />
-          <Tab value={TAB_IDS.SEMAFORO} label="Semáforo" />
-          <Tab value={TAB_IDS.SCATTER} label="Resultados por alumno" />
-          <Tab value={TAB_IDS.TABLA} label="Resumen por estudiante" />
-          <Tab value={TAB_IDS.CIERRE} label="Cierre" />
-        </Tabs>
-      </Box>
-
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'rgb(230, 230, 230)', marginLeft: 'calc(100vw - 100%)' }}>
       <Box sx={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {!isIntroTab && <Sidebar filters={sidebarFilters} onReset={resetFilters} />}
 
@@ -449,6 +427,25 @@ const ReporteAurora = () => {
             <IconButton size="medium" onClick={() => advance('prev')} disabled={isFirstTab} sx={{ color: C.navy }}>
               <ChevronLeftIcon />
             </IconButton>
+            <Select
+              value={tab}
+              onChange={e => setTab(e.target.value as TabId)}
+              variant="standard"
+              disableUnderline
+              renderValue={value => {
+                const idx = TAB_ORDER.indexOf(value as TabId)
+                return `${idx + 1} de ${TAB_ORDER.length}`
+              }}
+              MenuProps={{
+                anchorOrigin: { vertical: 'top', horizontal: 'center' },
+                transformOrigin: { vertical: 'bottom', horizontal: 'center' },
+              }}
+              sx={{ width: 80, color: C.navy, fontWeight: 600, fontSize: '0.8125rem', '& .MuiSelect-select': { py: 0.5, px: 1.5 } }}
+            >
+              {TAB_ORDER.map((id, idx) => (
+                <MenuItem key={id} value={id}>{idx + 1}. {tabLabels[id]}</MenuItem>
+              ))}
+            </Select>
             <IconButton size="medium" onClick={() => advance('next')} disabled={isLastTab} sx={{ color: C.navy }}>
               <ChevronRightIcon />
             </IconButton>
