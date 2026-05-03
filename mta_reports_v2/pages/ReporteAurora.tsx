@@ -21,7 +21,7 @@ import {
 } from '@/mta_reports_v2/components/reporteAuroraTabs'
 import type { TabId, TabRenderCtx } from '@/mta_reports_v2/components/reporteAuroraTabs'
 import {
-  ReportHeader, FilterPillsBar, ReportFooter, TabPager,
+  ReportHeader, FilterPillsBar, TabPager,
 } from '@/mta_reports_v2/components/ReporteAuroraChrome'
 
 const C = COLORS
@@ -198,10 +198,33 @@ const ReporteAurora = () => {
 
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, position: 'relative' }}>
           {/* Content */}
-          <Box sx={{ flex: 1, overflow: 'auto', p: isStaticTab ? 0 : '22px 24px 40px' }}>
+          <Box sx={{
+            flex: 1,
+            minHeight: 0,
+            overflow: 'hidden',
+            display: isStaticTab ? 'block' : 'flex',
+            flexDirection: 'column',
+            pt: isStaticTab ? 0 : '22px',
+            px: isStaticTab ? 0 : 3,
+            pb: isStaticTab ? 0 : 2,
+          }}>
             {isStaticTab && tabDef.render(renderCtx)}
+            {!isStaticTab && (
+              <>
+                <ReportHeader
+                  schoolName={schoolName}
+                  tabLabel={resolveTabLabel(tabDef, renderCtx)}
+                  canManage={canManage}
+                  reportId={reportId}
+                  reportStatus={reportStatus}
+                  statusBusy={statusBusy}
+                  onTogglePublish={handleTogglePublish}
+                />
+                <FilterPillsBar pills={filterPills} />
+              </>
+            )}
             {!isStaticTab && loading && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1, minHeight: 0 }}>
                 <Typography sx={{ color: C.navy }}>Cargando reporte…</Typography>
               </Box>
             )}
@@ -210,22 +233,12 @@ const ReporteAurora = () => {
                 <Typography color="error">Error al cargar: {error}</Typography>
               </Paper>
             )}
-            {!isStaticTab && !loading && !error && tabDef.render(renderCtx)}
+            {!isStaticTab && !loading && !error && (
+              <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                {tabDef.render(renderCtx)}
+              </Box>
+            )}
           </Box>
-
-          {!isStaticTab && (
-            <ReportHeader
-              schoolName={schoolName}
-              tabLabel={resolveTabLabel(tabDef, renderCtx)}
-              canManage={canManage}
-              reportId={reportId}
-              reportStatus={reportStatus}
-              statusBusy={statusBusy}
-              onTogglePublish={handleTogglePublish}
-            />
-          )}
-          {!isStaticTab && <FilterPillsBar pills={filterPills} />}
-          {!isStaticTab && <ReportFooter />}
         </Box>
       </Box>
 

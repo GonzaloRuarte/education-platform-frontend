@@ -7,8 +7,16 @@ import { axiosGet } from '@/shared/data/axios'
 import { apiUrl } from '@/config'
 import { COLORS } from '@/mta_reports_v2/constants'
 import Logo from '@/shared/components/Logo'
+import LogoAustral from '@/shared/components/LogoAustral'
 
 const C = COLORS
+
+const australFilterSx = {
+  '& img[alt="Universidad Austral"]': {
+    filter:
+      'brightness(0) saturate(100%) invert(13%) sepia(91%) saturate(3500%) hue-rotate(228deg) brightness(85%) contrast(105%)',
+  },
+}
 
 interface School {
   id: number
@@ -47,27 +55,43 @@ const InstitucionesTab = ({ schoolId }: InstitucionesTabProps) => {
   const right = schools?.slice(half) ?? []
 
   return (
-    <Box sx={{ p: { xs: 3, md: 8 }, bgcolor: C.bgGrey, minHeight: 'calc(100vh - 220px)' }}>
+    <Box
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: C.bgGrey,
+        px: { xs: 3, md: 8 },
+        pt: { xs: 4, md: 5 },
+        pb: { xs: 2, md: 3 },
+        ...australFilterSx,
+      }}
+    >
       <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
         <Typography sx={{ color: C.navy, fontWeight: 800, fontSize: 'clamp(36px, 5vw, 52px)' }}>
           Instituciones participantes
         </Typography>
         <Logo width={190} height={54} />
       </Stack>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4, mt: 4 }}>
-        {[left, right].map((col, ci) => (
-          <Box key={ci}>
-            {col.map(s => (
-              <Typography key={s.id} sx={{ color: C.navy, fontSize: 18, lineHeight: 1.6 }}>
-                {s.name}
-              </Typography>
-            ))}
-          </Box>
-        ))}
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', mt: 4, pr: { xs: 0, md: 1 } }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
+          {[left, right].map((col, ci) => (
+            <Box key={ci}>
+              {col.map(s => (
+                <Typography key={s.id} sx={{ color: C.navy, fontSize: 18, lineHeight: 1.6 }}>
+                  {s.name}
+                </Typography>
+              ))}
+            </Box>
+          ))}
+        </Box>
+        {schools !== null && schools.length === 0 && (
+          <Typography sx={{ color: C.tm, mt: 4 }}>Sin instituciones para mostrar.</Typography>
+        )}
       </Box>
-      {schools !== null && schools.length === 0 && (
-        <Typography sx={{ color: C.tm, mt: 4 }}>Sin instituciones para mostrar.</Typography>
-      )}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
+        <LogoAustral width={288} height={50} />
+      </Box>
     </Box>
   )
 }

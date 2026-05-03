@@ -9,7 +9,7 @@ import { ImageSize } from '@/shared/utils'
 import { COLORS } from '@/mta_reports_v2/constants'
 
 const C = COLORS
-const headerLogoSize = new ImageSize(257, 73, { scale: 0.31 })
+const headerLogoSize = new ImageSize(257, 73, { scale: 0.85 })
 
 export function ReportHeader({
   schoolName, tabLabel, canManage, reportId, reportStatus, statusBusy, onTogglePublish,
@@ -23,9 +23,10 @@ export function ReportHeader({
   onTogglePublish: () => void
 }) {
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, pt: 2.5, pb: 0.5, bgcolor: 'white' }}>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'nowrap', gap: 2, pl: 1, pr: 3, pt: 0.5, pb: 3 }}>
+
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <Typography variant="h5" sx={{ color: C.navy, fontWeight: 800 }}>
+        <Typography variant="h3" sx={{ color: C.navy, fontWeight: 800, lineHeight: 1 }}>
           {schoolName} — {tabLabel}
         </Typography>
         {canManage && reportId && (
@@ -46,21 +47,11 @@ export function ReportHeader({
 
 export function FilterPillsBar({ pills }: { pills: Array<{ label: string }> }) {
   return (
-    <Stack direction="row" spacing={1} sx={{ px: 3, py: 1.25, bgcolor: 'white', flexWrap: 'wrap' }}>
+    <Stack direction="row" spacing={1} sx={{ pl: 1, pr: 3, pt: 0, pb: 4, flexWrap: 'wrap' }}>
       {pills.map(p => (
         <Chip key={p.label} label={p.label} size="medium" sx={{ bgcolor: C.lightBlue, color: C.navy, fontWeight: 600 }} />
       ))}
     </Stack>
-  )
-}
-
-export function ReportFooter() {
-  return (
-    <Box sx={{ textAlign: 'center', py: 1.5, px: 3.5, borderTop: 1, borderColor: 'divider', bgcolor: 'white' }}>
-      <Typography variant="caption" sx={{ color: C.navy }}>
-        Reportes Aurora · Reporte por Escuela · Universidad Austral – Escuela de Educación
-      </Typography>
-    </Box>
   )
 }
 

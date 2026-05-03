@@ -20,34 +20,55 @@ function Leg({ c, t }: { c: string; t: string }) {
   )
 }
 
-function AllSchoolsBarChart({ bars, miId }: { bars: { id: string; p: number }[]; miId: string }) {
+function AllSchoolsBarChart({
+  bars,
+  miId,
+  minHeight,
+  bottomMargin,
+  fill = false,
+}: {
+  bars: { id: string; p: number }[]
+  miId: string
+  minHeight?: number
+  bottomMargin?: number
+  fill?: boolean
+}) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const height = useResponsiveHeight(containerRef)
+  const height = useResponsiveHeight(containerRef, { minHeight, bottomMargin })
 
   const sorted = [...bars].sort((a, b) => b.p - a.p)
   const prom = sorted.length
     ? Math.round(sorted.reduce((s, e) => s + e.p, 0) / sorted.length * 10) / 10
     : 0
 
+  const wrapperSx = fill
+    ? { display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }
+    : { display: 'flex', flexDirection: 'column', height: height }
+  const chartWrapperSx = fill
+    ? { flex: 1, minHeight: 0 }
+    : { flex: 1 }
+
   return (
-    <Box ref={containerRef} sx={{ display: 'flex', flexDirection: 'column', height: height }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={sorted} margin={CHART_MARGINS.vertical}>
-          <CartesianGrid vertical={false} stroke={C.gridLight} strokeWidth={0.8} />
-          <XAxis dataKey="id" tick={{ fontSize: F.md, fill: C.tm }} angle={-40} textAnchor="end" interval={0} />
-          <ReferenceLine y={prom} stroke={C.refRed} strokeDasharray="4 3" strokeWidth={1} />
-          <Bar
-            dataKey="p"
-            shape={(props: any) => {
-              const isMe = sorted[props.index]?.id === miId
-              return <Rectangle {...props} fill={isMe ? C.barMe : C.barFill} radius={[2, 2, 0, 0]} />
-            }}
-          >
-            <LabelList dataKey="p" position="top" formatter={(v: number) => `${v}%`} style={{ fontSize: F.lg, fill: C.navy }} />
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-      <Box sx={{ mt: 0.75 }}>
+    <Box ref={containerRef} sx={wrapperSx}>
+      <Box sx={chartWrapperSx}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={sorted} margin={CHART_MARGINS.vertical}>
+            <CartesianGrid vertical={false} stroke={C.gridLight} strokeWidth={0.8} />
+            <XAxis dataKey="id" tick={{ fontSize: F.md, fill: C.tm }} angle={-40} textAnchor="end" interval={0} />
+            <ReferenceLine y={prom} stroke={C.refRed} strokeDasharray="4 3" strokeWidth={1} />
+            <Bar
+              dataKey="p"
+              shape={(props: any) => {
+                const isMe = sorted[props.index]?.id === miId
+                return <Rectangle {...props} fill={isMe ? C.barMe : C.barFill} radius={[2, 2, 0, 0]} />
+              }}
+            >
+              <LabelList dataKey="p" position="top" formatter={(v: number) => `${v}%`} style={{ fontSize: F.lg, fill: C.navy }} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </Box>
+      <Box sx={{ mt: 0.75, flexShrink: 0 }}>
         <Leg c={C.barMe} t="Mi escuela" />
         <Leg c={C.barFill} t="Otras escuelas" />
         <Typography variant="caption" sx={{ ml: 0.5, color: C.tm, fontSize: F.md }}>
@@ -58,9 +79,19 @@ function AllSchoolsBarChart({ bars, miId }: { bars: { id: string; p: number }[];
   )
 }
 
-function HorizontalBarChart({ items }: { items: I_ItemAurora[] }) {
+function HorizontalBarChart({
+  items,
+  rowHeight = 50,
+  baseHeight = 50,
+  barSize = 13,
+}: {
+  items: I_ItemAurora[]
+  rowHeight?: number
+  baseHeight?: number
+  barSize?: number
+}) {
   const data = items.map(item => ({ name: item.n, mi: item.mi, todos: item.t }))
-  const chartH = Math.max(80, data.length * 50 + 50)
+  const chartH = Math.max(80, data.length * rowHeight + baseHeight)
 
   return (
     <ResponsiveContainer width="100%" height={chartH}>
@@ -68,10 +99,10 @@ function HorizontalBarChart({ items }: { items: I_ItemAurora[] }) {
         <CartesianGrid horizontal={false} stroke={C.gridLight} />
         <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: F.md, fill: C.tm }} />
         <YAxis type="category" dataKey="name" width={180} tick={{ fontSize: F.lg, fill: C.navy }} />
-        <Bar dataKey="mi" fill={C.barFill} barSize={13} name="Mi colegio">
+        <Bar dataKey="mi" fill={C.barFill} barSize={barSize} name="Mi colegio">
           <LabelList dataKey="mi" position="right" formatter={(v: number) => `${v} %`} style={{ fontSize: F.lg, fill: C.navy, fontWeight: 600 }} />
         </Bar>
-        <Bar dataKey="todos" fill={C.barLight} barSize={13} name="Todos los colegios">
+        <Bar dataKey="todos" fill={C.barLight} barSize={barSize} name="Todos los colegios">
           <LabelList dataKey="todos" position="right" formatter={(v: number) => `${v} %`} style={{ fontSize: F.lg, fill: C.tm }} />
         </Bar>
       </BarChart>
@@ -147,19 +178,22 @@ function KPICard({ title, subtitle, mi, todos, suffix = '%' }: KPICardProps) {
   )
 }
 
-function ChartCard({ num, title, subtitle, legend, children }: {
+function ChartCard({ num, title, subtitle, legend, children, dense = false, sx, bodySx }: {
   num: string
   title: string
   subtitle?: string
   legend?: React.ReactNode
   children: React.ReactNode
+  dense?: boolean
+  sx?: object
+  bodySx?: object
 }) {
   return (
-    <Box component="article" sx={{ bgcolor: C.white, border: '1px solid', borderColor: 'divider', borderRadius: 5, p: S.cardPaddingLarge }}>
+    <Box component="article" sx={{ bgcolor: C.white, border: '1px solid', borderColor: 'divider', borderRadius: 5, p: dense ? S.cardPadding : S.cardPaddingLarge, ...sx }}>
       <Typography sx={{ fontSize: F.lg, color: C.accent, fontWeight: 500, mb: 0.25 }}>{num}. {title}</Typography>
-      {subtitle && <Typography variant="subtitle1" sx={{ fontWeight: 600, color: C.navy, mb: 0.75, fontSize: F.lg }}>{subtitle}</Typography>}
-      {legend && <Box sx={{ mb: 1 }}>{legend}</Box>}
-      {children}
+      {subtitle && <Typography variant="subtitle1" sx={{ fontWeight: 600, color: C.navy, mb: dense ? 0.5 : 0.75, fontSize: F.lg }}>{subtitle}</Typography>}
+      {legend && <Box sx={{ mb: dense ? 0.5 : 1 }}>{legend}</Box>}
+      {bodySx ? <Box sx={bodySx}>{children}</Box> : children}
     </Box>
   )
 }

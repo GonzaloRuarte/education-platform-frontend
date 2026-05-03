@@ -195,11 +195,13 @@ const EditableContentSection = <F extends string,>({
     <Box
       sx={{
         position: 'relative',
-        minHeight: 'calc(100vh - 220px)',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
         bgcolor: C.bgGrey,
-        overflow: 'hidden',
         px: { xs: 3, md: 8 },
-        py: { xs: 4, md: 5 },
+        pt: { xs: 4, md: 5 },
+        pb: { xs: 2, md: 3 },
       }}
     >
       <Stack direction="row" justifyContent="flex-end" alignItems="flex-start" spacing={2}>
@@ -223,7 +225,7 @@ const EditableContentSection = <F extends string,>({
         </Stack>
       </Stack>
 
-      <Box sx={{ pt: { xs: 6, md: 16 } }}>
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', pt: { xs: 4, md: 8 }, pr: { xs: 0, md: 1 } }}>
         {isLoading ? (
           <Typography sx={{ color: C.tm }}>Cargando...</Typography>
         ) : (
@@ -231,7 +233,7 @@ const EditableContentSection = <F extends string,>({
         )}
       </Box>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: { xs: 8, md: 12 } }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
         <LogoAustral width={australLogoSize.w} height={australLogoSize.h} />
       </Box>
 

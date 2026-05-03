@@ -33,7 +33,7 @@ const EditableTab = <F extends string,>({
   successMessage,
   fields,
   maxWidth = 820,
-  withAustralFilter = false,
+  withAustralFilter = true,
   children,
 }: EditableTabProps<F>) => {
   const defaultRender = ({ renderField }: RenderFieldArgs<F>) => {

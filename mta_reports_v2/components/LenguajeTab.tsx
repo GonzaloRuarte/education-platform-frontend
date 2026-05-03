@@ -28,7 +28,7 @@ const LenguajeTab = ({ schoolId, initialEditing }: LenguajeTabProps) => (
     diapositivaId={5}
     successMessage='Sección "Prácticas del Lenguaje" actualizada correctamente'
     fields={fields}
-    maxWidth={1000}
+    maxWidth={1280}
   />
 )
 

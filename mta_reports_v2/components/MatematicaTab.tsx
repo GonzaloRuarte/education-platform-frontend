@@ -41,10 +41,10 @@ const MatematicaTab = ({ schoolId, initialEditing }: MatematicaTabProps) => (
     diapositivaId={4}
     successMessage='Sección "Matemática" actualizada correctamente'
     fields={fields}
-    maxWidth={1100}
+    maxWidth={1320}
   >
     {({ renderField }) => (
-      <Box sx={{ maxWidth: 1100 }}>
+      <Box sx={{ maxWidth: 1320 }}>
         {renderField('title', { mb: 4 })}
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={4}>
           <Box flex={1}>

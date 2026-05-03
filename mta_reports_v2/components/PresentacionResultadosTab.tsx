@@ -7,7 +7,7 @@ import { COLORS } from '@/mta_reports_v2/constants'
 const C = COLORS
 
 const PresentacionResultadosTab = () => (
-  <Box sx={{ display: 'flex', width: '100%', height: '100%', minHeight: 'calc(100vh - 160px)', bgcolor: C.white }}>
+  <Box sx={{ display: 'flex', width: '100%', height: '100%', bgcolor: C.white, overflow: 'hidden' }}>
     <Box flex={1} position="relative" minWidth={0}>
       <Box
         width="70%"

@@ -14,15 +14,21 @@ const useResponsiveHeight = (
   const [height, setHeight] = useState(minHeight + 100)
 
   useEffect(() => {
-    const observer = new ResizeObserver(() => {
-      const parent = ref.current?.parentElement
-      if (!parent) return
-      const available = window.innerHeight - parent.getBoundingClientRect().top - bottomMargin
+    const compute = () => {
+      const el = ref.current
+      if (!el) return
+      const available = window.innerHeight - el.getBoundingClientRect().top - bottomMargin
       setHeight(Math.max(minHeight, available))
-    })
+    }
+    const observer = new ResizeObserver(compute)
     const parent = ref.current?.parentElement
     if (parent) observer.observe(parent)
-    return () => observer.disconnect()
+    window.addEventListener('resize', compute)
+    compute()
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', compute)
+    }
   }, [ref, bottomMargin, minHeight])
 
   return height
