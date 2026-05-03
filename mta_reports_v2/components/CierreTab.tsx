@@ -19,9 +19,9 @@ const CierreTab = () => (
     }}
   >
     <Stack alignItems="center" spacing={10}>
-      <Logo width={420} height={120} variant="white" />
+      <Logo width={420} height={162} variant="white" />
       <Box sx={{ filter: 'brightness(0) invert(1)' }}>
-        <LogoAustral width={300} height={60} />
+        <LogoAustral width={343} height={60} />
       </Box>
     </Stack>
   </Box>
