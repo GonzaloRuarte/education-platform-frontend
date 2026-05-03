@@ -2,88 +2,29 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
-import { Box, Stack, Chip, IconButton, Select, MenuItem } from '@mui/material'
+import { Box } from '@mui/material'
 import Typography from '@mui/material/Typography'
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import Paper from '@mui/material/Paper'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { useHasCapabilities } from '@/mta_auth/hooks'
-import Logo from '@/shared/components/Logo'
-import { ImageSize } from '@/shared/utils'
 import { useEscuelaReporteAurora, useAuroraReportPublish, useAuroraReportUnpublish } from '@/mta_reports_v2/hooks'
 import { COLORS, ANIO_ORDER } from '@/mta_reports_v2/constants'
-import Paper from '@mui/material/Paper'
-import { IntroduccionTab } from '@/mta_reports_v2/components/IntroduccionTab'
-import { PortadaTab } from '@/mta_reports_v2/components/PortadaTab'
-import { PruebasTab } from '@/mta_reports_v2/components/PruebasTab'
-import { InformeTab } from '@/mta_reports_v2/components/InformeTab'
-import { MatematicaTab } from '@/mta_reports_v2/components/MatematicaTab'
-import { LenguajeTab } from '@/mta_reports_v2/components/LenguajeTab'
-import { PisaTab } from '@/mta_reports_v2/components/PisaTab'
-import { InstitucionesTab } from '@/mta_reports_v2/components/InstitucionesTab'
-import { PresentacionResultadosTab } from '@/mta_reports_v2/components/PresentacionResultadosTab'
-import { CierreTab } from '@/mta_reports_v2/components/CierreTab'
-import { ResumenTab } from '@/mta_reports_v2/components/ResumenTab'
-import { HistoricoTab } from '@/mta_reports_v2/components/HistoricoTab'
 import { calcResumen } from '@/mta_reports_v2/components/calc/ResumenTab'
-import { DetalleTab } from '@/mta_reports_v2/components/DetalleTab'
 import { calcDetalle } from '@/mta_reports_v2/components/calc/DetalleTab'
-import { SemaforoTab } from '@/mta_reports_v2/components/SemaforoTab'
 import { calcSemaforo } from '@/mta_reports_v2/components/calc/SemaforoTab'
-import { ScatterTab } from '@/mta_reports_v2/components/ScatterTab'
 import { calcScatter } from '@/mta_reports_v2/components/calc/ScatterTab'
-import { TablaTab } from '@/mta_reports_v2/components/TablaTab'
 import { calcTabla } from '@/mta_reports_v2/components/calc/TablaTab'
 import { Sidebar } from '@/mta_reports_v2/components/ReporteAuroraSidebar'
 import type { FilterDef } from '@/mta_reports_v2/components/ReporteAuroraSidebar'
+import {
+  TABS, TAB_BY_ID, TAB_ORDER, tabLabel as resolveTabLabel,
+} from '@/mta_reports_v2/components/reporteAuroraTabs'
+import type { TabId, TabRenderCtx } from '@/mta_reports_v2/components/reporteAuroraTabs'
+import {
+  ReportHeader, FilterPillsBar, ReportFooter, TabPager,
+} from '@/mta_reports_v2/components/ReporteAuroraChrome'
 
 const C = COLORS
-const TAB_IDS = {
-  COVER: 'cover',
-  INTRO: 'intro',
-  INFORME: 'informe',
-  MATEMATICA: 'matematica',
-  LENGUAJE: 'lenguaje',
-  PISA: 'pisa',
-  PRUEBAS: 'pruebas',
-  INSTITUCIONES: 'instituciones',
-  PRESENTACION: 'presentacion',
-  RESUMEN: 'resumen',
-  HISTORICO: 'historico',
-  DETALLE: 'detalle',
-  SEMAFORO: 'semaforo',
-  SCATTER: 'scatter',
-  TABLA: 'tabla',
-  CIERRE: 'cierre',
-} as const
-const headerLogoSize = new ImageSize(257, 73, { scale: 0.31 })
-
-type TabId = typeof TAB_IDS[keyof typeof TAB_IDS]
-
-const TAB_ORDER: Array<TabId> = [
-  TAB_IDS.COVER,
-  TAB_IDS.INTRO,
-  TAB_IDS.INFORME,
-  TAB_IDS.MATEMATICA,
-  TAB_IDS.LENGUAJE,
-  TAB_IDS.PISA,
-  TAB_IDS.PRUEBAS,
-  TAB_IDS.INSTITUCIONES,
-  TAB_IDS.PRESENTACION,
-  TAB_IDS.RESUMEN,
-  TAB_IDS.HISTORICO,
-  TAB_IDS.DETALLE,
-  TAB_IDS.SEMAFORO,
-  TAB_IDS.SCATTER,
-  TAB_IDS.TABLA,
-  TAB_IDS.CIERRE,
-]
-
-const NON_DATA_TABS = new Set<TabId>([
-  TAB_IDS.COVER, TAB_IDS.INTRO, TAB_IDS.INFORME, TAB_IDS.MATEMATICA,
-  TAB_IDS.LENGUAJE, TAB_IDS.PISA, TAB_IDS.PRUEBAS, TAB_IDS.INSTITUCIONES,
-  TAB_IDS.PRESENTACION, TAB_IDS.CIERRE,
-])
 
 const ReporteAurora = () => {
   const params = useParams<{ escuelaId: string }>()
@@ -95,7 +36,7 @@ const ReporteAurora = () => {
   const unpublish = useAuroraReportUnpublish()
   const [statusBusy, setStatusBusy] = useState(false)
 
-  const [tab, setTab] = useState<TabId>(editRequested ? TAB_IDS.INTRO : TAB_IDS.COVER)
+  const [tab, setTab] = useState<TabId>(editRequested ? 'intro' : 'cover')
   const [toma, setToma] = useState('')
   const [materia, setMateria] = useState('Matemática')
   const [anio, setAnio] = useState('3ro')
@@ -109,7 +50,7 @@ const ReporteAurora = () => {
   const anios = useMemo(() => getAnios(toma, materia), [getAnios, toma, materia])
 
   const divisiones = useMemo(() => {
-    if (tab === TAB_IDS.SEMAFORO) {
+    if (tab === 'semaforo') {
       const divSet = new Set<string>()
       for (const a of ANIO_ORDER) {
         getDivisiones(materia, a, toma).filter(d => d !== 'Todas').forEach(d => divSet.add(d))
@@ -121,20 +62,14 @@ const ReporteAurora = () => {
   }, [tab, materia, anio, toma, getDivisiones])
 
   useEffect(() => {
-    setToma(t => {
-      if (tomas.length > 0 && !t) return tomas[tomas.length - 1]
-      return t
-    })
+    setToma(t => (tomas.length > 0 && !t ? tomas[tomas.length - 1] : t))
   }, [tomas])
-
   useEffect(() => {
     if (materias.length > 0 && !materias.includes(materia)) setMateria(materias[0])
   }, [materias, materia])
-
   useEffect(() => {
     if (anios.length > 0 && !anios.includes(anio)) setAnio(anios[0])
   }, [anios, anio])
-
   useEffect(() => {
     if (divisiones.length > 0 && !divisiones.includes(division)) setDivision(divisiones[0])
   }, [divisiones, division])
@@ -159,6 +94,7 @@ const ReporteAurora = () => {
     () => (rawData && toma ? calcTabla(rawData, anio, division, toma) : []),
     [rawData, anio, division, toma],
   )
+
   const schoolName = rawData?.colegio ?? (loading ? 'Cargando…' : 'Escuela')
   const reportStatus = rawData?.report_status
   const reportId = rawData?.report_id
@@ -175,54 +111,24 @@ const ReporteAurora = () => {
     }
   }
 
-  const tomaFilter = useMemo(() => ({ label: 'Toma', value: toma, opts: tomas.length > 0 ? tomas : [toma].filter(Boolean), set: setToma }), [toma, tomas])
-  const divFilter = useMemo(() => ({ label: 'División', value: division, opts: divisiones, set: setDivision }), [division, divisiones])
-  const materiaFilter = useMemo(() => ({ label: 'Materia', value: materia, opts: materias.length > 0 ? materias : [materia], set: setMateria }), [materia, materias])
-  const anioFilter = useMemo(() => ({ label: 'Año', value: anio, opts: anios.length > 0 ? anios : ANIO_ORDER.slice(), set: setAnio }), [anio, anios])
+  const tomaFilter = useMemo<FilterDef>(() => ({ label: 'Toma', value: toma, opts: tomas.length > 0 ? tomas : [toma].filter(Boolean), set: setToma }), [toma, tomas])
+  const divFilter = useMemo<FilterDef>(() => ({ label: 'División', value: division, opts: divisiones, set: setDivision }), [division, divisiones])
+  const materiaFilter = useMemo<FilterDef>(() => ({ label: 'Materia', value: materia, opts: materias.length > 0 ? materias : [materia], set: setMateria }), [materia, materias])
+  const anioFilter = useMemo<FilterDef>(() => ({ label: 'Año', value: anio, opts: anios.length > 0 ? anios : ANIO_ORDER.slice(), set: setAnio }), [anio, anios])
 
-  const sidebarFilters = useMemo((): Array<FilterDef> => {
-    const FILTER_LAYOUTS: Record<TabId, Array<FilterDef>> = {
-      [TAB_IDS.INTRO]: [],
-      [TAB_IDS.COVER]: [],
-      [TAB_IDS.PRUEBAS]: [],
-      [TAB_IDS.INFORME]: [],
-      [TAB_IDS.MATEMATICA]: [],
-      [TAB_IDS.LENGUAJE]: [],
-      [TAB_IDS.PISA]: [],
-      [TAB_IDS.INSTITUCIONES]: [],
-      [TAB_IDS.PRESENTACION]: [],
-      [TAB_IDS.CIERRE]: [],
-      [TAB_IDS.RESUMEN]: [
-        ...(materias.length > 1 ? [materiaFilter] : []),
-        anioFilter,
-        ...(divisiones.length > 1 ? [divFilter] : []),
-        tomaFilter,
-      ],
-      [TAB_IDS.HISTORICO]: [tomaFilter],
-      [TAB_IDS.DETALLE]: [
-        ...(materias.length > 1 ? [materiaFilter] : []),
-        anioFilter,
-        ...(divisiones.length > 1 ? [divFilter] : []),
-        tomaFilter,
-      ],
-      [TAB_IDS.SEMAFORO]: [
-        ...(materias.length > 1 ? [materiaFilter] : []),
-        ...(divisiones.length > 1 ? [divFilter] : []),
-        tomaFilter,
-      ],
-      [TAB_IDS.SCATTER]: [
-        anioFilter,
-        ...(divisiones.length > 1 ? [divFilter] : []),
-        tomaFilter,
-      ],
-      [TAB_IDS.TABLA]: [
-        anioFilter,
-        ...(divisiones.length > 1 ? [divFilter] : []),
-        tomaFilter,
-      ],
-    }
-    return FILTER_LAYOUTS[tab] ?? []
-  }, [tab, materias.length, anios.length, divisiones.length, materiaFilter, anioFilter, divFilter, tomaFilter])
+  const tabDef = TAB_BY_ID[tab]
+  const isStaticTab = tabDef.kind === 'static'
+
+  const renderCtx: TabRenderCtx = {
+    escuelaId, editRequested, materia, anio, division, toma,
+    semaforoAnio, setSemaforoAnio,
+    resumenData, detalleData, semaforoBandas, scatterPoints, tablaRows,
+  }
+
+  const sidebarFilters = useMemo<Array<FilterDef>>(
+    () => tabDef.filters?.({ materias, divisiones, anios, materiaFilter, anioFilter, divFilter, tomaFilter }) ?? [],
+    [tabDef, materias, divisiones, anios, materiaFilter, anioFilter, divFilter, tomaFilter],
+  )
 
   const resetFilters = () => {
     setMateria('Matemática')
@@ -231,64 +137,40 @@ const ReporteAurora = () => {
     if (tomas.length > 0) setToma(tomas[tomas.length - 1])
   }
 
-  const tabLabels: Record<TabId, string> = {
-    [TAB_IDS.COVER]: 'Portada',
-    [TAB_IDS.INTRO]: 'Introducción',
-    [TAB_IDS.INFORME]: 'El Informe',
-    [TAB_IDS.MATEMATICA]: 'Matemática',
-    [TAB_IDS.LENGUAJE]: 'Prácticas del Lenguaje',
-    [TAB_IDS.PISA]: 'PISA',
-    [TAB_IDS.PRUEBAS]: 'Las pruebas',
-    [TAB_IDS.INSTITUCIONES]: 'Instituciones',
-    [TAB_IDS.PRESENTACION]: 'Presentación',
-    [TAB_IDS.RESUMEN]: 'Resultados generales',
-    [TAB_IDS.HISTORICO]: 'Histórico',
-    [TAB_IDS.DETALLE]: materia,
-    [TAB_IDS.SEMAFORO]: 'Semáforo',
-    [TAB_IDS.SCATTER]: 'Resultados por alumno',
-    [TAB_IDS.TABLA]: 'Resumen por estudiante',
-    [TAB_IDS.CIERRE]: 'Cierre',
-  }
-
   const filterPills = useMemo(() => {
     const pills: Array<{ label: string }> = []
-    if (NON_DATA_TABS.has(tab)) return pills
-    if ((tab === TAB_IDS.RESUMEN || tab === TAB_IDS.DETALLE || tab === TAB_IDS.SEMAFORO) && materias.length > 1) {
+    if (isStaticTab) return pills
+    if ((tab === 'resumen' || tab === 'detalle' || tab === 'semaforo') && materias.length > 1) {
       pills.push({ label: `Materia: ${materia || '—'}` })
     }
-    if (tab !== TAB_IDS.SEMAFORO) {
+    if (tab !== 'semaforo') {
       pills.push({ label: `Año: ${anio || '—'}` })
     }
     if (divisiones.length > 1) pills.push({ label: `División: ${division || '—'}` })
     if (toma) pills.push({ label: `Toma: ${toma}` })
     return pills
-  }, [tab, materia, materias.length, anio, division, divisiones.length, toma])
-
-  const SEMAFORO_ANIOS = ANIO_ORDER
+  }, [tab, isStaticTab, materia, materias.length, anio, division, divisiones.length, toma])
 
   const advance = (direction: 'prev' | 'next') => {
-    if (tab === TAB_IDS.SEMAFORO) {
-      const idx = SEMAFORO_ANIOS.indexOf(semaforoAnio as typeof SEMAFORO_ANIOS[number])
+    if (tab === 'semaforo') {
+      const idx = ANIO_ORDER.indexOf(semaforoAnio as typeof ANIO_ORDER[number])
       const nextSubIdx = direction === 'prev' ? idx - 1 : idx + 1
-      if (nextSubIdx >= 0 && nextSubIdx < SEMAFORO_ANIOS.length) {
-        setSemaforoAnio(SEMAFORO_ANIOS[nextSubIdx])
+      if (nextSubIdx >= 0 && nextSubIdx < ANIO_ORDER.length) {
+        setSemaforoAnio(ANIO_ORDER[nextSubIdx])
         return
       }
-      // exiting Semáforo: continue to next/prev top-level tab
       const tabIdx = TAB_ORDER.indexOf(tab)
       const nextTabIdx = direction === 'prev' ? tabIdx - 1 : tabIdx + 1
       if (nextTabIdx < 0 || nextTabIdx >= TAB_ORDER.length) return
       setTab(TAB_ORDER[nextTabIdx])
       return
     }
-
     const tabIdx = TAB_ORDER.indexOf(tab)
     const nextTabIdx = direction === 'prev' ? tabIdx - 1 : tabIdx + 1
     if (nextTabIdx < 0 || nextTabIdx >= TAB_ORDER.length) return
     const nextTab = TAB_ORDER[nextTabIdx]
-    if (nextTab === TAB_IDS.SEMAFORO) {
-      // entering Semáforo: position anio at the appropriate end
-      setSemaforoAnio(direction === 'next' ? SEMAFORO_ANIOS[0] : SEMAFORO_ANIOS[SEMAFORO_ANIOS.length - 1])
+    if (nextTab === 'semaforo') {
+      setSemaforoAnio(direction === 'next' ? ANIO_ORDER[0] : ANIO_ORDER[ANIO_ORDER.length - 1])
     }
     setTab(nextTab)
   }
@@ -308,150 +190,55 @@ const ReporteAurora = () => {
   const tabIdx = TAB_ORDER.indexOf(tab)
   const isFirstTab = tabIdx <= 0
   const isLastTab = tabIdx === -1 || tabIdx >= TAB_ORDER.length - 1
-  const isIntroTab = NON_DATA_TABS.has(tab)
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'rgb(230, 230, 230)', marginLeft: 'calc(100vw - 100%)' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', bgcolor: 'rgb(230, 230, 230)' }}>
       <Box sx={{ display: 'flex', flex: 1, minHeight: 0 }}>
-        {!isIntroTab && <Sidebar filters={sidebarFilters} onReset={resetFilters} />}
+        {!isStaticTab && <Sidebar filters={sidebarFilters} onReset={resetFilters} />}
 
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, position: 'relative' }}>
           {/* Content */}
-          <Box sx={{ flex: 1, overflow: 'auto', p: isIntroTab ? 0 : '22px 24px 40px' }}>
-            {tab === TAB_IDS.INTRO && escuelaId !== null && <IntroduccionTab schoolId={escuelaId} initialEditing={editRequested} />}
-            {tab === TAB_IDS.COVER && escuelaId !== null && <PortadaTab />}
-            {tab === TAB_IDS.PRUEBAS && escuelaId !== null && <PruebasTab schoolId={escuelaId} initialEditing={editRequested} />}
-            {tab === TAB_IDS.INFORME && escuelaId !== null && <InformeTab schoolId={escuelaId} initialEditing={editRequested} />}
-            {tab === TAB_IDS.MATEMATICA && escuelaId !== null && <MatematicaTab schoolId={escuelaId} initialEditing={editRequested} />}
-            {tab === TAB_IDS.LENGUAJE && escuelaId !== null && <LenguajeTab schoolId={escuelaId} initialEditing={editRequested} />}
-            {tab === TAB_IDS.PISA && escuelaId !== null && <PisaTab schoolId={escuelaId} initialEditing={editRequested} />}
-            {tab === TAB_IDS.INSTITUCIONES && escuelaId !== null && <InstitucionesTab schoolId={escuelaId} />}
-            {tab === TAB_IDS.PRESENTACION && <PresentacionResultadosTab />}
-            {tab === TAB_IDS.CIERRE && <CierreTab />}
-            {!isIntroTab && loading && (
+          <Box sx={{ flex: 1, overflow: 'auto', p: isStaticTab ? 0 : '22px 24px 40px' }}>
+            {isStaticTab && tabDef.render(renderCtx)}
+            {!isStaticTab && loading && (
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
                 <Typography sx={{ color: C.navy }}>Cargando reporte…</Typography>
               </Box>
             )}
-            {!isIntroTab && !loading && error && (
+            {!isStaticTab && !loading && error && (
               <Paper elevation={0} sx={{ bgcolor: '#ffebee', border: '1px solid #f44336', borderRadius: 5, p: 2.5 }}>
                 <Typography color="error">Error al cargar: {error}</Typography>
               </Paper>
             )}
-            {!isIntroTab && !loading && !error && (
-              <>
-                {tab === TAB_IDS.RESUMEN && resumenData && <ResumenTab data={resumenData} />}
-                {tab === TAB_IDS.HISTORICO && escuelaId !== null && <HistoricoTab schoolId={escuelaId} />}
-                {tab === TAB_IDS.DETALLE && detalleData && <DetalleTab data={detalleData} />}
-                {tab === TAB_IDS.RESUMEN && !resumenData && toma && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
-                    <Typography sx={{ color: C.navy }}>Sin datos para {materia} · {anio} · {toma}</Typography>
-                  </Box>
-                )}
-                {tab === TAB_IDS.DETALLE && !detalleData && toma && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
-                    <Typography sx={{ color: C.navy }}>Sin datos para {materia} · {anio} · {toma}</Typography>
-                  </Box>
-                )}
-                {tab === TAB_IDS.SEMAFORO && (
-                  <SemaforoTab
-                    materia={materia}
-                    bandasMap={semaforoBandas}
-                    anio={semaforoAnio}
-                    onAnioChange={setSemaforoAnio}
-                  />
-                )}
-                {tab === TAB_IDS.SCATTER && <ScatterTab points={scatterPoints} />}
-                {tab === TAB_IDS.TABLA && <TablaTab rows={tablaRows} />}
-              </>
-            )}
+            {!isStaticTab && !loading && !error && tabDef.render(renderCtx)}
           </Box>
 
-          {/* Header */}
-          {!isIntroTab && (
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, pt: 2.5, pb: 0.5, bgcolor: 'white' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography variant="h5" sx={{ color: C.navy, fontWeight: 800 }}>
-                  {schoolName} — {tabLabels[tab]}
-                </Typography>
-                {!isIntroTab && canManage && reportId && (
-                  <Chip
-                    size="small"
-                    color={reportStatus === 'published' ? 'success' : 'warning'}
-                    label={reportStatus === 'published' ? 'Publicado' : 'Borrador'}
-                    onClick={handleTogglePublish}
-                    disabled={statusBusy}
-                    sx={{ ml: 2, cursor: 'pointer' }}
-                  />
-                )}
-              </Box>
-              <Logo width={headerLogoSize.w} height={headerLogoSize.h} />
-            </Box>
+          {!isStaticTab && (
+            <ReportHeader
+              schoolName={schoolName}
+              tabLabel={resolveTabLabel(tabDef, renderCtx)}
+              canManage={canManage}
+              reportId={reportId}
+              reportStatus={reportStatus}
+              statusBusy={statusBusy}
+              onTogglePublish={handleTogglePublish}
+            />
           )}
-
-          {/* Filter pills */}
-          {!isIntroTab && (
-            <Stack direction="row" spacing={1} sx={{ px: 3, py: 1.25, bgcolor: 'white', flexWrap: 'wrap' }}>
-              {filterPills.map(p => (
-                <Chip key={p.label} label={p.label} size="medium" sx={{ bgcolor: C.lightBlue, color: C.navy, fontWeight: 600 }} />
-              ))}
-            </Stack>
-          )}
-
-          {/* Footer */}
-          {!isIntroTab && (
-            <Box sx={{ textAlign: 'center', py: 1.5, px: 3.5, borderTop: 1, borderColor: 'divider', bgcolor: 'white' }}>
-              <Typography variant="caption" sx={{ color: C.navy }}>
-                Reportes Aurora · Reporte por Escuela · Universidad Austral – Escuela de Educación
-              </Typography>
-            </Box>
-          )}
-
-          {/* Floating tab nav */}
-          <Box
-            sx={{
-              position: 'fixed',
-              bottom: 24,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              display: 'flex',
-              gap: 1,
-              zIndex: theme => theme.zIndex.fab,
-              bgcolor: 'white',
-              borderRadius: 999,
-              boxShadow: 3,
-              px: 0.5,
-              py: 0.5,
-            }}
-          >
-            <IconButton size="medium" onClick={() => advance('prev')} disabled={isFirstTab} sx={{ color: C.navy }}>
-              <ChevronLeftIcon />
-            </IconButton>
-            <Select
-              value={tab}
-              onChange={e => setTab(e.target.value as TabId)}
-              variant="standard"
-              disableUnderline
-              renderValue={value => {
-                const idx = TAB_ORDER.indexOf(value as TabId)
-                return `${idx + 1} de ${TAB_ORDER.length}`
-              }}
-              MenuProps={{
-                anchorOrigin: { vertical: 'top', horizontal: 'center' },
-                transformOrigin: { vertical: 'bottom', horizontal: 'center' },
-              }}
-              sx={{ width: 80, color: C.navy, fontWeight: 600, fontSize: '0.8125rem', '& .MuiSelect-select': { py: 0.5, px: 1.5 } }}
-            >
-              {TAB_ORDER.map((id, idx) => (
-                <MenuItem key={id} value={id}>{idx + 1}. {tabLabels[id]}</MenuItem>
-              ))}
-            </Select>
-            <IconButton size="medium" onClick={() => advance('next')} disabled={isLastTab} sx={{ color: C.navy }}>
-              <ChevronRightIcon />
-            </IconButton>
-          </Box>
+          {!isStaticTab && <FilterPillsBar pills={filterPills} />}
+          {!isStaticTab && <ReportFooter />}
         </Box>
       </Box>
+
+      <TabPager<TabId>
+        tab={tab}
+        tabs={TAB_ORDER}
+        labelOf={id => resolveTabLabel(TAB_BY_ID[id], renderCtx)}
+        onChange={setTab}
+        onPrev={() => advance('prev')}
+        onNext={() => advance('next')}
+        isFirst={isFirstTab}
+        isLast={isLastTab}
+      />
     </Box>
   )
 }

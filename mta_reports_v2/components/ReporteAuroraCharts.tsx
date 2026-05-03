@@ -1,9 +1,10 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
+import { useRef } from 'react'
 import { Box, Stack, Typography } from '@mui/material'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Rectangle, LabelList, ReferenceLine } from 'recharts'
-import { COLORS, FONT_SIZES, SPACING } from '@/mta_reports_v2/constants'
+import { COLORS, FONT_SIZES, SPACING, CHART_MARGINS } from '@/mta_reports_v2/constants'
+import { useResponsiveBox, useResponsiveHeight } from '@/mta_reports_v2/hooks'
 import type { I_BoxplotAurora, I_ItemAurora } from '@/mta_reports_v2/types'
 
 const C = COLORS
@@ -20,22 +21,8 @@ function Leg({ c, t }: { c: string; t: string }) {
 }
 
 function AllSchoolsBarChart({ bars, miId }: { bars: { id: string; p: number }[]; miId: string }) {
-  const [height, setHeight] = useState(400)
   const containerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const observer = new ResizeObserver(() => {
-      const parent = containerRef.current?.parentElement
-      if (parent) {
-        const available = window.innerHeight - parent.getBoundingClientRect().top - 80
-        setHeight(Math.max(300, available))
-      }
-    })
-    if (containerRef.current?.parentElement) {
-      observer.observe(containerRef.current.parentElement)
-    }
-    return () => observer.disconnect()
-  }, [])
+  const height = useResponsiveHeight(containerRef)
 
   const sorted = [...bars].sort((a, b) => b.p - a.p)
   const prom = sorted.length
@@ -45,7 +32,7 @@ function AllSchoolsBarChart({ bars, miId }: { bars: { id: string; p: number }[];
   return (
     <Box ref={containerRef} sx={{ display: 'flex', flexDirection: 'column', height: height }}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={sorted} margin={{ top: 16, right: 8, bottom: 30, left: 10 }}>
+        <BarChart data={sorted} margin={CHART_MARGINS.vertical}>
           <CartesianGrid vertical={false} stroke={C.gridLight} strokeWidth={0.8} />
           <XAxis dataKey="id" tick={{ fontSize: F.md, fill: C.tm }} angle={-40} textAnchor="end" interval={0} />
           <ReferenceLine y={prom} stroke={C.refRed} strokeDasharray="4 3" strokeWidth={1} />
@@ -77,7 +64,7 @@ function HorizontalBarChart({ items }: { items: I_ItemAurora[] }) {
 
   return (
     <ResponsiveContainer width="100%" height={chartH}>
-      <BarChart layout="vertical" data={data} margin={{ top: 5, right: 72, bottom: 5, left: 8 }}>
+      <BarChart layout="vertical" data={data} margin={CHART_MARGINS.horizontal}>
         <CartesianGrid horizontal={false} stroke={C.gridLight} />
         <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: F.md, fill: C.tm }} />
         <YAxis type="category" dataKey="name" width={180} tick={{ fontSize: F.lg, fill: C.navy }} />
@@ -94,21 +81,7 @@ function HorizontalBarChart({ items }: { items: I_ItemAurora[] }) {
 
 function BP({ d, color, w = 90, h = 280 }: { d: I_BoxplotAurora; color: string; w?: number; h?: number }) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [dimensions, setDimensions] = useState({ w, h })
-
-  useEffect(() => {
-    const observer = new ResizeObserver(() => {
-      if (containerRef.current?.parentElement) {
-        const rect = containerRef.current.parentElement.getBoundingClientRect()
-        const available = Math.max(100, Math.min(rect.width - 16, 180))
-        setDimensions({ w: available, h: Math.max(280, rect.height * 0.8) })
-      }
-    })
-    if (containerRef.current?.parentElement) {
-      observer.observe(containerRef.current.parentElement)
-    }
-    return () => observer.disconnect()
-  }, [])
+  const dimensions = useResponsiveBox(containerRef, { initialW: w, initialH: h })
 
   const data = [{ name: 'box', q1: d.q1, q3: d.q3, md: d.md, av: d.av, min: d.min, max: d.max }]
 
@@ -133,7 +106,7 @@ function BP({ d, color, w = 90, h = 280 }: { d: I_BoxplotAurora; color: string; 
   return (
     <Box ref={containerRef} sx={{ width: dimensions.w, height: dimensions.h }}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 16, right: 8, bottom: 8, left: 40 }}>
+        <BarChart data={data} margin={CHART_MARGINS.boxplot}>
           <CartesianGrid horizontal={true} vertical={false} stroke={C.gridLighter} strokeWidth={0.5} />
           <XAxis dataKey="name" hide />
           <YAxis domain={[0, 100]} ticks={[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]} tick={{ fontSize: F.md, fill: C.tm }} />

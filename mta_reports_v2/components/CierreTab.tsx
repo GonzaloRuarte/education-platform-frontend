@@ -10,12 +10,13 @@ const C = COLORS
 const CierreTab = () => (
   <Box
     sx={{
-      width: '100%',
-      minHeight: 'calc(100vh - 160px)',
+      position: 'fixed',
+      inset: 0,
       bgcolor: C.blue,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
+      zIndex: (theme) => theme.zIndex.modal,
     }}
   >
     <Stack alignItems="center" spacing={10}>

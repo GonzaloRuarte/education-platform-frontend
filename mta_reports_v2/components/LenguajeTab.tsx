@@ -1,7 +1,6 @@
 'use client'
 
-import { Box } from '@mui/material'
-import { EditableContentSection } from '@/mta_reports_v2/components/EditableContentSection'
+import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
 
 interface LenguajeTabProps {
   schoolId: number
@@ -23,20 +22,14 @@ const fields = {
 }
 
 const LenguajeTab = ({ schoolId, initialEditing }: LenguajeTabProps) => (
-  <EditableContentSection
+  <EditableTab
     schoolId={schoolId}
+    initialEditing={initialEditing}
     diapositivaId={5}
     successMessage='Sección "Prácticas del Lenguaje" actualizada correctamente'
     fields={fields}
-    initialEditing={initialEditing}
-  >
-    {({ renderField }) => (
-      <Box sx={{ maxWidth: 1000 }}>
-        {renderField('title', { mb: 4 })}
-        {renderField('body')}
-      </Box>
-    )}
-  </EditableContentSection>
+    maxWidth={1000}
+  />
 )
 
 export { LenguajeTab }

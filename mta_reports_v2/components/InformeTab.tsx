@@ -1,7 +1,6 @@
 'use client'
 
-import { Box } from '@mui/material'
-import { EditableContentSection } from '@/mta_reports_v2/components/EditableContentSection'
+import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
 
 interface InformeTabProps {
   schoolId: number
@@ -19,20 +18,13 @@ const fields = {
 }
 
 const InformeTab = ({ schoolId, initialEditing }: InformeTabProps) => (
-  <EditableContentSection
+  <EditableTab
     schoolId={schoolId}
+    initialEditing={initialEditing}
     diapositivaId={3}
     successMessage='Sección "El Informe" actualizada correctamente'
     fields={fields}
-    initialEditing={initialEditing}
-  >
-    {({ renderField }) => (
-      <Box sx={{ maxWidth: 820 }}>
-        {renderField('title', { mb: 4 })}
-        {renderField('body')}
-      </Box>
-    )}
-  </EditableContentSection>
+  />
 )
 
 export { InformeTab }

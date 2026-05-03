@@ -61,4 +61,10 @@ export const SPACING = {
   cardInnerPy: 1.8,
 } as const
 
+export const CHART_MARGINS = {
+  vertical: { top: 16, right: 8, bottom: 30, left: 10 },
+  horizontal: { top: 5, right: 72, bottom: 5, left: 8 },
+  boxplot: { top: 16, right: 8, bottom: 8, left: 40 },
+} as const
+
 export { REPORT_NAME, ESCUELA_REPORTE_NAME, AURORA_REPORT_NAME }

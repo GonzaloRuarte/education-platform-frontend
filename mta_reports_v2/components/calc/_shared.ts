@@ -136,3 +136,25 @@ export function filterEstudiantes(combo: I_RawComboDato, division: string) {
     ? combo.estudiantes_mi
     : combo.estudiantes_mi.filter(s => !s.division || s.division === division)
 }
+
+export interface PreparedCombo {
+  combo: I_RawComboDato
+  students: ReturnType<typeof filterEstudiantes>
+  qids: string[]
+}
+
+export function prepareCombo(
+  raw: I_RawEscuelaDatos,
+  materia: string,
+  anio: string,
+  toma: string,
+  division: string,
+): PreparedCombo | null {
+  const combo = findCombo(raw, materia, anio, toma)
+  if (!combo) return null
+  return {
+    combo,
+    students: filterEstudiantes(combo, division),
+    qids: combo.preguntas.map(q => String(q.id)),
+  }
+}

@@ -35,7 +35,7 @@ function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => vo
   return (
     <Box sx={{
       width: 280,
-      minHeight: 'calc(100vh - 32px)',
+      minHeight: 0,
       flexShrink: 0,
       bgcolor: C.white,
       px: 2.5,

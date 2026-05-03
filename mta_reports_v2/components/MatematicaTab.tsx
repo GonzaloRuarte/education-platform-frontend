@@ -1,7 +1,7 @@
 'use client'
 
 import { Box, Stack, Typography } from '@mui/material'
-import { EditableContentSection } from '@/mta_reports_v2/components/EditableContentSection'
+import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
 import { COLORS } from '@/mta_reports_v2/constants'
 
 const C = COLORS
@@ -35,12 +35,13 @@ const fields = {
 }
 
 const MatematicaTab = ({ schoolId, initialEditing }: MatematicaTabProps) => (
-  <EditableContentSection
+  <EditableTab
     schoolId={schoolId}
+    initialEditing={initialEditing}
     diapositivaId={4}
     successMessage='Sección "Matemática" actualizada correctamente'
     fields={fields}
-    initialEditing={initialEditing}
+    maxWidth={1100}
   >
     {({ renderField }) => (
       <Box sx={{ maxWidth: 1100 }}>
@@ -57,7 +58,7 @@ const MatematicaTab = ({ schoolId, initialEditing }: MatematicaTabProps) => (
         </Stack>
       </Box>
     )}
-  </EditableContentSection>
+  </EditableTab>
 )
 
 export { MatematicaTab }

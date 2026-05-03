@@ -4,8 +4,7 @@ import type {
 } from '@/mta_reports_v2/types'
 import {
   calcPercentage,
-  filterEstudiantes,
-  findCombo,
+  prepareCombo,
 } from './_shared'
 
 export function calcScatter(
@@ -14,14 +13,14 @@ export function calcScatter(
   division: string,
   toma: string,
 ): I_ScatterPoint[] {
-  const lenCombo = findCombo(raw, 'Prácticas del Lenguaje', anio, toma)
-  const matCombo = findCombo(raw, 'Matemática',             anio, toma)
-  if (!lenCombo || !matCombo) return []
+  const len = prepareCombo(raw, 'Prácticas del Lenguaje', anio, toma, division)
+  const mat = prepareCombo(raw, 'Matemática',             anio, toma, division)
+  if (!len || !mat) return []
 
-  const lenStudents = filterEstudiantes(lenCombo, division)
-  const matStudents = filterEstudiantes(matCombo, division)
-  const lenIds = lenCombo.preguntas.map(q => String(q.id))
-  const matIds = matCombo.preguntas.map(q => String(q.id))
+  const lenStudents = len.students
+  const matStudents = mat.students
+  const lenIds = len.qids
+  const matIds = mat.qids
   const count = Math.min(lenStudents.length, matStudents.length)
 
   if (lenStudents.length !== matStudents.length) {

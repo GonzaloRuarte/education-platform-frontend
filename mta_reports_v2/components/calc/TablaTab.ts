@@ -4,8 +4,7 @@ import type {
 } from '@/mta_reports_v2/types'
 import {
   calcPercentage,
-  filterEstudiantes,
-  findCombo,
+  prepareCombo,
 } from './_shared'
 
 export function calcTabla(
@@ -19,10 +18,8 @@ export function calcTabla(
     { materia: 'Prácticas del Lenguaje', key: 'len' as const },
   ]
   const infos = MATS.flatMap(({ materia, key }) => {
-    const combo = findCombo(raw, materia, anio, toma)
-    if (!combo) return []
-    const qids = combo.preguntas.map(q => String(q.id))
-    return [{ students: filterEstudiantes(combo, division), qids, key }]
+    const prepared = prepareCombo(raw, materia, anio, toma, division)
+    return prepared ? [{ students: prepared.students, qids: prepared.qids, key }] : []
   })
   const maxLen = Math.max(...infos.map(m => m.students.length), 0)
 

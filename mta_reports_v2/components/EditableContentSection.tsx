@@ -22,12 +22,12 @@ const australLogoSize = new ImageSize(412, 72, { scale: 0.7 })
 
 type FieldVariant = 'title' | 'body'
 
-interface FieldConfig {
+export interface FieldConfig {
   defaultHtml: string
   variant: FieldVariant
 }
 
-interface RenderFieldArgs<F extends string> {
+export interface RenderFieldArgs<F extends string> {
   renderField: (key: F, sx?: Record<string, unknown>) => ReactNode
   isEditing: boolean
 }
@@ -167,6 +167,7 @@ const EditableContentSection = <F extends string,>({
     const variantClass = fields[key].variant === 'title' ? 'title-editor' : 'body-editor'
     return (
       <Box
+        key={key}
         className={`editable-section-editor ${variantClass} ${isEditing && activeEditor === key ? 'is-active' : ''} ${!isEditing ? 'is-readonly' : ''}`}
         sx={sx}
       >

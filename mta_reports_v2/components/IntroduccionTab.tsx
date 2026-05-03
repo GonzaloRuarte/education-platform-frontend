@@ -1,7 +1,6 @@
 'use client'
 
-import { Box } from '@mui/material'
-import { EditableContentSection } from '@/mta_reports_v2/components/EditableContentSection'
+import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
 
 interface IntroduccionTabProps {
   schoolId: number
@@ -26,30 +25,14 @@ const fields = {
 }
 
 const IntroduccionTab = ({ schoolId, initialEditing }: IntroduccionTabProps) => (
-  <Box
-    sx={{
-      '& img[alt="Universidad Austral"]': {
-        filter:
-          'brightness(0) saturate(100%) invert(13%) sepia(91%) saturate(3500%) hue-rotate(228deg) brightness(85%) contrast(105%)',
-      },
-    }}
-  >
-    <EditableContentSection
-      schoolId={schoolId}
-      diapositivaId={1}
-      successMessage="Introducción actualizada correctamente"
-      fields={fields}
-      initialEditing={initialEditing}
-    >
-      {({ renderField }) => (
-        <Box sx={{ maxWidth: 820 }}>
-          {renderField('title', { mb: 4 })}
-          {renderField('paragraph1', { mb: 4 })}
-          {renderField('paragraph2')}
-        </Box>
-      )}
-    </EditableContentSection>
-  </Box>
+  <EditableTab
+    schoolId={schoolId}
+    initialEditing={initialEditing}
+    diapositivaId={1}
+    successMessage="Introducción actualizada correctamente"
+    fields={fields}
+    withAustralFilter
+  />
 )
 
 export { IntroduccionTab }
