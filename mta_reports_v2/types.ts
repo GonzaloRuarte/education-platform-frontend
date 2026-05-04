@@ -34,6 +34,7 @@ interface I_FiltrosAurora {
   anio: string
   division: string
   toma: string
+  neeFilter?: string
 }
 
 interface I_ItemAurora {
@@ -100,7 +101,7 @@ interface I_RawComboDato {
   anio: string
   toma: string
   preguntas: I_RawPregunta[]
-  estudiantes_mi: Array<{ division: string | null; respuestas: Record<string, boolean> }>
+  estudiantes_mi: Array<{ division: string | null; nee?: boolean; respuestas: Record<string, boolean> }>
   todos: I_RawTodos
 }
 

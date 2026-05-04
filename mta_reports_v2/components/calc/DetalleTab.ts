@@ -20,7 +20,7 @@ export function calcDetalle(
   if (!combo) return null
   if (!combo.todos?.por_pregunta) return null
 
-  const estudiantes_mi = filterEstudiantes(combo, f.division).map(s => s.respuestas)
+  const estudiantes_mi = filterEstudiantes(combo, f.division, f.neeFilter).map(s => s.respuestas)
   const pp = combo.todos.por_pregunta
   const allIds = new Set(combo.preguntas.map(q => String(q.id)))
   const scores45 = studentScores(allIds, estudiantes_mi)

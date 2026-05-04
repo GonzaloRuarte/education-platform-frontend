@@ -12,9 +12,10 @@ export function calcScatter(
   anio: string,
   division: string,
   toma: string,
+  neeFilter: string = 'Todos',
 ): I_ScatterPoint[] {
-  const len = prepareCombo(raw, 'Prácticas del Lenguaje', anio, toma, division)
-  const mat = prepareCombo(raw, 'Matemática',             anio, toma, division)
+  const len = prepareCombo(raw, 'Prácticas del Lenguaje', anio, toma, division, neeFilter)
+  const mat = prepareCombo(raw, 'Matemática',             anio, toma, division, neeFilter)
   if (!len || !mat) return []
 
   const lenStudents = len.students

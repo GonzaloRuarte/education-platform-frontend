@@ -42,6 +42,7 @@ const ReporteAurora = () => {
   const [anio, setAnio] = useState('3ro')
   const [division, setDivision] = useState('Todas')
   const [semaforoAnio, setSemaforoAnio] = useState<string>('3ro')
+  const [neeFilter, setNeeFilter] = useState('Con NEE')
 
   const { rawData, loading, error, tomas, getMaterias, getAnios, getDivisiones } =
     useEscuelaReporteAurora(escuelaId)
@@ -75,24 +76,24 @@ const ReporteAurora = () => {
   }, [divisiones, division])
 
   const resumenData = useMemo(
-    () => (rawData && toma ? calcResumen(rawData, { materia, anio, division, toma }) : null),
-    [rawData, materia, anio, division, toma],
+    () => (rawData && toma ? calcResumen(rawData, { materia, anio, division, toma, neeFilter }) : null),
+    [rawData, materia, anio, division, toma, neeFilter],
   )
   const detalleData = useMemo(
-    () => (rawData && toma ? calcDetalle(rawData, { materia, anio, division, toma }) : null),
-    [rawData, materia, anio, division, toma],
+    () => (rawData && toma ? calcDetalle(rawData, { materia, anio, division, toma, neeFilter }) : null),
+    [rawData, materia, anio, division, toma, neeFilter],
   )
   const semaforoBandas = useMemo(
-    () => (rawData && toma ? calcSemaforo(rawData, materia, division, toma) : {}),
-    [rawData, materia, division, toma],
+    () => (rawData && toma ? calcSemaforo(rawData, materia, division, toma, neeFilter) : {}),
+    [rawData, materia, division, toma, neeFilter],
   )
   const scatterPoints = useMemo(
-    () => (rawData && toma ? calcScatter(rawData, anio, division, toma) : []),
-    [rawData, anio, division, toma],
+    () => (rawData && toma ? calcScatter(rawData, anio, division, toma, neeFilter) : []),
+    [rawData, anio, division, toma, neeFilter],
   )
   const tablaRows = useMemo(
-    () => (rawData && toma ? calcTabla(rawData, anio, division, toma) : []),
-    [rawData, anio, division, toma],
+    () => (rawData && toma ? calcTabla(rawData, anio, division, toma, neeFilter) : []),
+    [rawData, anio, division, toma, neeFilter],
   )
 
   const schoolName = rawData?.colegio ?? (loading ? 'Cargando…' : 'Escuela')
@@ -115,6 +116,7 @@ const ReporteAurora = () => {
   const divFilter = useMemo<FilterDef>(() => ({ label: 'División', value: division, opts: divisiones, set: setDivision }), [division, divisiones])
   const materiaFilter = useMemo<FilterDef>(() => ({ label: 'Materia', value: materia, opts: materias.length > 0 ? materias : [materia], set: setMateria }), [materia, materias])
   const anioFilter = useMemo<FilterDef>(() => ({ label: 'Año', value: anio, opts: anios.length > 0 ? anios : ANIO_ORDER.slice(), set: setAnio }), [anio, anios])
+  const neeFilterDef = useMemo<FilterDef>(() => ({ label: 'NEE', value: neeFilter, opts: ['Con NEE', 'Sin NEE'], set: setNeeFilter }), [neeFilter])
 
   const tabDef = TAB_BY_ID[tab]
   const isStaticTab = tabDef.kind === 'static'
@@ -126,14 +128,15 @@ const ReporteAurora = () => {
   }
 
   const sidebarFilters = useMemo<Array<FilterDef>>(
-    () => tabDef.filters?.({ materias, divisiones, anios, materiaFilter, anioFilter, divFilter, tomaFilter }) ?? [],
-    [tabDef, materias, divisiones, anios, materiaFilter, anioFilter, divFilter, tomaFilter],
+    () => [...(tabDef.filters?.({ materias, divisiones, anios, materiaFilter, anioFilter, divFilter, tomaFilter }) ?? []), neeFilterDef],
+    [tabDef, materias, divisiones, anios, materiaFilter, anioFilter, divFilter, tomaFilter, neeFilterDef],
   )
 
   const resetFilters = () => {
     setMateria('Matemática')
     setAnio('3ro')
     setDivision('Todas')
+    setNeeFilter('Con NEE')
     if (tomas.length > 0) setToma(tomas[tomas.length - 1])
   }
 
@@ -147,9 +150,9 @@ const ReporteAurora = () => {
       pills.push({ label: `Año: ${anio || '—'}` })
     }
     if (divisiones.length > 1) pills.push({ label: `División: ${division || '—'}` })
-    if (toma) pills.push({ label: `Toma: ${toma}` })
+    if (neeFilter === 'Sin NEE') pills.push({ label: `NEE: ${neeFilter}` })
     return pills
-  }, [tab, isStaticTab, materia, materias.length, anio, division, divisiones.length, toma])
+  }, [tab, isStaticTab, materia, materias.length, anio, division, divisiones.length, toma, neeFilter])
 
   const advance = (direction: 'prev' | 'next') => {
     if (tab === 'semaforo') {

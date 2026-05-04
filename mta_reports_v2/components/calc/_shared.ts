@@ -131,10 +131,14 @@ export function findCombo(
   return raw.datos.find(d => d.materia === materia && d.anio === anio && d.toma === toma)
 }
 
-export function filterEstudiantes(combo: I_RawComboDato, division: string) {
-  return division.toLowerCase() === 'todas'
+export function filterEstudiantes(combo: I_RawComboDato, division: string, neeFilter: string = 'Todos') {
+  let students = division.toLowerCase() === 'todas'
     ? combo.estudiantes_mi
     : combo.estudiantes_mi.filter(s => !s.division || s.division === division)
+  if (neeFilter === 'Sin NEE') {
+    students = students.filter(s => !s.nee)
+  }
+  return students
 }
 
 export interface PreparedCombo {
@@ -149,12 +153,13 @@ export function prepareCombo(
   anio: string,
   toma: string,
   division: string,
+  neeFilter: string = 'Todos',
 ): PreparedCombo | null {
   const combo = findCombo(raw, materia, anio, toma)
   if (!combo) return null
   return {
     combo,
-    students: filterEstudiantes(combo, division),
+    students: filterEstudiantes(combo, division, neeFilter),
     qids: combo.preguntas.map(q => String(q.id)),
   }
 }

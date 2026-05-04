@@ -14,12 +14,13 @@ export function calcSemaforo(
   materia: string,
   division: string,
   toma: string,
+  neeFilter: string = 'Todos',
 ): Record<string, I_SemaforoBandas> {
   const result: Record<string, I_SemaforoBandas> = {}
   for (const anio of ANIO_ORDER) {
     const combo = findCombo(raw, materia, anio, toma)
     if (!combo) continue
-    const estudiantes = filterEstudiantes(combo, division)
+    const estudiantes = filterEstudiantes(combo, division, neeFilter)
     const nonPisaIds = combo.preguntas.filter(q => !q.es_pisa).map(q => String(q.id))
     const bands = { verde: 0, amarillo: 0, naranja: 0, rojo: 0 }
     for (const est of estudiantes) {

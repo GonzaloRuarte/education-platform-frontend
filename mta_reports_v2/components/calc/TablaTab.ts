@@ -12,13 +12,14 @@ export function calcTabla(
   anio: string,
   division: string,
   toma: string,
+  neeFilter: string = 'Todos',
 ): I_TablaRow[] {
   const MATS = [
     { materia: 'Matemática',             key: 'mat' as const },
     { materia: 'Prácticas del Lenguaje', key: 'len' as const },
   ]
   const infos = MATS.flatMap(({ materia, key }) => {
-    const prepared = prepareCombo(raw, materia, anio, toma, division)
+    const prepared = prepareCombo(raw, materia, anio, toma, division, neeFilter)
     return prepared ? [{ students: prepared.students, qids: prepared.qids, key }] : []
   })
   const maxLen = Math.max(...infos.map(m => m.students.length), 0)
