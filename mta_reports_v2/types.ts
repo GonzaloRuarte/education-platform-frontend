@@ -77,7 +77,14 @@ interface I_DetalleTabData {
   lenCont?: I_ItemAurora[]
   boxplotMiLenguaje?: I_BoxplotAurora
   boxplotTodosLenguaje?: I_BoxplotAurora
-  estudiantes: Array<{ id: number; score: number }>
+  estudiantes: Array<{
+    id: number
+    score: number
+    contenido: I_ItemAurora[]
+    competencia: I_ItemAurora[]
+    lenCont?: I_ItemAurora[]
+    lenComp?: I_ItemAurora[]
+  }>
 }
 
 // ─── Raw backend response types ───────────────────────────────────────────────

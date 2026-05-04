@@ -37,7 +37,16 @@ export function calcDetalle(
     const score = answered.length
       ? r1(answered.filter(k => respuestas[k]).length / answered.length * 100)
       : 0
-    return { id: idx + 1, score }
+    const one = [respuestas]
+    const stCont = groupBy('contenido',   combo.preguntas, pp, one)
+    const stComp = groupBy('competencia', combo.preguntas, pp, one)
+    return {
+      id: idx + 1,
+      score,
+      contenido:   isLenguaje ? [] : stCont,
+      competencia: isLenguaje ? [] : stComp,
+      ...(isLenguaje && { lenCont: stCont, lenComp: stComp }),
+    }
   })
 
   return {

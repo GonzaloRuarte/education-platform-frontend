@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Box, Stack, Typography, FormControl, InputLabel, Select, MenuItem, Grid2, Tooltip } from '@mui/material'
 import Paper from '@mui/material/Paper'
 import { BP, HorizontalBarChart, Leg, ChartCard } from '@/mta_reports_v2/components/ReporteAuroraCharts'
@@ -13,13 +13,25 @@ const F = FONT_SIZES
 function DetalleTab({ data }: { data: I_DetalleTabData }) {
   const d = data
   const isLenguaje = (d.lenComp?.length ?? 0) > 0
-  const compItems = isLenguaje ? (d.lenComp ?? []) : d.competencia
-  const contItems = isLenguaje ? (d.lenCont ?? []) : d.contenido
 
   const [selectedStudentId, setSelectedStudentId] = useState<string | number>('all')
+
+  useEffect(() => {
+    if (selectedStudentId !== 'all' && !d.estudiantes.some(e => e.id === selectedStudentId)) {
+      setSelectedStudentId('all')
+    }
+  }, [d.estudiantes, selectedStudentId])
+
   const selectedStudent = selectedStudentId !== 'all'
     ? d.estudiantes.find(e => e.id === selectedStudentId)
     : null
+
+  const compItems = selectedStudent
+    ? (isLenguaje ? (selectedStudent.lenComp ?? []) : selectedStudent.competencia)
+    : (isLenguaje ? (d.lenComp ?? []) : d.competencia)
+  const contItems = selectedStudent
+    ? (isLenguaje ? (selectedStudent.lenCont ?? []) : selectedStudent.contenido)
+    : (isLenguaje ? (d.lenCont ?? []) : d.contenido)
 
   const barLegend = (
     <>
@@ -83,7 +95,16 @@ function DetalleTab({ data }: { data: I_DetalleTabData }) {
                 ID del alumno
               </Typography>
               <FormControl size="small" sx={{ minWidth: 100 }}>
-                <Select value={selectedStudentId} onChange={(e) => setSelectedStudentId(e.target.value)} displayEmpty>
+                <Select
+                  value={selectedStudentId}
+                  onChange={(e) => setSelectedStudentId(e.target.value)}
+                  displayEmpty
+                  MenuProps={{
+                    anchorOrigin: { vertical: 'top', horizontal: 'left' },
+                    transformOrigin: { vertical: 'bottom', horizontal: 'left' },
+                    PaperProps: { sx: { maxHeight: 240 } },
+                  }}
+                >
                   <MenuItem value="all">Todos</MenuItem>
                   {d.estudiantes.map(est => (
                     <MenuItem key={est.id} value={est.id}>
