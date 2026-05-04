@@ -91,10 +91,56 @@ export function groupBy(
   pp: Record<string, { n_correctas: number; n_total: number }>,
   estudiantes: Array<Record<string, boolean>>,
 ): I_ItemAurora[] {
+  const strip = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+  const tagMap: Record<string, string> = {}
+  const register = (canonical: string, variants: string[]) => {
+    for (const v of variants) tagMap[strip(v.trim())] = canonical
+  }
+  register('Estadística y probabilidad', [
+    'Estadística y probabilidad', 'Estadistica y probabilidad',
+    'Estadística', 'Estadistica', 'Probabilidad',
+  ])
+  register('Numeración y operaciones', [
+    'Numeración y operaciones', 'Numeracion y operaciones',
+    'Números y operaciones', 'Numeros y operaciones',
+    'Números operaciones', 'Numeros operaciones',
+    'Numeración operaciones', 'Numeracion operaciones',
+  ])
+  register('Geometría', [
+    'Geometría', 'Geometria',
+  ])
+  register('Medidas', [
+    'Medida', 'Medidas',
+  ])
+  register('Álgebra', [
+    'Álgebra', 'Algebra',
+  ])
+  register('Funciones, ecuaciones e inecuaciones', [
+    'Funciones, ecuaciones e inecuaciones',
+    'Funciones ecuaciones e inecuaciones',
+    'Funciones ecuaciones inecuaciones',
+    'Funciones-ecuaciones-inecuaciones',
+  ])
+  register('Reconocimiento de conceptos', [
+    'Reconocimiento de conceptos', 'Reconocimiento conceptos',
+    'Reconocimiento-de-conceptos',
+  ])
+  register('Resolución de operaciones', [
+    'Resolución de operaciones', 'Resolucion de operaciones',
+    'Resolución operaciones', 'Resolucion operaciones',
+    'Resolución-de-operaciones', 'Resolucion-de-operaciones',
+  ])
+  register('Resolución de problemas', [
+    'Resolución de problemas', 'Resolucion de problemas',
+    'Resolución problemas', 'Resolucion problemas',
+    'Resolución-de-problemas', 'Resolucion-de-problemas',
+  ])
+  const normalizeTag = (t: string): string => tagMap[strip(t.trim())] ?? t
+
   const groups: Record<string, Set<string>> = {}
   for (const q of preguntas) {
     if (q.es_pisa) continue
-    const tag = q[field]
+    const tag = normalizeTag(q[field])
     if (!tag) continue
     if (!groups[tag]) groups[tag] = new Set()
     groups[tag].add(String(q.id))
