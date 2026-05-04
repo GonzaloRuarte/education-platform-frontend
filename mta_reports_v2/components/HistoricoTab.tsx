@@ -20,8 +20,8 @@ const HistoricoChart = ({ title, data }: { title: string; data: I_HistoricoBar[]
           <YAxis domain={[0, 100]} />
           <Tooltip />
           <Legend />
-          <Bar dataKey="pct_mi_colegio" name="Mi colegio" fill={C.barMe} />
-          <Bar dataKey="pct_promedio_red" name="Promedio red" fill={C.barFill} />
+          <Bar dataKey="pct_mi_colegio" name="Mi colegio" fill={C.navyMid} />
+          <Bar dataKey="pct_promedio_red" name="Promedio red" fill={C.iceBlue} />
         </BarChart>
       </ResponsiveContainer>
     </Box>

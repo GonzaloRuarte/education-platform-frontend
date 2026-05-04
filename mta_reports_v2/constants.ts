@@ -10,6 +10,8 @@ const AURORA_REPORT_NAME = new EntityName({
 
 export const COLORS = {
   navy: '#041552',
+  navyMid: '#214F80',
+  iceBlue: '#DBEDF4',
   blue: '#0b2280',
   royal: '#0040a3',
   accent: '#00a6e6',
@@ -24,7 +26,7 @@ export const COLORS = {
   textGrey: 'grey',
   darkGrey: '#555555',
   mutedGrey: '#999999',
-  bgGrey: 'rgb(230, 230, 230)',
+  bgGrey: '#F4F4F4',
   gridLight: '#eeeeee',
   gridLighter: '#eaeaea',
   refRed: '#e84c4c',
@@ -34,9 +36,12 @@ export const COLORS = {
   navyAlpha15: 'rgba(4, 21, 82, 0.15)',
   lightBlueAlpha22: 'rgba(195, 217, 255, 0.22)',
   blackAlpha15: 'rgba(0, 0, 0, 0.15)',
+  blackAlpha20: 'rgba(0, 0, 0, 0.20)'
 } as const
 
 export const ANIO_ORDER = ['3ro', '6to', '9no', '12mo'] as const
+
+export const FONT_FAMILY = '"Segoe UI", wf_segoe-ui_normal, helvetica, arial, sans-serif'
 
 export const FONT_SIZES = {
   xs: 8,

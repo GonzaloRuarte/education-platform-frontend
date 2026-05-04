@@ -8,7 +8,7 @@ import { COLORS } from '@/mta_reports_v2/constants'
 import { BorderAllRounded } from '@mui/icons-material'
 
 const C = COLORS
-const sidebarAustralLogoSize = new ImageSize(412, 72, { scale: 0.7 })
+const sidebarAustralLogoSize = new ImageSize(412, 72, { scale: 0.6 })
 
 interface FilterDef {
   label: string
@@ -20,8 +20,8 @@ interface FilterDef {
 function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => void }) {
   const selectSx = {
     bgcolor: C.white,
-    fontSize: 17,
-    borderRadius: 2,
+    fontSize: 16,
+    borderRadius: 0,
     '& .MuiOutlinedInput-notchedOutline': { borderColor: C.navyAlpha15 },
     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: C.navy },
     '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: C.navy },
@@ -35,7 +35,7 @@ function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => vo
   }
   return (
     <Box sx={{
-      width: 310,
+      width: 300,
       minHeight: 0,
       flexShrink: 0,
       bgcolor: C.white,
@@ -43,9 +43,9 @@ function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => vo
       pt: 9,
       pb: 4,
       m: 2,
-      mr: 0.5,
-      borderRadius: 7,
-      boxShadow: `0 20px 60px ${C.blackAlpha15}, 0 8px 24px ${C.blackAlpha15}`,
+      mr: 0,
+      borderRadius: 9,
+      boxShadow: `0 3px 14px ${C.blackAlpha20}, 0 3px 5px ${C.blackAlpha20}`,
       display: 'flex',
       flexDirection: 'column',
     }}>
@@ -57,19 +57,27 @@ function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => vo
           </Select>
         </FormControl>
       ))}
-      <Button fullWidth onClick={onReset} sx={{ mt: 1.5, fontSize: 16, fontWeight: 700, color: C.white, backgroundColor: C.navy, '&:hover': { backgroundColor: C.navy, opacity: 0.9 } }}>
+      <Button fullWidth onClick={onReset} sx={{ mt: 1.5, py: 1.5, fontSize: 18, fontWeight: 500, color: C.white, backgroundColor: C.navy, '&:hover': { backgroundColor: "#003366", opacity: 0.9 } }}>
         Borrar filtros
       </Button>
       <Box sx={{ flex: 1 }} />
-      <Box sx={{
-        pt: 1.5,
-        display: 'flex',
-        justifyContent: 'center',
-        '& img[alt="Universidad Austral"]': {
-          filter: 'brightness(0) saturate(100%) invert(13%) sepia(91%) saturate(3500%) hue-rotate(228deg) brightness(85%) contrast(105%)',
-        },
-      }}>
-        <LogoAustral width={sidebarAustralLogoSize.w} height={sidebarAustralLogoSize.h} />
+      <Box sx={{ pt: 1.5, display: 'flex', justifyContent: 'center' }}>
+        <Box sx={{ position: 'relative', width: sidebarAustralLogoSize.w, height: sidebarAustralLogoSize.h }}>
+          <LogoAustral width={sidebarAustralLogoSize.w} height={sidebarAustralLogoSize.h} />
+          <Box sx={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: C.navyMid,
+            WebkitMaskImage: 'url(/logo_austral_@2x.png)',
+            maskImage: 'url(/logo_austral_@2x.png)',
+            WebkitMaskRepeat: 'no-repeat',
+            maskRepeat: 'no-repeat',
+            WebkitMaskSize: 'contain',
+            maskSize: 'contain',
+            WebkitMaskPosition: 'center',
+            maskPosition: 'center',
+          }} />
+        </Box>
       </Box>
     </Box>
   )

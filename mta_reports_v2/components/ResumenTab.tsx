@@ -26,7 +26,7 @@ function ResumenTab({ data }: { data: I_ResumenTabData }) {
         num="01"
         title="Porcentaje de respuesta correcta por colegio sobre los 40 ítems"
         dense
-        sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
+        sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: 'transparent', border: 'none' }}
         bodySx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
       >
         <AllSchoolsBarChart bars={data.por_colegio.bars} miId={data.por_colegio.miId} fill />

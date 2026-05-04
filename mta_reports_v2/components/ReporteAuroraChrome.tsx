@@ -49,7 +49,7 @@ export function FilterPillsBar({ pills }: { pills: Array<{ label: string }> }) {
   return (
     <Stack direction="row" spacing={1} sx={{ pl: 1, pr: 3, pt: 0, pb: 4, flexWrap: 'wrap' }}>
       {pills.map(p => (
-        <Chip key={p.label} label={p.label} size="medium" sx={{ bgcolor: C.lightBlue, color: C.navy, fontWeight: 600 }} />
+        <Chip key={p.label} label={p.label} size="medium" sx={{ bgcolor: C.lightBlue, color: C.navy, fontWeight: 600, fontSize: 16, height: 36, px: 0.5 }} />
       ))}
     </Stack>
   )

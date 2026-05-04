@@ -1,14 +1,15 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, type ReactNode } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { Box } from '@mui/material'
+import { ThemeProvider, useTheme, createTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { useHasCapabilities } from '@/mta_auth/hooks'
 import { useEscuelaReporteAurora, useAuroraReportPublish, useAuroraReportUnpublish } from '@/mta_reports_v2/hooks'
-import { COLORS, ANIO_ORDER } from '@/mta_reports_v2/constants'
+import { COLORS, ANIO_ORDER, FONT_FAMILY } from '@/mta_reports_v2/constants'
 import { calcResumen } from '@/mta_reports_v2/components/calc/ResumenTab'
 import { calcDetalle } from '@/mta_reports_v2/components/calc/DetalleTab'
 import { calcSemaforo } from '@/mta_reports_v2/components/calc/SemaforoTab'
@@ -195,7 +196,8 @@ const ReporteAurora = () => {
   const isLastTab = tabIdx === -1 || tabIdx >= TAB_ORDER.length - 1
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', bgcolor: 'rgb(230, 230, 230)' }}>
+    <AuroraFontTheme>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', bgcolor: COLORS.bgGrey, fontFamily: FONT_FAMILY, '& *': { fontFamily: FONT_FAMILY } }}>
       <Box sx={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {!isStaticTab && <Sidebar filters={sidebarFilters} onReset={resetFilters} />}
 
@@ -256,7 +258,14 @@ const ReporteAurora = () => {
         isLast={isLastTab}
       />
     </Box>
+    </AuroraFontTheme>
   )
+}
+
+function AuroraFontTheme({ children }: { children: ReactNode }) {
+  const outer = useTheme()
+  const inner = useMemo(() => createTheme({ ...outer, typography: { ...outer.typography, fontFamily: FONT_FAMILY } }), [outer])
+  return <ThemeProvider theme={inner}>{children}</ThemeProvider>
 }
 
 export default withAuth(ReporteAurora, {

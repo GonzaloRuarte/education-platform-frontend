@@ -32,11 +32,10 @@ function DetalleTab({ data }: { data: I_DetalleTabData }) {
   const contItems = selectedStudent
     ? (isLenguaje ? (selectedStudent.lenCont ?? []) : selectedStudent.contenido)
     : (isLenguaje ? (d.lenCont ?? []) : d.contenido)
-
   const barLegend = (
     <>
-      <Leg c={C.barFill} t="% Correctas mi colegio" />
-      <Leg c={C.barLight} t="% Correctas todos los colegios" />
+      <Leg c={C.navyMid} t="% Correctas mi colegio" />
+      <Leg c={C.iceBlue} t="% Correctas todos los colegios" />
     </>
   )
 
@@ -46,7 +45,7 @@ function DetalleTab({ data }: { data: I_DetalleTabData }) {
         <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
           <ChartCard num="01" title="Resultados por competencia" subtitle="Porcentaje de respuestas correctas" legend={barLegend} dense>
             {compItems.length > 0
-              ? <HorizontalBarChart items={compItems} rowHeight={32} baseHeight={40} barSize={10} />
+              ? <HorizontalBarChart items={compItems} rowHeight={60} baseHeight={40} barSize={26} />
               : <Typography variant="caption" sx={{ color: C.tm }}>Sin datos</Typography>}
           </ChartCard>
           <ChartCard
@@ -55,28 +54,29 @@ function DetalleTab({ data }: { data: I_DetalleTabData }) {
             subtitle="Porcentaje de respuestas correctas"
             legend={barLegend}
             dense
-            sx={{ flex: 1, minHeight: 0 }}
+            sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
+            bodySx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}
           >
             {contItems.length > 0
-              ? <HorizontalBarChart items={contItems} rowHeight={32} baseHeight={40} barSize={10} />
+              ? <HorizontalBarChart items={contItems} rowHeight={60} baseHeight={40} barSize={26} />
               : <Typography variant="caption" sx={{ color: C.tm }}>Sin datos</Typography>}
           </ChartCard>
         </Stack>
       </Grid2>
       <Grid2 size={{ xs: 12, md: 5 }} sx={{ display: 'flex', flexDirection: 'column' }}>
         <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
-          <ChartCard num="03" title="Distribución de calificaciones" dense>
-            <Stack direction="row" justifyContent="center" spacing={1} sx={{ mt: 0.5, width: '100%' }}>
+          <ChartCard num="03" title="Distribución de calificaciones" dense sx={{ flex: 2, minHeight: 0 }}>
+            <Stack direction="row" justifyContent="center" spacing={1} sx={{ mt: 0.5, width: '100%', flex: 1, minHeight: 0 }}>
               <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                <BP d={d.boxplotMi} color={C.barFill} h={210} />
+                <BP d={d.boxplotMi} color={C.navyMid} w={190} h={360} />
                 <Typography variant="caption" sx={{ color: C.tm }}>Mi escuela</Typography>
               </Box>
               <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                <BP d={d.boxplotTodos} color={C.boxLight} h={210} />
+                <BP d={d.boxplotTodos} color="#B1E0F2" w={190} h={360} />
                 <Typography variant="caption" sx={{ color: C.tm }}>Todos los colegios</Typography>
               </Box>
             </Stack>
-            <Typography variant="caption" sx={{ color: C.tm, display: 'block', mt: 1 }}>
+            <Typography variant="caption" sx={{ color: C.tm, display: 'block', mt: 1, fontSize: F.md }}>
               *Información del gráfico de distribución sobre el círculo {' '}
               <Tooltip
                 title="Diagrama de dispersión de resultados (diagrama de caja): Las líneas que se extienden hacia arriba y hacia abajo de la caja suelen ser llamadas 'bigotes', su extensión total indica entre qué valores se distribuyen los resultados (línea horizontal de arriba, el más alto y línea horizontal de abajo el más bajo). La línea horizontal central de la caja indica la mediana de los resultados: una mitad de los datos está por debajo de este valor y la otra mitad por encima. El punto negro señala la media de los resultados. La línea vertical superior a partir de la caja abarca el 25 % de resultados, la línea vertical de abajo a partir de la caja abarca el otro 25 % de resultados. Por lo tanto, en la 'caja' se halla el otro 50 % de los resultados; 25 % por arriba de la mediana y 25 % por debajo de la mediana."
@@ -91,7 +91,7 @@ function DetalleTab({ data }: { data: I_DetalleTabData }) {
           </ChartCard>
           <ChartCard num="04" title="Calificación por alumno" dense sx={{ flex: 1, minHeight: 0 }}>
             <Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 0.5 }}>
-              <Typography variant="body2" sx={{ fontWeight: 600, color: C.navy, whiteSpace: 'nowrap' }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: C.navy, whiteSpace: 'nowrap', fontSize: F.lg }}>
                 ID del alumno
               </Typography>
               <FormControl size="small" sx={{ minWidth: 100 }}>
@@ -113,12 +113,12 @@ function DetalleTab({ data }: { data: I_DetalleTabData }) {
                   ))}
                 </Select>
               </FormControl>
+              <Paper elevation={0} sx={{ bgcolor: C.navy, borderRadius: 5, px: 2, py: 1, textAlign: 'center', flex: 1 }}>
+                <Typography sx={{ color: C.white, fontWeight: 700, fontSize: 20 }}>
+                  {selectedStudent ? `${selectedStudent.score}%` : 'Seleccione el ID del alumno'}
+                </Typography>
+              </Paper>
             </Stack>
-            <Paper elevation={0} sx={{ bgcolor: C.navy, borderRadius: 5, p: 1.5, mt: 1.5, textAlign: 'center' }}>
-              <Typography sx={{ color: C.white, fontWeight: 700, fontSize: 20 }}>
-                {selectedStudent ? `${selectedStudent.score}%` : 'Seleccione el ID del alumno'}
-              </Typography>
-            </Paper>
           </ChartCard>
         </Stack>
       </Grid2>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useRef, useState } from 'react'
-import { Button, Chip, Stack } from '@mui/material'
+import { Box, Button, Chip, Stack } from '@mui/material'
 import AutorenewIcon from '@mui/icons-material/Autorenew'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { useHasCapabilities } from '@/mta_auth/hooks'
@@ -148,15 +148,17 @@ function ReportesAuroraListPage() {
     : undefined
 
   return (
-    <ListPage
-      columns={columns}
-      useList={useAuroraReportList}
-      useBatchDelete={useAuroraReportBatchDelete}
-      entityName={AURORA_REPORT_NAME}
-      onCreate={navigateToAuroraReportCreate}
-      customButtons={customButtons}
-      onRowClick={handleRowClick}
-    />
+    <Box sx={{ height: '100%' }}>
+      <ListPage
+        columns={columns}
+        useList={useAuroraReportList}
+        useBatchDelete={useAuroraReportBatchDelete}
+        entityName={AURORA_REPORT_NAME}
+        onCreate={navigateToAuroraReportCreate}
+        customButtons={customButtons}
+        onRowClick={handleRowClick}
+      />
+    </Box>
   )
 }
 

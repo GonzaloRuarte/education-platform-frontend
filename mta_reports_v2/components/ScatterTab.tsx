@@ -67,7 +67,7 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
               {avg && <ReferenceLine x={avg.pdl} stroke={C.tm} strokeDasharray="4 3" strokeWidth={1} />}
               {avg && <ReferenceLine y={avg.mat} stroke={C.tm} strokeDasharray="4 3" strokeWidth={1} />}
               <Tooltip content={<ScatterTooltip />} />
-              <Scatter data={points} fill={C.barFill} opacity={0.75} r={20} />
+              <Scatter data={points} fill={C.navyMid} opacity={0.75} r={20} />
             </ScatterChart>
           </ResponsiveContainer>
           </Box>
