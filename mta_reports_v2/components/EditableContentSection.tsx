@@ -3,12 +3,13 @@
 import { ReactNode } from 'react'
 import dynamic from 'next/dynamic'
 import { Box, Stack, Typography } from '@mui/material'
-import { COLORS } from '@/mta_reports_v2/constants'
+import { COLORS, SPACING } from '@/mta_reports_v2/constants'
 import { useEditableSlide, SlideFieldConfig } from '@/mta_reports_v2/hooks'
 import Logo from '@/shared/components/Logo'
 import LogoAustral from '@/shared/components/LogoAustral'
 import Button from '@/shared/components/Button'
 import { ImageSize } from '@/shared/utils'
+import { QuillEditorStyles } from '@/mta_reports_v2/components/shared/QuillEditorStyles'
 import 'react-quill-new/dist/quill.snow.css'
 
 const ReactQuill = dynamic(async () => (await import('react-quill-new')).default, { ssr: false })
@@ -103,9 +104,9 @@ const EditableContentSection = <F extends string,>({
         display: 'flex',
         flexDirection: 'column',
         bgcolor: C.bgGrey,
-        px: { xs: 3, md: 8 },
-        pt: { xs: 4, md: 5 },
-        pb: { xs: 2, md: 3 },
+        px: SPACING.slidePx,
+        pt: SPACING.slidePt,
+        pb: SPACING.slidePb,
       }}
     >
       <Stack direction="row" justifyContent="flex-end" alignItems="flex-start" spacing={2} sx={{ position: 'absolute', top: { xs: 16, md: 24 }, right: { xs: 24, md: 64 }, zIndex: 3 }}>
@@ -141,95 +142,7 @@ const EditableContentSection = <F extends string,>({
         <LogoAustral width={australLogoSize.w} height={australLogoSize.h} />
       </Box>
 
-      <style jsx global>{`
-        .editable-section-editor {
-          position: relative;
-        }
-
-        .editable-section-editor .ql-toolbar.ql-snow {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 2;
-          border: 1px solid ${C.navyAlpha12};
-          background: ${C.lightBlueAlpha22};
-          
-          border-radius: 18px;
-          padding: 10px 12px;
-          opacity: 0;
-          pointer-events: none;
-          transform: translateY(-12px);
-          transition:
-            opacity 0.18s ease,
-            transform 0.18s ease;
-        }
-
-        .editable-section-editor.is-active .ql-toolbar.ql-snow {
-          opacity: 1;
-          pointer-events: auto;
-          transform: translateY(calc(-100% - 12px));
-        }
-
-        .editable-section-editor .ql-container.ql-snow {
-          border: 0;
-          font-family: inherit;
-        }
-
-        .editable-section-editor .ql-editor {
-          color: ${C.midNavy};
-          padding: 0;
-          white-space: normal;
-          overflow-wrap: anywhere;
-          word-break: break-word;
-        }
-
-        .editable-section-editor .ql-editor p {
-          margin: 0;
-        }
-
-        .editable-section-editor .ql-editor ul,
-        .editable-section-editor .ql-editor ol {
-          padding-left: 1.5rem;
-          margin: 0;
-        }
-
-        .editable-section-editor .ql-editor li {
-          margin-bottom: 0.6em;
-        }
-
-        .editable-section-editor .ql-editor li > .ql-ui::before {
-          font-size: 2em;
-          line-height: 1;
-        }
-
-        .editable-section-editor .ql-editor blockquote {
-          border-left: 4px solid ${C.lightBlue};
-          padding-left: 16px;
-        }
-
-        .editable-section-editor.is-readonly .ql-container.ql-snow {
-          pointer-events: none;
-        }
-
-        .editable-section-editor.is-readonly .ql-editor {
-          cursor: default;
-        }
-
-        .title-editor .ql-editor {
-          font-family: "Segoe UI", Segoe, system-ui, sans-serif;
-          font-size: clamp(26px, 3.6vw, 38px);
-          font-weight: 800;
-          line-height: 1.05;
-          color: ${C.midNavy};
-        }
-
-        .body-editor .ql-editor {
-          font-size: clamp(18px, 2.2vw, 24px);
-          line-height: 1.48;
-          font-weight: 400;
-        }
-      `}</style>
+      <QuillEditorStyles />
     </Box>
   )
 }

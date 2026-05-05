@@ -12,7 +12,7 @@ import { useEscuelaReporteAurora, useAuroraReportPublish, useAuroraReportUnpubli
 import { COLORS, ANIO_ORDER, FONT_FAMILY } from '@/mta_reports_v2/constants'
 import { calcResumen } from '@/mta_reports_v2/components/calc/ResumenTab'
 import { calcDetalle } from '@/mta_reports_v2/components/calc/DetalleTab'
-import { calcSemaforo } from '@/mta_reports_v2/components/calc/SemaforoTab'
+import { calcSemaforo, calcSemaforoEstudiantes } from '@/mta_reports_v2/components/calc/SemaforoTab'
 import { calcScatter } from '@/mta_reports_v2/components/calc/ScatterTab'
 import { calcTabla } from '@/mta_reports_v2/components/calc/TablaTab'
 import { Sidebar } from '@/mta_reports_v2/components/ReporteAuroraSidebar'
@@ -86,6 +86,9 @@ const ReporteAurora = () => {
   useEffect(() => {
     if (divisiones.length > 0 && !divisiones.includes(division)) setDivision(divisiones[0])
   }, [divisiones, division])
+  useEffect(() => {
+    if (isSemaforoTab) setDivision('Todas')
+  }, [isSemaforoTab])
 
   const resumenData = useMemo(
     () => (rawData && toma ? calcResumen(rawData, { materia, anio, division, toma, neeFilter }) : null),
@@ -97,6 +100,10 @@ const ReporteAurora = () => {
   )
   const semaforoBandas = useMemo(
     () => (rawData && toma ? calcSemaforo(rawData, materia, division, toma, neeFilter) : {}),
+    [rawData, materia, division, toma, neeFilter],
+  )
+  const semaforoEstudiantes = useMemo(
+    () => (rawData && toma ? calcSemaforoEstudiantes(rawData, materia, division, toma, neeFilter) : {}),
     [rawData, materia, division, toma, neeFilter],
   )
   const scatterPoints = useMemo(
@@ -140,8 +147,9 @@ const ReporteAurora = () => {
 
   const renderCtx: TabRenderCtx = {
     escuelaId, editRequested, materia, anio, division, toma,
+    divisiones, setDivision,
     semaforoAnio, setSemaforoAnio,
-    resumenData, detalleData, semaforoBandas, scatterPoints, tablaRows,
+    resumenData, detalleData, semaforoBandas, semaforoEstudiantes, scatterPoints, tablaRows,
   }
 
   const sidebarFilters = useMemo<Array<FilterDef>>(
@@ -182,7 +190,11 @@ const ReporteAurora = () => {
       const tabIdx = TAB_ORDER.indexOf(tab)
       const nextTabIdx = direction === 'prev' ? tabIdx - 1 : tabIdx + 1
       if (nextTabIdx < 0 || nextTabIdx >= TAB_ORDER.length) return
-      setTab(TAB_ORDER[nextTabIdx])
+      const nextTab = TAB_ORDER[nextTabIdx]
+      if (nextTab === 'semaforoLenguaje' || nextTab === 'semaforoMatematica') {
+        setSemaforoAnio(direction === 'next' ? ANIO_ORDER[0] : ANIO_ORDER[ANIO_ORDER.length - 1])
+      }
+      setTab(nextTab)
       return
     }
     const tabIdx = TAB_ORDER.indexOf(tab)

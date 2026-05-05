@@ -3,7 +3,7 @@
 import { useRef } from 'react'
 import { Box, Stack, Typography } from '@mui/material'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Rectangle, LabelList, ComposedChart } from 'recharts'
-import { COLORS, FONT_SIZES, SPACING, CHART_MARGINS } from '@/mta_reports_v2/constants'
+import { COLORS, FONT_SIZES, SPACING, CHART_MARGINS, CARD_SX, FILL_COLUMN_SX, RADIUS } from '@/mta_reports_v2/constants'
 import { useResponsiveBox, useResponsiveHeight } from '@/mta_reports_v2/hooks'
 import type { I_BoxplotAurora, I_ItemAurora } from '@/mta_reports_v2/types'
 
@@ -17,6 +17,15 @@ function Leg({ c, t }: { c: string; t: string }) {
       <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: c, flexShrink: 0 }} />
       <Typography variant="caption" sx={{ color: C.tm, fontSize: F.base }}>{t}</Typography>
     </Stack>
+  )
+}
+
+function MiVsTodosLegend() {
+  return (
+    <>
+      <Leg c={C.navyMid} t="% Correctas mi colegio" />
+      <Leg c={C.iceBlue} t="% Correctas todos los colegios" />
+    </>
   )
 }
 
@@ -42,7 +51,7 @@ function AllSchoolsBarChart({
     : 0
 
   const wrapperSx = fill
-    ? { display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }
+    ? FILL_COLUMN_SX
     : { display: 'flex', flexDirection: 'column', height: height }
   const chartWrapperSx = fill
     ? { flex: 1, minHeight: 0 }
@@ -53,7 +62,7 @@ function AllSchoolsBarChart({
       <Box sx={chartWrapperSx}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={sorted} margin={CHART_MARGINS.vertical}>
-            <CartesianGrid vertical={false} stroke="#C8C6C4" strokeWidth={1} strokeDasharray="1 8" strokeLinecap="round" />
+            <CartesianGrid vertical={false} stroke={C.gridDivider} strokeWidth={1} strokeDasharray="1 8" strokeLinecap="round" />
             <XAxis dataKey="id" tick={{ fontSize: F.md, fill: C.tm }} angle={-40} textAnchor="end" interval={0} />
             <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: F.md, fill: C.tm }} axisLine={false} tickLine={false} />
             <Bar
@@ -208,7 +217,7 @@ function BP({ d, color, w = 120, h = 340 }: { d: I_BoxplotAurora; color: string;
     <Box ref={containerRef} sx={{ width: dimensions.w, height: dimensions.h }}>
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={chartData} margin={{ top: 8, right: 4, bottom: 8, left: 4 }}>
-          <CartesianGrid horizontal vertical={false} stroke="#d0d0d0" strokeWidth={1} />
+          <CartesianGrid horizontal vertical={false} stroke={C.gridMid} strokeWidth={1} />
           <XAxis dataKey="name" hide />
           <YAxis
             domain={[0, 100]}
@@ -237,19 +246,19 @@ interface KPICardProps {
 function KPICard({ title, subtitle, mi, todos, suffix = '%' }: KPICardProps) {
   const fmt = (v: number | string) => typeof v === 'number' ? (suffix ? `${v} ${suffix}` : `${v}`) : v
   return (
-    <Box component="article" sx={{ bgcolor: C.white, border: '2px solid', borderColor: 'rgba(0,0,0,0.18)', borderRadius: 5, flex: 1, minWidth: 160, display: 'flex', flexDirection: 'column', px: 1.25, py: 3, fontFamily: '"Segoe UI", wf_segoe-ui_normal, var(--font-segoe-fallback), helvetica, arial, sans-serif', '& .MuiTypography-root': { fontFamily: '"Segoe UI", wf_segoe-ui_normal, helvetica, arial, sans-serif !important' } }}>
+    <Box component="article" sx={{ ...CARD_SX, border: '2px solid', borderColor: C.blackAlpha18, flex: 1, minWidth: 160, display: 'flex', flexDirection: 'column', px: 1.25, py: 3 }}>
       <Box sx={{ mb: 1 }}>
-        <Typography sx={{ color: 'rgb(37, 36, 35)', fontWeight: 550, fontSize: F.lg + 2 }}>{title}</Typography>
-        <Typography sx={{ color: 'rgb(37, 36, 35)', fontWeight: 500, fontSize: F.md + 2, pb: 4 }}>{subtitle}</Typography>
+        <Typography sx={{ color: C.kpiText, fontWeight: 550, fontSize: F.kpiTitle }}>{title}</Typography>
+        <Typography sx={{ color: C.kpiText, fontWeight: 500, fontSize: F.lg, pb: 4 }}>{subtitle}</Typography>
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1 }}>
-        <Box sx={{ bgcolor: C.navyMid, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 2, borderRadius: 5 }}>
-          <Typography sx={{ color: C.white, fontSize: F.md + 3, fontWeight: 500 }}>Mi <br /> Colegio</Typography>
-          <Typography sx={{ color: C.white, fontWeight: 550, fontSize: F.xl + 2, pr: 4 }}>{fmt(mi)}</Typography>
+        <Box sx={{ bgcolor: C.navyMid, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 2, borderRadius: RADIUS.lg }}>
+          <Typography sx={{ color: C.white, fontSize: F.kpiLabel, fontWeight: 500 }}>Mi <br /> Colegio</Typography>
+          <Typography sx={{ color: C.white, fontWeight: 550, fontSize: F.kpiValue, pr: 4 }}>{fmt(mi)}</Typography>
         </Box>
-        <Box sx={{ bgcolor: C.iceBlue, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 1.5, borderRadius: 5 }}>
-          <Typography sx={{ color: C.navy, fontSize: F.md + 3, fontWeight: 500 }}>Todos <br /> los colegios</Typography>
-          <Typography sx={{ color: C.navy, fontWeight: 550, fontSize: F.xl + 2, pr: 4 }}>{fmt(todos)}</Typography>
+        <Box sx={{ bgcolor: C.iceBlue, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 1.5, borderRadius: RADIUS.lg }}>
+          <Typography sx={{ color: C.navy, fontSize: F.kpiLabel, fontWeight: 500 }}>Todos <br /> los colegios</Typography>
+          <Typography sx={{ color: C.navy, fontWeight: 550, fontSize: F.kpiValue, pr: 4 }}>{fmt(todos)}</Typography>
         </Box>
       </Box>
     </Box >
@@ -267,13 +276,13 @@ function ChartCard({ num, title, subtitle, legend, children, dense = false, sx, 
   bodySx?: object
 }) {
   return (
-    <Box component="article" sx={{ bgcolor: C.white, border: '1px solid', borderColor: 'rgba(0,0,0,0.18)', borderRadius: 5, p: dense ? S.cardPadding : S.cardPaddingLarge, ...sx }}>
+    <Box component="article" sx={{ ...CARD_SX, borderColor: C.blackAlpha18, p: dense ? S.cardPadding : S.cardPaddingLarge, ...sx }}>
       <Typography sx={{ fontSize: F.lg, color: C.navyMid, fontWeight: 500, mb: 0.25 }}>{num}. {title}</Typography>
-      {subtitle && <Typography variant="subtitle1" sx={{ fontWeight: 600, color: C.navy, mb: dense ? 0.5 : 0.75, fontSize: 19 }}>{subtitle}</Typography>}
+      {subtitle && <Typography variant="subtitle1" sx={{ fontWeight: 600, color: C.navy, mb: dense ? 0.5 : 0.75, fontSize: F.cardSubtitle }}>{subtitle}</Typography>}
       {legend && <Box sx={{ mb: dense ? 0.5 : 1 }}>{legend}</Box>}
       {bodySx ? <Box sx={bodySx}>{children}</Box> : children}
     </Box>
   )
 }
 
-export { Leg, AllSchoolsBarChart, HorizontalBarChart, BP, KPICard, ChartCard }
+export { Leg, MiVsTodosLegend, AllSchoolsBarChart, HorizontalBarChart, BP, KPICard, ChartCard }

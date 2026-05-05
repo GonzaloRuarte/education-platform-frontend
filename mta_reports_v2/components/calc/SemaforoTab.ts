@@ -9,6 +9,12 @@ import {
   findCombo,
 } from './_shared'
 
+export interface SemaforoEstudianteBand {
+  id: string
+  correct: number
+  band: 'verde' | 'amarillo' | 'naranja' | 'rojo'
+}
+
 export function calcSemaforo(
   raw: I_RawEscuelaDatos,
   materia: string,
@@ -28,6 +34,27 @@ export function calcSemaforo(
       bands[bandForCount(correct)]++
     }
     result[anio] = { ...bands, total: Object.values(bands).reduce((s, v) => s + v, 0) }
+  }
+  return result
+}
+
+export function calcSemaforoEstudiantes(
+  raw: I_RawEscuelaDatos,
+  materia: string,
+  division: string,
+  toma: string,
+  neeFilter: string = 'Todos',
+): Record<string, SemaforoEstudianteBand[]> {
+  const result: Record<string, SemaforoEstudianteBand[]> = {}
+  for (const anio of ANIO_ORDER) {
+    const combo = findCombo(raw, materia, anio, toma)
+    if (!combo) continue
+    const estudiantes = filterEstudiantes(combo, division, neeFilter)
+    const nonPisaIds = combo.preguntas.filter(q => !q.es_pisa).map(q => String(q.id))
+    result[anio] = estudiantes.map(est => {
+      const correct = nonPisaIds.filter(k => k in est.respuestas && est.respuestas[k]).length
+      return { id: String(est.id), correct, band: bandForCount(correct) as SemaforoEstudianteBand['band'] }
+    })
   }
   return result
 }

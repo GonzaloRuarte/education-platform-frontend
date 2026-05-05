@@ -3,16 +3,24 @@
 import { useEffect, useState } from 'react'
 import { Box, Stack, Typography, FormControl, InputLabel, Select, MenuItem, Grid2, Tooltip } from '@mui/material'
 import Paper from '@mui/material/Paper'
-import { BP, HorizontalBarChart, Leg, ChartCard } from '@/mta_reports_v2/components/ReporteAuroraCharts'
-import { COLORS, FONT_SIZES } from '@/mta_reports_v2/constants'
+import { BP, HorizontalBarChart, MiVsTodosLegend, ChartCard } from '@/mta_reports_v2/components/ReporteAuroraCharts'
+import { COLORS, FONT_SIZES, RADIUS, FILL_COLUMN_SX } from '@/mta_reports_v2/constants'
 import type { I_DetalleTabData } from '@/mta_reports_v2/types'
 
 const C = COLORS
 const F = FONT_SIZES
 
-function DetalleTab({ data }: { data: I_DetalleTabData }) {
+interface DetalleTabProps {
+  data: I_DetalleTabData
+  division?: string
+  divisiones?: string[]
+  onDivisionChange?: (v: string) => void
+}
+
+function DetalleTab({ data, division, divisiones, onDivisionChange }: DetalleTabProps) {
   const d = data
   const isLenguaje = (d.lenComp?.length ?? 0) > 0
+  const showDivisionFilter = !!(divisiones && divisiones.length > 1 && onDivisionChange && division !== undefined)
 
   const [selectedStudentId, setSelectedStudentId] = useState<string | number>('all')
 
@@ -32,15 +40,28 @@ function DetalleTab({ data }: { data: I_DetalleTabData }) {
   const contItems = selectedStudent
     ? (isLenguaje ? (selectedStudent.lenCont ?? []) : selectedStudent.contenido)
     : (isLenguaje ? (d.lenCont ?? []) : d.contenido)
-  const barLegend = (
-    <>
-      <Leg c={C.navyMid} t="% Correctas mi colegio" />
-      <Leg c={C.iceBlue} t="% Correctas todos los colegios" />
-    </>
-  )
+  const barLegend = <MiVsTodosLegend />
 
   return (
-    <Grid2 container spacing={1.5} alignItems="stretch" sx={{ flex: 1, minHeight: 0 }}>
+    <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
+      {showDivisionFilter && (
+        <Stack direction="row" alignItems="center" spacing={1.5}>
+          <Typography variant="body2" sx={{ fontWeight: 700, color: C.navy, fontSize: F.lg }}>
+            División
+          </Typography>
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <Select
+              value={division}
+              onChange={(e) => onDivisionChange!(e.target.value)}
+            >
+              {divisiones!.map(div => (
+                <MenuItem key={div} value={div}>{div}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Stack>
+      )}
+      <Grid2 container spacing={1.5} alignItems="stretch" sx={{ flex: 1, minHeight: 0 }}>
       <Grid2 size={{ xs: 12, md: 7 }} sx={{ display: 'flex', flexDirection: 'column' }}>
         <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
           <ChartCard num="01" title="Resultados por competencia" subtitle="Porcentaje de respuestas correctas" legend={barLegend} dense>
@@ -54,7 +75,7 @@ function DetalleTab({ data }: { data: I_DetalleTabData }) {
             subtitle="Porcentaje de respuestas correctas"
             legend={barLegend}
             dense
-            sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
+            sx={FILL_COLUMN_SX}
             bodySx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}
           >
             {contItems.length > 0
@@ -72,7 +93,7 @@ function DetalleTab({ data }: { data: I_DetalleTabData }) {
                 <Typography variant="caption" sx={{ color: C.tm }}>Mi escuela</Typography>
               </Box>
               <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                <BP d={d.boxplotTodos} color="#B1E0F2" w={190} h={360} />
+                <BP d={d.boxplotTodos} color={C.boxplotTodos} w={190} h={360} />
                 <Typography variant="caption" sx={{ color: C.tm }}>Todos los colegios</Typography>
               </Box>
             </Stack>
@@ -113,8 +134,8 @@ function DetalleTab({ data }: { data: I_DetalleTabData }) {
                   ))}
                 </Select>
               </FormControl>
-              <Paper elevation={0} sx={{ bgcolor: C.navy, borderRadius: 5, px: 2, py: 1, textAlign: 'center', flex: 1 }}>
-                <Typography sx={{ color: C.white, fontWeight: 700, fontSize: 20 }}>
+              <Paper elevation={0} sx={{ bgcolor: C.navy, borderRadius: RADIUS.lg, px: 2, py: 1, textAlign: 'center', flex: 1 }}>
+                <Typography sx={{ color: C.white, fontWeight: 700, fontSize: F.score }}>
                   {selectedStudent ? `${selectedStudent.score}%` : 'Seleccione el ID del alumno'}
                 </Typography>
               </Paper>
@@ -123,6 +144,7 @@ function DetalleTab({ data }: { data: I_DetalleTabData }) {
         </Stack>
       </Grid2>
     </Grid2>
+    </Stack>
   )
 }
 

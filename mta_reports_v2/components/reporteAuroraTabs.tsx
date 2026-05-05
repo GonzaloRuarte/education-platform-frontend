@@ -22,7 +22,7 @@ import { ScatterTab } from './ScatterTab'
 import { TablaTab } from './TablaTab'
 import { calcResumen } from './calc/ResumenTab'
 import { calcDetalle } from './calc/DetalleTab'
-import { calcSemaforo } from './calc/SemaforoTab'
+import { calcSemaforo, calcSemaforoEstudiantes } from './calc/SemaforoTab'
 import { calcScatter } from './calc/ScatterTab'
 import { calcTabla } from './calc/TablaTab'
 import type { FilterDef } from './ReporteAuroraSidebar'
@@ -45,11 +45,14 @@ export type TabRenderCtx = {
   anio: string
   division: string
   toma: string
+  divisiones: Array<string>
+  setDivision: (v: string) => void
   semaforoAnio: string
   setSemaforoAnio: (s: string) => void
   resumenData: ReturnType<typeof calcResumen> | null
   detalleData: ReturnType<typeof calcDetalle> | null
   semaforoBandas: ReturnType<typeof calcSemaforo>
+  semaforoEstudiantes: ReturnType<typeof calcSemaforoEstudiantes>
   scatterPoints: ReturnType<typeof calcScatter>
   tablaRows: ReturnType<typeof calcTabla>
 }
@@ -159,31 +162,31 @@ export const TABS: ReadonlyArray<TabDef> = [
   {
     id: 'detalleMatematica', label: 'Matemática', kind: 'data',
     filters: filtersDetalleSplitLike,
-    render: ({ detalleData, materia, anio, toma }) =>
+    render: ({ detalleData, materia, anio, toma, division, divisiones, setDivision }) =>
       detalleData
-        ? <DetalleTab data={detalleData} />
+        ? <DetalleTab data={detalleData} division={division} divisiones={divisiones} onDivisionChange={setDivision} />
         : (toma ? <NoData materia={materia} anio={anio} toma={toma} /> : null),
   },
   {
     id: 'detalleLenguaje', label: 'Prácticas del Lenguaje', kind: 'data',
     filters: filtersDetalleSplitLike,
-    render: ({ detalleData, materia, anio, toma }) =>
+    render: ({ detalleData, materia, anio, toma, division, divisiones, setDivision }) =>
       detalleData
-        ? <DetalleTab data={detalleData} />
+        ? <DetalleTab data={detalleData} division={division} divisiones={divisiones} onDivisionChange={setDivision} />
         : (toma ? <NoData materia={materia} anio={anio} toma={toma} /> : null),
   },
   {
     id: 'semaforoLenguaje', label: 'Semáforo PDL', kind: 'data',
     filters: filtersSemaforoSplitLike,
-    render: ({ materia, semaforoBandas, semaforoAnio, setSemaforoAnio }) => (
-      <SemaforoTab materia={materia} bandasMap={semaforoBandas} anio={semaforoAnio} onAnioChange={setSemaforoAnio} />
+    render: ({ materia, semaforoBandas, semaforoEstudiantes, semaforoAnio, setSemaforoAnio }) => (
+      <SemaforoTab materia={materia} bandasMap={semaforoBandas} estudiantesMap={semaforoEstudiantes} anio={semaforoAnio} onAnioChange={setSemaforoAnio} />
     ),
   },
   {
     id: 'semaforoMatematica', label: 'Semáforo Matemática', kind: 'data',
     filters: filtersSemaforoSplitLike,
-    render: ({ materia, semaforoBandas, semaforoAnio, setSemaforoAnio }) => (
-      <SemaforoTab materia={materia} bandasMap={semaforoBandas} anio={semaforoAnio} onAnioChange={setSemaforoAnio} />
+    render: ({ materia, semaforoBandas, semaforoEstudiantes, semaforoAnio, setSemaforoAnio }) => (
+      <SemaforoTab materia={materia} bandasMap={semaforoBandas} estudiantesMap={semaforoEstudiantes} anio={semaforoAnio} onAnioChange={setSemaforoAnio} />
     ),
   },
   {

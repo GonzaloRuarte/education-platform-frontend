@@ -3,7 +3,7 @@
 import { Box, Paper, Stack, Typography } from '@mui/material'
 import { ResponsiveContainer, ScatterChart, Scatter, CartesianGrid, XAxis, YAxis, ZAxis, Tooltip, ReferenceLine } from 'recharts'
 import { useMemo } from 'react'
-import { COLORS, FONT_SIZES } from '@/mta_reports_v2/constants'
+import { COLORS, FONT_SIZES, CARD_SX, FILL_COLUMN_SX } from '@/mta_reports_v2/constants'
 import type { I_ScatterPoint } from '@/mta_reports_v2/types'
 
 const C = COLORS
@@ -31,7 +31,7 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
   }, [points])
 
   return (
-    <Paper elevation={0} sx={{ bgcolor: C.white, border: '1px solid', borderColor: 'divider', borderRadius: 5, p: 2.5, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+    <Paper elevation={0} sx={{ ...CARD_SX, p: 2.5, ...FILL_COLUMN_SX }}>
       <Typography sx={{ fontSize: F.lg, color: C.accent, fontWeight: 500, mb: 1.5, flexShrink: 0 }}>
         Resultados por alumno — % PDL vs % Matemática
       </Typography>

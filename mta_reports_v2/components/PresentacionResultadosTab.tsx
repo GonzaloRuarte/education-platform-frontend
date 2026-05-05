@@ -2,12 +2,11 @@
 
 import { Box, Stack, Typography } from '@mui/material'
 import Image from 'next/image'
-import { COLORS } from '@/mta_reports_v2/constants'
-
-const C = COLORS
+import { SLIDE_HERO_TITLE_SX } from '@/mta_reports_v2/constants'
+import { SlideContainer } from '@/mta_reports_v2/components/shared/SlideContainer'
 
 const PresentacionResultadosTab = () => (
-  <Box sx={{ display: 'flex', width: '100%', height: '100%', bgcolor: C.white, overflow: 'hidden' }}>
+  <SlideContainer sx={{ flexDirection: 'row' }}>
     <Box flex={1} position="relative" minWidth={0}>
       <Box
         width="70%"
@@ -26,21 +25,12 @@ const PresentacionResultadosTab = () => (
     </Box>
     <Box flex={1} display="flex" alignItems="center" justifyContent="center" minWidth={0}>
       <Stack alignItems="center" sx={{ px: 4 }}>
-        <Typography
-          sx={{
-            color: C.royal,
-            fontFamily: '"Segoe UI", Segoe, system-ui, sans-serif',
-            fontSize: 'clamp(40px, 5.5vw, 64px)',
-            fontWeight: 900,
-            textAlign: 'center',
-            lineHeight: 1.1,
-          }}
-        >
+        <Typography sx={{ ...SLIDE_HERO_TITLE_SX, textAlign: 'center' }}>
           Presentación de los Resultados
         </Typography>
       </Stack>
     </Box>
-  </Box>
+  </SlideContainer>
 )
 
 export { PresentacionResultadosTab }

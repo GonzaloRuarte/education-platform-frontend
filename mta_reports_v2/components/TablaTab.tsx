@@ -2,15 +2,17 @@
 
 import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
 import Paper from '@mui/material/Paper'
-import { COLORS, FONT_SIZES } from '@/mta_reports_v2/constants'
+import { COLORS, FONT_SIZES, CARD_SX } from '@/mta_reports_v2/constants'
 import type { I_TablaRow } from '@/mta_reports_v2/types'
 
 const C = COLORS
 const F = FONT_SIZES
 
+const headCellSx = { fontWeight: 700, color: C.navy, bgcolor: C.lightBlue }
+
 function TablaTab({ rows }: { rows: I_TablaRow[] }) {
   return (
-    <Paper elevation={0} sx={{ bgcolor: C.white, border: '1px solid', borderColor: 'divider', borderRadius: 5, overflow: 'hidden', maxWidth: 560, mx: 'auto' }}>
+    <Paper elevation={0} sx={{ ...CARD_SX, overflow: 'hidden', maxWidth: 560, mx: 'auto' }}>
       <Box sx={{ px: 2.5, pt: 2, pb: 1 }}>
         <Typography sx={{ fontSize: F.lg, color: C.accent, fontWeight: 500 }}>
           Resumen de respuestas correctas por alumno
@@ -20,9 +22,9 @@ function TablaTab({ rows }: { rows: I_TablaRow[] }) {
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700, color: C.navy, bgcolor: C.lightBlue }}>ID Alumno</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, color: C.navy, bgcolor: C.lightBlue }}>Matemática %</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, color: C.navy, bgcolor: C.lightBlue }}>PDL %</TableCell>
+              <TableCell sx={headCellSx}>ID Alumno</TableCell>
+              <TableCell align="right" sx={headCellSx}>Matemática %</TableCell>
+              <TableCell align="right" sx={headCellSx}>PDL %</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

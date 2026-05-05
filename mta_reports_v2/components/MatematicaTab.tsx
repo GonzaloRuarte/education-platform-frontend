@@ -2,7 +2,8 @@
 
 import { Box, Stack, Typography } from '@mui/material'
 import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
-import { COLORS } from '@/mta_reports_v2/constants'
+import { SubjectBadge } from '@/mta_reports_v2/components/shared/SubjectBadge'
+import { COLORS, RADIUS, TITLE_FONT_FAMILY } from '@/mta_reports_v2/constants'
 
 const C = COLORS
 
@@ -34,6 +35,14 @@ const fields = {
   },
 }
 
+const sectionHeadingSx = {
+  fontFamily: TITLE_FONT_FAMILY,
+  color: C.navy,
+  fontWeight: 800,
+  fontSize: 28,
+  mb: 1.5,
+}
+
 const MatematicaTab = ({ schoolId, initialEditing }: MatematicaTabProps) => (
   <EditableTab
     schoolId={schoolId}
@@ -46,33 +55,19 @@ const MatematicaTab = ({ schoolId, initialEditing }: MatematicaTabProps) => (
       <Box sx={{ width: '100%' }}>
         <Box sx={{ mb: 4 }}>
           {renderField('title', { mb: 1.5 })}
-          <Box
-            sx={{
-              display: 'inline-block',
-              bgcolor: '#4C7198',
-              color: '#fff',
-              fontWeight: 800,
-              fontSize: 26,
-              px: 4,
-              py: 3,
-              borderRadius: 999,
-              lineHeight: 1,
-            }}
-          >
-            Matemática
-          </Box>
+          <SubjectBadge>Matemática</SubjectBadge>
         </Box>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={10}>
           <Box flex={1}>
-            <Typography sx={{ fontFamily: '"Segoe UI", Segoe, sans-serif', color: C.navy, fontWeight: 800, fontSize: 28, mb: 1.5 }}>Contenidos</Typography>
+            <Typography sx={sectionHeadingSx}>Contenidos</Typography>
             <Box
               sx={{
                 '& ul': { listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: 1.25 },
                 '& li': {
-                  bgcolor: '#DBEDF4',
+                  bgcolor: C.iceBlue,
                   px: 2.5,
                   py: 1.5,
-                  borderRadius: 1,
+                  borderRadius: RADIUS.sm,
                   color: C.navy,
                 },
               }}
@@ -81,7 +76,7 @@ const MatematicaTab = ({ schoolId, initialEditing }: MatematicaTabProps) => (
             </Box>
           </Box>
           <Box flex={1}>
-            <Typography sx={{ fontFamily: '"Segoe UI", Segoe, sans-serif', color: C.navy, fontWeight: 800, fontSize: 28, mb: 1.5 }}>Competencias</Typography>
+            <Typography sx={sectionHeadingSx}>Competencias</Typography>
             {renderField('competencias')}
           </Box>
         </Stack>

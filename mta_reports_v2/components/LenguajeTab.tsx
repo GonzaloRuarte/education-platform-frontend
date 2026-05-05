@@ -2,6 +2,7 @@
 
 import { Box } from '@mui/material'
 import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
+import { SubjectBadge } from '@/mta_reports_v2/components/shared/SubjectBadge'
 
 interface LenguajeTabProps {
   schoolId: number
@@ -34,21 +35,7 @@ const LenguajeTab = ({ schoolId, initialEditing }: LenguajeTabProps) => (
       <Box sx={{ width: '100%' }}>
         <Box sx={{ mb: 4 }}>
           {renderField('title', { mb: 1.5 })}
-          <Box
-            sx={{
-              display: 'inline-block',
-              bgcolor: '#4C7198',
-              color: '#fff',
-              fontWeight: 800,
-              fontSize: 26,
-              px: 4,
-              py: 3,
-              borderRadius: 999,
-              lineHeight: 1
-            }}
-          >
-            Prácticas del Lenguaje
-          </Box>
+          <SubjectBadge>Prácticas del Lenguaje</SubjectBadge>
         </Box>
         {renderField('body')}
       </Box>

@@ -68,7 +68,7 @@ export function TabPager<T extends string>({
   isLast: boolean
 }) {
   return (
-    <Box sx={{ flexShrink: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, bgcolor: '#eaeaea', borderTop: '1px solid #c7c7c7', px: 1, py: 0.5 }}>
+    <Box sx={{ flexShrink: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, bgcolor: C.pagerBg, borderTop: `1px solid ${C.pagerBorder}`, px: 1, py: 0.5 }}>
       <IconButton size="medium" onClick={onPrev} disabled={isFirst} sx={{ color: C.navy }}>
         <ChevronLeftIcon />
       </IconButton>
@@ -88,14 +88,14 @@ export function TabPager<T extends string>({
             paper: {
               sx: {
                 minWidth: 240,
-                bgcolor: '#000',
-                color: '#fff',
+                bgcolor: C.black,
+                color: C.white,
                 overflow: 'visible',
                 mt: '-8px',
                 '& .MuiMenu-list': { maxHeight: 360, overflowY: 'auto' },
-                '& .MuiMenuItem-root': { color: '#fff' },
-                '& .MuiMenuItem-root:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
-                '& .MuiMenuItem-root.Mui-selected': { bgcolor: 'rgba(255,255,255,0.16)' },
+                '& .MuiMenuItem-root': { color: C.white },
+                '& .MuiMenuItem-root:hover': { bgcolor: C.whiteAlpha10 },
+                '& .MuiMenuItem-root.Mui-selected': { bgcolor: C.whiteAlpha16 },
                 '&::after': {
                   content: '""',
                   position: 'absolute',
@@ -106,7 +106,7 @@ export function TabPager<T extends string>({
                   height: 0,
                   borderLeft: '8px solid transparent',
                   borderRight: '8px solid transparent',
-                  borderTop: '8px solid #000',
+                  borderTop: `8px solid ${C.black}`,
                 },
               },
             },

@@ -5,7 +5,6 @@ import Button from '@/shared/components/Button'
 import LogoAustral from '@/shared/components/LogoAustral'
 import { ImageSize } from '@/shared/utils'
 import { COLORS } from '@/mta_reports_v2/constants'
-import { BorderAllRounded } from '@mui/icons-material'
 
 const C = COLORS
 const sidebarAustralLogoSize = new ImageSize(412, 72, { scale: 0.6 })
@@ -57,7 +56,7 @@ function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => vo
           </Select>
         </FormControl>
       ))}
-      <Button fullWidth onClick={onReset} sx={{ mt: 1.5, py: 1.5, fontSize: 18, fontWeight: 500, color: C.white, backgroundColor: C.navy, '&:hover': { backgroundColor: "#003366", opacity: 0.9 } }}>
+      <Button fullWidth onClick={onReset} sx={{ mt: 1.5, py: 1.5, fontSize: 18, fontWeight: 500, color: C.white, backgroundColor: C.navy, '&:hover': { backgroundColor: C.midNavy, opacity: 0.9 } }}>
         Borrar filtros
       </Button>
       <Box sx={{ flex: 1 }} />

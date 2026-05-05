@@ -7,13 +7,7 @@ import {
   FieldConfig,
   RenderFieldArgs,
 } from '@/mta_reports_v2/components/EditableContentSection'
-
-const australFilterSx = {
-  '& img[alt="Universidad Austral"]': {
-    filter:
-      'brightness(0) saturate(100%) invert(13%) sepia(91%) saturate(3500%) hue-rotate(228deg) brightness(85%) contrast(105%)',
-  },
-}
+import { australFilterSx } from '@/mta_reports_v2/components/shared/SlideContainer'
 
 interface EditableTabProps<F extends string> {
   schoolId: number

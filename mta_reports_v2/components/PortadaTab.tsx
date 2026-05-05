@@ -5,11 +5,13 @@ import Box from '@mui/material/Box'
 import Image from 'next/image'
 import { Stack } from '@mui/material'
 import { useEditableSlide } from '@/mta_reports_v2/hooks'
-import { COLORS } from '@/mta_reports_v2/constants'
+import { COLORS, TITLE_FONT_FAMILY } from '@/mta_reports_v2/constants'
 import Footer from '@/shared/layout/Footer'
 import Logo from '@/shared/components/Logo'
 import Button from '@/shared/components/Button'
 import { ImageSize } from '@/shared/utils'
+import { SlideContainer } from '@/mta_reports_v2/components/shared/SlideContainer'
+import { QuillEditorStyles } from '@/mta_reports_v2/components/shared/QuillEditorStyles'
 import 'react-quill-new/dist/quill.snow.css'
 
 const ReactQuill = dynamic(async () => (await import('react-quill-new')).default, { ssr: false })
@@ -43,9 +45,26 @@ const PortadaTab = ({ schoolId, initialEditing }: PortadaTabProps) => {
     initialEditing,
   })
 
+  const fontSizeFor = (key: 'title' | 'subtitle') =>
+    key === 'title' ? 'clamp(36px, 4.5vw, 54px)' : 'clamp(24px, 3vw, 42px)'
+  const fontWeightFor = (key: 'title' | 'subtitle') => (key === 'title' ? 900 : 700)
+  const lineHeightFor = (key: 'title' | 'subtitle') => (key === 'title' ? 1.1 : 1.2)
+
   const renderField = (key: 'title' | 'subtitle', variantClass: string) => (
     <Box
       className={`portada-editor ${variantClass} ${slide.isEditing && slide.activeEditor === key ? 'is-active' : ''} ${!slide.isEditing ? 'is-readonly' : ''}`}
+      sx={{
+        '& .ql-editor, & .ql-editor *': {
+          fontFamily: `${TITLE_FONT_FAMILY} !important`,
+          color: `${C.royal} !important`,
+        },
+        '& .ql-editor': {
+          fontSize: fontSizeFor(key),
+          fontWeight: fontWeightFor(key),
+          lineHeight: lineHeightFor(key),
+          overflow: 'hidden',
+        },
+      }}
     >
       <ReactQuill
         theme="snow"
@@ -67,7 +86,7 @@ const PortadaTab = ({ schoolId, initialEditing }: PortadaTabProps) => {
   )
 
   return (
-    <Box sx={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden', flexDirection: 'column', bgcolor: C.white, position: 'relative' }}>
+    <SlideContainer>
       {slide.canEdit && (
         <Stack direction="row" spacing={1.25} sx={{ position: 'absolute', top: 16, right: 16, zIndex: 5 }}>
           {!slide.isEditing && (
@@ -113,81 +132,8 @@ const PortadaTab = ({ schoolId, initialEditing }: PortadaTabProps) => {
         </Box>
       </Box>
       <Footer includePin={false} />
-
-      <style jsx global>{`
-        .portada-editor {
-          position: relative;
-        }
-
-        .portada-editor .ql-toolbar.ql-snow {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 2;
-          border: 1px solid ${C.navyAlpha12};
-          background: ${C.lightBlueAlpha22};
-          border-radius: 18px;
-          padding: 8px 10px;
-          opacity: 0;
-          pointer-events: none;
-          transform: translateY(-12px);
-          transition: opacity 0.18s ease, transform 0.18s ease;
-        }
-
-        .portada-editor.is-active .ql-toolbar.ql-snow {
-          opacity: 1;
-          pointer-events: auto;
-          transform: translateY(calc(-100% - 8px));
-        }
-
-        .portada-editor .ql-container.ql-snow {
-          border: 0;
-          font-family: inherit;
-        }
-
-        .portada-editor .ql-editor,
-        .portada-editor .ql-editor * {
-          color: ${C.navy} !important;
-        }
-
-        .portada-editor .ql-editor {
-          padding: 0;
-          text-align: left;
-          white-space: normal;
-          overflow-wrap: anywhere;
-          word-break: break-word;
-        }
-
-        .portada-editor .ql-editor p {
-          margin: 0;
-        }
-
-        .portada-editor.is-readonly .ql-container.ql-snow {
-          pointer-events: none;
-        }
-
-        .portada-editor.is-readonly .ql-editor {
-          cursor: default;
-        }
-
-        .portada-title .ql-editor {
-          font-family: "Segoe UI", Segoe, system-ui, sans-serif;
-          font-size: clamp(36px, 4.5vw, 54px);
-          font-weight: 900;
-          line-height: 1.1;
-          color: ${C.navy};
-        }
-
-        .portada-subtitle .ql-editor {
-          font-family: "Segoe UI", Segoe, system-ui, sans-serif;
-          font-size: clamp(24px, 3vw, 42px);
-          font-weight: 700;
-          line-height: 1.2;
-          color: ${C.navy};
-        }
-      `}</style>
-    </Box>
+      <QuillEditorStyles />
+    </SlideContainer>
   )
 }
 
