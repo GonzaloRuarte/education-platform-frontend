@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Box, Stack, Typography, FormControl, Select, MenuItem, Grid2, Tooltip } from '@mui/material'
+import { Box, Stack, Typography, FormControl, Select, MenuItem, Grid2, Tooltip, IconButton } from '@mui/material'
 import Paper from '@mui/material/Paper'
+import BackspaceOutlinedIcon from '@mui/icons-material/BackspaceOutlined'
 import { BP, HorizontalBarChart, MiVsTodosLegend, ChartCard } from '@/mta_reports_v2/components/ReporteAuroraCharts'
 import { COLORS, FONT_SIZES, RADIUS, FILL_COLUMN_SX } from '@/mta_reports_v2/constants'
 import type { I_DetalleTabData } from '@/mta_reports_v2/types'
@@ -69,7 +70,7 @@ function DetalleTab({ data }: DetalleTabProps) {
   const barLegend = <MiVsTodosLegend />
 
   return (
-    <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
+    <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
       <Grid2 container spacing={1.5} alignItems="stretch" sx={{ flex: 1, minHeight: 0 }}>
       <Grid2 size={{ xs: 12, md: 7 }} sx={{ display: 'flex', flexDirection: 'column' }}>
         <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
@@ -143,6 +144,18 @@ function DetalleTab({ data }: DetalleTabProps) {
                   ))}
                 </Select>
               </FormControl>
+              <Tooltip title="Borrar selección">
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={() => setSelectedStudentId('all')}
+                    disabled={selectedStudentId === 'all'}
+                    aria-label="Borrar selección de alumno"
+                  >
+                    <BackspaceOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
               <Paper elevation={0} sx={{ bgcolor: C.navy, borderRadius: RADIUS.lg, px: 2, py: 1, textAlign: 'center', flex: 1 }}>
                 <Typography sx={{ color: C.white, fontWeight: 700, fontSize: F.score }}>
                   {selectedStudent ? `${selectedStudent.score}%` : 'Seleccione el ID del alumno'}
