@@ -152,6 +152,42 @@ export function groupBy(
   }))
 }
 
+// Agrupa preguntas por microcompetencia leyendo el campo `tags` (string separado por ';').
+// Solo se consideran tags con prefijo 'microcompetencia-'. El slug se mapea al nombre
+// canónico de display (con acentos y mayúsculas) vía MICROCOMPETENCIA_LABELS.
+const MICROCOMPETENCIA_PREFIX = 'microcompetencia-'
+const MICROCOMPETENCIA_LABELS: Record<string, string> = {
+  'analisis-textual': 'Análisis textual',
+  'reconocimiento-de-informacion-explicita': 'Reconocimiento de información explícita',
+  'reconocimiento-de-informacion-implicita': 'Reconocimiento de información implícita',
+}
+
+export function groupByMicrocompetencia(
+  preguntas: I_RawPregunta[],
+  pp: Record<string, { n_correctas: number; n_total: number }>,
+  estudiantes: Array<Record<string, boolean>>,
+): I_ItemAurora[] {
+  const groups: Record<string, Set<string>> = {}
+  for (const q of preguntas) {
+    if (q.es_pisa) continue
+    if (!q.tags) continue
+    const tags = q.tags.split(';').map(t => t.trim()).filter(Boolean)
+    for (const tag of tags) {
+      if (!tag.startsWith(MICROCOMPETENCIA_PREFIX)) continue
+      const slug = tag.slice(MICROCOMPETENCIA_PREFIX.length)
+      // Si el slug no está mapeado, se usa tal cual (degradación elegante).
+      const label = MICROCOMPETENCIA_LABELS[slug] ?? slug
+      if (!groups[label]) groups[label] = new Set()
+      groups[label].add(String(q.id))
+    }
+  }
+  return Object.entries(groups).map(([label, qids]) => ({
+    n: label,
+    mi: r1(mean(studentScores(qids, estudiantes))),
+    t:  todosRate(qids, pp),
+  }))
+}
+
 export function calcPercentage(
   answered: string[],
   responses: Record<string, boolean>,

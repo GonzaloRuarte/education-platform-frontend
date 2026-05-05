@@ -79,6 +79,7 @@ interface I_DetalleTabData {
   boxplotTodosLenguaje?: I_BoxplotAurora
   estudiantes: Array<{
     id: string
+    dni: string
     score: number
     contenido: I_ItemAurora[]
     competencia: I_ItemAurora[]
@@ -95,6 +96,9 @@ interface I_RawPregunta {
   competencia: string
   contenido: string
   es_pisa: boolean
+  // String con tags separados por ';'. Para Lenguaje, las microcompetencias
+  // vienen como tags con prefijo 'microcompetencia-' (ver groupByMicrocompetencia).
+  tags?: string
 }
 
 interface I_RawTodos {
