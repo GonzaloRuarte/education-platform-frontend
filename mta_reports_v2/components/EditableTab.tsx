@@ -18,7 +18,7 @@ const australFilterSx = {
 interface EditableTabProps<F extends string> {
   schoolId: number
   initialEditing?: boolean
-  diapositivaId: number
+  diapositivaId: string
   successMessage: string
   fields: Record<F, FieldConfig>
   maxWidth?: number
@@ -57,7 +57,7 @@ const EditableTab = <F extends string,>({
     </EditableContentSection>
   )
 
-  return withAustralFilter ? <Box sx={australFilterSx}>{section}</Box> : section
+  return withAustralFilter ? <Box sx={{ height: '100%', ...australFilterSx }}>{section}</Box> : section
 }
 
 export { EditableTab }

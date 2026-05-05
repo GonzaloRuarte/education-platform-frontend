@@ -34,7 +34,7 @@ const PruebasTab = ({ schoolId, initialEditing }: PruebasTabProps) => (
   <EditableTab
     schoolId={schoolId}
     initialEditing={initialEditing}
-    diapositivaId={2}
+    diapositivaId="pruebas"
     successMessage='Sección "Las pruebas" actualizada correctamente'
     fields={fields}
     withAustralFilter

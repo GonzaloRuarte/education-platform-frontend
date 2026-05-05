@@ -12,7 +12,7 @@ interface MatematicaTabProps {
 }
 
 const fields = {
-  title: { defaultHtml: '<p>Presentación de materias — Matemática</p>', variant: 'title' as const },
+  title: { defaultHtml: '<p>Presentación de materias</p>', variant: 'title' as const },
   contenidos: {
     defaultHtml:
       '<ul>' +
@@ -38,21 +38,50 @@ const MatematicaTab = ({ schoolId, initialEditing }: MatematicaTabProps) => (
   <EditableTab
     schoolId={schoolId}
     initialEditing={initialEditing}
-    diapositivaId={4}
+    diapositivaId="matematica"
     successMessage='Sección "Matemática" actualizada correctamente'
     fields={fields}
-    maxWidth={1320}
   >
     {({ renderField }) => (
-      <Box sx={{ maxWidth: 1320 }}>
-        {renderField('title', { mb: 4 })}
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={4}>
+      <Box sx={{ width: '100%' }}>
+        <Box sx={{ mb: 4 }}>
+          {renderField('title', { mb: 1.5 })}
+          <Box
+            sx={{
+              display: 'inline-block',
+              bgcolor: '#4C7198',
+              color: '#fff',
+              fontWeight: 800,
+              fontSize: 26,
+              px: 4,
+              py: 3,
+              borderRadius: 999,
+              lineHeight: 1,
+            }}
+          >
+            Matemática
+          </Box>
+        </Box>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={10}>
           <Box flex={1}>
-            <Typography sx={{ color: C.navy, fontWeight: 800, fontSize: 22, mb: 1.5 }}>Contenidos</Typography>
-            {renderField('contenidos')}
+            <Typography sx={{ fontFamily: '"Segoe UI", Segoe, sans-serif', color: C.navy, fontWeight: 800, fontSize: 28, mb: 1.5 }}>Contenidos</Typography>
+            <Box
+              sx={{
+                '& ul': { listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: 1.25 },
+                '& li': {
+                  bgcolor: '#DBEDF4',
+                  px: 2.5,
+                  py: 1.5,
+                  borderRadius: 1,
+                  color: C.navy,
+                },
+              }}
+            >
+              {renderField('contenidos')}
+            </Box>
           </Box>
           <Box flex={1}>
-            <Typography sx={{ color: C.navy, fontWeight: 800, fontSize: 22, mb: 1.5 }}>Competencias</Typography>
+            <Typography sx={{ fontFamily: '"Segoe UI", Segoe, sans-serif', color: C.navy, fontWeight: 800, fontSize: 28, mb: 1.5 }}>Competencias</Typography>
             {renderField('competencias')}
           </Box>
         </Stack>

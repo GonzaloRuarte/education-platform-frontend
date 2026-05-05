@@ -25,7 +25,7 @@ const PisaTab = ({ schoolId, initialEditing }: PisaTabProps) => (
   <EditableTab
     schoolId={schoolId}
     initialEditing={initialEditing}
-    diapositivaId={6}
+    diapositivaId="pisa"
     successMessage='Sección "Ejercicios tipo PISA" actualizada correctamente'
     fields={fields}
     maxWidth={1000}

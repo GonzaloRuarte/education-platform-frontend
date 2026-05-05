@@ -68,7 +68,7 @@ export function TabPager<T extends string>({
   isLast: boolean
 }) {
   return (
-    <Box sx={{ flexShrink: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, bgcolor: 'white', boxShadow: 3, px: 1, py: 0.5 }}>
+    <Box sx={{ flexShrink: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, bgcolor: '#eaeaea', borderTop: '1px solid #c7c7c7', px: 1, py: 0.5 }}>
       <IconButton size="medium" onClick={onPrev} disabled={isFirst} sx={{ color: C.navy }}>
         <ChevronLeftIcon />
       </IconButton>
@@ -84,7 +84,33 @@ export function TabPager<T extends string>({
         MenuProps={{
           anchorOrigin: { vertical: 'top', horizontal: 'center' },
           transformOrigin: { vertical: 'bottom', horizontal: 'center' },
-          slotProps: { paper: { sx: { minWidth: 240 } } },
+          slotProps: {
+            paper: {
+              sx: {
+                minWidth: 240,
+                bgcolor: '#000',
+                color: '#fff',
+                overflow: 'visible',
+                mt: '-8px',
+                '& .MuiMenu-list': { maxHeight: 360, overflowY: 'auto' },
+                '& .MuiMenuItem-root': { color: '#fff' },
+                '& .MuiMenuItem-root:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
+                '& .MuiMenuItem-root.Mui-selected': { bgcolor: 'rgba(255,255,255,0.16)' },
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: -8,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 0,
+                  height: 0,
+                  borderLeft: '8px solid transparent',
+                  borderRight: '8px solid transparent',
+                  borderTop: '8px solid #000',
+                },
+              },
+            },
+          },
         }}
         sx={{ width: 110, color: C.navy, fontWeight: 600, fontSize: '0.8125rem', '& .MuiSelect-select': { py: 0.5, px: 1.5 } }}
       >

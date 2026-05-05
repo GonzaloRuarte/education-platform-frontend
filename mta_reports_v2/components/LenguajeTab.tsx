@@ -1,5 +1,6 @@
 'use client'
 
+import { Box } from '@mui/material'
 import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
 
 interface LenguajeTabProps {
@@ -8,7 +9,7 @@ interface LenguajeTabProps {
 }
 
 const fields = {
-  title: { defaultHtml: '<p>Presentación de materias — Prácticas del Lenguaje</p>', variant: 'title' as const },
+  title: { defaultHtml: '<p>Presentación de materias</p>', variant: 'title' as const },
   body: {
     defaultHtml:
       '<p>Las competencias seleccionadas para el área de Prácticas del Lenguaje son comprensión lectora y reflexión sobre los hechos de la práctica del lenguaje, tanto para texto de ficción, texto informativo, texto argumentativo (9º y 12º). A partir de ellas y en todos los casos, se evalúa:</p>' +
@@ -25,11 +26,34 @@ const LenguajeTab = ({ schoolId, initialEditing }: LenguajeTabProps) => (
   <EditableTab
     schoolId={schoolId}
     initialEditing={initialEditing}
-    diapositivaId={5}
+    diapositivaId="lenguaje"
     successMessage='Sección "Prácticas del Lenguaje" actualizada correctamente'
     fields={fields}
-    maxWidth={1280}
-  />
+  >
+    {({ renderField }) => (
+      <Box sx={{ width: '100%' }}>
+        <Box sx={{ mb: 4 }}>
+          {renderField('title', { mb: 1.5 })}
+          <Box
+            sx={{
+              display: 'inline-block',
+              bgcolor: '#4C7198',
+              color: '#fff',
+              fontWeight: 800,
+              fontSize: 26,
+              px: 4,
+              py: 3,
+              borderRadius: 999,
+              lineHeight: 1
+            }}
+          >
+            Prácticas del Lenguaje
+          </Box>
+        </Box>
+        {renderField('body')}
+      </Box>
+    )}
+  </EditableTab>
 )
 
 export { LenguajeTab }

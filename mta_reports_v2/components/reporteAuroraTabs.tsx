@@ -32,7 +32,9 @@ const C = COLORS
 export type TabId =
   | 'cover' | 'intro' | 'informe' | 'matematica' | 'lenguaje' | 'pisa'
   | 'pruebas' | 'instituciones' | 'presentacion' | 'resumen' | 'historico'
-  | 'detalle' | 'semaforo' | 'scatter' | 'tabla' | 'cierre'
+  | 'detalleMatematica' | 'detalleLenguaje'
+  | 'semaforoLenguaje' | 'semaforoMatematica'
+  | 'scatter' | 'tabla' | 'cierre'
 
 export type TabKind = 'static' | 'data'
 
@@ -94,12 +96,14 @@ const buildFilters = (flags: FilterFlags) => (ctx: TabFiltersCtx): Array<FilterD
 
 const filtersResumenLike = buildFilters({ materia: true, anio: true, division: true, toma: true })
 const filtersScatterLike = buildFilters({ anio: true, division: true, toma: true })
-const filtersSemaforoLike = buildFilters({ materia: true, division: true, toma: true })
+const filtersDetalleSplitLike = buildFilters({ anio: true, division: true, toma: true })
+const filtersSemaforoSplitLike = buildFilters({ division: true, toma: true })
 
 export const TABS: ReadonlyArray<TabDef> = [
   {
     id: 'cover', label: 'Portada', kind: 'static',
-    render: ({ escuelaId }) => escuelaId !== null ? <PortadaTab /> : null,
+    render: ({ escuelaId, editRequested }) =>
+      escuelaId !== null ? <PortadaTab schoolId={escuelaId} initialEditing={editRequested} /> : null,
   },
   {
     id: 'intro', label: 'Introducción', kind: 'static',
@@ -107,36 +111,36 @@ export const TABS: ReadonlyArray<TabDef> = [
       escuelaId !== null ? <IntroduccionTab schoolId={escuelaId} initialEditing={editRequested} /> : null,
   },
   {
-    id: 'informe', label: 'El Informe', kind: 'static',
+    id: 'pruebas', label: 'Las pruebas', kind: 'static',
+    render: ({ escuelaId, editRequested }) =>
+      escuelaId !== null ? <PruebasTab schoolId={escuelaId} initialEditing={editRequested} /> : null,
+  },
+  {
+    id: 'informe', label: 'El informe', kind: 'static',
     render: ({ escuelaId, editRequested }) =>
       escuelaId !== null ? <InformeTab schoolId={escuelaId} initialEditing={editRequested} /> : null,
   },
   {
-    id: 'matematica', label: 'Matemática', kind: 'static',
+    id: 'matematica', label: 'Presentación Matemática', kind: 'static',
     render: ({ escuelaId, editRequested }) =>
       escuelaId !== null ? <MatematicaTab schoolId={escuelaId} initialEditing={editRequested} /> : null,
   },
   {
-    id: 'lenguaje', label: 'Prácticas del Lenguaje', kind: 'static',
+    id: 'lenguaje', label: 'Presentación PDL', kind: 'static',
     render: ({ escuelaId, editRequested }) =>
       escuelaId !== null ? <LenguajeTab schoolId={escuelaId} initialEditing={editRequested} /> : null,
   },
   {
-    id: 'pisa', label: 'PISA', kind: 'static',
+    id: 'pisa', label: 'Presentación PISA', kind: 'static',
     render: ({ escuelaId, editRequested }) =>
       escuelaId !== null ? <PisaTab schoolId={escuelaId} initialEditing={editRequested} /> : null,
-  },
-  {
-    id: 'pruebas', label: 'Las pruebas', kind: 'static',
-    render: ({ escuelaId, editRequested }) =>
-      escuelaId !== null ? <PruebasTab schoolId={escuelaId} initialEditing={editRequested} /> : null,
   },
   {
     id: 'instituciones', label: 'Instituciones', kind: 'static',
     render: ({ escuelaId }) => escuelaId !== null ? <InstitucionesTab schoolId={escuelaId} /> : null,
   },
   {
-    id: 'presentacion', label: 'Presentación', kind: 'static',
+    id: 'presentacion', label: 'Presentación Resultados', kind: 'static',
     render: () => <PresentacionResultadosTab />,
   },
   {
@@ -153,16 +157,31 @@ export const TABS: ReadonlyArray<TabDef> = [
     render: ({ escuelaId }) => escuelaId !== null ? <HistoricoTab schoolId={escuelaId} /> : null,
   },
   {
-    id: 'detalle', label: ({ materia }) => materia, kind: 'data',
-    filters: filtersResumenLike,
+    id: 'detalleMatematica', label: 'Matemática', kind: 'data',
+    filters: filtersDetalleSplitLike,
     render: ({ detalleData, materia, anio, toma }) =>
       detalleData
         ? <DetalleTab data={detalleData} />
         : (toma ? <NoData materia={materia} anio={anio} toma={toma} /> : null),
   },
   {
-    id: 'semaforo', label: 'Semáforo', kind: 'data',
-    filters: filtersSemaforoLike,
+    id: 'detalleLenguaje', label: 'Prácticas del Lenguaje', kind: 'data',
+    filters: filtersDetalleSplitLike,
+    render: ({ detalleData, materia, anio, toma }) =>
+      detalleData
+        ? <DetalleTab data={detalleData} />
+        : (toma ? <NoData materia={materia} anio={anio} toma={toma} /> : null),
+  },
+  {
+    id: 'semaforoLenguaje', label: 'Semáforo PDL', kind: 'data',
+    filters: filtersSemaforoSplitLike,
+    render: ({ materia, semaforoBandas, semaforoAnio, setSemaforoAnio }) => (
+      <SemaforoTab materia={materia} bandasMap={semaforoBandas} anio={semaforoAnio} onAnioChange={setSemaforoAnio} />
+    ),
+  },
+  {
+    id: 'semaforoMatematica', label: 'Semáforo Matemática', kind: 'data',
+    filters: filtersSemaforoSplitLike,
     render: ({ materia, semaforoBandas, semaforoAnio, setSemaforoAnio }) => (
       <SemaforoTab materia={materia} bandasMap={semaforoBandas} anio={semaforoAnio} onAnioChange={setSemaforoAnio} />
     ),
@@ -173,7 +192,7 @@ export const TABS: ReadonlyArray<TabDef> = [
     render: ({ scatterPoints }) => <ScatterTab points={scatterPoints} />,
   },
   {
-    id: 'tabla', label: 'Resumen por estudiante', kind: 'data',
+    id: 'tabla', label: 'Resumen por alumno', kind: 'data',
     filters: filtersScatterLike,
     render: ({ tablaRows }) => <TablaTab rows={tablaRows} />,
   },

@@ -51,8 +51,10 @@ const ReporteAurora = () => {
   const materias = useMemo(() => getMaterias(toma), [getMaterias, toma])
   const anios = useMemo(() => getAnios(toma, materia), [getAnios, toma, materia])
 
+  const isSemaforoTab = tab === 'semaforoLenguaje' || tab === 'semaforoMatematica'
+
   const divisiones = useMemo(() => {
-    if (tab === 'semaforo') {
+    if (isSemaforoTab) {
       const divSet = new Set<string>()
       for (const a of ANIO_ORDER) {
         getDivisiones(materia, a, toma).filter(d => d !== 'Todas').forEach(d => divSet.add(d))
@@ -61,7 +63,7 @@ const ReporteAurora = () => {
       return divs.length > 0 ? ['Todas', ...divs] : ['Todas']
     }
     return getDivisiones(materia, anio, toma)
-  }, [tab, materia, anio, toma, getDivisiones])
+  }, [isSemaforoTab, materia, anio, toma, getDivisiones])
 
   useEffect(() => {
     setToma(t => (tomas.length > 0 && !t ? tomas[tomas.length - 1] : t))
@@ -69,6 +71,15 @@ const ReporteAurora = () => {
   useEffect(() => {
     if (materias.length > 0 && !materias.includes(materia)) setMateria(materias[0])
   }, [materias, materia])
+  useEffect(() => {
+    const lockedMateria =
+      tab === 'detalleMatematica' || tab === 'semaforoMatematica' ? 'Matemática' :
+      tab === 'detalleLenguaje' || tab === 'semaforoLenguaje' ? 'Prácticas del Lenguaje' :
+      null
+    if (lockedMateria && materia !== lockedMateria && materias.includes(lockedMateria)) {
+      setMateria(lockedMateria)
+    }
+  }, [tab, materia, materias])
   useEffect(() => {
     if (anios.length > 0 && !anios.includes(anio)) setAnio(anios[0])
   }, [anios, anio])
@@ -121,6 +132,11 @@ const ReporteAurora = () => {
 
   const tabDef = TAB_BY_ID[tab]
   const isStaticTab = tabDef.kind === 'static'
+  const SLIDE_16_9_TABS: ReadonlySet<TabId> = new Set<TabId>([
+    'cover', 'intro', 'informe', 'matematica', 'lenguaje', 'pisa',
+    'pruebas', 'instituciones', 'presentacion',
+  ])
+  const is16x9Slide = SLIDE_16_9_TABS.has(tab)
 
   const renderCtx: TabRenderCtx = {
     escuelaId, editRequested, materia, anio, division, toma,
@@ -144,19 +160,19 @@ const ReporteAurora = () => {
   const filterPills = useMemo(() => {
     const pills: Array<{ label: string }> = []
     if (isStaticTab) return pills
-    if ((tab === 'resumen' || tab === 'detalle' || tab === 'semaforo') && materias.length > 1) {
+    if (tab === 'resumen' && materias.length > 1) {
       pills.push({ label: `Materia: ${materia || '—'}` })
     }
-    if (tab !== 'semaforo') {
+    if (!isSemaforoTab) {
       pills.push({ label: `Año: ${anio || '—'}` })
     }
     if (divisiones.length > 1) pills.push({ label: `División: ${division || '—'}` })
     if (neeFilter === 'Sin NEE') pills.push({ label: `NEE: ${neeFilter}` })
     return pills
-  }, [tab, isStaticTab, materia, materias.length, anio, division, divisiones.length, toma, neeFilter])
+  }, [tab, isStaticTab, isSemaforoTab, materia, materias.length, anio, division, divisiones.length, toma, neeFilter])
 
   const advance = (direction: 'prev' | 'next') => {
-    if (tab === 'semaforo') {
+    if (isSemaforoTab) {
       const idx = ANIO_ORDER.indexOf(semaforoAnio as typeof ANIO_ORDER[number])
       const nextSubIdx = direction === 'prev' ? idx - 1 : idx + 1
       if (nextSubIdx >= 0 && nextSubIdx < ANIO_ORDER.length) {
@@ -173,7 +189,7 @@ const ReporteAurora = () => {
     const nextTabIdx = direction === 'prev' ? tabIdx - 1 : tabIdx + 1
     if (nextTabIdx < 0 || nextTabIdx >= TAB_ORDER.length) return
     const nextTab = TAB_ORDER[nextTabIdx]
-    if (nextTab === 'semaforo') {
+    if (nextTab === 'semaforoLenguaje' || nextTab === 'semaforoMatematica') {
       setSemaforoAnio(direction === 'next' ? ANIO_ORDER[0] : ANIO_ORDER[ANIO_ORDER.length - 1])
     }
     setTab(nextTab)
@@ -207,13 +223,32 @@ const ReporteAurora = () => {
             flex: 1,
             minHeight: 0,
             overflow: 'hidden',
-            display: isStaticTab ? 'block' : 'flex',
+            display: isStaticTab && !is16x9Slide ? 'block' : 'flex',
             flexDirection: 'column',
-            pt: isStaticTab ? 0 : '22px',
-            px: isStaticTab ? 0 : 3,
-            pb: isStaticTab ? 0 : 2,
+            alignItems: is16x9Slide ? 'center' : undefined,
+            justifyContent: is16x9Slide ? 'center' : undefined,
+            pt: is16x9Slide ? 2 : (isStaticTab ? 0 : '22px'),
+            px: is16x9Slide ? 2 : (isStaticTab ? 0 : 3),
+            pb: is16x9Slide ? 2 : (isStaticTab ? 0 : 2),
+            bgcolor: is16x9Slide ? COLORS.bgGrey : undefined,
+            containerType: is16x9Slide ? 'size' : undefined,
           }}>
-            {isStaticTab && tabDef.render(renderCtx)}
+            {isStaticTab && is16x9Slide && (
+              <Box sx={{
+                width: 'min(100cqw, 100cqh * 16 / 9)',
+                height: 'min(100cqh, 100cqw * 9 / 16)',
+                overflow: 'hidden',
+                bgcolor: COLORS.white,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                display: 'flex',
+                flexDirection: 'column',
+                minWidth: 0,
+                minHeight: 0,
+              }}>
+                {tabDef.render(renderCtx)}
+              </Box>
+            )}
+            {isStaticTab && !is16x9Slide && tabDef.render(renderCtx)}
             {!isStaticTab && (
               <>
                 <ReportHeader

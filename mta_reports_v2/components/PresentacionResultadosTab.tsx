@@ -29,6 +29,7 @@ const PresentacionResultadosTab = () => (
         <Typography
           sx={{
             color: C.royal,
+            fontFamily: '"Segoe UI", Segoe, system-ui, sans-serif',
             fontSize: 'clamp(40px, 5.5vw, 64px)',
             fontWeight: 900,
             textAlign: 'center',

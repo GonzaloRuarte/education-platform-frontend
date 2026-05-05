@@ -1,29 +1,25 @@
 'use client'
 
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode } from 'react'
 import dynamic from 'next/dynamic'
 import { Box, Stack, Typography } from '@mui/material'
-import { useAuthResources, useHasCapabilities } from '@/mta_auth/hooks'
-import { apiUrl } from '@/config'
 import { COLORS } from '@/mta_reports_v2/constants'
-import { axiosGet, axiosPatch } from '@/shared/data/axios'
+import { useEditableSlide, SlideFieldConfig } from '@/mta_reports_v2/hooks'
 import Logo from '@/shared/components/Logo'
 import LogoAustral from '@/shared/components/LogoAustral'
 import Button from '@/shared/components/Button'
-import { errorToast, successToast } from '@/shared/toasts'
 import { ImageSize } from '@/shared/utils'
 import 'react-quill-new/dist/quill.snow.css'
 
 const ReactQuill = dynamic(async () => (await import('react-quill-new')).default, { ssr: false })
 
 const C = COLORS
-const metaLogoSize = new ImageSize(257, 73, { scale: 0.74 })
+const metaLogoSize = new ImageSize(257, 73, { scale: 1.48 })
 const australLogoSize = new ImageSize(412, 72, { scale: 0.7 })
 
 type FieldVariant = 'title' | 'body'
 
-export interface FieldConfig {
-  defaultHtml: string
+export interface FieldConfig extends SlideFieldConfig {
   variant: FieldVariant
 }
 
@@ -34,15 +30,12 @@ export interface RenderFieldArgs<F extends string> {
 
 interface EditableContentSectionProps<F extends string> {
   schoolId: number
-  diapositivaId: number
+  diapositivaId: string
   successMessage: string
   fields: Record<F, FieldConfig>
   initialEditing?: boolean
   children: (args: RenderFieldArgs<F>) => ReactNode
 }
-
-const isEffectivelyEmpty = (html: string) =>
-  html.replace(/<(.|\n)*?>/g, '').replace(/&nbsp;/g, ' ').trim().length === 0
 
 const editorModules = {
   toolbar: [
@@ -66,124 +59,35 @@ const EditableContentSection = <F extends string,>({
   initialEditing = false,
   children,
 }: EditableContentSectionProps<F>) => {
-  const authResources = useAuthResources()
-  const canEdit = useHasCapabilities(['manage_reports'])
-
-  const fieldKeys = Object.keys(fields) as F[]
-
-  const buildDefault = (): Record<F, string> =>
-    fieldKeys.reduce((acc, key) => {
-      acc[key] = fields[key].defaultHtml
-      return acc
-    }, {} as Record<F, string>)
-
-  const normalize = (raw: Record<F, string>): Record<F, string> =>
-    fieldKeys.reduce((acc, key) => {
-      const value = raw[key]
-      acc[key] = !value || isEffectivelyEmpty(value) ? fields[key].defaultHtml : value
-      return acc
-    }, {} as Record<F, string>)
-
-  const [content, setContent] = useState<Record<F, string>>(buildDefault)
-  const [draft, setDraft] = useState<Record<F, string>>(buildDefault)
-  const [isEditing, setIsEditing] = useState(() => Boolean(initialEditing && canEdit))
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [activeEditor, setActiveEditor] = useState<F | null>(null)
-
-  useEffect(() => {
-    let alive = true
-
-    setIsLoading(true)
-    axiosGet<Record<F, string>>({
-      url: apiUrl(`/reportes-aurora/escuela/${schoolId}/diapositiva/${diapositivaId}/`),
-      requestSetup: authResources,
-      options: {},
-    })
-      .then(response => {
-        if (!alive) return
-        const next = normalize(response)
-        setContent(next)
-        setDraft(next)
-      })
-      .catch(error => {
-        if (!alive) return
-        const fallback = buildDefault()
-        setContent(fallback)
-        setDraft(fallback)
-        errorToast(error.message)
-      })
-      .finally(() => {
-        if (alive) setIsLoading(false)
-      })
-
-    return () => {
-      alive = false
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authResources.accessToken, schoolId, diapositivaId])
-
-  const startEditing = () => {
-    setDraft(content)
-    setActiveEditor(null)
-    setIsEditing(true)
-  }
-
-  const cancelEditing = () => {
-    setDraft(content)
-    setActiveEditor(null)
-    setIsEditing(false)
-  }
-
-  const saveEditing = async () => {
-    const nextContent = normalize(draft)
-
-    try {
-      setIsSaving(true)
-      const saved = await axiosPatch<Record<F, string>, Record<F, string>>({
-        url: apiUrl(`/reportes-aurora/escuela/${schoolId}/diapositiva/${diapositivaId}/`),
-        requestSetup: authResources,
-        options: {},
-        data: nextContent,
-      })
-      const normalizedSaved = normalize(saved)
-      setContent(normalizedSaved)
-      setDraft(normalizedSaved)
-      setActiveEditor(null)
-      setIsEditing(false)
-      successToast(successMessage)
-    } catch (error) {
-      errorToast(error instanceof Error ? error.message : 'No se pudo guardar la diapositiva')
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const updateDraft = (field: F, value: string) => {
-    setDraft(current => ({ ...current, [field]: value }))
-  }
+  const slide = useEditableSlide<F>({
+    schoolId,
+    diapositivaId,
+    successMessage,
+    fields,
+    initialEditing,
+  })
 
   const renderField = (key: F, sx: Record<string, unknown> = {}) => {
     const variantClass = fields[key].variant === 'title' ? 'title-editor' : 'body-editor'
     return (
       <Box
         key={key}
-        className={`editable-section-editor ${variantClass} ${isEditing && activeEditor === key ? 'is-active' : ''} ${!isEditing ? 'is-readonly' : ''}`}
+        className={`editable-section-editor ${variantClass} ${slide.isEditing && slide.activeEditor === key ? 'is-active' : ''} ${!slide.isEditing ? 'is-readonly' : ''}`}
         sx={sx}
       >
         <ReactQuill
           theme="snow"
-          value={draft[key]}
-          readOnly={!isEditing}
-          onChange={(value) => updateDraft(key, value)}
-          modules={isEditing ? editorModules : { toolbar: false }}
+          value={slide.draft[key]}
+          readOnly={!slide.isEditing}
+          onChange={(value) => slide.updateDraft(key, value)}
+          modules={slide.isEditing ? editorModules : { toolbar: false }}
           formats={editorFormats}
           onFocus={() => {
-            if (isEditing) setActiveEditor(key)
+            if (slide.isEditing) slide.setActiveEditor(key)
           }}
           onBlur={() => {
-            if (isEditing) {
-              setActiveEditor(current => (current === key ? null : current))
+            if (slide.isEditing) {
+              slide.setActiveEditor(slide.activeEditor === key ? null : slide.activeEditor)
             }
           }}
         />
@@ -204,19 +108,19 @@ const EditableContentSection = <F extends string,>({
         pb: { xs: 2, md: 3 },
       }}
     >
-      <Stack direction="row" justifyContent="flex-end" alignItems="flex-start" spacing={2}>
+      <Stack direction="row" justifyContent="flex-end" alignItems="flex-start" spacing={2} sx={{ position: 'absolute', top: { xs: 16, md: 24 }, right: { xs: 24, md: 64 }, zIndex: 3 }}>
         <Stack direction="row" alignItems="center" spacing={1.25}>
-          {canEdit && !isEditing && (
-            <Button size="small" bgcolor="purple" onClick={startEditing} disabled={isLoading}>
+          {slide.canEdit && !slide.isEditing && (
+            <Button size="small" bgcolor="purple" onClick={slide.startEditing} disabled={slide.isLoading}>
               Editar
             </Button>
           )}
-          {canEdit && isEditing && (
+          {slide.canEdit && slide.isEditing && (
             <>
-              <Button size="small" bgcolor="green" onClick={saveEditing} disabled={isSaving || isLoading}>
-                {isSaving ? 'Guardando...' : 'Guardar'}
+              <Button size="small" bgcolor="green" onClick={slide.saveEditing} disabled={slide.isSaving || slide.isLoading}>
+                {slide.isSaving ? 'Guardando...' : 'Guardar'}
               </Button>
-              <Button size="small" variant="outlined" onClick={cancelEditing} disabled={isSaving || isLoading}>
+              <Button size="small" variant="outlined" onClick={slide.cancelEditing} disabled={slide.isSaving || slide.isLoading}>
                 Cancelar
               </Button>
             </>
@@ -225,11 +129,11 @@ const EditableContentSection = <F extends string,>({
         </Stack>
       </Stack>
 
-      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', pt: { xs: 4, md: 8 }, pr: { xs: 0, md: 1 } }}>
-        {isLoading ? (
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', pt: { xs: 6, md: 12 }, pr: { xs: 0, md: 1 }, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+        {slide.isLoading ? (
           <Typography sx={{ color: C.tm }}>Cargando...</Typography>
         ) : (
-          children({ renderField, isEditing })
+          children({ renderField, isEditing: slide.isEditing })
         )}
       </Box>
 
@@ -250,6 +154,7 @@ const EditableContentSection = <F extends string,>({
           z-index: 2;
           border: 1px solid ${C.navyAlpha12};
           background: ${C.lightBlueAlpha22};
+          
           border-radius: 18px;
           padding: 10px 12px;
           opacity: 0;
@@ -272,7 +177,7 @@ const EditableContentSection = <F extends string,>({
         }
 
         .editable-section-editor .ql-editor {
-          color: ${C.navy};
+          color: ${C.midNavy};
           padding: 0;
           white-space: normal;
           overflow-wrap: anywhere;
@@ -293,6 +198,11 @@ const EditableContentSection = <F extends string,>({
           margin-bottom: 0.6em;
         }
 
+        .editable-section-editor .ql-editor li > .ql-ui::before {
+          font-size: 2em;
+          line-height: 1;
+        }
+
         .editable-section-editor .ql-editor blockquote {
           border-left: 4px solid ${C.lightBlue};
           padding-left: 16px;
@@ -307,14 +217,17 @@ const EditableContentSection = <F extends string,>({
         }
 
         .title-editor .ql-editor {
-          font-size: clamp(36px, 5vw, 52px);
+          font-family: "Segoe UI", Segoe, system-ui, sans-serif;
+          font-size: clamp(26px, 3.6vw, 38px);
           font-weight: 800;
           line-height: 1.05;
+          color: ${C.midNavy};
         }
 
         .body-editor .ql-editor {
           font-size: clamp(18px, 2.2vw, 24px);
           line-height: 1.48;
+          font-weight: 400;
         }
       `}</style>
     </Box>

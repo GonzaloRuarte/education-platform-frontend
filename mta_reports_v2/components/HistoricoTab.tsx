@@ -34,7 +34,7 @@ const HistoricoTab = ({ schoolId }: HistoricoTabProps) => {
   return (
     <Box>
       <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
-        <Typography sx={{ color: C.navy, fontWeight: 800, fontSize: 22 }}>Comparación histórica</Typography>
+        <Typography sx={{ color: C.navy, fontFamily: '"Segoe UI", Segoe, system-ui, sans-serif', fontWeight: 800, fontSize: 22 }}>Comparación histórica</Typography>
         <Chip size="small" color="warning" label="Datos preliminares (mock)" />
       </Stack>
       {loading || !data ? (

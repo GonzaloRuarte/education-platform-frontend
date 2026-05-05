@@ -21,7 +21,7 @@ const InformeTab = ({ schoolId, initialEditing }: InformeTabProps) => (
   <EditableTab
     schoolId={schoolId}
     initialEditing={initialEditing}
-    diapositivaId={3}
+    diapositivaId="informe"
     successMessage='Sección "El Informe" actualizada correctamente'
     fields={fields}
   />

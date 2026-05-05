@@ -2,6 +2,9 @@ export {
   useEscuelaReporteAurora,
 } from './viewer'
 
+export { useEditableSlide } from './useEditableSlide'
+export type { SlideFieldConfig, UseEditableSlideResult } from './useEditableSlide'
+
 export { useResponsiveHeight, useResponsiveBox } from './useResponsiveSize'
 
 export { useHistoricoEscuela } from './historico'

@@ -8,7 +8,7 @@ import type {
 } from '@/mta_reports_v2/types'
 
 // ─── Spec mapping ─────────────────────────────────────────────────────────────
-// pct_correctas              -> studentScores (per-student %) + todosRate (aggregate %)
+// pct_correctas              -> studentScores (per-student %) + todosRate (aggregate %). Se agregan tres porcentajes: las de 45, las 40 normales y las 5 PISA
 // pct_correctas_mi_colegio   -> studentScores(qids, estudiantes_mi)
 // pct_correctas_todos        -> todosRate(qids, pp)
 // pct_correctas_por_eval     -> studentScores returns one entry per evaluation_resolution

@@ -28,7 +28,7 @@ const IntroduccionTab = ({ schoolId, initialEditing }: IntroduccionTabProps) => 
   <EditableTab
     schoolId={schoolId}
     initialEditing={initialEditing}
-    diapositivaId={1}
+    diapositivaId="intro"
     successMessage="Introducción actualizada correctamente"
     fields={fields}
     withAustralFilter

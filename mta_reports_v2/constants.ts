@@ -11,6 +11,7 @@ const AURORA_REPORT_NAME = new EntityName({
 export const COLORS = {
   navy: '#041552',
   navyMid: '#214F80',
+  midNavy: '#003366',
   iceBlue: '#DBEDF4',
   blue: '#0b2280',
   royal: '#0040a3',

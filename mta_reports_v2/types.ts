@@ -78,7 +78,7 @@ interface I_DetalleTabData {
   boxplotMiLenguaje?: I_BoxplotAurora
   boxplotTodosLenguaje?: I_BoxplotAurora
   estudiantes: Array<{
-    id: number
+    id: string
     score: number
     contenido: I_ItemAurora[]
     competencia: I_ItemAurora[]
@@ -108,7 +108,7 @@ interface I_RawComboDato {
   anio: string
   toma: string
   preguntas: I_RawPregunta[]
-  estudiantes_mi: Array<{ division: string | null; nee?: boolean; respuestas: Record<string, boolean> }>
+  estudiantes_mi: Array<{ id: string; division: string | null; nee?: boolean; respuestas: Record<string, boolean> }>
   todos: I_RawTodos
 }
 

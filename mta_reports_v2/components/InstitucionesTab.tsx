@@ -68,7 +68,7 @@ const InstitucionesTab = ({ schoolId }: InstitucionesTabProps) => {
       }}
     >
       <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-        <Typography sx={{ color: C.navy, fontWeight: 800, fontSize: 'clamp(36px, 5vw, 52px)' }}>
+        <Typography sx={{ color: C.navy, fontWeight: 800, fontSize: 'clamp(36px, 5vw, 52px)', fontFamily: '"Segoe UI", Segoe, system-ui, sans-serif' }}>
           Instituciones participantes
         </Typography>
         <Logo width={190} height={54} />
@@ -78,7 +78,7 @@ const InstitucionesTab = ({ schoolId }: InstitucionesTabProps) => {
           {[left, right].map((col, ci) => (
             <Box key={ci}>
               {col.map(s => (
-                <Typography key={s.id} sx={{ color: C.navy, fontSize: 18, lineHeight: 1.6 }}>
+                <Typography key={s.id} sx={{ color: C.navy, fontSize: 18, lineHeight: 1.6, fontFamily: '"Segoe UI", Segoe, system-ui, sans-serif' }}>
                   {s.name}
                 </Typography>
               ))}
