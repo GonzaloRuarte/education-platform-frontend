@@ -1,61 +1,50 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, type ReactNode } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
-import { Box, Stack, Tabs, Tab, Chip, IconButton } from '@mui/material'
+import { Box } from '@mui/material'
+import { ThemeProvider, useTheme, createTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import { withAuth } from '@/mta_auth/hocs/withAuth'
-import Logo from '@/shared/components/Logo'
-import { ImageSize } from '@/shared/utils'
-import { useEscuelaReporteAurora } from '@/mta_reports_v2/hooks'
-import { COLORS, ANIO_ORDER } from '@/mta_reports_v2/constants'
 import Paper from '@mui/material/Paper'
-import { IntroduccionTab } from '@/mta_reports_v2/components/IntroduccionTab'
-import { PortadaTab } from '@/mta_reports_v2/components/PortadaTab'
-import { PruebasTab } from '@/mta_reports_v2/components/PruebasTab'
-import { ResumenTab } from '@/mta_reports_v2/components/ResumenTab'
+import { withAuth } from '@/mta_auth/hocs/withAuth'
+import { useHasCapabilities } from '@/mta_auth/hooks'
+import { useEscuelaReporteAurora, useAuroraReportPublish, useAuroraReportUnpublish } from '@/mta_reports_v2/hooks'
+import { COLORS, ANIO_ORDER, FONT_FAMILY } from '@/mta_reports_v2/constants'
 import { calcResumen } from '@/mta_reports_v2/components/calc/ResumenTab'
-import { DetalleTab } from '@/mta_reports_v2/components/DetalleTab'
 import { calcDetalle } from '@/mta_reports_v2/components/calc/DetalleTab'
-import { SemaforoTab } from '@/mta_reports_v2/components/SemaforoTab'
-import { calcSemaforo } from '@/mta_reports_v2/components/calc/SemaforoTab'
-import { ScatterTab } from '@/mta_reports_v2/components/ScatterTab'
+import { calcSemaforo, calcSemaforoEstudiantes } from '@/mta_reports_v2/components/calc/SemaforoTab'
 import { calcScatter } from '@/mta_reports_v2/components/calc/ScatterTab'
-import { TablaTab } from '@/mta_reports_v2/components/TablaTab'
 import { calcTabla } from '@/mta_reports_v2/components/calc/TablaTab'
 import { Sidebar } from '@/mta_reports_v2/components/ReporteAuroraSidebar'
 import type { FilterDef } from '@/mta_reports_v2/components/ReporteAuroraSidebar'
+import {
+  TABS, TAB_BY_ID, TAB_ORDER, tabLabel as resolveTabLabel,
+} from '@/mta_reports_v2/components/reporteAuroraTabs'
+import type { TabId, TabRenderCtx } from '@/mta_reports_v2/components/reporteAuroraTabs'
+import {
+  ReportHeader, FilterPillsBar, TabPager,
+} from '@/mta_reports_v2/components/ReporteAuroraChrome'
 
 const C = COLORS
-const TAB_IDS = { INTRO: 'intro', COVER: 'cover', PRUEBAS: 'pruebas', RESUMEN: 'resumen', DETALLE: 'detalle', SEMAFORO: 'semaforo', SCATTER: 'scatter', TABLA: 'tabla' } as const
-const headerLogoSize = new ImageSize(257, 73, { scale: 0.31 })
-
-type TabId = 'intro' | 'cover' | 'pruebas' | 'resumen' | 'detalle' | 'semaforo' | 'scatter' | 'tabla'
-
-const TAB_ORDER: Array<TabId> = [
-  TAB_IDS.COVER,
-  TAB_IDS.INTRO,
-  TAB_IDS.PRUEBAS,
-  TAB_IDS.RESUMEN,
-  TAB_IDS.DETALLE,
-  TAB_IDS.SEMAFORO,
-  TAB_IDS.SCATTER,
-  TAB_IDS.TABLA,
-]
 
 const ReporteAurora = () => {
   const params = useParams<{ escuelaId: string }>()
   const searchParams = useSearchParams()
   const escuelaId = params?.escuelaId ? Number(params.escuelaId) : null
   const editRequested = searchParams?.get('edit') === '1'
+  const canManage = useHasCapabilities(['manage_reports'])
+  const publish = useAuroraReportPublish()
+  const unpublish = useAuroraReportUnpublish()
+  const [statusBusy, setStatusBusy] = useState(false)
 
-  const [tab, setTab] = useState<TabId>(editRequested ? TAB_IDS.INTRO : TAB_IDS.COVER)
+  const [tab, setTab] = useState<TabId>(editRequested ? 'intro' : 'cover')
   const [toma, setToma] = useState('')
   const [materia, setMateria] = useState('Matemática')
   const [anio, setAnio] = useState('3ro')
   const [division, setDivision] = useState('Todas')
+  const [semaforoAnio, setSemaforoAnio] = useState<string>('3ro')
+  const [neeFilter, setNeeFilter] = useState('Con NEE')
+  const [selectedStudentLabel, setSelectedStudentLabel] = useState<string>('Todos los alumnos')
 
   const { rawData, loading, error, tomas, getMaterias, getAnios, getDivisiones } =
     useEscuelaReporteAurora(escuelaId)
@@ -63,8 +52,10 @@ const ReporteAurora = () => {
   const materias = useMemo(() => getMaterias(toma), [getMaterias, toma])
   const anios = useMemo(() => getAnios(toma, materia), [getAnios, toma, materia])
 
+  const isSemaforoTab = tab === 'semaforoLenguaje' || tab === 'semaforoMatematica'
+
   const divisiones = useMemo(() => {
-    if (tab === TAB_IDS.SEMAFORO) {
+    if (isSemaforoTab) {
       const divSet = new Set<string>()
       for (const a of ANIO_ORDER) {
         getDivisiones(materia, a, toma).filter(d => d !== 'Todas').forEach(d => divSet.add(d))
@@ -73,264 +64,280 @@ const ReporteAurora = () => {
       return divs.length > 0 ? ['Todas', ...divs] : ['Todas']
     }
     return getDivisiones(materia, anio, toma)
-  }, [tab, materia, anio, toma, getDivisiones])
+  }, [isSemaforoTab, materia, anio, toma, getDivisiones])
 
   useEffect(() => {
-    setToma(t => {
-      if (tomas.length > 0 && !t) return tomas[tomas.length - 1]
-      return t
-    })
+    setToma(t => (tomas.length > 0 && !t ? tomas[tomas.length - 1] : t))
   }, [tomas])
-
   useEffect(() => {
     if (materias.length > 0 && !materias.includes(materia)) setMateria(materias[0])
   }, [materias, materia])
-
+  useEffect(() => {
+    const lockedMateria =
+      tab === 'detalleMatematica' || tab === 'semaforoMatematica' ? 'Matemática' :
+      tab === 'detalleLenguaje' || tab === 'semaforoLenguaje' ? 'Prácticas del Lenguaje' :
+      null
+    if (lockedMateria && materia !== lockedMateria && materias.includes(lockedMateria)) {
+      setMateria(lockedMateria)
+    }
+  }, [tab, materia, materias])
   useEffect(() => {
     if (anios.length > 0 && !anios.includes(anio)) setAnio(anios[0])
   }, [anios, anio])
-
   useEffect(() => {
     if (divisiones.length > 0 && !divisiones.includes(division)) setDivision(divisiones[0])
   }, [divisiones, division])
+  useEffect(() => {
+    if (isSemaforoTab) setDivision('Todas')
+  }, [isSemaforoTab])
 
   const resumenData = useMemo(
-    () => (rawData && toma ? calcResumen(rawData, { materia, anio, division, toma }) : null),
-    [rawData, materia, anio, division, toma],
+    () => (rawData && toma ? calcResumen(rawData, { materia, anio, division, toma, neeFilter }) : null),
+    [rawData, materia, anio, division, toma, neeFilter],
   )
   const detalleData = useMemo(
-    () => (rawData && toma ? calcDetalle(rawData, { materia, anio, division, toma }) : null),
-    [rawData, materia, anio, division, toma],
+    () => (rawData && toma ? calcDetalle(rawData, { materia, anio, division, toma, neeFilter }) : null),
+    [rawData, materia, anio, division, toma, neeFilter],
   )
   const semaforoBandas = useMemo(
-    () => (rawData && toma ? calcSemaforo(rawData, materia, division, toma) : {}),
-    [rawData, materia, division, toma],
+    () => (rawData && toma ? calcSemaforo(rawData, materia, division, toma, neeFilter) : {}),
+    [rawData, materia, division, toma, neeFilter],
+  )
+  const semaforoEstudiantes = useMemo(
+    () => (rawData && toma ? calcSemaforoEstudiantes(rawData, materia, division, toma, neeFilter) : {}),
+    [rawData, materia, division, toma, neeFilter],
   )
   const scatterPoints = useMemo(
-    () => (rawData && toma ? calcScatter(rawData, anio, division, toma) : []),
-    [rawData, anio, division, toma],
+    () => (rawData && toma ? calcScatter(rawData, anio, division, toma, neeFilter) : []),
+    [rawData, anio, division, toma, neeFilter],
   )
   const tablaRows = useMemo(
-    () => (rawData && toma ? calcTabla(rawData, anio, division, toma) : []),
-    [rawData, anio, division, toma],
+    () => (rawData && toma ? calcTabla(rawData, anio, division, toma, neeFilter) : []),
+    [rawData, anio, division, toma, neeFilter],
   )
+
   const schoolName = rawData?.colegio ?? (loading ? 'Cargando…' : 'Escuela')
+  const reportStatus = rawData?.report_status
+  const reportId = rawData?.report_id
 
-  const tomaFilter = useMemo(() => ({ label: 'Toma', value: toma, opts: tomas.length > 0 ? tomas : [toma].filter(Boolean), set: setToma }), [toma, tomas])
-  const divFilter = useMemo(() => ({ label: 'División', value: division, opts: divisiones, set: setDivision }), [division, divisiones])
-  const materiaFilter = useMemo(() => ({ label: 'Materia', value: materia, opts: materias.length > 0 ? materias : [materia], set: setMateria }), [materia, materias])
-  const anioFilter = useMemo(() => ({ label: 'Año', value: anio, opts: anios.length > 0 ? anios : ANIO_ORDER.slice(), set: setAnio }), [anio, anios])
-
-  const sidebarFilters = useMemo((): Array<FilterDef> => {
-    const FILTER_LAYOUTS: Record<TabId, Array<FilterDef>> = {
-      [TAB_IDS.INTRO]: [],
-      [TAB_IDS.COVER]: [],
-      [TAB_IDS.PRUEBAS]: [],
-      [TAB_IDS.RESUMEN]: [
-        ...(materias.length > 1 ? [materiaFilter] : []),
-        anioFilter,
-        ...(divisiones.length > 1 ? [divFilter] : []),
-        tomaFilter,
-      ],
-      [TAB_IDS.DETALLE]: [
-        ...(materias.length > 1 ? [materiaFilter] : []),
-        anioFilter,
-        ...(divisiones.length > 1 ? [divFilter] : []),
-        tomaFilter,
-      ],
-      [TAB_IDS.SEMAFORO]: [
-        ...(materias.length > 1 ? [materiaFilter] : []),
-        ...(divisiones.length > 1 ? [divFilter] : []),
-        tomaFilter,
-      ],
-      [TAB_IDS.SCATTER]: [
-        anioFilter,
-        ...(divisiones.length > 1 ? [divFilter] : []),
-        tomaFilter,
-      ],
-      [TAB_IDS.TABLA]: [
-        anioFilter,
-        ...(divisiones.length > 1 ? [divFilter] : []),
-        tomaFilter,
-      ],
+  const handleTogglePublish = async () => {
+    if (!reportId || statusBusy) return
+    setStatusBusy(true)
+    try {
+      if (reportStatus === 'published') await unpublish(reportId)
+      else await publish(reportId)
+      window.location.reload()
+    } finally {
+      setStatusBusy(false)
     }
-    return FILTER_LAYOUTS[tab] ?? []
-  }, [tab, materias.length, anios.length, divisiones.length, materiaFilter, anioFilter, divFilter, tomaFilter])
+  }
+
+  const tomaFilter = useMemo<FilterDef>(() => ({ label: 'Toma', value: toma, opts: tomas.length > 0 ? tomas : [toma].filter(Boolean), set: setToma }), [toma, tomas])
+  const divFilter = useMemo<FilterDef>(() => ({ label: 'División', value: division, opts: divisiones, set: setDivision }), [division, divisiones])
+  const materiaFilter = useMemo<FilterDef>(() => ({ label: 'Materia', value: materia, opts: materias.length > 0 ? materias : [materia], set: setMateria }), [materia, materias])
+  const anioFilter = useMemo<FilterDef>(() => ({ label: 'Año', value: anio, opts: anios.length > 0 ? anios : ANIO_ORDER.slice(), set: setAnio }), [anio, anios])
+  const neeFilterDef = useMemo<FilterDef>(() => ({ label: 'NEE', value: neeFilter, opts: ['Con NEE', 'Sin NEE'], set: setNeeFilter }), [neeFilter])
+
+  const studentLabelOpts = useMemo(() => {
+    const set = new Set<string>()
+    for (const a of Object.keys(semaforoEstudiantes)) {
+      for (const s of semaforoEstudiantes[a]) set.add(s.id)
+    }
+    const ids = [...set].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+    return ['Todos los alumnos', ...ids.map(id => `Alumno ${id}`)]
+  }, [semaforoEstudiantes])
+
+  const studentFilter = useMemo<FilterDef>(
+    () => ({ label: 'ID Alumno', value: selectedStudentLabel, opts: studentLabelOpts, set: setSelectedStudentLabel }),
+    [selectedStudentLabel, studentLabelOpts],
+  )
+
+  const selectedStudentId = selectedStudentLabel === 'Todos los alumnos'
+    ? 'all'
+    : selectedStudentLabel.replace(/^Alumno\s+/, '')
+
+  useEffect(() => {
+    if (!studentLabelOpts.includes(selectedStudentLabel)) setSelectedStudentLabel('Todos los alumnos')
+  }, [studentLabelOpts, selectedStudentLabel])
+
+  const tabDef = TAB_BY_ID[tab]
+  const isStaticTab = tabDef.kind === 'static'
+  const SLIDE_16_9_TABS: ReadonlySet<TabId> = new Set<TabId>([
+    'cover', 'intro', 'informe', 'matematica', 'lenguaje', 'pisa',
+    'pruebas', 'instituciones', 'presentacion',
+  ])
+  const is16x9Slide = SLIDE_16_9_TABS.has(tab)
+
+  const renderCtx: TabRenderCtx = {
+    escuelaId, editRequested, materia, anio, division, toma,
+    divisiones, setDivision,
+    semaforoAnio, setSemaforoAnio,
+    resumenData, detalleData, semaforoBandas, semaforoEstudiantes, scatterPoints, tablaRows,
+    selectedStudentId,
+  }
+
+  const sidebarFilters = useMemo<Array<FilterDef>>(
+    () => [...(tabDef.filters?.({ materias, divisiones, anios, materiaFilter, anioFilter, divFilter, tomaFilter, studentFilter }) ?? []), neeFilterDef],
+    [tabDef, materias, divisiones, anios, materiaFilter, anioFilter, divFilter, tomaFilter, studentFilter, neeFilterDef],
+  )
 
   const resetFilters = () => {
     setMateria('Matemática')
     setAnio('3ro')
     setDivision('Todas')
+    setNeeFilter('Con NEE')
+    setSelectedStudentLabel('Todos los alumnos')
     if (tomas.length > 0) setToma(tomas[tomas.length - 1])
-  }
-
-  const tabLabels: Record<TabId, string> = {
-    [TAB_IDS.INTRO]: 'Introducción',
-    [TAB_IDS.COVER]: 'Portada',
-    [TAB_IDS.PRUEBAS]: 'Las pruebas',
-    [TAB_IDS.RESUMEN]: 'Resultados generales',
-    [TAB_IDS.DETALLE]: materia,
-    [TAB_IDS.SEMAFORO]: 'Semáforo',
-    [TAB_IDS.SCATTER]: 'Resultados por alumno',
-    [TAB_IDS.TABLA]: 'Resumen por estudiante',
   }
 
   const filterPills = useMemo(() => {
     const pills: Array<{ label: string }> = []
-    if (tab === TAB_IDS.INTRO || tab === TAB_IDS.COVER || tab === TAB_IDS.PRUEBAS) return pills
-    if ((tab === TAB_IDS.RESUMEN || tab === TAB_IDS.DETALLE || tab === TAB_IDS.SEMAFORO) && materias.length > 1) {
+    if (isStaticTab) return pills
+    if (tab === 'resumen' && materias.length > 1) {
       pills.push({ label: `Materia: ${materia || '—'}` })
     }
-    if (tab !== TAB_IDS.SEMAFORO) {
+    if (!isSemaforoTab) {
       pills.push({ label: `Año: ${anio || '—'}` })
     }
     if (divisiones.length > 1) pills.push({ label: `División: ${division || '—'}` })
-    if (toma) pills.push({ label: `Toma: ${toma}` })
+    if (neeFilter === 'Sin NEE') pills.push({ label: `NEE: ${neeFilter}` })
     return pills
-  }, [tab, materia, materias.length, anio, division, divisiones.length, toma])
+  }, [tab, isStaticTab, isSemaforoTab, materia, materias.length, anio, division, divisiones.length, toma, neeFilter])
+
+  const advance = (direction: 'prev' | 'next') => {
+    if (isSemaforoTab) {
+      const idx = ANIO_ORDER.indexOf(semaforoAnio as typeof ANIO_ORDER[number])
+      const nextSubIdx = direction === 'prev' ? idx - 1 : idx + 1
+      if (nextSubIdx >= 0 && nextSubIdx < ANIO_ORDER.length) {
+        setSemaforoAnio(ANIO_ORDER[nextSubIdx])
+        return
+      }
+      const tabIdx = TAB_ORDER.indexOf(tab)
+      const nextTabIdx = direction === 'prev' ? tabIdx - 1 : tabIdx + 1
+      if (nextTabIdx < 0 || nextTabIdx >= TAB_ORDER.length) return
+      const nextTab = TAB_ORDER[nextTabIdx]
+      if (nextTab === 'semaforoLenguaje' || nextTab === 'semaforoMatematica') {
+        setSemaforoAnio(direction === 'next' ? ANIO_ORDER[0] : ANIO_ORDER[ANIO_ORDER.length - 1])
+      }
+      setTab(nextTab)
+      return
+    }
+    const tabIdx = TAB_ORDER.indexOf(tab)
+    const nextTabIdx = direction === 'prev' ? tabIdx - 1 : tabIdx + 1
+    if (nextTabIdx < 0 || nextTabIdx >= TAB_ORDER.length) return
+    const nextTab = TAB_ORDER[nextTabIdx]
+    if (nextTab === 'semaforoLenguaje' || nextTab === 'semaforoMatematica') {
+      setSemaforoAnio(direction === 'next' ? ANIO_ORDER[0] : ANIO_ORDER[ANIO_ORDER.length - 1])
+    }
+    setTab(nextTab)
+  }
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
       const target = e.target as HTMLElement | null
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) return
-      const idx = TAB_ORDER.indexOf(tab)
-      if (idx === -1) return
-      const nextIdx = e.key === 'ArrowLeft' ? idx - 1 : idx + 1
-      if (nextIdx < 0 || nextIdx >= TAB_ORDER.length) return
-      setTab(TAB_ORDER[nextIdx])
+      advance(e.key === 'ArrowLeft' ? 'prev' : 'next')
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [tab])
-
-  const goToTab = (direction: 'prev' | 'next') => {
-    const idx = TAB_ORDER.indexOf(tab)
-    if (idx === -1) return
-    const nextIdx = direction === 'prev' ? idx - 1 : idx + 1
-    if (nextIdx < 0 || nextIdx >= TAB_ORDER.length) return
-    setTab(TAB_ORDER[nextIdx])
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, semaforoAnio])
 
   const tabIdx = TAB_ORDER.indexOf(tab)
   const isFirstTab = tabIdx <= 0
   const isLastTab = tabIdx === -1 || tabIdx >= TAB_ORDER.length - 1
-  const isIntroTab = tab === TAB_IDS.INTRO || tab === TAB_IDS.COVER || tab === TAB_IDS.PRUEBAS
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'rgb(230, 230, 230)' }}>
-      {/* Tabs */}
-      <Box sx={{ bgcolor: 'white', borderBottom: 1, borderColor: 'divider', overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' } }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, minWidth: 'max-content' }}>
-          <Tab value={TAB_IDS.COVER} label="Portada" />
-          <Tab value={TAB_IDS.INTRO} label="Introducción" />
-          <Tab value={TAB_IDS.PRUEBAS} label="Las pruebas" />
-          <Tab value={TAB_IDS.RESUMEN} label="Resumen" />
-          <Tab value={TAB_IDS.DETALLE} label="Contenido y competencia" />
-          <Tab value={TAB_IDS.SEMAFORO} label="Semáforo" />
-          <Tab value={TAB_IDS.SCATTER} label="Resultados por alumno" />
-          <Tab value={TAB_IDS.TABLA} label="Resumen por estudiante" />
-        </Tabs>
-      </Box>
-
+    <AuroraFontTheme>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', bgcolor: COLORS.bgGrey, fontFamily: FONT_FAMILY, '& *': { fontFamily: FONT_FAMILY } }}>
       <Box sx={{ display: 'flex', flex: 1, minHeight: 0 }}>
-        {!isIntroTab && <Sidebar filters={sidebarFilters} onReset={resetFilters} />}
+        {!isStaticTab && <Sidebar filters={sidebarFilters} onReset={resetFilters} />}
 
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, position: 'relative' }}>
           {/* Content */}
-          <Box sx={{ flex: 1, overflow: 'auto', p: isIntroTab ? 0 : '22px 24px 40px' }}>
-            {tab === TAB_IDS.INTRO && escuelaId !== null && <IntroduccionTab schoolId={escuelaId} initialEditing={editRequested} />}
-            {tab === TAB_IDS.COVER && escuelaId !== null && <PortadaTab />}
-            {tab === TAB_IDS.PRUEBAS && escuelaId !== null && <PruebasTab schoolId={escuelaId} initialEditing={editRequested} />}
-            {!isIntroTab && loading && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
+          <Box sx={{
+            flex: 1,
+            minHeight: 0,
+            overflow: 'hidden',
+            display: isStaticTab && !is16x9Slide ? 'block' : 'flex',
+            flexDirection: 'column',
+            alignItems: is16x9Slide ? 'center' : undefined,
+            justifyContent: is16x9Slide ? 'center' : undefined,
+            pt: is16x9Slide ? 2 : (isStaticTab ? 0 : '22px'),
+            px: is16x9Slide ? 2 : (isStaticTab ? 0 : 3),
+            pb: is16x9Slide ? 2 : (isStaticTab ? 0 : 2),
+            bgcolor: is16x9Slide ? COLORS.bgGrey : undefined,
+            containerType: is16x9Slide ? 'size' : undefined,
+          }}>
+            {isStaticTab && is16x9Slide && (
+              <Box sx={{
+                width: 'min(100cqw, 100cqh * 16 / 9)',
+                height: 'min(100cqh, 100cqw * 9 / 16)',
+                overflow: 'hidden',
+                bgcolor: COLORS.white,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                display: 'flex',
+                flexDirection: 'column',
+                minWidth: 0,
+                minHeight: 0,
+              }}>
+                {tabDef.render(renderCtx)}
+              </Box>
+            )}
+            {isStaticTab && !is16x9Slide && tabDef.render(renderCtx)}
+            {!isStaticTab && (
+              <>
+                <ReportHeader
+                  schoolName={schoolName}
+                  tabLabel={resolveTabLabel(tabDef, renderCtx)}
+                  canManage={canManage}
+                  reportId={reportId}
+                  reportStatus={reportStatus}
+                  statusBusy={statusBusy}
+                  onTogglePublish={handleTogglePublish}
+                />
+                <FilterPillsBar pills={filterPills} />
+              </>
+            )}
+            {!isStaticTab && loading && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1, minHeight: 0 }}>
                 <Typography sx={{ color: C.navy }}>Cargando reporte…</Typography>
               </Box>
             )}
-            {!isIntroTab && !loading && error && (
+            {!isStaticTab && !loading && error && (
               <Paper elevation={0} sx={{ bgcolor: '#ffebee', border: '1px solid #f44336', borderRadius: 5, p: 2.5 }}>
                 <Typography color="error">Error al cargar: {error}</Typography>
               </Paper>
             )}
-            {!isIntroTab && !loading && !error && (
-              <>
-                {tab === TAB_IDS.RESUMEN && resumenData && <ResumenTab data={resumenData} />}
-                {tab === TAB_IDS.DETALLE && detalleData && <DetalleTab data={detalleData} />}
-                {tab === TAB_IDS.RESUMEN && !resumenData && toma && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
-                    <Typography sx={{ color: C.navy }}>Sin datos para {materia} · {anio} · {toma}</Typography>
-                  </Box>
-                )}
-                {tab === TAB_IDS.DETALLE && !detalleData && toma && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
-                    <Typography sx={{ color: C.navy }}>Sin datos para {materia} · {anio} · {toma}</Typography>
-                  </Box>
-                )}
-                {tab === TAB_IDS.SEMAFORO && (
-                  <SemaforoTab materia={materia} bandasMap={semaforoBandas} />
-                )}
-                {tab === TAB_IDS.SCATTER && <ScatterTab points={scatterPoints} />}
-                {tab === TAB_IDS.TABLA && <TablaTab rows={tablaRows} />}
-              </>
+            {!isStaticTab && !loading && !error && (
+              <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                {tabDef.render(renderCtx)}
+              </Box>
             )}
-          </Box>
-
-          {/* Header */}
-          {!isIntroTab && (
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, pt: 2.5, pb: 0.5, bgcolor: 'white' }}>
-              <Typography variant="h5" sx={{ color: C.navy, fontWeight: 800 }}>
-                {schoolName} — {tabLabels[tab]}
-              </Typography>
-              <Logo width={headerLogoSize.w} height={headerLogoSize.h} />
-            </Box>
-          )}
-
-          {/* Filter pills */}
-          {!isIntroTab && (
-            <Stack direction="row" spacing={1} sx={{ px: 3, py: 1.25, bgcolor: 'white', flexWrap: 'wrap' }}>
-              {filterPills.map(p => (
-                <Chip key={p.label} label={p.label} size="medium" sx={{ bgcolor: C.lightBlue, color: C.navy, fontWeight: 600 }} />
-              ))}
-            </Stack>
-          )}
-
-          {/* Footer */}
-          {!isIntroTab && (
-            <Box sx={{ textAlign: 'center', py: 1.5, px: 3.5, borderTop: 1, borderColor: 'divider', bgcolor: 'white' }}>
-              <Typography variant="caption" sx={{ color: C.navy }}>
-                Reportes Aurora · Reporte por Escuela · Universidad Austral – Escuela de Educación
-              </Typography>
-            </Box>
-          )}
-
-          {/* Floating tab nav */}
-          <Box
-            sx={{
-              position: 'fixed',
-              bottom: 24,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              display: 'flex',
-              gap: 1,
-              zIndex: theme => theme.zIndex.fab,
-              bgcolor: 'white',
-              borderRadius: 999,
-              boxShadow: 3,
-              px: 0.5,
-              py: 0.5,
-            }}
-          >
-            <IconButton size="medium" onClick={() => goToTab('prev')} disabled={isFirstTab} sx={{ color: C.navy }}>
-              <ChevronLeftIcon />
-            </IconButton>
-            <IconButton size="medium" onClick={() => goToTab('next')} disabled={isLastTab} sx={{ color: C.navy }}>
-              <ChevronRightIcon />
-            </IconButton>
           </Box>
         </Box>
       </Box>
+
+      <TabPager<TabId>
+        tab={tab}
+        tabs={TAB_ORDER}
+        labelOf={id => resolveTabLabel(TAB_BY_ID[id], renderCtx)}
+        onChange={setTab}
+        onPrev={() => advance('prev')}
+        onNext={() => advance('next')}
+        isFirst={isFirstTab}
+        isLast={isLastTab}
+      />
     </Box>
+    </AuroraFontTheme>
   )
+}
+
+function AuroraFontTheme({ children }: { children: ReactNode }) {
+  const outer = useTheme()
+  const inner = useMemo(() => createTheme({ ...outer, typography: { ...outer.typography, fontFamily: FONT_FAMILY } }), [outer])
+  return <ThemeProvider theme={inner}>{children}</ThemeProvider>
 }
 
 export default withAuth(ReporteAurora, {

@@ -32,18 +32,23 @@ const useEscuelaReporteAurora = (escuelaId: number | null) => {
     [rawData],
   )
 
-  const getMaterias = useCallback((toma: string): string[] => {
-    if (!rawData) return []
-    return [...new Set(rawData.datos.filter(d => d.toma === toma).map(d => d.materia))]
-  }, [rawData])
+  const uniqueFrom = useCallback(
+    <K extends 'materia' | 'anio'>(key: K, predicate: (d: I_RawEscuelaDatos['datos'][number]) => boolean) => {
+      if (!rawData) return [] as string[]
+      return [...new Set(rawData.datos.filter(predicate).map(d => d[key]))]
+    },
+    [rawData],
+  )
+
+  const getMaterias = useCallback(
+    (toma: string) => uniqueFrom('materia', d => d.toma === toma),
+    [uniqueFrom],
+  )
 
   const getAnios = useCallback((toma: string, materia: string): string[] => {
-    if (!rawData) return []
-    const available = new Set(
-      rawData.datos.filter(d => d.toma === toma && d.materia === materia).map(d => d.anio)
-    )
+    const available = new Set(uniqueFrom('anio', d => d.toma === toma && d.materia === materia))
     return ANIO_ORDER.filter(a => available.has(a))
-  }, [rawData]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [uniqueFrom])
 
   const getDivisiones = useCallback((materia: string, anio: string, toma: string): string[] => {
     if (!rawData) return []

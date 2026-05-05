@@ -2,7 +2,7 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'
 import type { Metadata, Viewport } from 'next'
-import { Montserrat } from 'next/font/google'
+import { Montserrat, Open_Sans } from 'next/font/google'
 
 import { ApplicationServices } from '@/shared/appServices/ApplicationServices'
 import GlobalBackdrop from '@/shared/components/GlobalBackdrop'
@@ -21,6 +21,13 @@ const monstserrat = Montserrat({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-montserrat',
+})
+
+const openSans = Open_Sans({
+  weight: ['400', '500', '600', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-segoe-fallback',
 })
 
 const APP_NAME = 'Meta Evaluaciones'
@@ -73,7 +80,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" dir="ltr">
       <body
-        className={monstserrat.variable}
+        className={`${monstserrat.variable} ${openSans.variable}`}
         style={{ background: `${MAIN_BG_COLOR} !important` }}
         suppressContentEditableWarning={true}
       >

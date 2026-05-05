@@ -1,13 +1,20 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import Box from '@mui/material/Box'
 import Image from 'next/image'
-import { Stack, Typography } from '@mui/material'
-import { useEscuelaReporteAurora } from '@/mta_reports_v2/hooks'
-import { COLORS } from '@/mta_reports_v2/constants'
+import { Stack } from '@mui/material'
+import { useEditableSlide } from '@/mta_reports_v2/hooks'
+import { COLORS, TITLE_FONT_FAMILY } from '@/mta_reports_v2/constants'
 import Footer from '@/shared/layout/Footer'
 import Logo from '@/shared/components/Logo'
+import Button from '@/shared/components/Button'
 import { ImageSize } from '@/shared/utils'
+import { SlideContainer } from '@/mta_reports_v2/components/shared/SlideContainer'
+import { QuillEditorStyles } from '@/mta_reports_v2/components/shared/QuillEditorStyles'
+import 'react-quill-new/dist/quill.snow.css'
+
+const ReactQuill = dynamic(async () => (await import('react-quill-new')).default, { ssr: false })
 
 const C = COLORS
 
@@ -15,18 +22,90 @@ const metaLogoSize = new ImageSize(350, 100)
 
 interface PortadaTabProps {
   schoolId: number
+  initialEditing?: boolean
 }
 
-const ORDINAL_TOMA_LABELS: Record<string, string> = {
-  '1': 'Primera Toma',
-  '2': 'Segunda Toma',
-  '3': 'Tercera Toma',
-  '4': 'Cuarta Toma',
+const fields = {
+  title: { defaultHtml: '<p>Primera Toma</p>' },
+  subtitle: { defaultHtml: '<p>2026</p>' },
+} as const
+
+const editorModules = {
+  toolbar: [['bold', 'italic', 'underline'], [{ color: [] }], ['clean']],
 }
 
-const PortadaTab = () => {
+const editorFormats = ['bold', 'italic', 'underline', 'color']
+
+const PortadaTab = ({ schoolId, initialEditing }: PortadaTabProps) => {
+  const slide = useEditableSlide<'title' | 'subtitle'>({
+    schoolId,
+    diapositivaId: 'portada',
+    successMessage: 'Portada actualizada correctamente',
+    fields,
+    initialEditing,
+  })
+
+  const fontSizeFor = (key: 'title' | 'subtitle') =>
+    key === 'title' ? 'clamp(36px, 4.5vw, 54px)' : 'clamp(24px, 3vw, 42px)'
+  const fontWeightFor = (key: 'title' | 'subtitle') => (key === 'title' ? 900 : 700)
+  const lineHeightFor = (key: 'title' | 'subtitle') => (key === 'title' ? 1.1 : 1.2)
+
+  const renderField = (key: 'title' | 'subtitle', variantClass: string) => (
+    <Box
+      className={`portada-editor ${variantClass} ${slide.isEditing && slide.activeEditor === key ? 'is-active' : ''} ${!slide.isEditing ? 'is-readonly' : ''}`}
+      sx={{
+        '& .ql-editor, & .ql-editor *': {
+          fontFamily: `${TITLE_FONT_FAMILY} !important`,
+          color: `${C.royal} !important`,
+        },
+        '& .ql-editor': {
+          fontSize: fontSizeFor(key),
+          fontWeight: fontWeightFor(key),
+          lineHeight: lineHeightFor(key),
+          overflow: 'hidden',
+        },
+      }}
+    >
+      <ReactQuill
+        theme="snow"
+        value={slide.draft[key]}
+        readOnly={!slide.isEditing}
+        onChange={(value) => slide.updateDraft(key, value)}
+        modules={slide.isEditing ? editorModules : { toolbar: false }}
+        formats={editorFormats}
+        onFocus={() => {
+          if (slide.isEditing) slide.setActiveEditor(key)
+        }}
+        onBlur={() => {
+          if (slide.isEditing) {
+            slide.setActiveEditor(slide.activeEditor === key ? null : slide.activeEditor)
+          }
+        }}
+      />
+    </Box>
+  )
+
   return (
-    <Box sx={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden', flexDirection: 'column', bgcolor: C.white }}>
+    <SlideContainer>
+      {slide.canEdit && (
+        <Stack direction="row" spacing={1.25} sx={{ position: 'absolute', top: 16, right: 16, zIndex: 5 }}>
+          {!slide.isEditing && (
+            <Button size="small" bgcolor="purple" onClick={slide.startEditing} disabled={slide.isLoading}>
+              Editar
+            </Button>
+          )}
+          {slide.isEditing && (
+            <>
+              <Button size="small" bgcolor="green" onClick={slide.saveEditing} disabled={slide.isSaving || slide.isLoading}>
+                {slide.isSaving ? 'Guardando...' : 'Guardar'}
+              </Button>
+              <Button size="small" variant="outlined" onClick={slide.cancelEditing} disabled={slide.isSaving || slide.isLoading}>
+                Cancelar
+              </Button>
+            </>
+          )}
+        </Stack>
+      )}
       <Box height="auto" flex={1} display="flex" minWidth={0}>
         <Box flex={1} position="relative" minWidth={0}>
           <Box
@@ -45,35 +124,16 @@ const PortadaTab = () => {
           </Box>
         </Box>
         <Box flex={1} display="flex" alignItems="center" justifyContent="center" minWidth={0}>
-          <Stack alignItems="left" spacing={4} sx={{ px: 4 }}>
+          <Stack alignItems="left" spacing={4} sx={{ px: 4, width: '100%' }}>
             <Logo width={metaLogoSize.w} height={metaLogoSize.h} variant='color' />
-            <Typography
-              sx={{
-                color: C.royal,
-                fontSize: 'clamp(48px, 6vw, 72px)',
-                fontWeight: 900,
-                textAlign: 'left',
-                lineHeight: 1.1,
-              }}
-            >
-              {'Primera Toma'}
-            </Typography>
-            <Typography
-              sx={{
-                color: C.royal,
-                fontSize: 'clamp(32px, 4vw, 56px)',
-                fontWeight: 700,
-                textAlign: 'left',
-                lineHeight: 1.2,
-              }}
-            >
-              {2026}
-            </Typography>
+            {renderField('title', 'portada-title')}
+            {renderField('subtitle', 'portada-subtitle')}
           </Stack>
         </Box>
       </Box>
       <Footer includePin={false} />
-    </Box>
+      <QuillEditorStyles />
+    </SlideContainer>
   )
 }
 

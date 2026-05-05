@@ -1,11 +1,12 @@
 'use client'
 
-import { Box, Chip, Stack, Tabs, Tab, Typography } from '@mui/material'
-import { useState } from 'react'
-import { COLORS, ANIO_ORDER, FONT_SIZES } from '@/mta_reports_v2/constants'
+import { Box, Tabs, Tab, Typography } from '@mui/material'
+import { useMemo, useState } from 'react'
+import { COLORS, ANIO_ORDER, FONT_SIZES, RADIUS } from '@/mta_reports_v2/constants'
 import { SEMAFORO_NIVELES, NIVEL_COLORS, NIVEL_KEYS, ANIO_LABELS } from '@/mta_reports_v2/semaforo_data'
 import type { SemaforoNivel } from '@/mta_reports_v2/semaforo_data'
 import type { I_SemaforoBandas } from '@/mta_reports_v2/types'
+import type { SemaforoEstudianteBand } from './calc/SemaforoTab'
 
 const C = COLORS
 const F = FONT_SIZES
@@ -16,13 +17,13 @@ function GruposList({ grupos }: { grupos: SemaforoNivel['col1'] }) {
       {grupos.map((g, gi) => (
         <Box key={gi} sx={{ mb: g.titulo ? 1 : 0 }}>
           {g.titulo && (
-            <Typography sx={{ color: C.white, fontWeight: 700, fontSize: F.md, mb: 0.25, textDecoration: 'underline' }}>
+            <Typography sx={{ color: C.navy, fontWeight: 700, fontSize: F.md, mb: 0.25 }}>
               {g.titulo}
             </Typography>
           )}
           {g.items.map((item, ii) => (
-            <Typography key={ii} sx={{ color: C.white, fontSize: F.md, lineHeight: 1.5, pl: g.titulo ? 1 : 0 }}>
-              • {item}
+            <Typography key={ii} sx={{ color: C.navy, fontSize: F.md, lineHeight: 1.5 }}>
+              -{item}
             </Typography>
           ))}
         </Box>
@@ -31,56 +32,99 @@ function GruposList({ grupos }: { grupos: SemaforoNivel['col1'] }) {
   )
 }
 
-function NivelRow({ nivel, bandas, nivelKey }: { nivel: SemaforoNivel; bandas: I_SemaforoBandas | undefined; nivelKey: string }) {
+function NivelRow({ nivel, bandas, nivelKey, isLast }: { nivel: SemaforoNivel; bandas: I_SemaforoBandas | undefined; nivelKey: string; isLast?: boolean }) {
   const color = NIVEL_COLORS[nivelKey] ?? C.mutedGrey
   const count = bandas ? bandas[nivelKey as keyof I_SemaforoBandas] as number : 0
   const pct = bandas && bandas.total > 0 ? Math.round((count / bandas.total) * 100) : 0
+  const pctLabel = bandas && bandas.total > 0 ? `${pct}%` : '-%'
 
   return (
-    <Box component="article" sx={{ bgcolor: color, borderRadius: 4, p: 2, mb: 1.5 }}>
-      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
-        <Typography sx={{ color: C.white, fontWeight: 800, fontSize: F.lg, minWidth: 90 }}>
+    <Box
+      component="article"
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: '160px 1fr',
+        gap: 3,
+        alignItems: 'stretch',
+        py: 2,
+        borderBottom: isLast ? 'none' : '1px solid',
+        borderColor: 'divider',
+      }}
+    >
+      <Box
+        sx={{
+          bgcolor: color,
+          borderRadius: RADIUS.sm,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          py: 2.5,
+          px: 1,
+          minHeight: 130,
+        }}
+      >
+        <Typography sx={{ color: C.white, fontWeight: 800, fontSize: F.xxl, lineHeight: 1 }}>
+          {pctLabel}
+        </Typography>
+        <Typography sx={{ color: C.white, fontSize: F.md, mt: 1.5 }}>
           {nivel.rango}
         </Typography>
-        <Chip
-          label={`${pct}%`}
-          size="small"
-          sx={{ bgcolor: C.whiteAlpha92, color, fontWeight: 800, fontSize: F.lg }}
-        />
         {bandas && (
-          <Typography sx={{ color: C.whiteAlpha85, fontSize: F.md }}>
+          <Typography sx={{ color: C.whiteAlpha85, fontSize: F.sm, mt: 0.5 }}>
             {count} alumno{count !== 1 ? 's' : ''}
           </Typography>
         )}
-      </Stack>
-      {nivel.col2 ? (
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+      </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        {nivel.col2 ? (
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, width: '100%' }}>
+            <GruposList grupos={nivel.col1} />
+            <GruposList grupos={nivel.col2} />
+          </Box>
+        ) : (
           <GruposList grupos={nivel.col1} />
-          <GruposList grupos={nivel.col2} />
-        </Box>
-      ) : (
-        <GruposList grupos={nivel.col1} />
-      )}
+        )}
+      </Box>
     </Box>
   )
 }
 
-function SemaforoTab({
-  materia,
-  bandasMap,
-}: {
+interface SemaforoTabProps {
   materia: string
   bandasMap: Record<string, I_SemaforoBandas>
-}) {
-  const [anio, setAnio] = useState('3ro')
+  estudiantesMap?: Record<string, SemaforoEstudianteBand[]>
+  anio?: string
+  onAnioChange?: (anio: string) => void
+  selectedStudentId?: string
+}
+
+function SemaforoTab({ materia, bandasMap, estudiantesMap, anio: anioProp, onAnioChange, selectedStudentId = 'all' }: SemaforoTabProps) {
+  const [internalAnio, setInternalAnio] = useState('3ro')
+  const anio = anioProp ?? internalAnio
+  const setAnio = (v: string) => {
+    if (onAnioChange) onAnioChange(v)
+    else setInternalAnio(v)
+  }
   const niveles = SEMAFORO_NIVELES[anio]?.[materia] ?? []
+
+  const effectiveBandasMap = useMemo(() => {
+    if (selectedStudentId === 'all' || !estudiantesMap) return bandasMap
+    const out: Record<string, I_SemaforoBandas> = {}
+    for (const a of Object.keys(bandasMap)) {
+      const stud = (estudiantesMap[a] ?? []).find(s => s.id === selectedStudentId)
+      const empty: I_SemaforoBandas = { verde: 0, amarillo: 0, naranja: 0, rojo: 0, total: 0 }
+      out[a] = stud ? { ...empty, [stud.band]: 1, total: 1 } : empty
+    }
+    return out
+  }, [selectedStudentId, bandasMap, estudiantesMap])
 
   return (
     <Box>
       <Tabs
         value={anio}
         onChange={(_, v) => setAnio(v)}
-        sx={{ mb: 2, bgcolor: C.white, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}
+        sx={{ mb: 2, bgcolor: C.white, borderRadius: RADIUS.md, border: '1px solid', borderColor: 'divider' }}
       >
         {ANIO_ORDER.map(a => (
           <Tab key={a} value={a} label={ANIO_LABELS[a]} />
@@ -90,7 +134,7 @@ function SemaforoTab({
         <Typography sx={{ color: C.navy, mt: 2 }}>Sin descriptores para {ANIO_LABELS[anio]} — {materia}</Typography>
       ) : (
         NIVEL_KEYS.map((key, i) => (
-          <NivelRow key={key} nivel={niveles[i]} bandas={bandasMap[anio]} nivelKey={key} />
+          <NivelRow key={key} nivel={niveles[i]} bandas={effectiveBandasMap[anio]} nivelKey={key} isLast={i === NIVEL_KEYS.length - 1} />
         ))
       )}
     </Box>
