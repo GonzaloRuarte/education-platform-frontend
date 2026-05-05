@@ -1,8 +1,10 @@
 'use client'
 
 import { useMemo, useRef, useState } from 'react'
-import { Box, Button, Chip, Stack } from '@mui/material'
+import { Box, Button, MenuItem, Select, Stack } from '@mui/material'
 import AutorenewIcon from '@mui/icons-material/Autorenew'
+import EditIcon from '@mui/icons-material/Edit'
+import VisibilityIcon from '@mui/icons-material/Visibility'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { useHasCapabilities } from '@/mta_auth/hooks'
 import ListPage from '@/shared/pages/ListPage'
@@ -24,18 +26,6 @@ import { GridColDef, GridRowParams } from '@mui/x-data-grid'
 const baseColumns: Array<GridColDef<I_AuroraReportListItem>> = [
   idExposeColumn({ field: 'school_name', headerName: 'Escuela', flex: 1.6 }),
   { field: 'toma', headerName: 'Toma', flex: 0.6 },
-  {
-    field: 'status',
-    headerName: 'Estado',
-    flex: 0.6,
-    renderCell: ({ row }) => (
-      <Chip
-        size="small"
-        label={row.status === 'published' ? 'Publicado' : 'Borrador'}
-        color={row.status === 'published' ? 'success' : 'warning'}
-      />
-    ),
-  },
 ]
 
 function ReportesAuroraListPage() {
@@ -48,16 +38,20 @@ function ReportesAuroraListPage() {
   const [busyId, setBusyId] = useState<number | null>(null)
   const reloadRef = useRef<(() => void) | null>(null)
 
-  const handleTogglePublish = async (row: I_AuroraReportListItem) => {
+  const handleChangeStatus = async (
+    row: I_AuroraReportListItem,
+    nextStatus: 'draft' | 'published',
+  ) => {
     if (busyId !== null) return
+    if (nextStatus === row.status) return
     setBusyId(row.id)
     try {
-      if (row.status === 'published') {
-        await unpublish(row.id)
-        successToast('Reporte despublicado.')
-      } else {
+      if (nextStatus === 'published') {
         await publish(row.id)
         successToast('Reporte publicado.')
+      } else {
+        await unpublish(row.id)
+        successToast('Reporte despublicado.')
       }
       reloadRef.current?.()
     } catch (err) {
@@ -92,9 +86,48 @@ function ReportesAuroraListPage() {
   }
 
   const columns = useMemo<Array<GridColDef<I_AuroraReportListItem>>>(() => {
-    if (!canEdit) return baseColumns
+    const statusColumn: GridColDef<I_AuroraReportListItem> = {
+      field: 'status',
+      headerName: 'Estado',
+      flex: 0.6,
+      renderCell: ({ row }) => (
+        <Select
+          size="small"
+          value={row.status}
+          disabled={!canEdit || busyId === row.id}
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) =>
+            handleChangeStatus(row, e.target.value as 'draft' | 'published')
+          }
+          sx={{
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText',
+            '& .MuiSelect-icon': { color: 'primary.contrastText' },
+            '& .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
+            '&:hover': { bgcolor: 'primary.dark' },
+            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.dark' },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
+          }}
+        >
+          <MenuItem value="draft">
+            <Stack direction="row" spacing={1} alignItems="center">
+              <EditIcon fontSize="small" />
+              <span>Borrador</span>
+            </Stack>
+          </MenuItem>
+          <MenuItem value="published">
+            <Stack direction="row" spacing={1} alignItems="center">
+              <VisibilityIcon fontSize="small" />
+              <span>Publicado</span>
+            </Stack>
+          </MenuItem>
+        </Select>
+      ),
+    }
+    const cols = [...baseColumns, statusColumn]
+    if (!canEdit) return cols
     return [
-      ...baseColumns,
+      ...cols,
       {
         field: 'actions',
         headerName: 'Acciones',
@@ -105,17 +138,6 @@ function ReportesAuroraListPage() {
         headerAlign: 'center',
         renderCell: ({ row }) => (
           <Stack direction="row" spacing={1}>
-            <Button
-              size="medium"
-              variant="outlined"
-              disabled={busyId === row.id}
-              onClick={(e) => {
-                e.stopPropagation()
-                handleTogglePublish(row)
-              }}
-            >
-              {row.status === 'published' ? 'Despublicar' : 'Publicar'}
-            </Button>
             <Button
               size="medium"
               variant="contained"

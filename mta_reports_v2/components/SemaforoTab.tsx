@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Tabs, Tab, Typography, FormControl, Select, MenuItem, Stack } from '@mui/material'
+import { Box, Tabs, Tab, Typography } from '@mui/material'
 import { useMemo, useState } from 'react'
 import { COLORS, ANIO_ORDER, FONT_SIZES, RADIUS } from '@/mta_reports_v2/constants'
 import { SEMAFORO_NIVELES, NIVEL_COLORS, NIVEL_KEYS, ANIO_LABELS } from '@/mta_reports_v2/semaforo_data'
@@ -96,9 +96,10 @@ interface SemaforoTabProps {
   estudiantesMap?: Record<string, SemaforoEstudianteBand[]>
   anio?: string
   onAnioChange?: (anio: string) => void
+  selectedStudentId?: string
 }
 
-function SemaforoTab({ materia, bandasMap, estudiantesMap, anio: anioProp, onAnioChange }: SemaforoTabProps) {
+function SemaforoTab({ materia, bandasMap, estudiantesMap, anio: anioProp, onAnioChange, selectedStudentId = 'all' }: SemaforoTabProps) {
   const [internalAnio, setInternalAnio] = useState('3ro')
   const anio = anioProp ?? internalAnio
   const setAnio = (v: string) => {
@@ -106,17 +107,6 @@ function SemaforoTab({ materia, bandasMap, estudiantesMap, anio: anioProp, onAni
     else setInternalAnio(v)
   }
   const niveles = SEMAFORO_NIVELES[anio]?.[materia] ?? []
-
-  const [selectedStudentId, setSelectedStudentId] = useState<string>('all')
-
-  const allStudentIds = useMemo(() => {
-    if (!estudiantesMap) return [] as string[]
-    const set = new Set<string>()
-    for (const a of Object.keys(estudiantesMap)) {
-      for (const s of estudiantesMap[a]) set.add(s.id)
-    }
-    return [...set].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
-  }, [estudiantesMap])
 
   const effectiveBandasMap = useMemo(() => {
     if (selectedStudentId === 'all' || !estudiantesMap) return bandasMap
@@ -131,32 +121,15 @@ function SemaforoTab({ materia, bandasMap, estudiantesMap, anio: anioProp, onAni
 
   return (
     <Box>
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-        <Tabs
-          value={anio}
-          onChange={(_, v) => setAnio(v)}
-          sx={{ flex: 1, bgcolor: C.white, borderRadius: RADIUS.md, border: '1px solid', borderColor: 'divider' }}
-        >
-          {ANIO_ORDER.map(a => (
-            <Tab key={a} value={a} label={ANIO_LABELS[a]} />
-          ))}
-        </Tabs>
-        {estudiantesMap && (
-          <FormControl size="small" sx={{ minWidth: 160, bgcolor: C.white }}>
-            <Select
-              value={selectedStudentId}
-              onChange={e => setSelectedStudentId(e.target.value)}
-              displayEmpty
-              MenuProps={{ PaperProps: { sx: { maxHeight: 320 } } }}
-            >
-              <MenuItem value="all">Todos los alumnos</MenuItem>
-              {allStudentIds.map(id => (
-                <MenuItem key={id} value={id}>Alumno {id}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
-      </Stack>
+      <Tabs
+        value={anio}
+        onChange={(_, v) => setAnio(v)}
+        sx={{ mb: 2, bgcolor: C.white, borderRadius: RADIUS.md, border: '1px solid', borderColor: 'divider' }}
+      >
+        {ANIO_ORDER.map(a => (
+          <Tab key={a} value={a} label={ANIO_LABELS[a]} />
+        ))}
+      </Tabs>
       {niveles.length === 0 ? (
         <Typography sx={{ color: C.navy, mt: 2 }}>Sin descriptores para {ANIO_LABELS[anio]} — {materia}</Typography>
       ) : (

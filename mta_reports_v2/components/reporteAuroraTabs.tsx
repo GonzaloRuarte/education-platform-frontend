@@ -49,6 +49,7 @@ export type TabRenderCtx = {
   setDivision: (v: string) => void
   semaforoAnio: string
   setSemaforoAnio: (s: string) => void
+  selectedStudentId: string
   resumenData: ReturnType<typeof calcResumen> | null
   detalleData: ReturnType<typeof calcDetalle> | null
   semaforoBandas: ReturnType<typeof calcSemaforo>
@@ -65,6 +66,7 @@ export type TabFiltersCtx = {
   anioFilter: FilterDef
   divFilter: FilterDef
   tomaFilter: FilterDef
+  studentFilter: FilterDef
 }
 
 export type TabDef = {
@@ -100,7 +102,13 @@ const buildFilters = (flags: FilterFlags) => (ctx: TabFiltersCtx): Array<FilterD
 const filtersResumenLike = buildFilters({ materia: true, anio: true, division: true, toma: true })
 const filtersScatterLike = buildFilters({ anio: true, division: true, toma: true })
 const filtersDetalleSplitLike = buildFilters({ anio: true, division: true, toma: true })
-const filtersSemaforoSplitLike = buildFilters({ division: true, toma: true })
+const filtersSemaforoSplitLike = (ctx: TabFiltersCtx): Array<FilterDef> => {
+  const out: Array<FilterDef> = []
+  if (ctx.divisiones.length > 1) out.push(ctx.divFilter)
+  out.push(ctx.tomaFilter)
+  out.push(ctx.studentFilter)
+  return out
+}
 
 export const TABS: ReadonlyArray<TabDef> = [
   {
@@ -160,7 +168,7 @@ export const TABS: ReadonlyArray<TabDef> = [
     render: ({ escuelaId }) => escuelaId !== null ? <HistoricoTab schoolId={escuelaId} /> : null,
   },
   {
-    id: 'detalleMatematica', label: 'Matemática', kind: 'data',
+    id: 'detalleLenguaje', label: 'Prácticas del Lenguaje', kind: 'data',
     filters: filtersDetalleSplitLike,
     render: ({ detalleData, materia, anio, toma, division, divisiones, setDivision }) =>
       detalleData
@@ -168,7 +176,7 @@ export const TABS: ReadonlyArray<TabDef> = [
         : (toma ? <NoData materia={materia} anio={anio} toma={toma} /> : null),
   },
   {
-    id: 'detalleLenguaje', label: 'Prácticas del Lenguaje', kind: 'data',
+    id: 'detalleMatematica', label: 'Matemática', kind: 'data',
     filters: filtersDetalleSplitLike,
     render: ({ detalleData, materia, anio, toma, division, divisiones, setDivision }) =>
       detalleData
@@ -178,15 +186,15 @@ export const TABS: ReadonlyArray<TabDef> = [
   {
     id: 'semaforoLenguaje', label: 'Semáforo PDL', kind: 'data',
     filters: filtersSemaforoSplitLike,
-    render: ({ materia, semaforoBandas, semaforoEstudiantes, semaforoAnio, setSemaforoAnio }) => (
-      <SemaforoTab materia={materia} bandasMap={semaforoBandas} estudiantesMap={semaforoEstudiantes} anio={semaforoAnio} onAnioChange={setSemaforoAnio} />
+    render: ({ materia, semaforoBandas, semaforoEstudiantes, semaforoAnio, setSemaforoAnio, selectedStudentId }) => (
+      <SemaforoTab materia={materia} bandasMap={semaforoBandas} estudiantesMap={semaforoEstudiantes} anio={semaforoAnio} onAnioChange={setSemaforoAnio} selectedStudentId={selectedStudentId} />
     ),
   },
   {
     id: 'semaforoMatematica', label: 'Semáforo Matemática', kind: 'data',
     filters: filtersSemaforoSplitLike,
-    render: ({ materia, semaforoBandas, semaforoEstudiantes, semaforoAnio, setSemaforoAnio }) => (
-      <SemaforoTab materia={materia} bandasMap={semaforoBandas} estudiantesMap={semaforoEstudiantes} anio={semaforoAnio} onAnioChange={setSemaforoAnio} />
+    render: ({ materia, semaforoBandas, semaforoEstudiantes, semaforoAnio, setSemaforoAnio, selectedStudentId }) => (
+      <SemaforoTab materia={materia} bandasMap={semaforoBandas} estudiantesMap={semaforoEstudiantes} anio={semaforoAnio} onAnioChange={setSemaforoAnio} selectedStudentId={selectedStudentId} />
     ),
   },
   {

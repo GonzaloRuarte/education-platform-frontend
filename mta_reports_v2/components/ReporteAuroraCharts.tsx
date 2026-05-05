@@ -1,8 +1,8 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Box, Stack, Typography } from '@mui/material'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Rectangle, LabelList, ComposedChart } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Rectangle, LabelList, ComposedChart, Tooltip } from 'recharts'
 import { COLORS, FONT_SIZES, SPACING, CHART_MARGINS, CARD_SX, FILL_COLUMN_SX, RADIUS } from '@/mta_reports_v2/constants'
 import { useResponsiveBox, useResponsiveHeight } from '@/mta_reports_v2/hooks'
 import type { I_BoxplotAurora, I_ItemAurora } from '@/mta_reports_v2/types'
@@ -44,6 +44,7 @@ function AllSchoolsBarChart({
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const height = useResponsiveHeight(containerRef, { minHeight, bottomMargin })
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null)
 
   const sorted = [...bars].sort((a, b) => b.p - a.p)
   const prom = sorted.length
@@ -61,19 +62,58 @@ function AllSchoolsBarChart({
     <Box ref={containerRef} sx={wrapperSx}>
       <Box sx={chartWrapperSx}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={sorted} margin={CHART_MARGINS.vertical}>
+          <BarChart
+            data={sorted}
+            margin={CHART_MARGINS.vertical}
+            onMouseMove={(s: any) => setHoverIdx(typeof s?.activeTooltipIndex === 'number' ? s.activeTooltipIndex : null)}
+            onMouseLeave={() => setHoverIdx(null)}
+          >
             <CartesianGrid vertical={false} stroke={C.gridDivider} strokeWidth={1} strokeDasharray="1 8" strokeLinecap="round" />
             <XAxis dataKey="id" tick={{ fontSize: F.md, fill: C.tm }} angle={-40} textAnchor="end" interval={0} />
             <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: F.md, fill: C.tm }} axisLine={false} tickLine={false} />
+            <Tooltip
+              cursor={{ fill: 'transparent' }}
+              content={({ active, payload }: any) => {
+                if (!active || !payload?.length) return null
+                const p = payload[0].payload
+                return (
+                  <Box sx={{
+                    bgcolor: C.white,
+                    border: `1px solid ${C.gridDivider}`,
+                    borderRadius: 1,
+                    px: 1.5,
+                    py: 1,
+                    fontSize: F.lg,
+                    color: C.darkGrey,
+                    lineHeight: 1.5,
+                  }}>
+                    <Box>ID Escuela: <strong>{p.id}</strong></Box>
+                    <Box>Promedio de Porcentaje Correctas: <strong>{p.p}%</strong></Box>
+                  </Box>
+                )
+              }}
+            />
             <Bar
               dataKey="p"
               shape={(props: any) => {
                 const isMe = sorted[props.index]?.id === miId
-                return <Rectangle {...props} fill={isMe ? C.navyMid : C.iceBlue} radius={[2, 2, 0, 0]} />
+                const isHover = props.index === hoverIdx
+                const baseFill = isMe ? C.navyMid : C.iceBlue
+                return (
+                  <Rectangle
+                    {...props}
+                    fill={baseFill}
+                    radius={[2, 2, 0, 0]}
+                    style={{
+                      transition: 'opacity 0.15s ease, filter 0.15s ease',
+                      opacity: hoverIdx === null || isHover ? 1 : 0.55,
+                      filter: isHover ? 'brightness(0.92)' : 'none',
+                      cursor: 'pointer',
+                    }}
+                  />
+                )
               }}
-            >
-              <LabelList dataKey="p" position="top" formatter={(v: number) => `${v}%`} style={{ fontSize: F.lg, fill: C.navy }} />
-            </Bar>
+            />
           </BarChart>
         </ResponsiveContainer>
       </Box>

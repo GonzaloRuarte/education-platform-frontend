@@ -10,6 +10,16 @@ import type { I_DetalleTabData } from '@/mta_reports_v2/types'
 const C = COLORS
 const F = FONT_SIZES
 
+const EXPECTED_LEN_COMP = ['Comprensión lectora']
+const EXPECTED_LEN_CONT = [
+  'analisis textual',
+  'reconocimiento de información explícita',
+  'reconocimiento de información implícita',
+]
+
+const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase()
+const expectedSet = (xs: string[]) => new Set(xs.map(norm))
+
 interface DetalleTabProps {
   data: I_DetalleTabData
   division?: string
@@ -29,6 +39,26 @@ function DetalleTab({ data, division, divisiones, onDivisionChange }: DetalleTab
       setSelectedStudentId('all')
     }
   }, [d.estudiantes, selectedStudentId])
+
+  useEffect(() => {
+    if (!isLenguaje) return
+    const compAllowed = expectedSet(EXPECTED_LEN_COMP)
+    const contAllowed = expectedSet(EXPECTED_LEN_CONT)
+    const compBad = (d.lenComp ?? []).map(i => i.n).filter(n => !compAllowed.has(norm(n)))
+    const contBad = (d.lenCont ?? []).map(i => i.n).filter(n => !contAllowed.has(norm(n)))
+    const compMissing = EXPECTED_LEN_COMP.filter(e => !(d.lenComp ?? []).some(i => norm(i.n) === norm(e)))
+    const contMissing = EXPECTED_LEN_CONT.filter(e => !(d.lenCont ?? []).some(i => norm(i.n) === norm(e)))
+    if (compBad.length || contBad.length || compMissing.length || contMissing.length) {
+      console.warn('[DetalleTab] Lenguaje data mismatch', {
+        unexpectedCompetencias: compBad,
+        unexpectedContenidos: contBad,
+        missingCompetencias: compMissing,
+        missingContenidos: contMissing,
+        expectedCompetencias: EXPECTED_LEN_COMP,
+        expectedContenidos: EXPECTED_LEN_CONT,
+      })
+    }
+  }, [isLenguaje, d.lenComp, d.lenCont])
 
   const selectedStudent = selectedStudentId !== 'all'
     ? d.estudiantes.find(e => e.id === selectedStudentId)

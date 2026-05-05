@@ -44,6 +44,7 @@ const ReporteAurora = () => {
   const [division, setDivision] = useState('Todas')
   const [semaforoAnio, setSemaforoAnio] = useState<string>('3ro')
   const [neeFilter, setNeeFilter] = useState('Con NEE')
+  const [selectedStudentLabel, setSelectedStudentLabel] = useState<string>('Todos los alumnos')
 
   const { rawData, loading, error, tomas, getMaterias, getAnios, getDivisiones } =
     useEscuelaReporteAurora(escuelaId)
@@ -137,6 +138,28 @@ const ReporteAurora = () => {
   const anioFilter = useMemo<FilterDef>(() => ({ label: 'Año', value: anio, opts: anios.length > 0 ? anios : ANIO_ORDER.slice(), set: setAnio }), [anio, anios])
   const neeFilterDef = useMemo<FilterDef>(() => ({ label: 'NEE', value: neeFilter, opts: ['Con NEE', 'Sin NEE'], set: setNeeFilter }), [neeFilter])
 
+  const studentLabelOpts = useMemo(() => {
+    const set = new Set<string>()
+    for (const a of Object.keys(semaforoEstudiantes)) {
+      for (const s of semaforoEstudiantes[a]) set.add(s.id)
+    }
+    const ids = [...set].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+    return ['Todos los alumnos', ...ids.map(id => `Alumno ${id}`)]
+  }, [semaforoEstudiantes])
+
+  const studentFilter = useMemo<FilterDef>(
+    () => ({ label: 'ID Alumno', value: selectedStudentLabel, opts: studentLabelOpts, set: setSelectedStudentLabel }),
+    [selectedStudentLabel, studentLabelOpts],
+  )
+
+  const selectedStudentId = selectedStudentLabel === 'Todos los alumnos'
+    ? 'all'
+    : selectedStudentLabel.replace(/^Alumno\s+/, '')
+
+  useEffect(() => {
+    if (!studentLabelOpts.includes(selectedStudentLabel)) setSelectedStudentLabel('Todos los alumnos')
+  }, [studentLabelOpts, selectedStudentLabel])
+
   const tabDef = TAB_BY_ID[tab]
   const isStaticTab = tabDef.kind === 'static'
   const SLIDE_16_9_TABS: ReadonlySet<TabId> = new Set<TabId>([
@@ -150,11 +173,12 @@ const ReporteAurora = () => {
     divisiones, setDivision,
     semaforoAnio, setSemaforoAnio,
     resumenData, detalleData, semaforoBandas, semaforoEstudiantes, scatterPoints, tablaRows,
+    selectedStudentId,
   }
 
   const sidebarFilters = useMemo<Array<FilterDef>>(
-    () => [...(tabDef.filters?.({ materias, divisiones, anios, materiaFilter, anioFilter, divFilter, tomaFilter }) ?? []), neeFilterDef],
-    [tabDef, materias, divisiones, anios, materiaFilter, anioFilter, divFilter, tomaFilter, neeFilterDef],
+    () => [...(tabDef.filters?.({ materias, divisiones, anios, materiaFilter, anioFilter, divFilter, tomaFilter, studentFilter }) ?? []), neeFilterDef],
+    [tabDef, materias, divisiones, anios, materiaFilter, anioFilter, divFilter, tomaFilter, studentFilter, neeFilterDef],
   )
 
   const resetFilters = () => {
@@ -162,6 +186,7 @@ const ReporteAurora = () => {
     setAnio('3ro')
     setDivision('Todas')
     setNeeFilter('Con NEE')
+    setSelectedStudentLabel('Todos los alumnos')
     if (tomas.length > 0) setToma(tomas[tomas.length - 1])
   }
 
