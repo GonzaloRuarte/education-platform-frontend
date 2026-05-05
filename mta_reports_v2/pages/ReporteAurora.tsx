@@ -196,12 +196,12 @@ const ReporteAurora = () => {
     const pills: Array<{ label: string }> = []
     if (isStaticTab) return pills
     if (tab === 'resumen' && materias.length > 1) {
-      pills.push({ label: `Materia: ${materia || '—'}` })
+      pills.push({ label: `Materia: ${materia || '-'}` })
     }
     if (!isSemaforoTab) {
-      pills.push({ label: `Año: ${anio || '—'}` })
+      pills.push({ label: `Año: ${anio || '-'}` })
     }
-    if (divisiones.length > 1) pills.push({ label: `División: ${division || '—'}` })
+    if (divisiones.length > 1) pills.push({ label: `División: ${division || '-'}` })
     if (neeFilter === 'Sin NEE') pills.push({ label: `NEE: ${neeFilter}` })
     return pills
   }, [tab, isStaticTab, isSemaforoTab, materia, materias.length, anio, division, divisiones.length, toma, neeFilter])
