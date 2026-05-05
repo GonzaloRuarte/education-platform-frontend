@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Box, Stack, Typography } from '@mui/material'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Rectangle, LabelList, ComposedChart, Tooltip } from 'recharts'
 import { COLORS, FONT_SIZES, SPACING, CHART_MARGINS, CARD_SX, FILL_COLUMN_SX, RADIUS } from '@/mta_reports_v2/constants'
@@ -15,7 +15,7 @@ function Leg({ c, t }: { c: string; t: string }) {
   return (
     <Stack direction="row" alignItems="center" spacing={0.5} component="span" sx={{ mr: 2, display: 'inline-flex' }}>
       <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: c, flexShrink: 0 }} />
-      <Typography variant="caption" sx={{ color: C.tm, fontSize: F.base }}>{t}</Typography>
+      <Typography variant="caption" sx={{ color: C.darkGrey, fontSize: F.base }}>{t}</Typography>
     </Stack>
   )
 }
@@ -51,16 +51,48 @@ function AllSchoolsBarChart({
     ? Math.round(sorted.reduce((s, e) => s + e.p, 0) / sorted.length * 10) / 10
     : 0
 
+  const SCROLL_THRESHOLD = 20
+  const MIN_BAR_WIDTH = 60
+  const needsScroll = sorted.length > SCROLL_THRESHOLD
+  const scrollWidth = sorted.length * MIN_BAR_WIDTH
+
   const wrapperSx = fill
     ? FILL_COLUMN_SX
     : { display: 'flex', flexDirection: 'column', height: height }
-  const chartWrapperSx = fill
-    ? { flex: 1, minHeight: 0 }
-    : { flex: 1 }
+  const chartWrapperSx = {
+    ...(fill ? { flex: 1, minHeight: 0 } : { flex: 1 }),
+    ...(needsScroll ? { overflowX: 'auto', overflowY: 'hidden' } : {}),
+  }
+
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  const applyStickyY = (scrollEl: HTMLDivElement, scrollLeft: number) => {
+    const yAxes = scrollEl.querySelectorAll<SVGGElement>('.recharts-yAxis')
+    yAxes.forEach(el => {
+      el.style.transform = `translateX(${scrollLeft}px)`
+    })
+  }
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (!needsScroll) return
+    applyStickyY(e.currentTarget, e.currentTarget.scrollLeft)
+  }
+
+  useEffect(() => {
+    if (!needsScroll) return
+    const el = scrollRef.current
+    if (!el) return
+    const idx = sorted.findIndex(b => b.id === miId)
+    if (idx < 0) return
+    const target = Math.max(0, idx * MIN_BAR_WIDTH - (el.clientWidth - MIN_BAR_WIDTH) / 2)
+    el.scrollLeft = target
+    applyStickyY(el, target)
+  }, [needsScroll, scrollWidth, miId])
 
   return (
     <Box ref={containerRef} sx={wrapperSx}>
-      <Box sx={chartWrapperSx}>
+      <Box ref={scrollRef} sx={chartWrapperSx} onScroll={handleScroll}>
+       <Box sx={{ width: needsScroll ? `${scrollWidth}px` : '100%', height: '100%' }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={sorted}
@@ -116,6 +148,7 @@ function AllSchoolsBarChart({
             />
           </BarChart>
         </ResponsiveContainer>
+       </Box>
       </Box>
       <Box sx={{ mt: 0.75, flexShrink: 0 }}>
         <Leg c={C.navyMid} t="Mi escuela" />
