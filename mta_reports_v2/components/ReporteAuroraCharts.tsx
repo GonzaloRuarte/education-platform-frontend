@@ -23,7 +23,7 @@ function Leg({ c, t }: { c: string; t: string }) {
 function MiVsTodosLegend() {
   return (
     <>
-      <Leg c={C.darkGrey} t="% Correctas mi colegio" />
+      <Leg c={C.navyMid} t="% Correctas mi colegio" />
       <Leg c={C.iceBlue} t="% Correctas todos los colegios" />
     </>
   )
