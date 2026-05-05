@@ -152,7 +152,8 @@ export const TABS: ReadonlyArray<TabDef> = [
   },
   {
     id: 'instituciones', label: 'Instituciones', kind: 'static',
-    render: ({ escuelaId }) => escuelaId !== null ? <InstitucionesTab schoolId={escuelaId} /> : null,
+    render: ({ escuelaId, editRequested }) =>
+      escuelaId !== null ? <InstitucionesTab schoolId={escuelaId} initialEditing={editRequested} /> : null,
   },
   {
     id: 'presentacion', label: 'Presentación Resultados', kind: 'static',

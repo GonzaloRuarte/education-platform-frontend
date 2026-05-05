@@ -1,90 +1,76 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Box, Stack, Typography } from '@mui/material'
-import { useAuthResources } from '@/mta_auth/hooks'
-import { axiosGet } from '@/shared/data/axios'
-import { apiUrl } from '@/config'
-import { COLORS, SLIDE_TITLE_SX, SPACING, TITLE_FONT_FAMILY } from '@/mta_reports_v2/constants'
-import { SlideContainer } from '@/mta_reports_v2/components/shared/SlideContainer'
-import Logo from '@/shared/components/Logo'
-import LogoAustral from '@/shared/components/LogoAustral'
-
-const C = COLORS
-
-interface School {
-  id: number
-  name: string
-}
+import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
 
 interface InstitucionesTabProps {
   schoolId: number
+  initialEditing?: boolean
 }
 
-const InstitucionesTab = ({ schoolId }: InstitucionesTabProps) => {
-  const auth = useAuthResources()
-  const [schools, setSchools] = useState<School[] | null>(null)
-
-  useEffect(() => {
-    let alive = true
-    axiosGet<School[]>({
-      url: apiUrl(`/reportes-aurora/escuela/${schoolId}/instituciones-participantes/`),
-      requestSetup: auth,
-      options: {},
-    })
-      .then(res => {
-        if (alive) setSchools(res)
-      })
-      .catch(() => {
-        if (alive) setSchools([])
-      })
-    return () => {
-      alive = false
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth.accessToken, schoolId])
-
-  const half = Math.ceil((schools?.length ?? 0) / 2)
-  const left = schools?.slice(0, half) ?? []
-  const right = schools?.slice(half) ?? []
-
-  return (
-    <SlideContainer
-      bgcolor={C.bgGrey}
-      withAustralFilter
-      sx={{
-        px: SPACING.slidePx,
-        pt: SPACING.slidePt,
-        pb: SPACING.slidePb,
-      }}
-    >
-      <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-        <Typography sx={SLIDE_TITLE_SX}>
-          Instituciones participantes
-        </Typography>
-        <Logo width={190} height={54} />
-      </Stack>
-      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', mt: 4, pr: { xs: 0, md: 1 } }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
-          {[left, right].map((col, ci) => (
-            <Box key={ci}>
-              {col.map(s => (
-                <Typography key={s.id} sx={{ color: C.navy, fontSize: 18, lineHeight: 1.6, fontFamily: TITLE_FONT_FAMILY }}>
-                  {s.name}
-                </Typography>
-              ))}
-            </Box>
-          ))}
-        </Box>
-        {schools !== null && schools.length === 0 && (
-          <Typography sx={{ color: C.tm, mt: 4 }}>Sin instituciones para mostrar.</Typography>
-        )}
-      </Box>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
-        <LogoAustral width={288} height={50} />
-      </Box>
-    </SlideContainer>
-  )
+const fields = {
+  title: { defaultHtml: '<p>Instituciones participantes</p>', variant: 'title' as const },
+  body: {
+    defaultHtml:
+      '<ul>' +
+      '<li>Ameghino - Buenos Aires</li>' +
+      '<li>Amundsen - Buenos Aires</li>' +
+      '<li>Betania - CABA</li>' +
+      '<li>Biró - Santa Fe</li>' +
+      '<li>Buen Ayre - Buenos Aires</li>' +
+      '<li>Cartoneros y sus chicos - Buenos Aires</li>' +
+      '<li>Chesterton - Buenos Aires</li>' +
+      '<li>Colegio Bilingüe de Neuquén - Neuquén</li>' +
+      '<li>Dickens - Buenos Aires</li>' +
+      '<li>Eben Ezer - Chaco</li>' +
+      '<li>Escuela Técnica Roberto Rocca - Buenos Aires</li>' +
+      '<li>Euskal Echea - CABA</li>' +
+      '<li>Gaudi - Buenos Aires</li>' +
+      '<li>Goethe Schule - Buenos Aires</li>' +
+      '<li>Godspell - Buenos Aires</li>' +
+      '<li>Holy Cross (mujeres) - Buenos Aires</li>' +
+      '<li>Holy Cross (varones) - Buenos Aires</li>' +
+      '<li>ICEI - Mendoza</li>' +
+      '<li>Ikastola - Buenos Aires</li>' +
+      '<li>Instituto Humanista Santísima de la Trinidad - Salta</li>' +
+      '<li>Instituto Ntra. Sra. del Carmen - Buenos Aires</li>' +
+      '<li>Instituto Técnico Superior Renault - Córdoba</li>' +
+      '<li>Jacarandá - CABA</li>' +
+      '<li>Los Molinos - Buenos Aires</li>' +
+      '<li>Lucero Norte - Buenos Aires</li>' +
+      '<li>María Guadalupe - Buenos Aires</li>' +
+      '<li>Marie Curie - Buenos Aires</li>' +
+      '<li>MaTer Admirábilis - CABA</li>' +
+      '<li>Michael Ham Nordelta - Buenos Aires</li>' +
+      '<li>Michael Ham Vicente López - Buenos Aires</li>' +
+      '<li>Molisano - Buenos Aires</li>' +
+      '<li>Northlands Nordelta - Buenos Aires</li>' +
+      '<li>Northlands Olivos - Buenos Aires</li>' +
+      '<li>Ntra. Sra. del Huerto - Buenos Aires</li>' +
+      '<li>Oakhill CABA - CABA</li>' +
+      '<li>Oakhill Pilar - Buenos Aires</li>' +
+      '<li>Qmark - Río Negro</li>' +
+      '<li>Sagrada Familia - Buenos Aires</li>' +
+      '<li>San Ignacio - Córdoba</li>' +
+      '<li>San Martin de Tours - CABA</li>' +
+      '<li>San Patricio - Río Negro</li>' +
+      '<li>Santa Ethnea - Buenos Aires</li>' +
+      '<li>Santos Unidos - Buenos Aires</li>' +
+      '<li>Stevenson - Santa Fe</li>' +
+      '<li>TESLA - Santa Fe</li>' +
+      '<li>Tolkien - Buenos Aires</li>' +
+      '</ul>',
+    variant: 'body' as const,
+  },
 }
+
+const InstitucionesTab = ({ schoolId, initialEditing }: InstitucionesTabProps) => (
+  <EditableTab
+    schoolId={schoolId}
+    initialEditing={initialEditing}
+    diapositivaId="instituciones"
+    successMessage='Sección "Instituciones participantes" actualizada correctamente'
+    fields={fields}
+  />
+)
 
 export { InstitucionesTab }
