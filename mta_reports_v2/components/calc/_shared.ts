@@ -140,7 +140,7 @@ export function groupBy(
   const groups: Record<string, Set<string>> = {}
   for (const q of preguntas) {
     if (q.es_pisa) continue
-    const tag = normalizeTag(q[field])
+    const tag = q[field] ? normalizeTag(q[field]) : null
     if (!tag) continue
     if (!groups[tag]) groups[tag] = new Set()
     groups[tag].add(String(q.id))
