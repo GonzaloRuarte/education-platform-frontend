@@ -1,5 +1,6 @@
 'use client'
 
+import { Box } from '@mui/material'
 import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
 
 interface InstitucionesTabProps {
@@ -9,57 +10,67 @@ interface InstitucionesTabProps {
 
 const fields = {
   title: { defaultHtml: '<p>Instituciones participantes</p>', variant: 'title' as const },
-  body: {
+  bodyLeft: {
     defaultHtml:
-      '<ul>' +
-      '<li>Ameghino - Buenos Aires</li>' +
-      '<li>Amundsen - Buenos Aires</li>' +
-      '<li>Betania - CABA</li>' +
-      '<li>Biró - Santa Fe</li>' +
-      '<li>Buen Ayre - Buenos Aires</li>' +
-      '<li>Cartoneros y sus chicos - Buenos Aires</li>' +
-      '<li>Chesterton - Buenos Aires</li>' +
-      '<li>Colegio Bilingüe de Neuquén - Neuquén</li>' +
-      '<li>Dickens - Buenos Aires</li>' +
-      '<li>Eben Ezer - Chaco</li>' +
-      '<li>Escuela Técnica Roberto Rocca - Buenos Aires</li>' +
-      '<li>Euskal Echea - CABA</li>' +
-      '<li>Gaudi - Buenos Aires</li>' +
-      '<li>Goethe Schule - Buenos Aires</li>' +
-      '<li>Godspell - Buenos Aires</li>' +
-      '<li>Holy Cross (mujeres) - Buenos Aires</li>' +
-      '<li>Holy Cross (varones) - Buenos Aires</li>' +
-      '<li>ICEI - Mendoza</li>' +
-      '<li>Ikastola - Buenos Aires</li>' +
-      '<li>Instituto Humanista Santísima de la Trinidad - Salta</li>' +
-      '<li>Instituto Ntra. Sra. del Carmen - Buenos Aires</li>' +
-      '<li>Instituto Técnico Superior Renault - Córdoba</li>' +
-      '<li>Jacarandá - CABA</li>' +
-      '<li>Los Molinos - Buenos Aires</li>' +
-      '<li>Lucero Norte - Buenos Aires</li>' +
-      '<li>María Guadalupe - Buenos Aires</li>' +
-      '<li>Marie Curie - Buenos Aires</li>' +
-      '<li>MaTer Admirábilis - CABA</li>' +
-      '<li>Michael Ham Nordelta - Buenos Aires</li>' +
-      '<li>Michael Ham Vicente López - Buenos Aires</li>' +
-      '<li>Molisano - Buenos Aires</li>' +
-      '<li>Northlands Nordelta - Buenos Aires</li>' +
-      '<li>Northlands Olivos - Buenos Aires</li>' +
-      '<li>Ntra. Sra. del Huerto - Buenos Aires</li>' +
-      '<li>Oakhill CABA - CABA</li>' +
-      '<li>Oakhill Pilar - Buenos Aires</li>' +
-      '<li>Qmark - Río Negro</li>' +
-      '<li>Sagrada Familia - Buenos Aires</li>' +
-      '<li>San Ignacio - Córdoba</li>' +
-      '<li>San Martin de Tours - CABA</li>' +
-      '<li>San Patricio - Río Negro</li>' +
-      '<li>Santa Ethnea - Buenos Aires</li>' +
-      '<li>Santos Unidos - Buenos Aires</li>' +
-      '<li>Stevenson - Santa Fe</li>' +
-      '<li>TESLA - Santa Fe</li>' +
-      '<li>Tolkien - Buenos Aires</li>' +
-      '</ul>',
+      '<p>Ameghino - Buenos Aires</p>' +
+      '<p>Amundsen - Buenos Aires</p>' +
+      '<p>Betania - CABA</p>' +
+      '<p>Biró - Santa Fe</p>' +
+      '<p>Buen Ayre - Buenos Aires</p>' +
+      '<p>Cartoneros y sus chicos - Buenos Aires</p>' +
+      '<p>Chesterton - Buenos Aires</p>' +
+      '<p>Colegio Bilingüe de Neuquén - Neuquén</p>' +
+      '<p>Dickens - Buenos Aires</p>' +
+      '<p>Eben Ezer - Chaco</p>' +
+      '<p>Escuela Técnica Roberto Rocca - Buenos Aires</p>' +
+      '<p>Euskal Echea - CABA</p>' +
+      '<p>Gaudi - Buenos Aires</p>' +
+      '<p>Goethe Schule - Buenos Aires</p>' +
+      '<p>Godspell - Buenos Aires</p>' +
+      '<p>Holy Cross (mujeres) - Buenos Aires</p>' +
+      '<p>Holy Cross (varones) - Buenos Aires</p>' +
+      '<p>ICEI - Mendoza</p>' +
+      '<p>Ikastola - Buenos Aires</p>' +
+      '<p>Instituto Humanista Santísima de la Trinidad - Salta</p>' +
+      '<p>Instituto Ntra. Sra. del Carmen - Buenos Aires</p>' +
+      '<p>Instituto Técnico Superior Renault - Córdoba</p>' +
+      '<p>Jacarandá - CABA</p>',
     variant: 'body' as const,
+  },
+  bodyRight: {
+    defaultHtml:
+      '<p>Los Molinos - Buenos Aires</p>' +
+      '<p>Lucero Norte - Buenos Aires</p>' +
+      '<p>María Guadalupe - Buenos Aires</p>' +
+      '<p>Marie Curie - Buenos Aires</p>' +
+      '<p>MaTer Admirábilis - CABA</p>' +
+      '<p>Michael Ham Nordelta - Buenos Aires</p>' +
+      '<p>Michael Ham Vicente López - Buenos Aires</p>' +
+      '<p>Molisano - Buenos Aires</p>' +
+      '<p>Northlands Nordelta - Buenos Aires</p>' +
+      '<p>Northlands Olivos - Buenos Aires</p>' +
+      '<p>Ntra. Sra. del Huerto - Buenos Aires</p>' +
+      '<p>Oakhill CABA - CABA</p>' +
+      '<p>Oakhill Pilar - Buenos Aires</p>' +
+      '<p>Qmark - Río Negro</p>' +
+      '<p>Sagrada Familia - Buenos Aires</p>' +
+      '<p>San Ignacio - Córdoba</p>' +
+      '<p>San Martin de Tours - CABA</p>' +
+      '<p>San Patricio - Río Negro</p>' +
+      '<p>Santa Ethnea - Buenos Aires</p>' +
+      '<p>Santos Unidos - Buenos Aires</p>' +
+      '<p>Stevenson - Santa Fe</p>' +
+      '<p>TESLA - Santa Fe</p>' +
+      '<p>Tolkien - Buenos Aires</p>',
+    variant: 'body' as const,
+  },
+}
+
+const columnSx = {
+  '& .ql-editor p': {
+    fontSize: 20,
+    lineHeight: 1.3,
+    margin: 0,
   },
 }
 
@@ -70,7 +81,17 @@ const InstitucionesTab = ({ schoolId, initialEditing }: InstitucionesTabProps) =
     diapositivaId="instituciones"
     successMessage='Sección "Instituciones participantes" actualizada correctamente'
     fields={fields}
-  />
+  >
+    {({ renderField }) => (
+      <Box sx={{ width: '100%', mb: 'auto' }}>
+        {renderField('title', { mb: 4, width: '100%' })}
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 6 }}>
+          {renderField('bodyLeft', columnSx)}
+          {renderField('bodyRight', columnSx)}
+        </Box>
+      </Box>
+    )}
+  </EditableTab>
 )
 
 export { InstitucionesTab }
