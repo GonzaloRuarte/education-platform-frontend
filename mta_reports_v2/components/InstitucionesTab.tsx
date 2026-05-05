@@ -1,90 +1,97 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Box, Stack, Typography } from '@mui/material'
-import { useAuthResources } from '@/mta_auth/hooks'
-import { axiosGet } from '@/shared/data/axios'
-import { apiUrl } from '@/config'
-import { COLORS, SLIDE_TITLE_SX, SPACING, TITLE_FONT_FAMILY } from '@/mta_reports_v2/constants'
-import { SlideContainer } from '@/mta_reports_v2/components/shared/SlideContainer'
-import Logo from '@/shared/components/Logo'
-import LogoAustral from '@/shared/components/LogoAustral'
-
-const C = COLORS
-
-interface School {
-  id: number
-  name: string
-}
+import { Box } from '@mui/material'
+import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
 
 interface InstitucionesTabProps {
   schoolId: number
+  initialEditing?: boolean
 }
 
-const InstitucionesTab = ({ schoolId }: InstitucionesTabProps) => {
-  const auth = useAuthResources()
-  const [schools, setSchools] = useState<School[] | null>(null)
+const fields = {
+  title: { defaultHtml: '<p>Instituciones participantes</p>', variant: 'title' as const },
+  bodyLeft: {
+    defaultHtml:
+      '<p>Ameghino - Buenos Aires</p>' +
+      '<p>Amundsen - Buenos Aires</p>' +
+      '<p>Betania - CABA</p>' +
+      '<p>Biró - Santa Fe</p>' +
+      '<p>Buen Ayre - Buenos Aires</p>' +
+      '<p>Cartoneros y sus chicos - Buenos Aires</p>' +
+      '<p>Chesterton - Buenos Aires</p>' +
+      '<p>Colegio Bilingüe de Neuquén - Neuquén</p>' +
+      '<p>Dickens - Buenos Aires</p>' +
+      '<p>Eben Ezer - Chaco</p>' +
+      '<p>Escuela Técnica Roberto Rocca - Buenos Aires</p>' +
+      '<p>Euskal Echea - CABA</p>' +
+      '<p>Gaudi - Buenos Aires</p>' +
+      '<p>Goethe Schule - Buenos Aires</p>' +
+      '<p>Godspell - Buenos Aires</p>' +
+      '<p>Holy Cross (mujeres) - Buenos Aires</p>' +
+      '<p>Holy Cross (varones) - Buenos Aires</p>' +
+      '<p>ICEI - Mendoza</p>' +
+      '<p>Ikastola - Buenos Aires</p>' +
+      '<p>Instituto Humanista Santísima de la Trinidad - Salta</p>' +
+      '<p>Instituto Ntra. Sra. del Carmen - Buenos Aires</p>' +
+      '<p>Instituto Técnico Superior Renault - Córdoba</p>' +
+      '<p>Jacarandá - CABA</p>',
+    variant: 'body' as const,
+  },
+  bodyRight: {
+    defaultHtml:
+      '<p>Los Molinos - Buenos Aires</p>' +
+      '<p>Lucero Norte - Buenos Aires</p>' +
+      '<p>María Guadalupe - Buenos Aires</p>' +
+      '<p>Marie Curie - Buenos Aires</p>' +
+      '<p>MaTer Admirábilis - CABA</p>' +
+      '<p>Michael Ham Nordelta - Buenos Aires</p>' +
+      '<p>Michael Ham Vicente López - Buenos Aires</p>' +
+      '<p>Molisano - Buenos Aires</p>' +
+      '<p>Northlands Nordelta - Buenos Aires</p>' +
+      '<p>Northlands Olivos - Buenos Aires</p>' +
+      '<p>Ntra. Sra. del Huerto - Buenos Aires</p>' +
+      '<p>Oakhill CABA - CABA</p>' +
+      '<p>Oakhill Pilar - Buenos Aires</p>' +
+      '<p>Qmark - Río Negro</p>' +
+      '<p>Sagrada Familia - Buenos Aires</p>' +
+      '<p>San Ignacio - Córdoba</p>' +
+      '<p>San Martin de Tours - CABA</p>' +
+      '<p>San Patricio - Río Negro</p>' +
+      '<p>Santa Ethnea - Buenos Aires</p>' +
+      '<p>Santos Unidos - Buenos Aires</p>' +
+      '<p>Stevenson - Santa Fe</p>' +
+      '<p>TESLA - Santa Fe</p>' +
+      '<p>Tolkien - Buenos Aires</p>',
+    variant: 'body' as const,
+  },
+}
 
-  useEffect(() => {
-    let alive = true
-    axiosGet<School[]>({
-      url: apiUrl(`/reportes-aurora/escuela/${schoolId}/instituciones-participantes/`),
-      requestSetup: auth,
-      options: {},
-    })
-      .then(res => {
-        if (alive) setSchools(res)
-      })
-      .catch(() => {
-        if (alive) setSchools([])
-      })
-    return () => {
-      alive = false
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth.accessToken, schoolId])
+const columnSx = {
+  '& .ql-editor p': {
+    fontSize: 20,
+    lineHeight: 1.3,
+    margin: 0,
+  },
+}
 
-  const half = Math.ceil((schools?.length ?? 0) / 2)
-  const left = schools?.slice(0, half) ?? []
-  const right = schools?.slice(half) ?? []
-
-  return (
-    <SlideContainer
-      bgcolor={C.bgGrey}
-      withAustralFilter
-      sx={{
-        px: SPACING.slidePx,
-        pt: SPACING.slidePt,
-        pb: SPACING.slidePb,
-      }}
-    >
-      <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-        <Typography sx={SLIDE_TITLE_SX}>
-          Instituciones participantes
-        </Typography>
-        <Logo width={190} height={54} />
-      </Stack>
-      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', mt: 4, pr: { xs: 0, md: 1 } }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
-          {[left, right].map((col, ci) => (
-            <Box key={ci}>
-              {col.map(s => (
-                <Typography key={s.id} sx={{ color: C.navy, fontSize: 18, lineHeight: 1.6, fontFamily: TITLE_FONT_FAMILY }}>
-                  {s.name}
-                </Typography>
-              ))}
-            </Box>
-          ))}
+const InstitucionesTab = ({ schoolId, initialEditing }: InstitucionesTabProps) => (
+  <EditableTab
+    schoolId={schoolId}
+    initialEditing={initialEditing}
+    diapositivaId="instituciones"
+    successMessage='Sección "Instituciones participantes" actualizada correctamente'
+    fields={fields}
+  >
+    {({ renderField }) => (
+      <Box sx={{ width: '100%', mb: 'auto' }}>
+        {renderField('title', { mb: 4, width: '100%' })}
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 6 }}>
+          {renderField('bodyLeft', columnSx)}
+          {renderField('bodyRight', columnSx)}
         </Box>
-        {schools !== null && schools.length === 0 && (
-          <Typography sx={{ color: C.tm, mt: 4 }}>Sin instituciones para mostrar.</Typography>
-        )}
       </Box>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
-        <LogoAustral width={288} height={50} />
-      </Box>
-    </SlideContainer>
-  )
-}
+    )}
+  </EditableTab>
+)
 
 export { InstitucionesTab }

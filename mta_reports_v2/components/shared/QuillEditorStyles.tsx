@@ -5,14 +5,14 @@ import { COLORS, TITLE_FONT_FAMILY } from '@/mta_reports_v2/constants'
 const C = COLORS
 
 /**
- * Global styles for slide-embedded Quill editors.
+ * Estilos globales para los editores Quill embebidos en las slides.
  *
- * Renders <style jsx global> targeting two class roots:
- *   .portada-editor      — used by PortadaTab (transparent toolbar, hero typography)
- *   .editable-section-editor — used by EditableContentSection (toolbar with body/title variants)
+ * Renderiza <style jsx global> apuntando a dos raíces de clase:
+ *   .portada-editor      — usado por PortadaTab (toolbar transparente, tipografía hero)
+ *   .editable-section-editor — usado por EditableContentSection (toolbar con variantes body/title)
  *
- * Mount once per slide that needs it. Co-locating both rules avoids duplicating ~60 lines
- * of near-identical .ql-* CSS across the two callers.
+ * Montar una vez por slide que lo necesite. Colocar ambas reglas juntas evita duplicar ~60 líneas
+ * de CSS .ql-* casi idéntico entre los dos callers.
  */
 const QuillEditorStyles = () => (
   <style jsx global>{`

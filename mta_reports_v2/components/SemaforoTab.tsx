@@ -120,11 +120,11 @@ function SemaforoTab({ materia, bandasMap, estudiantesMap, anio: anioProp, onAni
   }, [selectedStudentId, bandasMap, estudiantesMap])
 
   return (
-    <Box>
+    <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
       <Tabs
         value={anio}
         onChange={(_, v) => setAnio(v)}
-        sx={{ mb: 2, bgcolor: C.white, borderRadius: RADIUS.md, border: '1px solid', borderColor: 'divider' }}
+        sx={{ mb: 2, bgcolor: C.white, borderRadius: RADIUS.md, border: '1px solid', borderColor: 'divider', position: 'sticky', top: 0, zIndex: 1 }}
       >
         {ANIO_ORDER.map(a => (
           <Tab key={a} value={a} label={ANIO_LABELS[a]} />
