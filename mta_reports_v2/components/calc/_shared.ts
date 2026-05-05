@@ -7,17 +7,17 @@ import type {
   I_SemaforoBandas,
 } from '@/mta_reports_v2/types'
 
-// ─── Spec mapping ─────────────────────────────────────────────────────────────
-// pct_correctas              -> studentScores (per-student %) + todosRate (aggregate %). Se agregan tres porcentajes: las de 45, las 40 normales y las 5 PISA
+// ─── Mapeo de spec ────────────────────────────────────────────────────────────
+// pct_correctas              -> studentScores (% por estudiante) + todosRate (% agregado). Se agregan tres porcentajes: las de 45, las 40 normales y las 5 PISA
 // pct_correctas_mi_colegio   -> studentScores(qids, estudiantes_mi)
 // pct_correctas_todos        -> todosRate(qids, pp)
-// pct_correctas_por_eval     -> studentScores returns one entry per evaluation_resolution
+// pct_correctas_por_eval     -> studentScores devuelve una entrada por evaluation_resolution
 // participantes_colegio      -> estudiantes_mi.length
 // participantes_todos        -> combo.todos.puntajes.length
 // pct_correctas_por_grupo    -> groupBy('contenido' | 'competencia', ...)
-// semaforo                   -> bandForCount + caller iterates students
-// boxplot_stats              -> boxplot()  (min/max are whisker fences using 1.5*IQR; outliers reported separately)
-// scatter_por_alumno         -> see calc/ScatterTab.ts (joins lengua and mate by array index — see structural assumption)
+// semaforo                   -> bandForCount + el caller itera estudiantes
+// boxplot_stats              -> boxplot()  (min/max son whisker fences usando 1.5*IQR; los outliers se reportan por separado)
+// scatter_por_alumno         -> ver calc/ScatterTab.ts (junta lengua y mate por índice de array — ver supuesto estructural)
 
 export function r1(x: number): number {
   return Math.round(x * 10) / 10

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 
 export interface I_HistoricoBar {
-  toma: string  // e.g. "1-2024"
+  toma: string  // p.ej. "1-2024"
   pct_mi_colegio: number
   pct_promedio_red: number
   participantes: number
@@ -49,7 +49,7 @@ export const useHistoricoEscuela = (schoolId: number | null) => {
   useEffect(() => {
     if (schoolId === null) return
     setLoading(true)
-    // TODO: replace with axios call once backend ingestion of historical Excels is in place
+    // TODO: reemplazar con una llamada de axios una vez que esté implementada la ingesta de Excels históricos en el backend
     const t = setTimeout(() => {
       setData(MOCK)
       setLoading(false)

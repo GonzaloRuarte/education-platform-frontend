@@ -25,9 +25,9 @@ export function calcScatter(
   const count = Math.min(lenStudents.length, matStudents.length)
 
   if (lenStudents.length !== matStudents.length) {
-    // Structural assumption: estudiantes_mi for the two materias is in the same order per student.
-    // If this no longer holds, the scatter would mis-pair. Until backend exposes a stable student_id,
-    // fall back to the truncated min and accept the data may be slightly misaligned.
+    // Supuesto estructural: estudiantes_mi para las dos materias viene en el mismo orden por estudiante.
+    // Si esto deja de cumplirse, el scatter emparejaría mal. Hasta que el backend exponga un student_id estable,
+    // hacemos fallback al mínimo truncado y aceptamos que los datos puedan estar levemente desalineados.
     if (process.env.NODE_ENV !== 'production') {
       // eslint-disable-next-line no-console
       console.warn('[scatter] lengua/mate student counts differ', { len: lenStudents.length, mat: matStudents.length })

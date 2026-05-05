@@ -257,7 +257,7 @@ const ReporteAurora = () => {
         {!isStaticTab && <Sidebar filters={sidebarFilters} onReset={resetFilters} />}
 
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, position: 'relative' }}>
-          {/* Content */}
+          {/* Contenido */}
           <Box sx={{
             flex: 1,
             minHeight: 0,
