@@ -18,8 +18,10 @@ export function calcDetalle(
 ): I_DetalleTabData | null {
   const combo = findCombo(raw, f.materia, f.anio, f.toma)
   if (!combo) return null
+  if (!combo.todos?.por_pregunta) return null
 
-  const estudiantes_mi = filterEstudiantes(combo, f.division).map(s => s.respuestas)
+  const filtered = filterEstudiantes(combo, f.division, f.neeFilter)
+  const estudiantes_mi = filtered.map(s => s.respuestas)
   const pp = combo.todos.por_pregunta
   const allIds = new Set(combo.preguntas.map(q => String(q.id)))
   const scores45 = studentScores(allIds, estudiantes_mi)
@@ -31,12 +33,22 @@ export function calcDetalle(
 
   const isLenguaje = f.materia === 'Prácticas del Lenguaje'
 
-  const estudiantes = estudiantes_mi.map((respuestas, idx) => {
+  const estudiantes = filtered.map((s) => {
+    const respuestas = s.respuestas
     const answered = [...allIds].filter(k => k in respuestas)
     const score = answered.length
       ? r1(answered.filter(k => respuestas[k]).length / answered.length * 100)
       : 0
-    return { id: idx + 1, score }
+    const one = [respuestas]
+    const stCont = groupBy('contenido',   combo.preguntas, pp, one)
+    const stComp = groupBy('competencia', combo.preguntas, pp, one)
+    return {
+      id: s.id,
+      score,
+      contenido:   isLenguaje ? [] : stCont,
+      competencia: isLenguaje ? [] : stComp,
+      ...(isLenguaje && { lenCont: stCont, lenComp: stComp }),
+    }
   })
 
   return {

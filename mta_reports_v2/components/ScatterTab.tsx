@@ -2,8 +2,8 @@
 
 import { Box, Paper, Stack, Typography } from '@mui/material'
 import { ResponsiveContainer, ScatterChart, Scatter, CartesianGrid, XAxis, YAxis, ZAxis, Tooltip, ReferenceLine } from 'recharts'
-import { useMemo, useState, useEffect } from 'react'
-import { COLORS, FONT_SIZES } from '@/mta_reports_v2/constants'
+import { useMemo } from 'react'
+import { COLORS, FONT_SIZES, CARD_SX, FILL_COLUMN_SX } from '@/mta_reports_v2/constants'
 import type { I_ScatterPoint } from '@/mta_reports_v2/types'
 
 const C = COLORS
@@ -22,18 +22,6 @@ function ScatterTooltip({ active, payload }: any) {
 }
 
 function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
-  const [chartHeight, setChartHeight] = useState(420)
-
-  useEffect(() => {
-    const calculateHeight = () => {
-      const availableHeight = window.innerHeight - 300
-      setChartHeight(Math.max(400, Math.min(availableHeight, 700)))
-    }
-    calculateHeight()
-    window.addEventListener('resize', calculateHeight)
-    return () => window.removeEventListener('resize', calculateHeight)
-  }, [])
-
   const avg = useMemo(() => {
     if (!points.length) return null
     return {
@@ -43,15 +31,16 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
   }, [points])
 
   return (
-    <Paper elevation={0} sx={{ bgcolor: C.white, border: '1px solid', borderColor: 'divider', borderRadius: 5, p: 2.5 }}>
-      <Typography sx={{ fontSize: F.lg, color: C.accent, fontWeight: 500, mb: 1.5 }}>
+    <Paper elevation={0} sx={{ ...CARD_SX, p: 2.5, ...FILL_COLUMN_SX }}>
+      <Typography sx={{ fontSize: F.lg, color: C.accent, fontWeight: 500, mb: 1.5, flexShrink: 0 }}>
         Resultados por alumno — % PDL vs % Matemática
       </Typography>
       {points.length === 0 ? (
         <Typography sx={{ color: C.navy }}>Sin datos para los filtros seleccionados</Typography>
       ) : (
         <>
-          <ResponsiveContainer width="100%" height={chartHeight}>
+          <Box sx={{ flex: 1, minHeight: 0 }}>
+          <ResponsiveContainer width="100%" height="100%">
             <ScatterChart margin={{ top: 16, right: 24, bottom: 36, left: 16 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={C.gridLight} />
               <XAxis
@@ -78,10 +67,11 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
               {avg && <ReferenceLine x={avg.pdl} stroke={C.tm} strokeDasharray="4 3" strokeWidth={1} />}
               {avg && <ReferenceLine y={avg.mat} stroke={C.tm} strokeDasharray="4 3" strokeWidth={1} />}
               <Tooltip content={<ScatterTooltip />} />
-              <Scatter data={points} fill={C.barFill} opacity={0.75} r={20} />
+              <Scatter data={points} fill={C.navyMid} opacity={0.75} r={20} />
             </ScatterChart>
           </ResponsiveContainer>
-          <Stack direction="row" spacing={3} sx={{ mt: 1.5 }}>
+          </Box>
+          <Stack direction="row" spacing={3} sx={{ mt: 1.5, flexShrink: 0 }}>
             <Typography variant="caption" sx={{ color: C.tm }}>N = {points.length} alumnos</Typography>
             {avg && (
               <Typography variant="caption" sx={{ color: C.tm }}>

@@ -4,8 +4,7 @@ import type {
 } from '@/mta_reports_v2/types'
 import {
   calcPercentage,
-  filterEstudiantes,
-  findCombo,
+  prepareCombo,
 } from './_shared'
 
 export function calcScatter(
@@ -13,16 +12,27 @@ export function calcScatter(
   anio: string,
   division: string,
   toma: string,
+  neeFilter: string = 'Todos',
 ): I_ScatterPoint[] {
-  const lenCombo = findCombo(raw, 'Prácticas del Lenguaje', anio, toma)
-  const matCombo = findCombo(raw, 'Matemática',             anio, toma)
-  if (!lenCombo || !matCombo) return []
+  const len = prepareCombo(raw, 'Prácticas del Lenguaje', anio, toma, division, neeFilter)
+  const mat = prepareCombo(raw, 'Matemática',             anio, toma, division, neeFilter)
+  if (!len || !mat) return []
 
-  const lenStudents = filterEstudiantes(lenCombo, division)
-  const matStudents = filterEstudiantes(matCombo, division)
-  const lenIds = lenCombo.preguntas.map(q => String(q.id))
-  const matIds = matCombo.preguntas.map(q => String(q.id))
+  const lenStudents = len.students
+  const matStudents = mat.students
+  const lenIds = len.qids
+  const matIds = mat.qids
   const count = Math.min(lenStudents.length, matStudents.length)
+
+  if (lenStudents.length !== matStudents.length) {
+    // Structural assumption: estudiantes_mi for the two materias is in the same order per student.
+    // If this no longer holds, the scatter would mis-pair. Until backend exposes a stable student_id,
+    // fall back to the truncated min and accept the data may be slightly misaligned.
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.warn('[scatter] lengua/mate student counts differ', { len: lenStudents.length, mat: matStudents.length })
+    }
+  }
 
   return Array.from({ length: count }, (_, i) => {
     const lenR = lenStudents[i].respuestas

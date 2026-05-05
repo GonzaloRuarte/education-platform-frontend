@@ -1,8 +1,10 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { Button } from '@mui/material'
+import { useMemo, useRef, useState } from 'react'
+import { Box, Button, MenuItem, Select, Stack } from '@mui/material'
 import AutorenewIcon from '@mui/icons-material/Autorenew'
+import EditIcon from '@mui/icons-material/Edit'
+import VisibilityIcon from '@mui/icons-material/Visibility'
 import { withAuth } from '@/mta_auth/hocs/withAuth'
 import { useHasCapabilities } from '@/mta_auth/hooks'
 import ListPage from '@/shared/pages/ListPage'
@@ -13,7 +15,9 @@ import { AURORA_REPORT_NAME } from '@/mta_reports_v2/constants'
 import {
   useAuroraReportBatchDelete,
   useAuroraReportList,
+  useAuroraReportPublish,
   useAuroraReportRegenerateAll,
+  useAuroraReportUnpublish,
   useNavigateToAuroraReportCreate,
 } from '@/mta_reports_v2/hooks'
 import type { I_AuroraReportListItem } from '@/mta_reports_v2/types'
@@ -28,7 +32,34 @@ function ReportesAuroraListPage() {
   const navigateToAuroraReportCreate = useNavigateToAuroraReportCreate()
   const canEdit = useHasCapabilities(['manage_reports'])
   const regenerateAll = useAuroraReportRegenerateAll()
+  const publish = useAuroraReportPublish()
+  const unpublish = useAuroraReportUnpublish()
   const [isRegenerating, setIsRegenerating] = useState(false)
+  const [busyId, setBusyId] = useState<number | null>(null)
+  const reloadRef = useRef<(() => void) | null>(null)
+
+  const handleChangeStatus = async (
+    row: I_AuroraReportListItem,
+    nextStatus: 'draft' | 'published',
+  ) => {
+    if (busyId !== null) return
+    if (nextStatus === row.status) return
+    setBusyId(row.id)
+    try {
+      if (nextStatus === 'published') {
+        await publish(row.id)
+        successToast('Reporte publicado.')
+      } else {
+        await unpublish(row.id)
+        successToast('Reporte despublicado.')
+      }
+      reloadRef.current?.()
+    } catch (err) {
+      handleServiceError(err)
+    } finally {
+      setBusyId(null)
+    }
+  }
 
   const handleRowClick = (params: GridRowParams<I_AuroraReportListItem>) => {
     window.open(`/reports/escuela/${params.row.school}`, '_blank')
@@ -55,55 +86,101 @@ function ReportesAuroraListPage() {
   }
 
   const columns = useMemo<Array<GridColDef<I_AuroraReportListItem>>>(() => {
-    if (!canEdit) return baseColumns
+    const statusColumn: GridColDef<I_AuroraReportListItem> = {
+      field: 'status',
+      headerName: 'Estado',
+      flex: 0.6,
+      renderCell: ({ row }) => (
+        <Select
+          size="small"
+          value={row.status}
+          disabled={!canEdit || busyId === row.id}
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) =>
+            handleChangeStatus(row, e.target.value as 'draft' | 'published')
+          }
+          sx={{
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText',
+            '& .MuiSelect-icon': { color: 'primary.contrastText' },
+            '& .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
+            '&:hover': { bgcolor: 'primary.dark' },
+            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.dark' },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
+          }}
+        >
+          <MenuItem value="draft">
+            <Stack direction="row" spacing={1} alignItems="center">
+              <EditIcon fontSize="small" />
+              <span>Borrador</span>
+            </Stack>
+          </MenuItem>
+          <MenuItem value="published">
+            <Stack direction="row" spacing={1} alignItems="center">
+              <VisibilityIcon fontSize="small" />
+              <span>Publicado</span>
+            </Stack>
+          </MenuItem>
+        </Select>
+      ),
+    }
+    const cols = [...baseColumns, statusColumn]
+    if (!canEdit) return cols
     return [
-      ...baseColumns,
+      ...cols,
       {
         field: 'actions',
         headerName: 'Acciones',
-        flex: 0.4,
+        flex: 0.6,
         sortable: false,
         filterable: false,
         align: 'center',
         headerAlign: 'center',
         renderCell: ({ row }) => (
-          <Button
-            size="medium"
-            variant="contained"
-            onClick={(e) => {
-              e.stopPropagation()
-              window.open(`/reports/escuela/${row.school}?edit=1`, '_blank')
-            }}
-          >
-            Editar
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button
+              size="medium"
+              variant="contained"
+              onClick={(e) => {
+                e.stopPropagation()
+                window.open(`/reports/escuela/${row.school}?edit=1`, '_blank')
+              }}
+            >
+              Editar
+            </Button>
+          </Stack>
         ),
       },
     ]
-  }, [canEdit])
+  }, [canEdit, busyId])
 
   const customButtons = canEdit
-    ? ({ reload }: { reload: () => void }) => (
-      <Button
-        onClick={() => handleRegenerateAll(reload)}
-        startIcon={<AutorenewIcon />}
-        disabled={isRegenerating}
-      >
-        {isRegenerating ? 'Generando…' : 'Generar reportes faltantes'}
-      </Button>
-    )
+    ? ({ reload }: { reload: () => void }) => {
+      reloadRef.current = reload
+      return (
+        <Button
+          onClick={() => handleRegenerateAll(reload)}
+          startIcon={<AutorenewIcon />}
+          disabled={isRegenerating}
+        >
+          {isRegenerating ? 'Generando…' : 'Generar reportes faltantes'}
+        </Button>
+      )
+    }
     : undefined
 
   return (
-    <ListPage
-      columns={columns}
-      useList={useAuroraReportList}
-      useBatchDelete={useAuroraReportBatchDelete}
-      entityName={AURORA_REPORT_NAME}
-      onCreate={navigateToAuroraReportCreate}
-      customButtons={customButtons}
-      onRowClick={handleRowClick}
-    />
+    <Box sx={{ height: '100%' }}>
+      <ListPage
+        columns={columns}
+        useList={useAuroraReportList}
+        useBatchDelete={useAuroraReportBatchDelete}
+        entityName={AURORA_REPORT_NAME}
+        onCreate={navigateToAuroraReportCreate}
+        customButtons={customButtons}
+        onRowClick={handleRowClick}
+      />
+    </Box>
   )
 }
 

@@ -18,8 +18,9 @@ export function calcResumen(
 ): I_ResumenTabData | null {
   const combo = findCombo(raw, f.materia, f.anio, f.toma)
   if (!combo) return null
+  if (!combo.todos?.por_pregunta) return null
 
-  const estudiantes_mi = filterEstudiantes(combo, f.division).map(s => s.respuestas)
+  const estudiantes_mi = filterEstudiantes(combo, f.division, f.neeFilter).map(s => s.respuestas)
   const pp = combo.todos.por_pregunta
 
   const nonPisa = new Set(combo.preguntas.filter(q => !q.es_pisa).map(q => String(q.id)))

@@ -7,6 +7,18 @@ import type {
   I_SemaforoBandas,
 } from '@/mta_reports_v2/types'
 
+// ─── Spec mapping ─────────────────────────────────────────────────────────────
+// pct_correctas              -> studentScores (per-student %) + todosRate (aggregate %). Se agregan tres porcentajes: las de 45, las 40 normales y las 5 PISA
+// pct_correctas_mi_colegio   -> studentScores(qids, estudiantes_mi)
+// pct_correctas_todos        -> todosRate(qids, pp)
+// pct_correctas_por_eval     -> studentScores returns one entry per evaluation_resolution
+// participantes_colegio      -> estudiantes_mi.length
+// participantes_todos        -> combo.todos.puntajes.length
+// pct_correctas_por_grupo    -> groupBy('contenido' | 'competencia', ...)
+// semaforo                   -> bandForCount + caller iterates students
+// boxplot_stats              -> boxplot()  (min/max are whisker fences using 1.5*IQR; outliers reported separately)
+// scatter_por_alumno         -> see calc/ScatterTab.ts (joins lengua and mate by array index — see structural assumption)
+
 export function r1(x: number): number {
   return Math.round(x * 10) / 10
 }
@@ -23,15 +35,28 @@ function quantile(sorted: number[], p: number): number {
 }
 
 export function boxplot(scores: number[]): I_BoxplotAurora {
-  if (!scores.length) return { min: 0, q1: 0, md: 0, q3: 0, max: 0, av: 0 }
+  if (!scores.length) return { min: 0, q1: 0, md: 0, q3: 0, max: 0, av: 0, outliers: [], rawMin: 0, rawMax: 0 }
   const s = [...scores].sort((a, b) => a - b)
+  const q1 = quantile(s, 0.25)
+  const md = quantile(s, 0.5)
+  const q3 = quantile(s, 0.75)
+  const iqr = q3 - q1
+  const fenceLo = q1 - 1.5 * iqr
+  const fenceHi = q3 + 1.5 * iqr
+  const inFence = s.filter(v => v >= fenceLo && v <= fenceHi)
+  const outliers = s.filter(v => v < fenceLo || v > fenceHi)
+  const whiskerLo = inFence.length ? inFence[0] : s[0]
+  const whiskerHi = inFence.length ? inFence[inFence.length - 1] : s[s.length - 1]
   return {
-    min: r1(s[0]),
-    q1:  r1(quantile(s, 0.25)),
-    md:  r1(quantile(s, 0.5)),
-    q3:  r1(quantile(s, 0.75)),
-    max: r1(s[s.length - 1]),
-    av:  r1(mean(scores)),
+    min: r1(whiskerLo),
+    q1: r1(q1),
+    md: r1(md),
+    q3: r1(q3),
+    max: r1(whiskerHi),
+    av: r1(mean(scores)),
+    outliers: outliers.map(r1),
+    rawMin: r1(s[0]),
+    rawMax: r1(s[s.length - 1]),
   }
 }
 
@@ -66,10 +91,56 @@ export function groupBy(
   pp: Record<string, { n_correctas: number; n_total: number }>,
   estudiantes: Array<Record<string, boolean>>,
 ): I_ItemAurora[] {
+  const strip = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+  const tagMap: Record<string, string> = {}
+  const register = (canonical: string, variants: string[]) => {
+    for (const v of variants) tagMap[strip(v.trim())] = canonical
+  }
+  register('Estadística y probabilidad', [
+    'Estadística y probabilidad', 'Estadistica y probabilidad',
+    'Estadística', 'Estadistica', 'Probabilidad',
+  ])
+  register('Numeración y operaciones', [
+    'Numeración y operaciones', 'Numeracion y operaciones',
+    'Números y operaciones', 'Numeros y operaciones',
+    'Números operaciones', 'Numeros operaciones',
+    'Numeración operaciones', 'Numeracion operaciones',
+  ])
+  register('Geometría', [
+    'Geometría', 'Geometria',
+  ])
+  register('Medidas', [
+    'Medida', 'Medidas',
+  ])
+  register('Álgebra', [
+    'Álgebra', 'Algebra',
+  ])
+  register('Funciones, ecuaciones e inecuaciones', [
+    'Funciones, ecuaciones e inecuaciones',
+    'Funciones ecuaciones e inecuaciones',
+    'Funciones ecuaciones inecuaciones',
+    'Funciones-ecuaciones-inecuaciones',
+  ])
+  register('Reconocimiento de conceptos', [
+    'Reconocimiento de conceptos', 'Reconocimiento conceptos',
+    'Reconocimiento-de-conceptos',
+  ])
+  register('Resolución de operaciones', [
+    'Resolución de operaciones', 'Resolucion de operaciones',
+    'Resolución operaciones', 'Resolucion operaciones',
+    'Resolución-de-operaciones', 'Resolucion-de-operaciones',
+  ])
+  register('Resolución de problemas', [
+    'Resolución de problemas', 'Resolucion de problemas',
+    'Resolución problemas', 'Resolucion problemas',
+    'Resolución-de-problemas', 'Resolucion-de-problemas',
+  ])
+  const normalizeTag = (t: string): string => tagMap[strip(t.trim())] ?? t
+
   const groups: Record<string, Set<string>> = {}
   for (const q of preguntas) {
     if (q.es_pisa) continue
-    const tag = q[field]
+    const tag = q[field] ? normalizeTag(q[field]) : null
     if (!tag) continue
     if (!groups[tag]) groups[tag] = new Set()
     groups[tag].add(String(q.id))
@@ -106,8 +177,35 @@ export function findCombo(
   return raw.datos.find(d => d.materia === materia && d.anio === anio && d.toma === toma)
 }
 
-export function filterEstudiantes(combo: I_RawComboDato, division: string) {
-  return division.toLowerCase() === 'todas'
+export function filterEstudiantes(combo: I_RawComboDato, division: string, neeFilter: string = 'Todos') {
+  let students = division.toLowerCase() === 'todas'
     ? combo.estudiantes_mi
     : combo.estudiantes_mi.filter(s => !s.division || s.division === division)
+  if (neeFilter === 'Sin NEE') {
+    students = students.filter(s => !s.nee)
+  }
+  return students
+}
+
+export interface PreparedCombo {
+  combo: I_RawComboDato
+  students: ReturnType<typeof filterEstudiantes>
+  qids: string[]
+}
+
+export function prepareCombo(
+  raw: I_RawEscuelaDatos,
+  materia: string,
+  anio: string,
+  toma: string,
+  division: string,
+  neeFilter: string = 'Todos',
+): PreparedCombo | null {
+  const combo = findCombo(raw, materia, anio, toma)
+  if (!combo) return null
+  return {
+    combo,
+    students: filterEstudiantes(combo, division, neeFilter),
+    qids: combo.preguntas.map(q => String(q.id)),
+  }
 }

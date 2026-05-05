@@ -34,6 +34,7 @@ interface I_FiltrosAurora {
   anio: string
   division: string
   toma: string
+  neeFilter?: string
 }
 
 interface I_ItemAurora {
@@ -43,12 +44,15 @@ interface I_ItemAurora {
 }
 
 interface I_BoxplotAurora {
-  min: number
+  min: number       // whisker low (q1 - 1.5*IQR clamped to data min)
   q1: number
   md: number
   q3: number
-  max: number
+  max: number       // whisker high (q3 + 1.5*IQR clamped to data max)
   av: number
+  outliers?: number[]
+  rawMin?: number   // actual data min (for tooltip)
+  rawMax?: number
 }
 
 interface I_ResumenTabData {
@@ -73,7 +77,14 @@ interface I_DetalleTabData {
   lenCont?: I_ItemAurora[]
   boxplotMiLenguaje?: I_BoxplotAurora
   boxplotTodosLenguaje?: I_BoxplotAurora
-  estudiantes: Array<{ id: number; score: number }>
+  estudiantes: Array<{
+    id: string
+    score: number
+    contenido: I_ItemAurora[]
+    competencia: I_ItemAurora[]
+    lenCont?: I_ItemAurora[]
+    lenComp?: I_ItemAurora[]
+  }>
 }
 
 // ─── Raw backend response types ───────────────────────────────────────────────
@@ -97,7 +108,7 @@ interface I_RawComboDato {
   anio: string
   toma: string
   preguntas: I_RawPregunta[]
-  estudiantes_mi: Array<{ division: string | null; respuestas: Record<string, boolean> }>
+  estudiantes_mi: Array<{ id: string; division: string | null; nee?: boolean; respuestas: Record<string, boolean> }>
   todos: I_RawTodos
 }
 
@@ -105,6 +116,8 @@ interface I_RawEscuelaDatos {
   colegio: string
   colegio_meta_id: string
   datos: I_RawComboDato[]
+  report_id?: number | null
+  report_status?: T_AuroraReportStatus | null
 }
 
 // ─── UI state types ──────────────────────────────────────────────────────────
@@ -129,6 +142,8 @@ interface I_TablaRow {
   len?: number
 }
 
+type T_AuroraReportStatus = 'draft' | 'published'
+
 interface I_AuroraReportListItem {
   id: number
   school: number
@@ -136,6 +151,8 @@ interface I_AuroraReportListItem {
   toma: string
   blob_path: string
   last_generated_at: string | null
+  status: T_AuroraReportStatus
+  published_at: string | null
 }
 type T_AuroraReportList = I_PaginatedResponse<I_AuroraReportListItem>
 
@@ -166,4 +183,5 @@ export type {
   I_AuroraReportListItem,
   T_AuroraReportList,
   I_AuroraReportCreateRequestData,
+  T_AuroraReportStatus,
 }
