@@ -7,17 +7,17 @@ import type {
   I_SemaforoBandas,
 } from '@/mta_reports_v2/types'
 
-// ─── Spec mapping ─────────────────────────────────────────────────────────────
-// pct_correctas              -> studentScores (per-student %) + todosRate (aggregate %). Se agregan tres porcentajes: las de 45, las 40 normales y las 5 PISA
+// ─── Mapeo de spec ────────────────────────────────────────────────────────────
+// pct_correctas              -> studentScores (% por estudiante) + todosRate (% agregado). Se agregan tres porcentajes: las de 45, las 40 normales y las 5 PISA
 // pct_correctas_mi_colegio   -> studentScores(qids, estudiantes_mi)
 // pct_correctas_todos        -> todosRate(qids, pp)
-// pct_correctas_por_eval     -> studentScores returns one entry per evaluation_resolution
+// pct_correctas_por_eval     -> studentScores devuelve una entrada por evaluation_resolution
 // participantes_colegio      -> estudiantes_mi.length
 // participantes_todos        -> combo.todos.puntajes.length
 // pct_correctas_por_grupo    -> groupBy('contenido' | 'competencia', ...)
-// semaforo                   -> bandForCount + caller iterates students
-// boxplot_stats              -> boxplot()  (min/max are whisker fences using 1.5*IQR; outliers reported separately)
-// scatter_por_alumno         -> see calc/ScatterTab.ts (joins lengua and mate by array index — see structural assumption)
+// semaforo                   -> bandForCount + el caller itera estudiantes
+// boxplot_stats              -> boxplot()  (min/max son whisker fences usando 1.5*IQR; los outliers se reportan por separado)
+// scatter_por_alumno         -> ver calc/ScatterTab.ts (junta lengua y mate por índice de array — ver supuesto estructural)
 
 export function r1(x: number): number {
   return Math.round(x * 10) / 10
@@ -152,6 +152,42 @@ export function groupBy(
   }))
 }
 
+// Agrupa preguntas por microcompetencia leyendo el campo `tags` (string separado por ';').
+// Solo se consideran tags con prefijo 'microcompetencia-'. El slug se mapea al nombre
+// canónico de display (con acentos y mayúsculas) vía MICROCOMPETENCIA_LABELS.
+const MICROCOMPETENCIA_PREFIX = 'microcompetencia-'
+const MICROCOMPETENCIA_LABELS: Record<string, string> = {
+  'analisis-textual': 'Análisis textual',
+  'reconocimiento-de-informacion-explicita': 'Reconocimiento de información explícita',
+  'reconocimiento-de-informacion-implicita': 'Reconocimiento de información implícita',
+}
+
+export function groupByMicrocompetencia(
+  preguntas: I_RawPregunta[],
+  pp: Record<string, { n_correctas: number; n_total: number }>,
+  estudiantes: Array<Record<string, boolean>>,
+): I_ItemAurora[] {
+  const groups: Record<string, Set<string>> = {}
+  for (const q of preguntas) {
+    if (q.es_pisa) continue
+    if (!q.tags) continue
+    const tags = q.tags.split(';').map(t => t.trim()).filter(Boolean)
+    for (const tag of tags) {
+      if (!tag.startsWith(MICROCOMPETENCIA_PREFIX)) continue
+      const slug = tag.slice(MICROCOMPETENCIA_PREFIX.length)
+      // Si el slug no está mapeado, se usa tal cual (degradación elegante).
+      const label = MICROCOMPETENCIA_LABELS[slug] ?? slug
+      if (!groups[label]) groups[label] = new Set()
+      groups[label].add(String(q.id))
+    }
+  }
+  return Object.entries(groups).map(([label, qids]) => ({
+    n: label,
+    mi: r1(mean(studentScores(qids, estudiantes))),
+    t:  todosRate(qids, pp),
+  }))
+}
+
 export function calcPercentage(
   answered: string[],
   responses: Record<string, boolean>,
@@ -168,13 +204,60 @@ export function bandForCount(correct: number): keyof I_SemaforoBandas {
   return 'rojo'
 }
 
+function aggregateCombos(
+  combos: I_RawComboDato[],
+  materia: string,
+  anio: string,
+  toma: string,
+): I_RawComboDato {
+  const preguntas = combos.flatMap(c => c.preguntas)
+  const estudiantes_mi = combos.flatMap(c => c.estudiantes_mi)
+  const por_pregunta: Record<string, { n_correctas: number; n_total: number }> = {}
+  for (const c of combos) {
+    for (const [qid, v] of Object.entries(c.todos?.por_pregunta ?? {})) {
+      const cur = por_pregunta[qid]
+      por_pregunta[qid] = cur
+        ? { n_correctas: cur.n_correctas + v.n_correctas, n_total: cur.n_total + v.n_total }
+        : { ...v }
+    }
+  }
+  const puntajes = combos.flatMap(c => c.todos?.puntajes ?? [])
+  const escMap: Record<string, { sumPctN: number; sumN: number }> = {}
+  for (const c of combos) {
+    for (const e of c.todos?.por_escuela ?? []) {
+      if (!escMap[e.id]) escMap[e.id] = { sumPctN: 0, sumN: 0 }
+      escMap[e.id].sumPctN += e.pct * e.n
+      escMap[e.id].sumN += e.n
+    }
+  }
+  const por_escuela = Object.entries(escMap).map(([id, { sumPctN, sumN }]) => ({
+    id, pct: sumN ? r1(sumPctN / sumN) : 0, n: sumN,
+  }))
+  return {
+    materia, anio, toma, preguntas, estudiantes_mi,
+    todos: { por_pregunta, puntajes, por_escuela },
+  }
+}
+
 export function findCombo(
   raw: I_RawEscuelaDatos,
   materia: string,
   anio: string,
   toma: string,
 ): I_RawComboDato | undefined {
-  return raw.datos.find(d => d.materia === materia && d.anio === anio && d.toma === toma)
+  const allMat = materia === 'Todos'
+  const allAnio = anio === 'Todos'
+  if (!allMat && !allAnio) {
+    return raw.datos.find(d => d.materia === materia && d.anio === anio && d.toma === toma)
+  }
+  const matching = raw.datos.filter(d =>
+    (allMat || d.materia === materia) &&
+    (allAnio || d.anio === anio) &&
+    d.toma === toma,
+  )
+  if (matching.length === 0) return undefined
+  if (matching.length === 1) return matching[0]
+  return aggregateCombos(matching, materia, anio, toma)
 }
 
 export function filterEstudiantes(combo: I_RawComboDato, division: string, neeFilter: string = 'Todos') {

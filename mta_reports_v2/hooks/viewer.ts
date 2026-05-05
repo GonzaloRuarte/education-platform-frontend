@@ -46,15 +46,25 @@ const useEscuelaReporteAurora = (escuelaId: number | null) => {
   )
 
   const getAnios = useCallback((toma: string, materia: string): string[] => {
-    const available = new Set(uniqueFrom('anio', d => d.toma === toma && d.materia === materia))
+    const available = new Set(uniqueFrom('anio', d =>
+      d.toma === toma && (materia === 'Todos' || d.materia === materia),
+    ))
     return ANIO_ORDER.filter(a => available.has(a))
   }, [uniqueFrom])
 
   const getDivisiones = useCallback((materia: string, anio: string, toma: string): string[] => {
     if (!rawData) return []
-    const combo = rawData.datos.find(d => d.materia === materia && d.anio === anio && d.toma === toma)
-    if (!combo) return []
-    const divs = [...new Set(combo.estudiantes_mi.map(s => s.division).filter(Boolean))] as string[]
+    const matching = rawData.datos.filter(d =>
+      (materia === 'Todos' || d.materia === materia) &&
+      (anio === 'Todos' || d.anio === anio) &&
+      d.toma === toma,
+    )
+    if (matching.length === 0) return []
+    const divSet = new Set<string>()
+    for (const c of matching) {
+      for (const s of c.estudiantes_mi) if (s.division) divSet.add(s.division)
+    }
+    const divs = [...divSet]
     return divs.length > 1 ? ['Todas', ...divs] : divs
   }, [rawData])
 

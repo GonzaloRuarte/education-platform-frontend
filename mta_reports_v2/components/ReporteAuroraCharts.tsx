@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Box, Stack, Typography } from '@mui/material'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Rectangle, LabelList, ComposedChart, Tooltip } from 'recharts'
 import { COLORS, FONT_SIZES, SPACING, CHART_MARGINS, CARD_SX, FILL_COLUMN_SX, RADIUS } from '@/mta_reports_v2/constants'
@@ -15,7 +15,7 @@ function Leg({ c, t }: { c: string; t: string }) {
   return (
     <Stack direction="row" alignItems="center" spacing={0.5} component="span" sx={{ mr: 2, display: 'inline-flex' }}>
       <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: c, flexShrink: 0 }} />
-      <Typography variant="caption" sx={{ color: C.tm, fontSize: F.base }}>{t}</Typography>
+      <Typography variant="caption" sx={{ color: C.darkGrey, fontSize: F.base }}>{t}</Typography>
     </Stack>
   )
 }
@@ -51,16 +51,48 @@ function AllSchoolsBarChart({
     ? Math.round(sorted.reduce((s, e) => s + e.p, 0) / sorted.length * 10) / 10
     : 0
 
+  const SCROLL_THRESHOLD = 20
+  const MIN_BAR_WIDTH = 60
+  const needsScroll = sorted.length > SCROLL_THRESHOLD
+  const scrollWidth = sorted.length * MIN_BAR_WIDTH
+
   const wrapperSx = fill
     ? FILL_COLUMN_SX
     : { display: 'flex', flexDirection: 'column', height: height }
-  const chartWrapperSx = fill
-    ? { flex: 1, minHeight: 0 }
-    : { flex: 1 }
+  const chartWrapperSx = {
+    ...(fill ? { flex: 1, minHeight: 0 } : { flex: 1 }),
+    ...(needsScroll ? { overflowX: 'auto', overflowY: 'hidden' } : {}),
+  }
+
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  const applyStickyY = (scrollEl: HTMLDivElement, scrollLeft: number) => {
+    const yAxes = scrollEl.querySelectorAll<SVGGElement>('.recharts-yAxis')
+    yAxes.forEach(el => {
+      el.style.transform = `translateX(${scrollLeft}px)`
+    })
+  }
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (!needsScroll) return
+    applyStickyY(e.currentTarget, e.currentTarget.scrollLeft)
+  }
+
+  useEffect(() => {
+    if (!needsScroll) return
+    const el = scrollRef.current
+    if (!el) return
+    const idx = sorted.findIndex(b => b.id === miId)
+    if (idx < 0) return
+    const target = Math.max(0, idx * MIN_BAR_WIDTH - (el.clientWidth - MIN_BAR_WIDTH) / 2)
+    el.scrollLeft = target
+    applyStickyY(el, target)
+  }, [needsScroll, scrollWidth, miId])
 
   return (
     <Box ref={containerRef} sx={wrapperSx}>
-      <Box sx={chartWrapperSx}>
+      <Box ref={scrollRef} sx={chartWrapperSx} onScroll={handleScroll}>
+       <Box sx={{ width: needsScroll ? `${scrollWidth}px` : '100%', height: '100%' }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={sorted}
@@ -116,6 +148,7 @@ function AllSchoolsBarChart({
             />
           </BarChart>
         </ResponsiveContainer>
+       </Box>
       </Box>
       <Box sx={{ mt: 0.75, flexShrink: 0 }}>
         <Leg c={C.navyMid} t="Mi escuela" />
@@ -178,14 +211,38 @@ function HorizontalBarChart({
   baseHeight?: number
   barSize?: number
 }) {
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null)
+
   const data = items.map(item => ({ name: item.n, mi: item.mi, todos: item.t }))
   const chartH = Math.max(80, data.length * rowHeight + baseHeight)
   const maxVal = data.reduce((m, d) => Math.max(m, d.mi ?? 0, d.todos ?? 0), 0)
   const xMax = Math.min(100, Math.max(20, Math.ceil((maxVal) / 10) * 10))
 
+  const makeShape = (fill: string) => (props: any) => {
+    const isHover = props.index === hoverIdx
+    return (
+      <Rectangle
+        {...props}
+        fill={fill}
+        radius={[0, 2, 2, 0]}
+        style={{
+          transition: 'opacity 0.12s ease',
+          opacity: hoverIdx === null || isHover ? 1 : 0.35,
+        }}
+      />
+    )
+  }
+
   return (
     <ResponsiveContainer width="100%" height={chartH}>
-      <BarChart layout="vertical" data={data} margin={CHART_MARGINS.horizontal} barGap={0}>
+      <BarChart
+        layout="vertical"
+        data={data}
+        margin={CHART_MARGINS.horizontal}
+        barGap={0}
+        onMouseMove={(s: any) => setHoverIdx(typeof s?.activeTooltipIndex === 'number' ? s.activeTooltipIndex : null)}
+        onMouseLeave={() => setHoverIdx(null)}
+      >
         <CartesianGrid horizontal={false} stroke={C.gridLight} strokeDasharray="3 3" />
         <XAxis
           type="number"
@@ -204,10 +261,42 @@ function HorizontalBarChart({
           tickLine={false}
           interval={0}
         />
-        <Bar dataKey="mi" fill={C.navyMid} barSize={barSize} name="Mi colegio">
+        <Tooltip
+          cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+          isAnimationActive={false}
+          content={({ active, payload }: any) => {
+            if (!active || !payload?.length) return null
+            const row = payload[0].payload
+            return (
+              <Box sx={{
+                bgcolor: C.white,
+                border: `1px solid ${C.gridDivider}`,
+                borderRadius: 1,
+                px: 1.5,
+                py: 1,
+                fontSize: F.lg,
+                color: C.darkGrey,
+                lineHeight: 1.9,
+                maxWidth: 280,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+              }}>
+                <Box sx={{ fontWeight: 700, color: C.navy, mb: 0.5, wordBreak: 'break-word' }}>{row.name}</Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                  <Box component="span" sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: C.navyMid, flexShrink: 0, display: 'inline-block' }} />
+                  Mi colegio: <strong style={{ marginLeft: 4 }}>{row.mi}%</strong>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                  <Box component="span" sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: C.iceBlue, border: `1.5px solid ${C.gridDivider}`, flexShrink: 0, display: 'inline-block' }} />
+                  Todos los colegios: <strong style={{ marginLeft: 4 }}>{row.todos}%</strong>
+                </Box>
+              </Box>
+            )
+          }}
+        />
+        <Bar dataKey="mi" fill={C.navyMid} barSize={barSize} name="Mi colegio" shape={makeShape(C.navyMid)}>
           <LabelList dataKey="mi" position="right" formatter={(v: number) => `${v} %`} style={{ fontSize: F.lg, fill: C.navy }} />
         </Bar>
-        <Bar dataKey="todos" fill={C.iceBlue} barSize={barSize} name="Todos los colegios">
+        <Bar dataKey="todos" fill={C.iceBlue} barSize={barSize} name="Todos los colegios" shape={makeShape(C.iceBlue)}>
           <LabelList dataKey="todos" position="right" formatter={(v: number) => `${v} %`} style={{ fontSize: F.lg, fill: C.tm }} />
         </Bar>
       </BarChart>
@@ -267,6 +356,37 @@ function BP({ d, color, w = 120, h = 340 }: { d: I_BoxplotAurora; color: string;
             axisLine={false}
             tickLine={false}
             width={36}
+          />
+          <Tooltip
+            cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+            isAnimationActive={false}
+            content={({ active }: any) => {
+              if (!active) return null
+              return (
+                <Box sx={{
+                  bgcolor: C.white,
+                  border: `1px solid ${C.gridDivider}`,
+                  borderRadius: 1,
+                  px: 1.5,
+                  py: 1,
+                  fontSize: F.lg,
+                  color: C.darkGrey,
+                  lineHeight: 1.9,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+                }}>
+                  <Box sx={{ fontWeight: 700, color: C.navy, mb: 0.5 }}>Distribución</Box>
+                  <Box>Máximo: <strong>{d.rawMax ?? d.max}%</strong></Box>
+                  <Box>Q3: <strong>{d.q3}%</strong></Box>
+                  <Box>Mediana: <strong>{d.md}%</strong></Box>
+                  <Box>Media: <strong>{d.av}%</strong></Box>
+                  <Box>Q1: <strong>{d.q1}%</strong></Box>
+                  <Box>Mínimo: <strong>{d.rawMin ?? d.min}%</strong></Box>
+                  {d.outliers && d.outliers.length > 0 && (
+                    <Box sx={{ mt: 0.5 }}>Atípicos: <strong>{d.outliers.join(', ')}%</strong></Box>
+                  )}
+                </Box>
+              )
+            }}
           />
           <Bar dataKey="range" isAnimationActive={false} shape={(props: any) => <BoxplotShape {...props} d={d} color={color} />} />
         </ComposedChart>

@@ -27,7 +27,7 @@ interface I_ReportUpdateRequestData {
   power_bi_link: string | URL
 }
 
-// ─── Aurora Report visualization ──────────────────────────────────────────────
+// ─── Visualización de Reporte Aurora ──────────────────────────────────────────
 
 interface I_FiltrosAurora {
   materia: string
@@ -44,14 +44,14 @@ interface I_ItemAurora {
 }
 
 interface I_BoxplotAurora {
-  min: number       // whisker low (q1 - 1.5*IQR clamped to data min)
+  min: number       // whisker inferior (q1 - 1.5*IQR acotado al mínimo de los datos)
   q1: number
   md: number
   q3: number
-  max: number       // whisker high (q3 + 1.5*IQR clamped to data max)
+  max: number       // whisker superior (q3 + 1.5*IQR acotado al máximo de los datos)
   av: number
   outliers?: number[]
-  rawMin?: number   // actual data min (for tooltip)
+  rawMin?: number   // mínimo real de los datos (para tooltip)
   rawMax?: number
 }
 
@@ -79,6 +79,7 @@ interface I_DetalleTabData {
   boxplotTodosLenguaje?: I_BoxplotAurora
   estudiantes: Array<{
     id: string
+    dni: string
     score: number
     contenido: I_ItemAurora[]
     competencia: I_ItemAurora[]
@@ -87,7 +88,7 @@ interface I_DetalleTabData {
   }>
 }
 
-// ─── Raw backend response types ───────────────────────────────────────────────
+// ─── Tipos crudos de respuesta del backend ────────────────────────────────────
 
 interface I_RawPregunta {
   id: number
@@ -95,6 +96,9 @@ interface I_RawPregunta {
   competencia: string
   contenido: string
   es_pisa: boolean
+  // String con tags separados por ';'. Para Lenguaje, las microcompetencias
+  // vienen como tags con prefijo 'microcompetencia-' (ver groupByMicrocompetencia).
+  tags?: string
 }
 
 interface I_RawTodos {
@@ -120,7 +124,7 @@ interface I_RawEscuelaDatos {
   report_status?: T_AuroraReportStatus | null
 }
 
-// ─── UI state types ──────────────────────────────────────────────────────────
+// ─── Tipos de estado de UI ───────────────────────────────────────────────────
 
 interface I_SemaforoBandas {
   verde: number

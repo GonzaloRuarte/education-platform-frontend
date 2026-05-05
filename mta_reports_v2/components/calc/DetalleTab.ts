@@ -8,6 +8,7 @@ import {
   filterEstudiantes,
   findCombo,
   groupBy,
+  groupByMicrocompetencia,
   r1,
   studentScores,
 } from './_shared'
@@ -26,24 +27,33 @@ export function calcDetalle(
   const allIds = new Set(combo.preguntas.map(q => String(q.id)))
   const scores45 = studentScores(allIds, estudiantes_mi)
 
-  const contenido   = groupBy('contenido',   combo.preguntas, pp, estudiantes_mi)
+  const isLenguajeRaw = f.materia === 'Prácticas del Lenguaje'
+  // Para Lenguaje, las microcompetencias se leen de `tags` con prefijo 'microcompetencia-'
+  // (no del campo `contenido`, que trae otra taxonomía).
+  const contenido   = isLenguajeRaw
+    ? groupByMicrocompetencia(combo.preguntas, pp, estudiantes_mi)
+    : groupBy('contenido', combo.preguntas, pp, estudiantes_mi)
   const competencia = groupBy('competencia', combo.preguntas, pp, estudiantes_mi)
   const bpMi    = boxplot(scores45)
   const bpTodos = boxplot(combo.todos.puntajes)
 
-  const isLenguaje = f.materia === 'Prácticas del Lenguaje'
+  const isLenguaje = isLenguajeRaw
 
-  const estudiantes = filtered.map((s) => {
+  const estudiantes = filtered.map((s, idx) => {
     const respuestas = s.respuestas
     const answered = [...allIds].filter(k => k in respuestas)
     const score = answered.length
       ? r1(answered.filter(k => respuestas[k]).length / answered.length * 100)
       : 0
     const one = [respuestas]
-    const stCont = groupBy('contenido',   combo.preguntas, pp, one)
+    // Misma lógica que arriba: microcompetencias por tags en Lenguaje, contenido por campo en el resto.
+    const stCont = isLenguaje
+      ? groupByMicrocompetencia(combo.preguntas, pp, one)
+      : groupBy('contenido', combo.preguntas, pp, one)
     const stComp = groupBy('competencia', combo.preguntas, pp, one)
     return {
-      id: s.id,
+      id: String(idx + 1),
+      dni: s.id,
       score,
       contenido:   isLenguaje ? [] : stCont,
       competencia: isLenguaje ? [] : stComp,

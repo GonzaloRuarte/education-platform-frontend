@@ -1,5 +1,5 @@
-// Static descriptor content for the Semáforo page.
-// Organized by: año → materia → nivel (verde, amarillo, naranja, rojo).
+// Contenido descriptor estático para la página Semáforo.
+// Organizado por: año → materia → nivel (verde, amarillo, naranja, rojo).
 
 export interface SemaforoGrupo {
   titulo?: string
