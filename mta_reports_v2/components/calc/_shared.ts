@@ -168,13 +168,60 @@ export function bandForCount(correct: number): keyof I_SemaforoBandas {
   return 'rojo'
 }
 
+function aggregateCombos(
+  combos: I_RawComboDato[],
+  materia: string,
+  anio: string,
+  toma: string,
+): I_RawComboDato {
+  const preguntas = combos.flatMap(c => c.preguntas)
+  const estudiantes_mi = combos.flatMap(c => c.estudiantes_mi)
+  const por_pregunta: Record<string, { n_correctas: number; n_total: number }> = {}
+  for (const c of combos) {
+    for (const [qid, v] of Object.entries(c.todos?.por_pregunta ?? {})) {
+      const cur = por_pregunta[qid]
+      por_pregunta[qid] = cur
+        ? { n_correctas: cur.n_correctas + v.n_correctas, n_total: cur.n_total + v.n_total }
+        : { ...v }
+    }
+  }
+  const puntajes = combos.flatMap(c => c.todos?.puntajes ?? [])
+  const escMap: Record<string, { sumPctN: number; sumN: number }> = {}
+  for (const c of combos) {
+    for (const e of c.todos?.por_escuela ?? []) {
+      if (!escMap[e.id]) escMap[e.id] = { sumPctN: 0, sumN: 0 }
+      escMap[e.id].sumPctN += e.pct * e.n
+      escMap[e.id].sumN += e.n
+    }
+  }
+  const por_escuela = Object.entries(escMap).map(([id, { sumPctN, sumN }]) => ({
+    id, pct: sumN ? r1(sumPctN / sumN) : 0, n: sumN,
+  }))
+  return {
+    materia, anio, toma, preguntas, estudiantes_mi,
+    todos: { por_pregunta, puntajes, por_escuela },
+  }
+}
+
 export function findCombo(
   raw: I_RawEscuelaDatos,
   materia: string,
   anio: string,
   toma: string,
 ): I_RawComboDato | undefined {
-  return raw.datos.find(d => d.materia === materia && d.anio === anio && d.toma === toma)
+  const allMat = materia === 'Todos'
+  const allAnio = anio === 'Todos'
+  if (!allMat && !allAnio) {
+    return raw.datos.find(d => d.materia === materia && d.anio === anio && d.toma === toma)
+  }
+  const matching = raw.datos.filter(d =>
+    (allMat || d.materia === materia) &&
+    (allAnio || d.anio === anio) &&
+    d.toma === toma,
+  )
+  if (matching.length === 0) return undefined
+  if (matching.length === 1) return matching[0]
+  return aggregateCombos(matching, materia, anio, toma)
 }
 
 export function filterEstudiantes(combo: I_RawComboDato, division: string, neeFilter: string = 'Todos') {

@@ -39,8 +39,8 @@ const ReporteAurora = () => {
 
   const [tab, setTab] = useState<TabId>(editRequested ? 'intro' : 'cover')
   const [toma, setToma] = useState('')
-  const [materia, setMateria] = useState('Matemática')
-  const [anio, setAnio] = useState('3ro')
+  const [materia, setMateria] = useState('Todos')
+  const [anio, setAnio] = useState('Todos')
   const [division, setDivision] = useState('Todas')
   const [semaforoAnio, setSemaforoAnio] = useState<string>('3ro')
   const [neeFilter, setNeeFilter] = useState('Con NEE')
@@ -70,6 +70,7 @@ const ReporteAurora = () => {
     setToma(t => (tomas.length > 0 && !t ? tomas[tomas.length - 1] : t))
   }, [tomas])
   useEffect(() => {
+    if (materia === 'Todos') return
     if (materias.length > 0 && !materias.includes(materia)) setMateria(materias[0])
   }, [materias, materia])
   useEffect(() => {
@@ -82,6 +83,7 @@ const ReporteAurora = () => {
     }
   }, [tab, materia, materias])
   useEffect(() => {
+    if (anio === 'Todos') return
     if (anios.length > 0 && !anios.includes(anio)) setAnio(anios[0])
   }, [anios, anio])
   useEffect(() => {
@@ -134,8 +136,8 @@ const ReporteAurora = () => {
 
   const tomaFilter = useMemo<FilterDef>(() => ({ label: 'Toma', value: toma, opts: tomas.length > 0 ? tomas : [toma].filter(Boolean), set: setToma }), [toma, tomas])
   const divFilter = useMemo<FilterDef>(() => ({ label: 'División', value: division, opts: divisiones, set: setDivision }), [division, divisiones])
-  const materiaFilter = useMemo<FilterDef>(() => ({ label: 'Materia', value: materia, opts: materias.length > 0 ? materias : [materia], set: setMateria }), [materia, materias])
-  const anioFilter = useMemo<FilterDef>(() => ({ label: 'Año', value: anio, opts: anios.length > 0 ? anios : ANIO_ORDER.slice(), set: setAnio }), [anio, anios])
+  const materiaFilter = useMemo<FilterDef>(() => ({ label: 'Materia', value: materia, opts: ['Todos', ...(materias.length > 0 ? materias : [materia].filter(m => m && m !== 'Todos'))], set: setMateria }), [materia, materias])
+  const anioFilter = useMemo<FilterDef>(() => ({ label: 'Año', value: anio, opts: ['Todos', ...(anios.length > 0 ? anios : ANIO_ORDER.slice())], set: setAnio }), [anio, anios])
   const neeFilterDef = useMemo<FilterDef>(() => ({ label: 'NEE', value: neeFilter, opts: ['Con NEE', 'Sin NEE'], set: setNeeFilter }), [neeFilter])
 
   const studentLabelOpts = useMemo(() => {
@@ -182,8 +184,8 @@ const ReporteAurora = () => {
   )
 
   const resetFilters = () => {
-    setMateria('Matemática')
-    setAnio('3ro')
+    setMateria('Todos')
+    setAnio('Todos')
     setDivision('Todas')
     setNeeFilter('Con NEE')
     setSelectedStudentLabel('Todos los alumnos')

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Box, Stack, Typography, FormControl, InputLabel, Select, MenuItem, Grid2, Tooltip } from '@mui/material'
+import { Box, Stack, Typography, FormControl, Select, MenuItem, Grid2, Tooltip } from '@mui/material'
 import Paper from '@mui/material/Paper'
 import { BP, HorizontalBarChart, MiVsTodosLegend, ChartCard } from '@/mta_reports_v2/components/ReporteAuroraCharts'
 import { COLORS, FONT_SIZES, RADIUS, FILL_COLUMN_SX } from '@/mta_reports_v2/constants'
@@ -22,15 +22,11 @@ const expectedSet = (xs: string[]) => new Set(xs.map(norm))
 
 interface DetalleTabProps {
   data: I_DetalleTabData
-  division?: string
-  divisiones?: string[]
-  onDivisionChange?: (v: string) => void
 }
 
-function DetalleTab({ data, division, divisiones, onDivisionChange }: DetalleTabProps) {
+function DetalleTab({ data }: DetalleTabProps) {
   const d = data
   const isLenguaje = (d.lenComp?.length ?? 0) > 0
-  const showDivisionFilter = !!(divisiones && divisiones.length > 1 && onDivisionChange && division !== undefined)
 
   const [selectedStudentId, setSelectedStudentId] = useState<string | number>('all')
 
@@ -74,23 +70,6 @@ function DetalleTab({ data, division, divisiones, onDivisionChange }: DetalleTab
 
   return (
     <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
-      {showDivisionFilter && (
-        <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Typography variant="body2" sx={{ fontWeight: 700, color: C.navy, fontSize: F.lg }}>
-            División
-          </Typography>
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <Select
-              value={division}
-              onChange={(e) => onDivisionChange!(e.target.value)}
-            >
-              {divisiones!.map(div => (
-                <MenuItem key={div} value={div}>{div}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Stack>
-      )}
       <Grid2 container spacing={1.5} alignItems="stretch" sx={{ flex: 1, minHeight: 0 }}>
       <Grid2 size={{ xs: 12, md: 7 }} sx={{ display: 'flex', flexDirection: 'column' }}>
         <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>

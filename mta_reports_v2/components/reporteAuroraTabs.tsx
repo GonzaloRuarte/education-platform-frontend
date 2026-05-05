@@ -101,7 +101,11 @@ const buildFilters = (flags: FilterFlags) => (ctx: TabFiltersCtx): Array<FilterD
 
 const filtersResumenLike = buildFilters({ materia: true, anio: true, division: true, toma: true })
 const filtersScatterLike = buildFilters({ anio: true, division: true, toma: true })
-const filtersDetalleSplitLike = buildFilters({ anio: true, division: true, toma: true })
+const filtersDetalleSplitLike = (ctx: TabFiltersCtx): Array<FilterDef> => [
+  ctx.anioFilter,
+  ctx.divFilter,
+  ctx.tomaFilter,
+]
 const filtersSemaforoSplitLike = (ctx: TabFiltersCtx): Array<FilterDef> => {
   const out: Array<FilterDef> = []
   if (ctx.divisiones.length > 1) out.push(ctx.divFilter)
@@ -170,17 +174,17 @@ export const TABS: ReadonlyArray<TabDef> = [
   {
     id: 'detalleLenguaje', label: 'Prácticas del Lenguaje', kind: 'data',
     filters: filtersDetalleSplitLike,
-    render: ({ detalleData, materia, anio, toma, division, divisiones, setDivision }) =>
+    render: ({ detalleData, materia, anio, toma }) =>
       detalleData
-        ? <DetalleTab data={detalleData} division={division} divisiones={divisiones} onDivisionChange={setDivision} />
+        ? <DetalleTab data={detalleData} />
         : (toma ? <NoData materia={materia} anio={anio} toma={toma} /> : null),
   },
   {
     id: 'detalleMatematica', label: 'Matemática', kind: 'data',
     filters: filtersDetalleSplitLike,
-    render: ({ detalleData, materia, anio, toma, division, divisiones, setDivision }) =>
+    render: ({ detalleData, materia, anio, toma }) =>
       detalleData
-        ? <DetalleTab data={detalleData} division={division} divisiones={divisiones} onDivisionChange={setDivision} />
+        ? <DetalleTab data={detalleData} />
         : (toma ? <NoData materia={materia} anio={anio} toma={toma} /> : null),
   },
   {
