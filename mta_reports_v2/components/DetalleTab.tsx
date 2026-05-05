@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Box, Stack, Typography, FormControl, Select, MenuItem, Grid2, Tooltip, IconButton } from '@mui/material'
 import Paper from '@mui/material/Paper'
-import BackspaceOutlinedIcon from '@mui/icons-material/BackspaceOutlined'
+import HighlightOffIcon from '@mui/icons-material/HighlightOff'
 import { BP, HorizontalBarChart, MiVsTodosLegend, ChartCard } from '@/mta_reports_v2/components/ReporteAuroraCharts'
 import { COLORS, FONT_SIZES, RADIUS, FILL_COLUMN_SX } from '@/mta_reports_v2/constants'
 import type { I_DetalleTabData } from '@/mta_reports_v2/types'
@@ -152,7 +152,7 @@ function DetalleTab({ data }: DetalleTabProps) {
                     disabled={selectedStudentId === 'all'}
                     aria-label="Borrar selección de alumno"
                   >
-                    <BackspaceOutlinedIcon fontSize="small" />
+                    <HighlightOffIcon fontSize="small" />
                   </IconButton>
                 </span>
               </Tooltip>
