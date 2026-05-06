@@ -87,6 +87,10 @@ const ReporteAurora = () => {
     if (anios.length > 0 && !anios.includes(anio)) setAnio(anios[0])
   }, [anios, anio])
   useEffect(() => {
+    const isDetalleTab = tab === 'detalleLenguaje' || tab === 'detalleMatematica'
+    if (isDetalleTab && anio === 'Todos' && anios.length > 0) setAnio(anios[0])
+  }, [tab, anio, anios])
+  useEffect(() => {
     if (divisiones.length > 0 && !divisiones.includes(division)) setDivision(divisiones[0])
   }, [divisiones, division])
   useEffect(() => {
