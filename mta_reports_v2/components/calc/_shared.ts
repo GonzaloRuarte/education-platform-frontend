@@ -169,6 +169,8 @@ const MICROCOMPETENCIA_LABELS: Record<string, string> = {
   'analisis-textual': 'Análisis textual',
   'reconocimiento-de-informacion-explicita': 'Reconocimiento de información explícita',
   'reconocimiento-de-informacion-implicita': 'Reconocimiento de información implícita',
+  'reconocimiento-de-informacion-implicita-interpretar': 'Reconocimiento de información implícita (interpretar)',
+  'clases-de-palabras': 'Clases de palabras',
 }
 
 export function groupByMicrocompetencia(

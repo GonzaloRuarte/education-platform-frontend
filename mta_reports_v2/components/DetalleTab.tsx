@@ -11,11 +11,20 @@ import type { I_DetalleTabData } from '@/mta_reports_v2/types'
 const C = COLORS
 const F = FONT_SIZES
 
-const EXPECTED_LEN_COMP = ['Comprensión lectora']
+const EXPECTED_LEN_COMP = [
+  'Comprensión lectora',
+  'Reflexión sobre los hechos del lenguaje',
+]
+// Para Lenguaje, lenCont combina tipos de texto (contenido-) y microcompetencias (microcompetencia-).
 const EXPECTED_LEN_CONT = [
-  'analisis textual',
-  'reconocimiento de información explícita',
-  'reconocimiento de información implícita',
+  'Texto argumentativo',
+  'Texto informativo',
+  'Texto narrativo',
+  'Análisis textual',
+  'Reconocimiento de información explícita',
+  'Reconocimiento de información implícita',
+  'Reconocimiento de información implícita (interpretar)',
+  'Clases de palabras',
 ]
 
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase()
