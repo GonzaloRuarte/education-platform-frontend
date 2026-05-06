@@ -381,9 +381,6 @@ function BP({ d, color, w = 120, h = 340 }: { d: I_BoxplotAurora; color: string;
                   <Box>Media: <strong>{d.av}%</strong></Box>
                   <Box>Q1: <strong>{d.q1}%</strong></Box>
                   <Box>Mínimo: <strong>{d.rawMin ?? d.min}%</strong></Box>
-                  {d.outliers && d.outliers.length > 0 && (
-                    <Box sx={{ mt: 0.5 }}>Atípicos: <strong>{d.outliers.join(', ')}%</strong></Box>
-                  )}
                 </Box>
               )
             }}

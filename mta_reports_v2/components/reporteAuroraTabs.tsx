@@ -102,7 +102,7 @@ const buildFilters = (flags: FilterFlags) => (ctx: TabFiltersCtx): Array<FilterD
 const filtersResumenLike = buildFilters({ materia: true, anio: true, division: true, toma: true })
 const filtersScatterLike = buildFilters({ anio: true, division: true, toma: true })
 const filtersDetalleSplitLike = (ctx: TabFiltersCtx): Array<FilterDef> => [
-  ctx.anioFilter,
+  { ...ctx.anioFilter, opts: ctx.anioFilter.opts.filter(o => o !== 'Todos') },
   ctx.divFilter,
   ctx.tomaFilter,
 ]

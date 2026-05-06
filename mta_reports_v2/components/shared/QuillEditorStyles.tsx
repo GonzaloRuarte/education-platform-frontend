@@ -8,8 +8,8 @@ const C = COLORS
  * Estilos globales para los editores Quill embebidos en las slides.
  *
  * Renderiza <style jsx global> apuntando a dos raíces de clase:
- *   .portada-editor      — usado por PortadaTab (toolbar transparente, tipografía hero)
- *   .editable-section-editor — usado por EditableContentSection (toolbar con variantes body/title)
+ *   .portada-editor      - usado por PortadaTab (toolbar transparente, tipografía hero)
+ *   .editable-section-editor - usado por EditableContentSection (toolbar con variantes body/title)
  *
  * Montar una vez por slide que lo necesite. Colocar ambas reglas juntas evita duplicar ~60 líneas
  * de CSS .ql-* casi idéntico entre los dos callers.

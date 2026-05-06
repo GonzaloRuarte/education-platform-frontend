@@ -27,7 +27,7 @@ export function ReportHeader({
 
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
         <Typography variant="h3" sx={{ color: C.navy, fontWeight: 800, lineHeight: 1 }}>
-          {schoolName} — {tabLabel}
+          {schoolName} - {tabLabel}
         </Typography>
         {canManage && reportId && (
           <Chip
