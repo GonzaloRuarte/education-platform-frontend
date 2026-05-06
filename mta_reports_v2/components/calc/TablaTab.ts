@@ -3,6 +3,7 @@ import type {
   I_TablaRow,
 } from '@/mta_reports_v2/types'
 import {
+  buildAnonIds,
   calcPercentage,
   prepareCombo,
 } from './_shared'
@@ -20,17 +21,26 @@ export function calcTabla(
   ]
   const infos = MATS.flatMap(({ materia, key }) => {
     const prepared = prepareCombo(raw, materia, anio, toma, division, neeFilter)
-    return prepared ? [{ students: prepared.students, qids: prepared.qids, key }] : []
+    return prepared ? [{ combo: prepared.combo, students: prepared.students, qids: prepared.qids, key }] : []
   })
-  const maxLen = Math.max(...infos.map(m => m.students.length), 0)
+  if (!infos.length) return []
 
-  return Array.from({ length: maxLen }, (_, i) => {
-    const row: I_TablaRow = { id: i + 1 }
-    for (const { students, qids, key } of infos) {
-      if (i >= students.length) continue
-      const answered = qids.filter(k => k in students[i].respuestas)
-      row[key] = calcPercentage(answered, students[i].respuestas)
+  const anonById = buildAnonIds(infos.map(i => i.combo), division)
+  const rowsById = new Map<string, I_TablaRow>()
+  for (const { students, qids, key } of infos) {
+    for (const s of students) {
+      const anonId = anonById.get(s.id)
+      if (!anonId) continue
+      let row = rowsById.get(anonId)
+      if (!row) {
+        row = { id: anonId }
+        rowsById.set(anonId, row)
+      }
+      const answered = qids.filter(k => k in s.respuestas)
+      row[key] = calcPercentage(answered, s.respuestas)
     }
-    return row
-  })
+  }
+  return [...rowsById.values()].sort((a, b) =>
+    a.id.localeCompare(b.id, undefined, { numeric: true }),
+  )
 }

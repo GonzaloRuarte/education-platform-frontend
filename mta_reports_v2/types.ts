@@ -135,13 +135,13 @@ interface I_SemaforoBandas {
 }
 
 interface I_ScatterPoint {
-  id: number
+  id: string
   pdl: number
   mat: number
 }
 
 interface I_TablaRow {
-  id: number
+  id: string
   mat?: number
   len?: number
 }
