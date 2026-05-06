@@ -23,7 +23,6 @@ const EXPECTED_LEN_CONT = [
   'Análisis textual',
   'Reconocimiento de información explícita',
   'Reconocimiento de información implícita',
-  'Reconocimiento de información implícita (interpretar)',
   'Clases de palabras',
 ]
 
