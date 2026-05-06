@@ -38,10 +38,10 @@ function TablaTab({ rows }: { rows: I_TablaRow[] }) {
               <TableRow key={row.id} hover sx={{ '&:nth-of-type(even)': { bgcolor: 'action.hover' } }}>
                 <TableCell sx={{ color: C.navy, fontWeight: 600 }}>{row.id}</TableCell>
                 <TableCell align="right">
-                  {row.mat != null ? `${row.mat}%` : <Typography variant="caption" color="text.disabled">—</Typography>}
+                  {row.mat != null ? `${row.mat}%` : <Typography variant="caption" color="text.disabled">-</Typography>}
                 </TableCell>
                 <TableCell align="right">
-                  {row.len != null ? `${row.len}%` : <Typography variant="caption" color="text.disabled">—</Typography>}
+                  {row.len != null ? `${row.len}%` : <Typography variant="caption" color="text.disabled">-</Typography>}
                 </TableCell>
               </TableRow>
             ))}

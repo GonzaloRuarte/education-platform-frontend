@@ -9,6 +9,7 @@ import {
   findCombo,
   groupBy,
   groupByMicrocompetencia,
+  isLenguajeMateria,
   r1,
   studentScores,
 } from './_shared'
@@ -27,7 +28,7 @@ export function calcDetalle(
   const allIds = new Set(combo.preguntas.map(q => String(q.id)))
   const scores45 = studentScores(allIds, estudiantes_mi)
 
-  const isLenguajeRaw = f.materia === 'Prácticas del Lenguaje'
+  const isLenguajeRaw = isLenguajeMateria(f.materia)
   // Para Lenguaje, las microcompetencias se leen de `tags` con prefijo 'microcompetencia-'
   // (no del campo `contenido`, que trae otra taxonomía).
   const contenido   = isLenguajeRaw

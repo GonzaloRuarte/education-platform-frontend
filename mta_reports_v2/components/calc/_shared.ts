@@ -17,10 +17,19 @@ import type {
 // pct_correctas_por_grupo    -> groupBy('contenido' | 'competencia', ...)
 // semaforo                   -> bandForCount + el caller itera estudiantes
 // boxplot_stats              -> boxplot()  (min/max son whisker fences usando 1.5*IQR; los outliers se reportan por separado)
-// scatter_por_alumno         -> ver calc/ScatterTab.ts (junta lengua y mate por índice de array — ver supuesto estructural)
+// scatter_por_alumno         -> ver calc/ScatterTab.ts (junta lengua y mate por índice de array - ver supuesto estructural)
 
 export function r1(x: number): number {
   return Math.round(x * 10) / 10
+}
+
+// El nombre de la materia llega del backend con varias formas: "Prácticas del Lenguaje",
+// "PDL", o normalizado sin acentos. Acá unificamos el match para no perder el branch
+// de microcompetencias por una diferencia de string.
+export function isLenguajeMateria(materia: string | undefined | null): boolean {
+  if (!materia) return false
+  const n = materia.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase()
+  return n === 'pdl' || n === 'practicas del lenguaje' || n === 'lenguaje'
 }
 
 export function mean(xs: number[]): number {
@@ -258,6 +267,19 @@ export function findCombo(
   if (matching.length === 0) return undefined
   if (matching.length === 1) return matching[0]
   return aggregateCombos(matching, materia, anio, toma)
+}
+
+// Mapa id_real → id anónimo secuencial (1..N), ordenado por id real.
+// Se construye sobre el conjunto SIN filtro NEE para que toggleando NEE los ids
+// no se reasignen. Se calcula sobre la unión de combos para que un mismo alumno
+// tenga el mismo id anónimo en scatter y tabla (dos materias).
+export function buildAnonIds(combos: I_RawComboDato[], division: string): Map<string, string> {
+  const ids = new Set<string>()
+  for (const c of combos) {
+    for (const s of filterEstudiantes(c, division, 'Todos')) ids.add(s.id)
+  }
+  const sorted = [...ids].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+  return new Map(sorted.map((id, i) => [id, String(i + 1)]))
 }
 
 export function filterEstudiantes(combo: I_RawComboDato, division: string, neeFilter: string = 'Todos') {
