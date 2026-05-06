@@ -23,6 +23,15 @@ export function r1(x: number): number {
   return Math.round(x * 10) / 10
 }
 
+// El nombre de la materia llega del backend con varias formas: "Prácticas del Lenguaje",
+// "PDL", o normalizado sin acentos. Acá unificamos el match para no perder el branch
+// de microcompetencias por una diferencia de string.
+export function isLenguajeMateria(materia: string | undefined | null): boolean {
+  if (!materia) return false
+  const n = materia.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase()
+  return n === 'pdl' || n === 'practicas del lenguaje' || n === 'lenguaje'
+}
+
 export function mean(xs: number[]): number {
   return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0
 }
