@@ -101,8 +101,13 @@ const buildFilters = (flags: FilterFlags) => (ctx: TabFiltersCtx): Array<FilterD
 
 const filtersResumenLike = buildFilters({ materia: true, anio: true, division: true, toma: true })
 const filtersScatterLike = buildFilters({ anio: true, division: true, toma: true })
-const filtersDetalleSplitLike = (ctx: TabFiltersCtx): Array<FilterDef> => [
+const filtersDetalleMatematicaLike = (ctx: TabFiltersCtx): Array<FilterDef> => [
   { ...ctx.anioFilter, opts: ctx.anioFilter.opts.filter(o => o !== 'Todos') },
+  ctx.divFilter,
+  ctx.tomaFilter,
+]
+const filtersDetalleLenguajeLike = (ctx: TabFiltersCtx): Array<FilterDef> => [
+  ctx.anioFilter,
   ctx.divFilter,
   ctx.tomaFilter,
 ]
@@ -174,7 +179,7 @@ export const TABS: ReadonlyArray<TabDef> = [
   },
   {
     id: 'detalleLenguaje', label: 'Prácticas del Lenguaje', kind: 'data',
-    filters: filtersDetalleSplitLike,
+    filters: filtersDetalleLenguajeLike,
     render: ({ detalleData, materia, anio, toma }) =>
       detalleData
         ? <DetalleTab data={detalleData} />
@@ -182,7 +187,7 @@ export const TABS: ReadonlyArray<TabDef> = [
   },
   {
     id: 'detalleMatematica', label: 'Matemática', kind: 'data',
-    filters: filtersDetalleSplitLike,
+    filters: filtersDetalleMatematicaLike,
     render: ({ detalleData, materia, anio, toma }) =>
       detalleData
         ? <DetalleTab data={detalleData} />
