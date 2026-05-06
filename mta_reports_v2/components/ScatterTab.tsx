@@ -33,7 +33,7 @@ function ScatterTab({ points }: { points: I_ScatterPoint[] }) {
   return (
     <Paper elevation={0} sx={{ ...CARD_SX, p: 2.5, ...FILL_COLUMN_SX }}>
       <Typography sx={{ fontSize: F.lg, color: C.accent, fontWeight: 500, mb: 1.5, flexShrink: 0 }}>
-        Resultados por alumno — % PDL vs % Matemática
+        Resultados por alumno - % PDL vs % Matemática
       </Typography>
       {points.length === 0 ? (
         <Typography sx={{ color: C.navy }}>Sin datos para los filtros seleccionados</Typography>

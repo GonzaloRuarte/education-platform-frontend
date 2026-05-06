@@ -131,7 +131,7 @@ function SemaforoTab({ materia, bandasMap, estudiantesMap, anio: anioProp, onAni
         ))}
       </Tabs>
       {niveles.length === 0 ? (
-        <Typography sx={{ color: C.navy, mt: 2 }}>Sin descriptores para {ANIO_LABELS[anio]} — {materia}</Typography>
+        <Typography sx={{ color: C.navy, mt: 2 }}>Sin descriptores para {ANIO_LABELS[anio]} - {materia}</Typography>
       ) : (
         NIVEL_KEYS.map((key, i) => (
           <NivelRow key={key} nivel={niveles[i]} bandas={effectiveBandasMap[anio]} nivelKey={key} isLast={i === NIVEL_KEYS.length - 1} />
