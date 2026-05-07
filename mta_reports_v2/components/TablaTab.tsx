@@ -13,13 +13,13 @@ const headCellSx = { fontWeight: W.bold, color: C.navy, bgcolor: C.lightBlue }
 
 function TablaTab({ rows }: { rows: I_TablaRow[] }) {
   return (
-    <Paper elevation={0} sx={{ ...CARD_SX, overflow: 'hidden', maxWidth: TABLA.maxWidth, mx: 'auto' }}>
-      <Box sx={{ px: SPACING.gutterX, pt: TABLA.headerPt, pb: TABLA.headerPb }}>
+    <Paper elevation={0} sx={{ ...CARD_SX, overflow: 'hidden', maxWidth: TABLA.maxWidth, mx: 'auto', display: 'flex', flexDirection: 'column', minHeight: 0, maxHeight: '100%' }}>
+      <Box sx={{ px: SPACING.gutterX, pt: TABLA.headerPt, pb: TABLA.headerPb, flexShrink: 0 }}>
         <Typography sx={{ fontSize: F.lg, color: C.accent, fontWeight: W.medium }}>
           Resumen de respuestas correctas por alumno
         </Typography>
       </Box>
-      <TableContainer sx={{ maxHeight: TABLA.maxHeight }}>
+      <TableContainer sx={{ flex: 1, minHeight: 0, maxHeight: TABLA.maxHeight }}>
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
@@ -49,11 +49,11 @@ function TablaTab({ rows }: { rows: I_TablaRow[] }) {
           </TableBody>
         </Table>
       </TableContainer>
-      {rows.length > 0 && (
-        <Box sx={{ px: SPACING.gutterX, py: TABLA.footerPy, borderTop: '1px solid', borderColor: 'divider' }}>
+      <Box sx={{ px: SPACING.gutterX, py: 1.5, borderTop: rows.length > 0 ? '1px solid' : 'none', borderColor: 'divider', flexShrink: 0 }}>
+        {rows.length > 0 && (
           <Typography variant="caption" sx={{ color: C.tm }}>{rows.length} alumnos</Typography>
-        </Box>
-      )}
+        )}
+      </Box>
     </Paper>
   )
 }

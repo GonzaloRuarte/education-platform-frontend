@@ -25,7 +25,7 @@ export function ReportHeader({
   onTogglePublish: () => void
 }) {
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'nowrap', gap: 2, pl: 1, pr: 3, pt: 0.5, pb: 3 }}>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'nowrap', gap: 2, pl: 1, pr: 3, pt: 0, pb: 1 }}>
 
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
         <Typography variant="h3" sx={{ color: C.navy, fontWeight: W.extrabold, lineHeight: 1 }}>
@@ -49,7 +49,7 @@ export function ReportHeader({
 
 export function FilterPillsBar({ pills }: { pills: Array<{ label: string }> }) {
   return (
-    <Stack direction="row" spacing={1} sx={{ pl: 1, pr: 3, pt: 0, pb: 4, flexWrap: 'wrap' }}>
+    <Stack direction="row" spacing={1} sx={{ pl: 1, pr: 3, pt: 0, pb: 1.5, flexWrap: 'wrap' }}>
       {pills.map(p => (
         <Chip key={p.label} label={p.label} size="medium" sx={{ bgcolor: C.lightBlue, color: C.navy, fontWeight: W.semibold, fontSize: F.select, height: LAYOUT_SIZES.chipHeight, px: 0.5 }} />
       ))}

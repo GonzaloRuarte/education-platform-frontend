@@ -142,6 +142,8 @@ export const SEMAFORO_NIVELES: SemaforoDescriptors = {
             'inferir las características no explícitas de los personajes, de los lugares, ambientes, paisajes en que transcurren las acciones.',
             'reconocer el tipo de trama, el propósito del autor y qué tipo de texto se trata.',
           ]},
+        ],
+        col2: [
           { titulo: 'Ante un texto informativo', items: [
             'reconocer relaciones entre hechos.',
             'reconocer el significado de palabras a partir de claves contextuales.',
@@ -159,12 +161,12 @@ export const SEMAFORO_NIVELES: SemaforoDescriptors = {
             'reconocer las causas y las consecuencias, los obstáculos y las facilitaciones explícitas, de los hechos y de las acciones de los personajes.',
             'reconocer a los hablantes.',
           ]},
+        ],
+        col2: [
           { titulo: 'Ante un texto informativo', items: [
             'reconocer lugares, ambientes, paisajes en los que se presentan los hechos.',
             'reconocer el tipo de trama, el propósito del autor y qué tipo de texto se trata.',
           ]},
-        ],
-        col2: [
           { titulo: 'En reflexión sobre los hechos del lenguaje', items: [
             'reconocer el significado de palabras a partir de claves contextuales.',
             'uso de mayúsculas y minúsculas.',
@@ -506,10 +508,10 @@ export const ANIO_LABELS: Record<string, string> = {
 }
 
 export const NIVEL_COLORS: Record<string, string> = {
-  'verde':    '#4caf50',
-  'amarillo': '#f5a623',
-  'naranja':  '#e07020',
-  'rojo':     '#c0392b',
+  'verde':    '#3FBF7F',
+  'amarillo': '#F2C94C',
+  'naranja':  '#F2994A',
+  'rojo':     '#D64545',
 }
 
 export const NIVEL_KEYS = ['verde', 'amarillo', 'naranja', 'rojo'] as const

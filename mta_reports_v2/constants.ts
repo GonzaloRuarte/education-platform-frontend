@@ -12,6 +12,7 @@ export const COLORS = {
   navy: '#041552',
   navyMid: '#214F80',
   midNavy: '#003366',
+  semaforoText: 'rgb(0, 77, 143)',
   iceBlue: '#DBEDF4',
   blue: '#0b2280',
   royal: '#0040a3',
@@ -54,7 +55,7 @@ export const COLORS = {
 
 export const ANIO_ORDER = ['3ro', '6to', '9no', '12mo'] as const
 
-export const FONT_FAMILY = '"Segoe UI", wf_segoe-ui_normal, helvetica, arial, sans-serif'
+export const FONT_FAMILY = '"Selawik", "Segoe UI", wf_segoe-ui_normal, helvetica, arial, sans-serif'
 
 export const FONT_SIZES = {
   xs: 8,
@@ -191,7 +192,7 @@ export const TABLA = {
   emptyPy: 3,
 } as const
 
-export const TITLE_FONT_FAMILY = '"Segoe UI", Segoe, system-ui, sans-serif'
+export const TITLE_FONT_FAMILY = '"Selawik", "Segoe UI", Segoe, system-ui, sans-serif'
 
 export const SLIDE_TITLE_SX = {
   fontFamily: TITLE_FONT_FAMILY,
