@@ -25,6 +25,9 @@ const MOCK: I_HistoricoData = {
       { toma: '1-2023', pct_mi_colegio: 64, pct_promedio_red: 58, participantes: 96 },
       { toma: '2-2023', pct_mi_colegio: 67, pct_promedio_red: 60, participantes: 97 },
       { toma: '1-2024', pct_mi_colegio: 70, pct_promedio_red: 62, participantes: 99 },
+      { toma: '2-2024', pct_mi_colegio: 72, pct_promedio_red: 64, participantes: 100 },
+      { toma: '1-2025', pct_mi_colegio: 74, pct_promedio_red: 65, participantes: 101 },
+      { toma: '2-2025', pct_mi_colegio: 76, pct_promedio_red: 67, participantes: 103 },
     ],
     lenguaje: [
       { toma: '1-2022', pct_mi_colegio: 55, pct_promedio_red: 52, participantes: 92 },
@@ -32,6 +35,9 @@ const MOCK: I_HistoricoData = {
       { toma: '1-2023', pct_mi_colegio: 63, pct_promedio_red: 57, participantes: 96 },
       { toma: '2-2023', pct_mi_colegio: 66, pct_promedio_red: 59, participantes: 97 },
       { toma: '1-2024', pct_mi_colegio: 68, pct_promedio_red: 61, participantes: 99 },
+      { toma: '2-2024', pct_mi_colegio: 70, pct_promedio_red: 63, participantes: 100 },
+      { toma: '1-2025', pct_mi_colegio: 72, pct_promedio_red: 64, participantes: 101 },
+      { toma: '2-2025', pct_mi_colegio: 74, pct_promedio_red: 66, participantes: 103 },
     ],
   },
   por_anio: {
