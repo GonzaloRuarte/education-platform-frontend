@@ -2,6 +2,7 @@
 
 import { Box } from '@mui/material'
 import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
+import { FONT_SIZES } from '@/mta_reports_v2/constants'
 
 interface InstitucionesTabProps {
   schoolId: number
@@ -68,7 +69,7 @@ const fields = {
 
 const columnSx = {
   '& .ql-editor p': {
-    fontSize: 20,
+    fontSize: FONT_SIZES.bodyLarge,
     lineHeight: 1.3,
     margin: 0,
   },

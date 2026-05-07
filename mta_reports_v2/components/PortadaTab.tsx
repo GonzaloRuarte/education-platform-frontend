@@ -5,7 +5,7 @@ import Box from '@mui/material/Box'
 import Image from 'next/image'
 import { Stack } from '@mui/material'
 import { useEditableSlide } from '@/mta_reports_v2/hooks'
-import { COLORS, TITLE_FONT_FAMILY } from '@/mta_reports_v2/constants'
+import { COLORS, FONT_WEIGHTS, TITLE_FONT_FAMILY, SPACING, Z_INDEX } from '@/mta_reports_v2/constants'
 import Footer from '@/shared/layout/Footer'
 import Logo from '@/shared/components/Logo'
 import Button from '@/shared/components/Button'
@@ -47,7 +47,7 @@ const PortadaTab = ({ schoolId, initialEditing }: PortadaTabProps) => {
 
   const fontSizeFor = (key: 'title' | 'subtitle') =>
     key === 'title' ? 'clamp(36px, 4.5vw, 54px)' : 'clamp(24px, 3vw, 42px)'
-  const fontWeightFor = (key: 'title' | 'subtitle') => (key === 'title' ? 900 : 700)
+  const fontWeightFor = (key: 'title' | 'subtitle') => (key === 'title' ? FONT_WEIGHTS.black : FONT_WEIGHTS.bold)
   const lineHeightFor = (key: 'title' | 'subtitle') => (key === 'title' ? 1.1 : 1.2)
 
   const renderField = (key: 'title' | 'subtitle', variantClass: string) => (
@@ -88,7 +88,7 @@ const PortadaTab = ({ schoolId, initialEditing }: PortadaTabProps) => {
   return (
     <SlideContainer>
       {slide.canEdit && (
-        <Stack direction="row" spacing={1.25} sx={{ position: 'absolute', top: 16, right: 16, zIndex: 5 }}>
+        <Stack direction="row" spacing={SPACING.groupSpacing} sx={{ position: 'absolute', top: 16, right: 16, zIndex: Z_INDEX.floating }}>
           {!slide.isEditing && (
             <Button size="small" bgcolor="purple" onClick={slide.startEditing} disabled={slide.isLoading}>
               Editar
@@ -112,7 +112,7 @@ const PortadaTab = ({ schoolId, initialEditing }: PortadaTabProps) => {
             width="70%"
             height="70%"
             position="absolute"
-            zIndex={1}
+            zIndex={Z_INDEX.sticky}
             sx={{ mixBlendMode: 'multiply' }}
             top={-20}
             left={-20}

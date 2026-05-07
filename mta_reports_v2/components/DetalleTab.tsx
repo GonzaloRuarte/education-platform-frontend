@@ -5,11 +5,12 @@ import { Box, Stack, Typography, FormControl, Select, MenuItem, Grid2, Tooltip, 
 import Paper from '@mui/material/Paper'
 import HighlightOffIcon from '@mui/icons-material/HighlightOff'
 import { BP, HorizontalBarChart, MiVsTodosLegend, ChartCard } from '@/mta_reports_v2/components/ReporteAuroraCharts'
-import { COLORS, FONT_SIZES, RADIUS, FILL_COLUMN_SX } from '@/mta_reports_v2/constants'
+import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, FILL_COLUMN_SX, BAR_CHART } from '@/mta_reports_v2/constants'
 import type { I_DetalleTabData } from '@/mta_reports_v2/types'
 
 const C = COLORS
 const F = FONT_SIZES
+const W = FONT_WEIGHTS
 
 const EXPECTED_LEN_COMP = [
   'Comprensión lectora',
@@ -84,7 +85,7 @@ function DetalleTab({ data }: DetalleTabProps) {
         <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
           <ChartCard num="01" title="Resultados por competencia" subtitle="Porcentaje de respuestas correctas" legend={barLegend} dense>
             {compItems.length > 0
-              ? <HorizontalBarChart items={compItems} rowHeight={60} baseHeight={40} barSize={26} />
+              ? <HorizontalBarChart items={compItems} rowHeight={BAR_CHART.rowHeight.tall} baseHeight={BAR_CHART.baseHeight.compact} barSize={BAR_CHART.size.thick} frame />
               : <Typography variant="caption" sx={{ color: C.tm }}>Sin datos</Typography>}
           </ChartCard>
           <ChartCard
@@ -97,7 +98,7 @@ function DetalleTab({ data }: DetalleTabProps) {
             bodySx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}
           >
             {contItems.length > 0
-              ? <HorizontalBarChart items={contItems} rowHeight={60} baseHeight={40} barSize={26} />
+              ? <HorizontalBarChart items={contItems} rowHeight={BAR_CHART.rowHeight.tall} baseHeight={BAR_CHART.baseHeight.compact} barSize={BAR_CHART.size.thick} frame />
               : <Typography variant="caption" sx={{ color: C.tm }}>Sin datos</Typography>}
           </ChartCard>
         </Stack>
@@ -124,13 +125,13 @@ function DetalleTab({ data }: DetalleTabProps) {
                   popper: { modifiers: [{ name: 'offset', options: { offset: [0, -10] } }] }
                 }}
               >
-                <Box component="span" sx={{ cursor: 'help', fontWeight: 500, textDecoration: 'underline dotted' }}>●</Box>
+                <Box component="span" sx={{ cursor: 'help', fontWeight: W.medium, textDecoration: 'underline dotted' }}>●</Box>
               </Tooltip>
             </Typography>
           </ChartCard>
           <ChartCard num="04" title="Calificación por alumno" dense sx={{ flex: 1, minHeight: 0 }}>
             <Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 0.5 }}>
-              <Typography variant="body2" sx={{ fontWeight: 600, color: C.navy, whiteSpace: 'nowrap', fontSize: F.lg }}>
+              <Typography variant="body2" sx={{ fontWeight: W.semibold, color: C.navy, whiteSpace: 'nowrap', fontSize: F.lg }}>
                 ID del alumno
               </Typography>
               <FormControl size="small" sx={{ minWidth: 100 }}>
@@ -165,7 +166,7 @@ function DetalleTab({ data }: DetalleTabProps) {
                 </span>
               </Tooltip>
               <Paper elevation={0} sx={{ bgcolor: C.navy, borderRadius: RADIUS.lg, px: 2, py: 1, textAlign: 'center', flex: 1 }}>
-                <Typography sx={{ color: C.white, fontWeight: 700, fontSize: F.score }}>
+                <Typography sx={{ color: C.white, fontWeight: W.bold, fontSize: F.score }}>
                   {selectedStudent ? `${selectedStudent.score}%` : 'Seleccione el ID del alumno'}
                 </Typography>
               </Paper>

@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react'
 import { Box } from '@mui/material'
-import { COLORS, RADIUS } from '@/mta_reports_v2/constants'
+import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS } from '@/mta_reports_v2/constants'
 
 const C = COLORS
 
@@ -12,8 +12,8 @@ const SubjectBadge = ({ children }: { children: ReactNode }) => (
       display: 'inline-block',
       bgcolor: C.subjectBadge,
       color: C.white,
-      fontWeight: 800,
-      fontSize: 26,
+      fontWeight: FONT_WEIGHTS.extrabold,
+      fontSize: FONT_SIZES.badge,
       px: 4,
       py: 3,
       borderRadius: RADIUS.pill,

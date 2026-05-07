@@ -1,8 +1,9 @@
 'use client'
 
-import { COLORS, TITLE_FONT_FAMILY } from '@/mta_reports_v2/constants'
+import { COLORS, FONT_WEIGHTS, TITLE_FONT_FAMILY, Z_INDEX } from '@/mta_reports_v2/constants'
 
 const C = COLORS
+const W = FONT_WEIGHTS
 
 /**
  * Estilos globales para los editores Quill embebidos en las slides.
@@ -27,7 +28,7 @@ const QuillEditorStyles = () => (
       top: 0;
       left: 0;
       right: 0;
-      z-index: 2;
+      z-index: ${Z_INDEX.toolbar};
       border: 1px solid ${C.navyAlpha12};
       background: ${C.lightBlueAlpha22};
       border-radius: 18px;
@@ -122,7 +123,7 @@ const QuillEditorStyles = () => (
     .title-editor .ql-editor {
       font-family: ${TITLE_FONT_FAMILY};
       font-size: clamp(26px, 3.6vw, 38px);
-      font-weight: 800;
+      font-weight: ${W.extrabold};
       line-height: 1.05;
       color: ${C.midNavy};
     }
@@ -130,7 +131,7 @@ const QuillEditorStyles = () => (
     .body-editor .ql-editor {
       font-size: clamp(18px, 2.2vw, 24px);
       line-height: 1.48;
-      font-weight: 400;
+      font-weight: ${W.normal};
     }
   `}</style>
 )

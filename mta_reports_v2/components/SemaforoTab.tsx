@@ -2,7 +2,7 @@
 
 import { Box, Tabs, Tab, Typography } from '@mui/material'
 import { useMemo, useState } from 'react'
-import { COLORS, ANIO_ORDER, FONT_SIZES, RADIUS } from '@/mta_reports_v2/constants'
+import { COLORS, ANIO_ORDER, FONT_SIZES, FONT_WEIGHTS, RADIUS, Z_INDEX, SEMAFORO } from '@/mta_reports_v2/constants'
 import { SEMAFORO_NIVELES, NIVEL_COLORS, NIVEL_KEYS, ANIO_LABELS } from '@/mta_reports_v2/semaforo_data'
 import type { SemaforoNivel } from '@/mta_reports_v2/semaforo_data'
 import type { I_SemaforoBandas } from '@/mta_reports_v2/types'
@@ -10,6 +10,7 @@ import type { SemaforoEstudianteBand } from './calc/SemaforoTab'
 
 const C = COLORS
 const F = FONT_SIZES
+const W = FONT_WEIGHTS
 
 function GruposList({ grupos }: { grupos: SemaforoNivel['col1'] }) {
   return (
@@ -17,7 +18,7 @@ function GruposList({ grupos }: { grupos: SemaforoNivel['col1'] }) {
       {grupos.map((g, gi) => (
         <Box key={gi} sx={{ mb: g.titulo ? 1 : 0 }}>
           {g.titulo && (
-            <Typography sx={{ color: C.navy, fontWeight: 700, fontSize: F.md, mb: 0.25 }}>
+            <Typography sx={{ color: C.navy, fontWeight: W.bold, fontSize: F.md, mb: 0.25 }}>
               {g.titulo}
             </Typography>
           )}
@@ -43,10 +44,10 @@ function NivelRow({ nivel, bandas, nivelKey, isLast }: { nivel: SemaforoNivel; b
       component="article"
       sx={{
         display: 'grid',
-        gridTemplateColumns: '160px 1fr',
-        gap: 3,
+        gridTemplateColumns: `${SEMAFORO.colorColWidth}px 1fr`,
+        gap: SEMAFORO.rowGap,
         alignItems: 'stretch',
-        py: 2,
+        py: SEMAFORO.rowPy,
         borderBottom: isLast ? 'none' : '1px solid',
         borderColor: 'divider',
       }}
@@ -59,12 +60,12 @@ function NivelRow({ nivel, bandas, nivelKey, isLast }: { nivel: SemaforoNivel; b
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          py: 2.5,
-          px: 1,
-          minHeight: 130,
+          py: SEMAFORO.boxPy,
+          px: SEMAFORO.boxPx,
+          minHeight: SEMAFORO.boxMinHeight,
         }}
       >
-        <Typography sx={{ color: C.white, fontWeight: 800, fontSize: F.xxl, lineHeight: 1 }}>
+        <Typography sx={{ color: C.white, fontWeight: W.extrabold, fontSize: F.xxl, lineHeight: 1 }}>
           {pctLabel}
         </Typography>
         <Typography sx={{ color: C.white, fontSize: F.md, mt: 1.5 }}>
@@ -78,7 +79,7 @@ function NivelRow({ nivel, bandas, nivelKey, isLast }: { nivel: SemaforoNivel; b
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
         {nivel.col2 ? (
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, width: '100%' }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SEMAFORO.rowGap, width: '100%' }}>
             <GruposList grupos={nivel.col1} />
             <GruposList grupos={nivel.col2} />
           </Box>
@@ -124,7 +125,7 @@ function SemaforoTab({ materia, bandasMap, estudiantesMap, anio: anioProp, onAni
       <Tabs
         value={anio}
         onChange={(_, v) => setAnio(v)}
-        sx={{ mb: 2, bgcolor: C.white, borderRadius: RADIUS.md, border: '1px solid', borderColor: 'divider', position: 'sticky', top: 0, zIndex: 1 }}
+        sx={{ mb: 2, bgcolor: C.white, borderRadius: RADIUS.md, border: '1px solid', borderColor: 'divider', position: 'sticky', top: 0, zIndex: Z_INDEX.sticky }}
       >
         {ANIO_ORDER.map(a => (
           <Tab key={a} value={a} label={ANIO_LABELS[a]} />

@@ -3,9 +3,11 @@
 import { Box, Stack, Typography } from '@mui/material'
 import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
 import { SubjectBadge } from '@/mta_reports_v2/components/shared/SubjectBadge'
-import { COLORS, RADIUS, TITLE_FONT_FAMILY } from '@/mta_reports_v2/constants'
+import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, TITLE_FONT_FAMILY } from '@/mta_reports_v2/constants'
 
 const C = COLORS
+const F = FONT_SIZES
+const W = FONT_WEIGHTS
 
 interface MatematicaTabProps {
   schoolId: number
@@ -38,8 +40,8 @@ const fields = {
 const sectionHeadingSx = {
   fontFamily: TITLE_FONT_FAMILY,
   color: C.navy,
-  fontWeight: 800,
-  fontSize: 28,
+  fontWeight: W.extrabold,
+  fontSize: F.sectionHeading,
   mb: 1.5,
 }
 

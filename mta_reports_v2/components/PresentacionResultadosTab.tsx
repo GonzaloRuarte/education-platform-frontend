@@ -2,7 +2,7 @@
 
 import { Box, Stack, Typography } from '@mui/material'
 import Image from 'next/image'
-import { SLIDE_HERO_TITLE_SX } from '@/mta_reports_v2/constants'
+import { SLIDE_HERO_TITLE_SX, Z_INDEX } from '@/mta_reports_v2/constants'
 import { SlideContainer } from '@/mta_reports_v2/components/shared/SlideContainer'
 
 const PresentacionResultadosTab = () => (
@@ -12,7 +12,7 @@ const PresentacionResultadosTab = () => (
         width="70%"
         height="70%"
         position="absolute"
-        zIndex={1}
+        zIndex={Z_INDEX.sticky}
         sx={{ mixBlendMode: 'multiply' }}
         top={-20}
         left={-20}
