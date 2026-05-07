@@ -4,22 +4,28 @@ import { Box, FormControl, Select, MenuItem, Typography } from '@mui/material'
 import Button from '@/shared/components/Button'
 import LogoAustral from '@/shared/components/LogoAustral'
 import { ImageSize } from '@/shared/utils'
-import { COLORS } from '@/mta_reports_v2/constants'
+import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING, LAYOUT_SIZES, BOX_SHADOWS } from '@/mta_reports_v2/constants'
 
 const C = COLORS
+const F = FONT_SIZES
+const W = FONT_WEIGHTS
 const sidebarAustralLogoSize = new ImageSize(412, 72, { scale: 0.6 })
 
+type FilterOption = string | { label: string; value: string }
 interface FilterDef {
   label: string
   value: string
-  opts: string[]
+  opts: FilterOption[]
   set: (v: string) => void
 }
+
+const optLabel = (o: FilterOption) => (typeof o === 'string' ? o : o.label)
+const optValue = (o: FilterOption) => (typeof o === 'string' ? o : o.value)
 
 function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => void }) {
   const selectSx = {
     bgcolor: C.white,
-    fontSize: 16,
+    fontSize: F.select,
     borderRadius: 0,
     '& .MuiOutlinedInput-notchedOutline': { borderColor: C.navyAlpha15 },
     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: C.navy },
@@ -28,13 +34,13 @@ function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => vo
   }
   const labelSx = {
     color: C.navy,
-    fontSize: 16,
-    fontWeight: 700,
+    fontSize: F.select,
+    fontWeight: W.bold,
     mb: 1,
   }
   return (
     <Box sx={{
-      width: 300,
+      width: LAYOUT_SIZES.sidebarWidth,
       minHeight: 0,
       flexShrink: 0,
       bgcolor: C.white,
@@ -43,8 +49,8 @@ function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => vo
       pb: 4,
       m: 2,
       mr: 0,
-      borderRadius: 9,
-      boxShadow: `0 3px 14px ${C.blackAlpha20}, 0 3px 5px ${C.blackAlpha20}`,
+      borderRadius: RADIUS.xl,
+      boxShadow: BOX_SHADOWS.sidebar,
       display: 'flex',
       flexDirection: 'column',
     }}>
@@ -52,11 +58,14 @@ function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => vo
         <FormControl key={label} fullWidth size="small" sx={{ mb: 3 }}>
           <Typography sx={labelSx}>{label}</Typography>
           <Select value={value} label={label} onChange={e => set(e.target.value)} sx={selectSx}>
-            {opts.map(o => <MenuItem key={o} value={o} sx={{ fontSize: 17 }}>{o}</MenuItem>)}
+            {opts.map(o => {
+              const v = optValue(o)
+              return <MenuItem key={v} value={v} sx={{ fontSize: F.kpiLabel }}>{optLabel(o)}</MenuItem>
+            })}
           </Select>
         </FormControl>
       ))}
-      <Button fullWidth onClick={onReset} sx={{ mt: 1.5, py: 1.5, fontSize: 18, fontWeight: 500, color: C.white, backgroundColor: C.navy, '&:hover': { backgroundColor: C.midNavy, opacity: 0.9 } }}>
+      <Button fullWidth onClick={onReset} sx={{ mt: SPACING.buttonInnerPadding, py: SPACING.buttonInnerPadding, fontSize: F.btnLabel, fontWeight: W.medium, color: C.white, backgroundColor: C.navy, '&:hover': { backgroundColor: C.midNavy, opacity: 0.9 } }}>
         Borrar filtros
       </Button>
       <Box sx={{ flex: 1 }} />

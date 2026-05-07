@@ -62,7 +62,7 @@ function ReportesAuroraListPage() {
   }
 
   const handleRowClick = (params: GridRowParams<I_AuroraReportListItem>) => {
-    window.open(`/reports/escuela/${params.row.school}`, '_blank')
+    window.open(`/reports/escuela/${params.row.school}/toma/${params.row.toma}`, '_blank')
   }
 
   const handleRegenerateAll = (reload: () => void) => {
@@ -91,37 +91,45 @@ function ReportesAuroraListPage() {
       headerName: 'Estado',
       flex: 0.6,
       renderCell: ({ row }) => (
-        <Select
-          size="small"
-          value={row.status}
-          disabled={!canEdit || busyId === row.id}
+        <Box
           onClick={(e) => e.stopPropagation()}
-          onChange={(e) =>
-            handleChangeStatus(row, e.target.value as 'draft' | 'published')
-          }
-          sx={{
-            bgcolor: 'primary.main',
-            color: 'primary.contrastText',
-            '& .MuiSelect-icon': { color: 'primary.contrastText' },
-            '& .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
-            '&:hover': { bgcolor: 'primary.dark' },
-            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.dark' },
-            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
-          }}
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
         >
-          <MenuItem value="draft">
-            <Stack direction="row" spacing={1} alignItems="center">
-              <EditIcon fontSize="small" />
-              <span>Borrador</span>
-            </Stack>
-          </MenuItem>
-          <MenuItem value="published">
-            <Stack direction="row" spacing={1} alignItems="center">
-              <VisibilityIcon fontSize="small" />
-              <span>Publicado</span>
-            </Stack>
-          </MenuItem>
-        </Select>
+          <Select
+            size="small"
+            value={row.status}
+            disabled={!canEdit || busyId === row.id}
+            onChange={(e) =>
+              handleChangeStatus(row, e.target.value as 'draft' | 'published')
+            }
+            sx={{
+              bgcolor: 'primary.main',
+              color: 'primary.contrastText',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              borderRadius: 999,
+              '& .MuiSelect-icon': { color: 'primary.contrastText', fontSize: '1.25rem' },
+              '& .MuiSelect-select': { py: '6px', pl: '12px', pr: '32px !important' },
+              '& .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
+              '&:hover': { bgcolor: 'primary.dark' },
+              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.dark' },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
+            }}
+          >
+            <MenuItem value="draft" sx={{ fontSize: '0.875rem' }}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <EditIcon sx={{ fontSize: '1.125rem' }} />
+                <span>Borrador</span>
+              </Stack>
+            </MenuItem>
+            <MenuItem value="published" sx={{ fontSize: '0.875rem' }}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <VisibilityIcon sx={{ fontSize: '1.125rem' }} />
+                <span>Publicado</span>
+              </Stack>
+            </MenuItem>
+          </Select>
+        </Box>
       ),
     }
     const cols = [...baseColumns, statusColumn]
@@ -137,18 +145,20 @@ function ReportesAuroraListPage() {
         align: 'center',
         headerAlign: 'center',
         renderCell: ({ row }) => (
-          <Stack direction="row" spacing={1}>
+          <Box
+            onClick={(e) => e.stopPropagation()}
+            sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
             <Button
               size="medium"
               variant="contained"
-              onClick={(e) => {
-                e.stopPropagation()
-                window.open(`/reports/escuela/${row.school}?edit=1`, '_blank')
+              onClick={() => {
+                window.open(`/reports/escuela/${row.school}/toma/${row.toma}?edit=1`, '_blank')
               }}
             >
               Editar
             </Button>
-          </Stack>
+          </Box>
         ),
       },
     ]

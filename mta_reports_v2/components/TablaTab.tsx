@@ -2,23 +2,24 @@
 
 import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
 import Paper from '@mui/material/Paper'
-import { COLORS, FONT_SIZES, CARD_SX } from '@/mta_reports_v2/constants'
+import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING, CARD_SX, TABLA } from '@/mta_reports_v2/constants'
 import type { I_TablaRow } from '@/mta_reports_v2/types'
 
 const C = COLORS
 const F = FONT_SIZES
+const W = FONT_WEIGHTS
 
-const headCellSx = { fontWeight: 700, color: C.navy, bgcolor: C.lightBlue }
+const headCellSx = { fontWeight: W.bold, color: C.navy, bgcolor: C.lightBlue }
 
 function TablaTab({ rows }: { rows: I_TablaRow[] }) {
   return (
-    <Paper elevation={0} sx={{ ...CARD_SX, overflow: 'hidden', maxWidth: 560, mx: 'auto' }}>
-      <Box sx={{ px: 2.5, pt: 2, pb: 1 }}>
-        <Typography sx={{ fontSize: F.lg, color: C.accent, fontWeight: 500 }}>
+    <Paper elevation={0} sx={{ ...CARD_SX, overflow: 'hidden', maxWidth: TABLA.maxWidth, mx: 'auto', display: 'flex', flexDirection: 'column', minHeight: 0, maxHeight: '100%' }}>
+      <Box sx={{ px: SPACING.gutterX, pt: TABLA.headerPt, pb: TABLA.headerPb, flexShrink: 0 }}>
+        <Typography sx={{ fontSize: F.lg, color: C.accent, fontWeight: W.medium }}>
           Resumen de respuestas correctas por alumno
         </Typography>
       </Box>
-      <TableContainer sx={{ maxHeight: 680 }}>
+      <TableContainer sx={{ flex: 1, minHeight: 0, maxHeight: TABLA.maxHeight }}>
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
@@ -30,13 +31,13 @@ function TablaTab({ rows }: { rows: I_TablaRow[] }) {
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} align="center" sx={{ color: C.navy, py: 3 }}>
+                <TableCell colSpan={3} align="center" sx={{ color: C.navy, py: TABLA.emptyPy }}>
                   Sin datos para los filtros seleccionados
                 </TableCell>
               </TableRow>
             ) : rows.map(row => (
               <TableRow key={row.id} hover sx={{ '&:nth-of-type(even)': { bgcolor: 'action.hover' } }}>
-                <TableCell sx={{ color: C.navy, fontWeight: 600 }}>{row.id}</TableCell>
+                <TableCell sx={{ color: C.navy, fontWeight: W.semibold }}>{row.id}</TableCell>
                 <TableCell align="right">
                   {row.mat != null ? `${row.mat}%` : <Typography variant="caption" color="text.disabled">-</Typography>}
                 </TableCell>
@@ -48,11 +49,11 @@ function TablaTab({ rows }: { rows: I_TablaRow[] }) {
           </TableBody>
         </Table>
       </TableContainer>
-      {rows.length > 0 && (
-        <Box sx={{ px: 2.5, py: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+      <Box sx={{ px: SPACING.gutterX, py: 1.5, borderTop: rows.length > 0 ? '1px solid' : 'none', borderColor: 'divider', flexShrink: 0 }}>
+        {rows.length > 0 && (
           <Typography variant="caption" sx={{ color: C.tm }}>{rows.length} alumnos</Typography>
-        </Box>
-      )}
+        )}
+      </Box>
     </Paper>
   )
 }

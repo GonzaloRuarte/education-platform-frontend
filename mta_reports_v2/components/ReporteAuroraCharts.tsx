@@ -2,20 +2,21 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Box, Stack, Typography } from '@mui/material'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Rectangle, LabelList, ComposedChart, Tooltip } from 'recharts'
-import { COLORS, FONT_SIZES, SPACING, CHART_MARGINS, CARD_SX, FILL_COLUMN_SX, RADIUS } from '@/mta_reports_v2/constants'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Rectangle, LabelList, ComposedChart, Tooltip, Customized } from 'recharts'
+import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING, CHART_MARGINS, CARD_SX, FILL_COLUMN_SX, RADIUS, LAYOUT_SIZES, BAR_CHART, BOXPLOT, AXIS, BOX_SHADOWS } from '@/mta_reports_v2/constants'
 import { useResponsiveBox, useResponsiveHeight } from '@/mta_reports_v2/hooks'
 import type { I_BoxplotAurora, I_ItemAurora } from '@/mta_reports_v2/types'
 
 const C = COLORS
 const F = FONT_SIZES
+const W = FONT_WEIGHTS
 const S = SPACING
 
 function Leg({ c, t }: { c: string; t: string }) {
   return (
     <Stack direction="row" alignItems="center" spacing={0.5} component="span" sx={{ mr: 2, display: 'inline-flex' }}>
-      <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: c, flexShrink: 0 }} />
-      <Typography variant="caption" sx={{ color: C.darkGrey, fontSize: F.base }}>{t}</Typography>
+      <Box component="span" sx={{ width: LAYOUT_SIZES.dotLarge, height: LAYOUT_SIZES.dotLarge, borderRadius: RADIUS.circle, bgcolor: c, flexShrink: 0 }} />
+      <Typography variant="caption" sx={{ color: C.black, fontSize: F.legend }}>{t}</Typography>
     </Stack>
   )
 }
@@ -51,10 +52,8 @@ function AllSchoolsBarChart({
     ? Math.round(sorted.reduce((s, e) => s + e.p, 0) / sorted.length * 10) / 10
     : 0
 
-  const SCROLL_THRESHOLD = 20
-  const MIN_BAR_WIDTH = 60
-  const needsScroll = sorted.length > SCROLL_THRESHOLD
-  const scrollWidth = sorted.length * MIN_BAR_WIDTH
+  const needsScroll = sorted.length > BAR_CHART.scrollThreshold
+  const scrollWidth = sorted.length * BAR_CHART.minBarWidth
 
   const wrapperSx = fill
     ? FILL_COLUMN_SX
@@ -84,7 +83,7 @@ function AllSchoolsBarChart({
     if (!el) return
     const idx = sorted.findIndex(b => b.id === miId)
     if (idx < 0) return
-    const target = Math.max(0, idx * MIN_BAR_WIDTH - (el.clientWidth - MIN_BAR_WIDTH) / 2)
+    const target = Math.max(0, idx * BAR_CHART.minBarWidth - (el.clientWidth - BAR_CHART.minBarWidth) / 2)
     el.scrollLeft = target
     applyStickyY(el, target)
   }, [needsScroll, scrollWidth, miId])
@@ -92,63 +91,63 @@ function AllSchoolsBarChart({
   return (
     <Box ref={containerRef} sx={wrapperSx}>
       <Box ref={scrollRef} sx={chartWrapperSx} onScroll={handleScroll}>
-       <Box sx={{ width: needsScroll ? `${scrollWidth}px` : '100%', height: '100%' }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={sorted}
-            margin={CHART_MARGINS.vertical}
-            onMouseMove={(s: any) => setHoverIdx(typeof s?.activeTooltipIndex === 'number' ? s.activeTooltipIndex : null)}
-            onMouseLeave={() => setHoverIdx(null)}
-          >
-            <CartesianGrid vertical={false} stroke={C.gridDivider} strokeWidth={1} strokeDasharray="1 8" strokeLinecap="round" />
-            <XAxis dataKey="id" tick={{ fontSize: F.md, fill: C.tm }} angle={-40} textAnchor="end" interval={0} />
-            <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: F.md, fill: C.tm }} axisLine={false} tickLine={false} />
-            <Tooltip
-              cursor={{ fill: 'transparent' }}
-              content={({ active, payload }: any) => {
-                if (!active || !payload?.length) return null
-                const p = payload[0].payload
-                return (
-                  <Box sx={{
-                    bgcolor: C.white,
-                    border: `1px solid ${C.gridDivider}`,
-                    borderRadius: 1,
-                    px: 1.5,
-                    py: 1,
-                    fontSize: F.lg,
-                    color: C.darkGrey,
-                    lineHeight: 1.5,
-                  }}>
-                    <Box>ID Escuela: <strong>{p.id}</strong></Box>
-                    <Box>Promedio de Porcentaje Correctas: <strong>{p.p}%</strong></Box>
-                  </Box>
-                )
-              }}
-            />
-            <Bar
-              dataKey="p"
-              shape={(props: any) => {
-                const isMe = sorted[props.index]?.id === miId
-                const isHover = props.index === hoverIdx
-                const baseFill = isMe ? C.navyMid : C.iceBlue
-                return (
-                  <Rectangle
-                    {...props}
-                    fill={baseFill}
-                    radius={[2, 2, 0, 0]}
-                    style={{
-                      transition: 'opacity 0.15s ease, filter 0.15s ease',
-                      opacity: hoverIdx === null || isHover ? 1 : 0.55,
-                      filter: isHover ? 'brightness(0.92)' : 'none',
-                      cursor: 'pointer',
-                    }}
-                  />
-                )
-              }}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-       </Box>
+        <Box sx={{ width: needsScroll ? `${scrollWidth}px` : '100%', height: '100%' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={sorted}
+              margin={CHART_MARGINS.vertical}
+              onMouseMove={(s: any) => setHoverIdx(typeof s?.activeTooltipIndex === 'number' ? s.activeTooltipIndex : null)}
+              onMouseLeave={() => setHoverIdx(null)}
+            >
+              <CartesianGrid vertical={false} stroke={C.gridDivider} strokeWidth={1} strokeDasharray="1 8" strokeLinecap="round" />
+              <XAxis dataKey="id" tick={{ fontSize: F.md, fill: C.tm }} angle={-40} textAnchor="end" interval={0} />
+              <YAxis domain={AXIS.percentDomain} tickFormatter={v => `${v}%`} tick={{ fontSize: F.md, fill: C.tm }} axisLine={false} tickLine={false} />
+              <Tooltip
+                cursor={{ fill: 'transparent' }}
+                content={({ active, payload }: any) => {
+                  if (!active || !payload?.length) return null
+                  const p = payload[0].payload
+                  return (
+                    <Box sx={{
+                      bgcolor: C.white,
+                      border: `1px solid ${C.gridDivider}`,
+                      borderRadius: RADIUS.sm,
+                      px: 1.5,
+                      py: 1,
+                      fontSize: F.lg,
+                      color: C.darkGrey,
+                      lineHeight: 1.5,
+                    }}>
+                      <Box>ID Escuela: <strong>{p.id}</strong></Box>
+                      <Box>Promedio de Porcentaje Correctas: <strong>{p.p}%</strong></Box>
+                    </Box>
+                  )
+                }}
+              />
+              <Bar
+                dataKey="p"
+                shape={(props: any) => {
+                  const isMe = sorted[props.index]?.id === miId
+                  const isHover = props.index === hoverIdx
+                  const baseFill = isMe ? C.navyMid : C.iceBlue
+                  return (
+                    <Rectangle
+                      {...props}
+                      fill={baseFill}
+                      radius={BAR_CHART.radius.vertical}
+                      style={{
+                        transition: 'opacity 0.15s ease, filter 0.15s ease',
+                        opacity: hoverIdx === null || isHover ? 1 : 0.55,
+                        filter: isHover ? 'brightness(0.92)' : 'none',
+                        cursor: 'pointer',
+                      }}
+                    />
+                  )
+                }}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </Box>
       </Box>
       <Box sx={{ mt: 0.75, flexShrink: 0 }}>
         <Leg c={C.navyMid} t="Mi escuela" />
@@ -200,21 +199,37 @@ function YAxisWrappedTick(props: any) {
   )
 }
 
+function FrameLines(props: any) {
+  const offset = props?.offset
+  const totalWidth = props?.width
+  if (!offset || typeof totalWidth !== 'number') return null
+  const top = offset.top
+  const bottom = offset.top + offset.height
+  return (
+    <g pointerEvents="none">
+      <line x1={0} y1={top} x2={totalWidth} y2={top} stroke={C.gridMid} strokeWidth={1} strokeDasharray="3 3" />
+      <line x1={0} y1={bottom} x2={totalWidth} y2={bottom} stroke={C.gridMid} strokeWidth={1} strokeDasharray="3 3" />
+    </g>
+  )
+}
+
 function HorizontalBarChart({
   items,
-  rowHeight = 50,
-  baseHeight = 50,
-  barSize = 13,
+  rowHeight = BAR_CHART.rowHeight.normal,
+  baseHeight = BAR_CHART.baseHeight.normal,
+  barSize = BAR_CHART.size.thin,
+  frame = false,
 }: {
   items: I_ItemAurora[]
   rowHeight?: number
   baseHeight?: number
   barSize?: number
+  frame?: boolean
 }) {
   const [hoverIdx, setHoverIdx] = useState<number | null>(null)
 
   const data = items.map(item => ({ name: item.n, mi: item.mi, todos: item.t }))
-  const chartH = Math.max(80, data.length * rowHeight + baseHeight)
+  const chartH = Math.max(BAR_CHART.minHeight, data.length * rowHeight + baseHeight)
   const maxVal = data.reduce((m, d) => Math.max(m, d.mi ?? 0, d.todos ?? 0), 0)
   const xMax = Math.min(100, Math.max(20, Math.ceil((maxVal) / 10) * 10))
 
@@ -224,7 +239,7 @@ function HorizontalBarChart({
       <Rectangle
         {...props}
         fill={fill}
-        radius={[0, 2, 2, 0]}
+        radius={BAR_CHART.radius.horizontal}
         style={{
           transition: 'opacity 0.12s ease',
           opacity: hoverIdx === null || isHover ? 1 : 0.35,
@@ -243,7 +258,8 @@ function HorizontalBarChart({
         onMouseMove={(s: any) => setHoverIdx(typeof s?.activeTooltipIndex === 'number' ? s.activeTooltipIndex : null)}
         onMouseLeave={() => setHoverIdx(null)}
       >
-        <CartesianGrid horizontal={false} stroke={C.gridLight} strokeDasharray="3 3" />
+        <CartesianGrid horizontal={false} stroke={C.gridMid} strokeDasharray="3 3" />
+        {frame && <Customized component={FrameLines} />}
         <XAxis
           type="number"
           domain={[0, xMax]}
@@ -255,14 +271,14 @@ function HorizontalBarChart({
         <YAxis
           type="category"
           dataKey="name"
-          width={180}
+          width={BAR_CHART.yAxisWidth.label}
           tick={<YAxisWrappedTick />}
           axisLine={false}
           tickLine={false}
           interval={0}
         />
         <Tooltip
-          cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+          cursor={{ fill: C.blackAlpha04 }}
           isAnimationActive={false}
           content={({ active, payload }: any) => {
             if (!active || !payload?.length) return null
@@ -271,22 +287,22 @@ function HorizontalBarChart({
               <Box sx={{
                 bgcolor: C.white,
                 border: `1px solid ${C.gridDivider}`,
-                borderRadius: 1,
+                borderRadius: RADIUS.sm,
                 px: 1.5,
                 py: 1,
                 fontSize: F.lg,
                 color: C.darkGrey,
                 lineHeight: 1.9,
                 maxWidth: 280,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+                boxShadow: BOX_SHADOWS.tooltip,
               }}>
-                <Box sx={{ fontWeight: 700, color: C.navy, mb: 0.5, wordBreak: 'break-word' }}>{row.name}</Box>
+                <Box sx={{ fontWeight: W.bold, color: C.navy, mb: 0.5, wordBreak: 'break-word' }}>{row.name}</Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                  <Box component="span" sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: C.navyMid, flexShrink: 0, display: 'inline-block' }} />
+                  <Box component="span" sx={{ width: LAYOUT_SIZES.dotSmall, height: LAYOUT_SIZES.dotSmall, borderRadius: RADIUS.circle, bgcolor: C.navyMid, flexShrink: 0, display: 'inline-block' }} />
                   Mi colegio: <strong style={{ marginLeft: 4 }}>{row.mi}%</strong>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                  <Box component="span" sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: C.iceBlue, border: `1.5px solid ${C.gridDivider}`, flexShrink: 0, display: 'inline-block' }} />
+                  <Box component="span" sx={{ width: LAYOUT_SIZES.dotSmall, height: LAYOUT_SIZES.dotSmall, borderRadius: RADIUS.circle, bgcolor: C.iceBlue, border: `1.5px solid ${C.gridDivider}`, flexShrink: 0, display: 'inline-block' }} />
                   Todos los colegios: <strong style={{ marginLeft: 4 }}>{row.todos}%</strong>
                 </Box>
               </Box>
@@ -310,8 +326,8 @@ function BoxplotShape(props: { x?: number; y?: number; width?: number; height?: 
 
   const valToY = (v: number) => y + (100 - v) / 100 * height
   const cx = x + width / 2
-  const bw = Math.min(64, width * 0.6)
-  const whiskerW = bw / 3
+  const bw = Math.min(BOXPLOT.maxBoxWidth, width * BOXPLOT.widthRatio)
+  const whiskerW = bw * BOXPLOT.whiskerRatio
 
   const yQ1 = valToY(d.q1)
   const yQ3 = valToY(d.q3)
@@ -322,43 +338,43 @@ function BoxplotShape(props: { x?: number; y?: number; width?: number; height?: 
 
   return (
     <g>
-      <line x1={cx} y1={yMax} x2={cx} y2={yQ3} stroke={color} strokeWidth={2} />
-      <line x1={cx} y1={yQ1} x2={cx} y2={yMin} stroke={color} strokeWidth={2} />
-      <rect x={cx - bw / 2} y={yQ3} width={bw} height={Math.max(1, yQ1 - yQ3)} fill={color} stroke={color} strokeWidth={1} rx={2} opacity={0.9} />
-      <line x1={cx - whiskerW} y1={yMax} x2={cx + whiskerW} y2={yMax} stroke={color} strokeWidth={2.5} />
-      <line x1={cx - whiskerW} y1={yMin} x2={cx + whiskerW} y2={yMin} stroke={color} strokeWidth={2.5} />
-      <line x1={cx - bw / 2} y1={yMd} x2={cx + bw / 2} y2={yMd} stroke={C.white} strokeWidth={3} />
-      <circle cx={cx} cy={yAv} r={5.5} fill={C.darkGrey} stroke={C.white} strokeWidth={1.5} />
+      <line x1={cx} y1={yMax} x2={cx} y2={yQ3} stroke={color} strokeWidth={3} />
+      <line x1={cx} y1={yQ1} x2={cx} y2={yMin} stroke={color} strokeWidth={3} />
+      <rect x={cx - bw / 2} y={yQ3} width={bw} height={Math.max(1, yQ1 - yQ3)} fill={color} rx={2} opacity={0.9} />
+      <line x1={cx - whiskerW} y1={yMax} x2={cx + whiskerW} y2={yMax} stroke={color} strokeWidth={3} />
+      <line x1={cx - whiskerW} y1={yMin} x2={cx + whiskerW} y2={yMin} stroke={color} strokeWidth={3} />
+      <line x1={cx - bw / 2} y1={yMd} x2={cx + bw / 2} y2={yMd} stroke={C.black} strokeWidth={3} />
+      <circle cx={cx} cy={yAv} r={BOXPLOT.avgRadius} fill={C.black} />
       {d.outliers?.map((v, i) => (
-        <circle key={i} cx={cx} cy={valToY(v)} r={3} fill={C.white} stroke={color} strokeWidth={1.5} />
+        <circle key={i} cx={cx} cy={valToY(v)} r={BOXPLOT.outlierRadius} fill={C.white} stroke={color} strokeWidth={1.5} />
       ))}
     </g>
   )
 }
 
-function BP({ d, color, w = 120, h = 340 }: { d: I_BoxplotAurora; color: string; w?: number; h?: number }) {
+function BP({ d, color, w = BOXPLOT.defaultSize.w, h = BOXPLOT.defaultSize.h }: { d: I_BoxplotAurora; color: string; w?: number; h?: number }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const dimensions = useResponsiveBox(containerRef, { initialW: w, initialH: h })
 
-  const chartData = [{ name: 'box', range: [0, 100] as [number, number] }]
+  const chartData = [{ name: 'box', range: AXIS.percentDomain }]
 
   return (
     <Box ref={containerRef} sx={{ width: dimensions.w, height: dimensions.h }}>
       <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={chartData} margin={{ top: 8, right: 4, bottom: 8, left: 4 }}>
+        <ComposedChart data={chartData} margin={CHART_MARGINS.composedBoxplot}>
           <CartesianGrid horizontal vertical={false} stroke={C.gridMid} strokeWidth={1} />
           <XAxis dataKey="name" hide />
           <YAxis
-            domain={[0, 100]}
+            domain={AXIS.percentDomain}
             ticks={[0, 25, 50, 75, 100]}
             tickFormatter={(v: number) => `${v}%`}
             tick={{ fontSize: F.md, fill: C.tm }}
             axisLine={false}
             tickLine={false}
-            width={36}
+            width={BAR_CHART.yAxisWidth.compact}
           />
           <Tooltip
-            cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+            cursor={{ fill: C.blackAlpha04 }}
             isAnimationActive={false}
             content={({ active }: any) => {
               if (!active) return null
@@ -366,15 +382,15 @@ function BP({ d, color, w = 120, h = 340 }: { d: I_BoxplotAurora; color: string;
                 <Box sx={{
                   bgcolor: C.white,
                   border: `1px solid ${C.gridDivider}`,
-                  borderRadius: 1,
+                  borderRadius: RADIUS.sm,
                   px: 1.5,
                   py: 1,
                   fontSize: F.lg,
                   color: C.darkGrey,
                   lineHeight: 1.9,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+                  boxShadow: BOX_SHADOWS.tooltip,
                 }}>
-                  <Box sx={{ fontWeight: 700, color: C.navy, mb: 0.5 }}>Distribución</Box>
+                  <Box sx={{ fontWeight: W.bold, color: C.navy, mb: 0.5 }}>Distribución</Box>
                   <Box>Máximo: <strong>{d.rawMax ?? d.max}%</strong></Box>
                   <Box>Q3: <strong>{d.q3}%</strong></Box>
                   <Box>Mediana: <strong>{d.md}%</strong></Box>
@@ -403,19 +419,19 @@ interface KPICardProps {
 function KPICard({ title, subtitle, mi, todos, suffix = '%' }: KPICardProps) {
   const fmt = (v: number | string) => typeof v === 'number' ? (suffix ? `${v} ${suffix}` : `${v}`) : v
   return (
-    <Box component="article" sx={{ ...CARD_SX, border: '2px solid', borderColor: C.blackAlpha18, flex: 1, minWidth: 160, display: 'flex', flexDirection: 'column', px: 1.25, py: 3 }}>
+    <Box component="article" sx={{ ...CARD_SX, border: '2px solid', borderColor: C.blackAlpha18, flex: 1, minWidth: 160, display: 'flex', flexDirection: 'column', px: S.kpiCardPx, py: S.kpiCardPy }}>
       <Box sx={{ mb: 1 }}>
-        <Typography sx={{ color: C.kpiText, fontWeight: 550, fontSize: F.kpiTitle }}>{title}</Typography>
-        <Typography sx={{ color: C.kpiText, fontWeight: 500, fontSize: F.lg, pb: 4 }}>{subtitle}</Typography>
+        <Typography sx={{ color: C.kpiText, fontWeight: W.kpi, fontSize: F.kpiTitle }}>{title}</Typography>
+        <Typography sx={{ color: C.kpiText, fontWeight: W.medium, fontSize: F.lg, pb: 4 }}>{subtitle}</Typography>
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1 }}>
         <Box sx={{ bgcolor: C.navyMid, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 2, borderRadius: RADIUS.lg }}>
-          <Typography sx={{ color: C.white, fontSize: F.kpiLabel, fontWeight: 500 }}>Mi <br /> Colegio</Typography>
-          <Typography sx={{ color: C.white, fontWeight: 550, fontSize: F.kpiValue, pr: 4 }}>{fmt(mi)}</Typography>
+          <Typography sx={{ color: C.white, fontSize: F.kpiLabel, fontWeight: W.medium }}>Mi <br /> Colegio</Typography>
+          <Typography sx={{ color: C.white, fontWeight: W.kpi, fontSize: F.kpiValue, pr: 4 }}>{fmt(mi)}</Typography>
         </Box>
         <Box sx={{ bgcolor: C.iceBlue, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 1.5, borderRadius: RADIUS.lg }}>
-          <Typography sx={{ color: C.navy, fontSize: F.kpiLabel, fontWeight: 500 }}>Todos <br /> los colegios</Typography>
-          <Typography sx={{ color: C.navy, fontWeight: 550, fontSize: F.kpiValue, pr: 4 }}>{fmt(todos)}</Typography>
+          <Typography sx={{ color: C.navy, fontSize: F.kpiLabel, fontWeight: W.medium }}>Todos <br /> los colegios</Typography>
+          <Typography sx={{ color: C.navy, fontWeight: W.kpi, fontSize: F.kpiValue, pr: 4 }}>{fmt(todos)}</Typography>
         </Box>
       </Box>
     </Box >
@@ -434,8 +450,8 @@ function ChartCard({ num, title, subtitle, legend, children, dense = false, sx, 
 }) {
   return (
     <Box component="article" sx={{ ...CARD_SX, borderColor: C.blackAlpha18, p: dense ? S.cardPadding : S.cardPaddingLarge, ...sx }}>
-      <Typography sx={{ fontSize: F.lg, color: C.navyMid, fontWeight: 500, mb: 0.25 }}>{num}. {title}</Typography>
-      {subtitle && <Typography variant="subtitle1" sx={{ fontWeight: 600, color: C.navy, mb: dense ? 0.5 : 0.75, fontSize: F.cardSubtitle }}>{subtitle}</Typography>}
+      <Typography sx={{ fontSize: F.lg, color: C.navyMid, fontWeight: W.medium, mb: 0.25 }}>{num}. {title}</Typography>
+      {subtitle && <Typography variant="subtitle1" sx={{ fontWeight: W.normal, color: C.navy, mb: dense ? 0.5 : 0.75, fontSize: F.cardSubtitle }}>{subtitle}</Typography>}
       {legend && <Box sx={{ mb: dense ? 0.5 : 1 }}>{legend}</Box>}
       {bodySx ? <Box sx={bodySx}>{children}</Box> : children}
     </Box>

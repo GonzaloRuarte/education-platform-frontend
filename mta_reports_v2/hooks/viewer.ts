@@ -5,19 +5,19 @@ import { apiUrl } from '@/config'
 import { ANIO_ORDER } from '@/mta_reports_v2/constants'
 import type { I_RawEscuelaDatos } from '@/mta_reports_v2/types'
 
-const useEscuelaReporteAurora = (escuelaId: number | null) => {
+const useEscuelaReporteAurora = (escuelaId: number | null, toma: string | null) => {
   const [rawData, setRawData] = useState<I_RawEscuelaDatos | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const authResources = useAuthResources()
 
   useEffect(() => {
-    if (!escuelaId) return
+    if (!escuelaId || !toma) return
     let alive = true
     setLoading(true)
     setError(null)
     axiosGet<I_RawEscuelaDatos>({
-      url: apiUrl(`/reportes-aurora/escuela/${escuelaId}/`),
+      url: apiUrl(`/reportes-aurora/escuela/${escuelaId}/toma/${toma}/`),
       requestSetup: authResources,
       options: {},
     })
@@ -25,13 +25,10 @@ const useEscuelaReporteAurora = (escuelaId: number | null) => {
       .catch(err => { if (alive) setError(err?.message ?? 'Error al cargar') })
       .finally(() => { if (alive) setLoading(false) })
     return () => { alive = false }
-  }, [escuelaId, authResources.accessToken]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [escuelaId, toma, authResources.accessToken]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const tomas = useMemo(
-    () => (rawData ? [...new Set(rawData.datos.map(d => d.toma))].sort() : []),
-    [rawData],
-  )
-
+  // El blob ya viene filtrado por toma (una page = una toma), así que el set de materias/años
+  // disponibles se calcula sobre el `datos` completo sin volver a filtrar por toma.
   const uniqueFrom = useCallback(
     <K extends 'materia' | 'anio'>(key: K, predicate: (d: I_RawEscuelaDatos['datos'][number]) => boolean) => {
       if (!rawData) return [] as string[]
@@ -41,23 +38,22 @@ const useEscuelaReporteAurora = (escuelaId: number | null) => {
   )
 
   const getMaterias = useCallback(
-    (toma: string) => uniqueFrom('materia', d => d.toma === toma),
+    () => uniqueFrom('materia', () => true),
     [uniqueFrom],
   )
 
-  const getAnios = useCallback((toma: string, materia: string): string[] => {
+  const getAnios = useCallback((materia: string): string[] => {
     const available = new Set(uniqueFrom('anio', d =>
-      d.toma === toma && (materia === 'Todos' || d.materia === materia),
+      materia === 'Todos' || d.materia === materia,
     ))
     return ANIO_ORDER.filter(a => available.has(a))
   }, [uniqueFrom])
 
-  const getDivisiones = useCallback((materia: string, anio: string, toma: string): string[] => {
+  const getDivisiones = useCallback((materia: string, anio: string): string[] => {
     if (!rawData) return []
     const matching = rawData.datos.filter(d =>
       (materia === 'Todos' || d.materia === materia) &&
-      (anio === 'Todos' || d.anio === anio) &&
-      d.toma === toma,
+      (anio === 'Todos' || d.anio === anio),
     )
     if (matching.length === 0) return []
     const divSet = new Set<string>()
@@ -68,7 +64,7 @@ const useEscuelaReporteAurora = (escuelaId: number | null) => {
     return divs.length > 1 ? ['Todas', ...divs] : divs
   }, [rawData])
 
-  return { rawData, loading, error, tomas, getMaterias, getAnios, getDivisiones }
+  return { rawData, loading, error, getMaterias, getAnios, getDivisiones }
 }
 
 export { useEscuelaReporteAurora }

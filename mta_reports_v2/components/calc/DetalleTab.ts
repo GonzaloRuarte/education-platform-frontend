@@ -29,10 +29,14 @@ export function calcDetalle(
   const scores45 = studentScores(allIds, estudiantes_mi)
 
   const isLenguajeRaw = isLenguajeMateria(f.materia)
-  // Para Lenguaje, las microcompetencias se leen de `tags` con prefijo 'microcompetencia-'
-  // (no del campo `contenido`, que trae otra taxonomía).
+  // Para Lenguaje el chart 02 ("Resultados por tipo de texto y microcompetencia") combina
+  // dos dimensiones: tipo de texto (`contenido-texto_*`) y microcompetencia (`microcompetencia-*`).
+  // Cada una aporta filas independientes al barchart.
   const contenido   = isLenguajeRaw
-    ? groupByMicrocompetencia(combo.preguntas, pp, estudiantes_mi)
+    ? [
+        ...groupBy('contenido', combo.preguntas, pp, estudiantes_mi),
+        ...groupByMicrocompetencia(combo.preguntas, pp, estudiantes_mi),
+      ]
     : groupBy('contenido', combo.preguntas, pp, estudiantes_mi)
   const competencia = groupBy('competencia', combo.preguntas, pp, estudiantes_mi)
   const bpMi    = boxplot(scores45)
@@ -49,7 +53,10 @@ export function calcDetalle(
     const one = [respuestas]
     // Misma lógica que arriba: microcompetencias por tags en Lenguaje, contenido por campo en el resto.
     const stCont = isLenguaje
-      ? groupByMicrocompetencia(combo.preguntas, pp, one)
+      ? [
+          ...groupBy('contenido', combo.preguntas, pp, one),
+          ...groupByMicrocompetencia(combo.preguntas, pp, one),
+        ]
       : groupBy('contenido', combo.preguntas, pp, one)
     const stComp = groupBy('competencia', combo.preguntas, pp, one)
     return {

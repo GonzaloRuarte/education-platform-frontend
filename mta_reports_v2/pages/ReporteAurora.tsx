@@ -21,6 +21,7 @@ import {
   TABS, TAB_BY_ID, TAB_ORDER, tabLabel as resolveTabLabel,
 } from '@/mta_reports_v2/components/reporteAuroraTabs'
 import type { TabId, TabRenderCtx } from '@/mta_reports_v2/components/reporteAuroraTabs'
+import { ANIO_LABELS } from '@/mta_reports_v2/semaforo_data'
 import {
   ReportHeader, FilterPillsBar, TabPager,
 } from '@/mta_reports_v2/components/ReporteAuroraChrome'
@@ -28,9 +29,10 @@ import {
 const C = COLORS
 
 const ReporteAurora = () => {
-  const params = useParams<{ escuelaId: string }>()
+  const params = useParams<{ escuelaId: string; toma: string }>()
   const searchParams = useSearchParams()
   const escuelaId = params?.escuelaId ? Number(params.escuelaId) : null
+  const toma = params?.toma ?? ''
   const editRequested = searchParams?.get('edit') === '1'
   const canManage = useHasCapabilities(['manage_reports'])
   const publish = useAuroraReportPublish()
@@ -38,7 +40,6 @@ const ReporteAurora = () => {
   const [statusBusy, setStatusBusy] = useState(false)
 
   const [tab, setTab] = useState<TabId>(editRequested ? 'intro' : 'cover')
-  const [toma, setToma] = useState('')
   const [materia, setMateria] = useState('Todos')
   const [anio, setAnio] = useState('Todos')
   const [division, setDivision] = useState('Todas')
@@ -46,11 +47,11 @@ const ReporteAurora = () => {
   const [neeFilter, setNeeFilter] = useState('Con NEE')
   const [selectedStudentLabel, setSelectedStudentLabel] = useState<string>('Todos los alumnos')
 
-  const { rawData, loading, error, tomas, getMaterias, getAnios, getDivisiones } =
-    useEscuelaReporteAurora(escuelaId)
+  const { rawData, loading, error, getMaterias, getAnios, getDivisiones } =
+    useEscuelaReporteAurora(escuelaId, toma)
 
-  const materias = useMemo(() => getMaterias(toma), [getMaterias, toma])
-  const anios = useMemo(() => getAnios(toma, materia), [getAnios, toma, materia])
+  const materias = useMemo(() => getMaterias(), [getMaterias])
+  const anios = useMemo(() => getAnios(materia), [getAnios, materia])
 
   const isSemaforoTab = tab === 'semaforoLenguaje' || tab === 'semaforoMatematica'
 
@@ -58,17 +59,14 @@ const ReporteAurora = () => {
     if (isSemaforoTab) {
       const divSet = new Set<string>()
       for (const a of ANIO_ORDER) {
-        getDivisiones(materia, a, toma).filter(d => d !== 'Todas').forEach(d => divSet.add(d))
+        getDivisiones(materia, a).filter(d => d !== 'Todas').forEach(d => divSet.add(d))
       }
       const divs = [...divSet]
       return divs.length > 0 ? ['Todas', ...divs] : ['Todas']
     }
-    return getDivisiones(materia, anio, toma)
-  }, [isSemaforoTab, materia, anio, toma, getDivisiones])
+    return getDivisiones(materia, anio)
+  }, [isSemaforoTab, materia, anio, getDivisiones])
 
-  useEffect(() => {
-    setToma(t => (tomas.length > 0 && !t ? tomas[tomas.length - 1] : t))
-  }, [tomas])
   useEffect(() => {
     if (materia === 'Todos') return
     if (materias.length > 0 && !materias.includes(materia)) setMateria(materias[0])
@@ -137,7 +135,6 @@ const ReporteAurora = () => {
     }
   }
 
-  const tomaFilter = useMemo<FilterDef>(() => ({ label: 'Toma', value: toma, opts: tomas.length > 0 ? tomas : [toma].filter(Boolean), set: setToma }), [toma, tomas])
   const divFilter = useMemo<FilterDef>(() => ({ label: 'División', value: division, opts: divisiones, set: setDivision }), [division, divisiones])
   const materiaFilter = useMemo<FilterDef>(() => ({ label: 'Materia', value: materia, opts: ['Todos', ...(materias.length > 0 ? materias : [materia].filter(m => m && m !== 'Todos'))], set: setMateria }), [materia, materias])
   const anioFilter = useMemo<FilterDef>(() => ({ label: 'Año', value: anio, opts: ['Todos', ...(anios.length > 0 ? anios : ANIO_ORDER.slice())], set: setAnio }), [anio, anios])
@@ -182,8 +179,8 @@ const ReporteAurora = () => {
   }
 
   const sidebarFilters = useMemo<Array<FilterDef>>(
-    () => [...(tabDef.filters?.({ materias, divisiones, anios, materiaFilter, anioFilter, divFilter, tomaFilter, studentFilter }) ?? []), neeFilterDef],
-    [tabDef, materias, divisiones, anios, materiaFilter, anioFilter, divFilter, tomaFilter, studentFilter, neeFilterDef],
+    () => [...(tabDef.filters?.({ materias, divisiones, anios, materiaFilter, anioFilter, divFilter, studentFilter }) ?? []), neeFilterDef],
+    [tabDef, materias, divisiones, anios, materiaFilter, anioFilter, divFilter, studentFilter, neeFilterDef],
   )
 
   const resetFilters = () => {
@@ -192,7 +189,6 @@ const ReporteAurora = () => {
     setDivision('Todas')
     setNeeFilter('Con NEE')
     setSelectedStudentLabel('Todos los alumnos')
-    if (tomas.length > 0) setToma(tomas[tomas.length - 1])
   }
 
   const filterPills = useMemo(() => {
@@ -205,9 +201,13 @@ const ReporteAurora = () => {
       pills.push({ label: `Año: ${anio || '-'}` })
     }
     if (divisiones.length > 1) pills.push({ label: `División: ${division || '-'}` })
+    if (isSemaforoTab) {
+      const isAnio = semaforoAnio === '9no' || semaforoAnio === '12mo'
+      pills.push({ label: `${isAnio ? 'Año' : 'Grado'}: ${ANIO_LABELS[semaforoAnio] ?? semaforoAnio}` })
+    }
     if (neeFilter === 'Sin NEE') pills.push({ label: `NEE: ${neeFilter}` })
     return pills
-  }, [tab, isStaticTab, isSemaforoTab, materia, materias.length, anio, division, divisiones.length, toma, neeFilter])
+  }, [tab, isStaticTab, isSemaforoTab, materia, materias.length, anio, division, divisiones.length, toma, neeFilter, semaforoAnio])
 
   const advance = (direction: 'prev' | 'next') => {
     if (isSemaforoTab) {

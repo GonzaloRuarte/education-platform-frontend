@@ -100,7 +100,7 @@ export function groupBy(
   pp: Record<string, { n_correctas: number; n_total: number }>,
   estudiantes: Array<Record<string, boolean>>,
 ): I_ItemAurora[] {
-  const strip = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+  const strip = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/-/g, ' ').replace(/\s+/g, ' ').toLowerCase()
   const tagMap: Record<string, string> = {}
   const register = (canonical: string, variants: string[]) => {
     for (const v of variants) tagMap[strip(v.trim())] = canonical
@@ -144,6 +144,33 @@ export function groupBy(
     'Resolución problemas', 'Resolucion problemas',
     'Resolución-de-problemas', 'Resolucion-de-problemas',
   ])
+  register('Resolución de algoritmos', [
+    'Resolución de algoritmos', 'Resolucion de algoritmos',
+    'Resolución-de-algoritmos', 'Resolucion-de-algoritmos',
+  ])
+  register('Comprensión lectora', [
+    'Comprensión lectora', 'Comprension lectora',
+  ])
+  register('Comunicación en matemática', [
+    'Comunicación en matemática', 'Comunicacion en matematica',
+    'Comunicación matemática', 'Comunicacion matematica',
+  ])
+  register('Reflexión sobre los hechos del lenguaje', [
+    'Reflexión sobre los hechos del lenguaje',
+    'Reflexion sobre los hechos del lenguaje',
+  ])
+  register('Álgebra y funciones', [
+    'Álgebra y funciones', 'Algebra y funciones',
+  ])
+  register('Geometría y medidas', [
+    'Geometría y medidas', 'Geometria y medidas',
+  ])
+  register('Numeración', [
+    'Numeración', 'Numeracion',
+  ])
+  register('Texto argumentativo', ['Texto argumentativo'])
+  register('Texto informativo', ['Texto informativo'])
+  register('Texto narrativo', ['Texto narrativo'])
   const normalizeTag = (t: string): string => tagMap[strip(t.trim())] ?? t
 
   const groups: Record<string, Set<string>> = {}
@@ -165,10 +192,15 @@ export function groupBy(
 // Solo se consideran tags con prefijo 'microcompetencia-'. El slug se mapea al nombre
 // canónico de display (con acentos y mayúsculas) vía MICROCOMPETENCIA_LABELS.
 const MICROCOMPETENCIA_PREFIX = 'microcompetencia-'
+// Las claves matchean el slug exacto que llega en el tag `microcompetencia-<slug>`,
+// con underscores como en la fuente de datos. `_interpretar` se mappea al mismo
+// label que `implicita` para agruparse en una sola fila del chart.
 const MICROCOMPETENCIA_LABELS: Record<string, string> = {
-  'analisis-textual': 'Análisis textual',
-  'reconocimiento-de-informacion-explicita': 'Reconocimiento de información explícita',
-  'reconocimiento-de-informacion-implicita': 'Reconocimiento de información implícita',
+  'analisis_textual': 'Análisis textual',
+  'reconocimiento_de_informacion_explicita': 'Reconocimiento de información explícita',
+  'reconocimiento_de_informacion_implicita': 'Reconocimiento de información implícita',
+  'reconocimiento_de_informacion_implicita_interpretar': 'Reconocimiento de información implícita',
+  'clases_de_palabras': 'Clases de palabras',
 }
 
 export function groupByMicrocompetencia(
@@ -183,7 +215,7 @@ export function groupByMicrocompetencia(
     const tags = q.tags.split(';').map(t => t.trim()).filter(Boolean)
     for (const tag of tags) {
       if (!tag.startsWith(MICROCOMPETENCIA_PREFIX)) continue
-      const slug = tag.slice(MICROCOMPETENCIA_PREFIX.length)
+      const slug = tag.slice(MICROCOMPETENCIA_PREFIX.length).replace(/-/g, '_')
       // Si el slug no está mapeado, se usa tal cual (degradación elegante).
       const label = MICROCOMPETENCIA_LABELS[slug] ?? slug
       if (!groups[label]) groups[label] = new Set()

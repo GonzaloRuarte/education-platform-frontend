@@ -65,7 +65,6 @@ export type TabFiltersCtx = {
   materiaFilter: FilterDef
   anioFilter: FilterDef
   divFilter: FilterDef
-  tomaFilter: FilterDef
   studentFilter: FilterDef
 }
 
@@ -87,37 +86,30 @@ interface FilterFlags {
   materia?: boolean
   anio?: boolean
   division?: boolean
-  toma?: boolean
 }
 
 const buildFilters = (flags: FilterFlags) => (ctx: TabFiltersCtx): Array<FilterDef> => {
   const out: Array<FilterDef> = []
-  if (flags.materia && ctx.materias.length > 1) out.push(ctx.materiaFilter)
+  if (flags.materia) out.push(ctx.materiaFilter)
   if (flags.anio) out.push(ctx.anioFilter)
-  if (flags.division && ctx.divisiones.length > 1) out.push(ctx.divFilter)
-  if (flags.toma) out.push(ctx.tomaFilter)
+  if (flags.division) out.push(ctx.divFilter)
   return out
 }
 
-const filtersResumenLike = buildFilters({ materia: true, anio: true, division: true, toma: true })
-const filtersScatterLike = buildFilters({ anio: true, division: true, toma: true })
+const filtersResumenLike = buildFilters({ materia: true, anio: true, division: true })
+const filtersScatterLike = buildFilters({ anio: true, division: true })
 const filtersDetalleMatematicaLike = (ctx: TabFiltersCtx): Array<FilterDef> => [
   { ...ctx.anioFilter, opts: ctx.anioFilter.opts.filter(o => o !== 'Todos') },
   ctx.divFilter,
-  ctx.tomaFilter,
 ]
 const filtersDetalleLenguajeLike = (ctx: TabFiltersCtx): Array<FilterDef> => [
   ctx.anioFilter,
   ctx.divFilter,
-  ctx.tomaFilter,
 ]
-const filtersSemaforoSplitLike = (ctx: TabFiltersCtx): Array<FilterDef> => {
-  const out: Array<FilterDef> = []
-  if (ctx.divisiones.length > 1) out.push(ctx.divFilter)
-  out.push(ctx.tomaFilter)
-  out.push(ctx.studentFilter)
-  return out
-}
+const filtersSemaforoSplitLike = (ctx: TabFiltersCtx): Array<FilterDef> => [
+  ctx.divFilter,
+  ctx.studentFilter,
+]
 
 export const TABS: ReadonlyArray<TabDef> = [
   {
@@ -174,7 +166,6 @@ export const TABS: ReadonlyArray<TabDef> = [
   },
   {
     id: 'historico', label: 'Histórico', kind: 'data',
-    filters: ({ tomaFilter }) => [tomaFilter],
     render: ({ escuelaId }) => escuelaId !== null ? <HistoricoTab schoolId={escuelaId} /> : null,
   },
   {

@@ -3,7 +3,7 @@
 import { ReactNode } from 'react'
 import dynamic from 'next/dynamic'
 import { Box, Stack, Typography } from '@mui/material'
-import { COLORS, SPACING } from '@/mta_reports_v2/constants'
+import { COLORS, SPACING, Z_INDEX } from '@/mta_reports_v2/constants'
 import { useEditableSlide, SlideFieldConfig } from '@/mta_reports_v2/hooks'
 import Logo from '@/shared/components/Logo'
 import LogoAustral from '@/shared/components/LogoAustral'
@@ -109,8 +109,8 @@ const EditableContentSection = <F extends string,>({
         pb: SPACING.slidePb,
       }}
     >
-      <Stack direction="row" justifyContent="flex-end" alignItems="flex-start" spacing={2} sx={{ position: 'absolute', top: { xs: 16, md: 24 }, right: { xs: 24, md: 64 }, zIndex: 3 }}>
-        <Stack direction="row" alignItems="center" spacing={1.25}>
+      <Stack direction="row" justifyContent="flex-end" alignItems="flex-start" spacing={2} sx={{ position: 'absolute', top: { xs: 16, md: 24 }, right: { xs: 24, md: 64 }, zIndex: Z_INDEX.popover }}>
+        <Stack direction="row" alignItems="center" spacing={SPACING.groupSpacing}>
           {slide.canEdit && !slide.isEditing && (
             <Button size="small" bgcolor="purple" onClick={slide.startEditing} disabled={slide.isLoading}>
               Editar
