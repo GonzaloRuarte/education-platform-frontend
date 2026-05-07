@@ -34,15 +34,15 @@ const HistoricoTab = ({ schoolId }: HistoricoTabProps) => {
   const { data, loading } = useHistoricoEscuela(schoolId)
 
   return (
-    <Box>
+    <Box sx={{ maxHeight: '80vh', overflowY: 'auto', pr: 1 }}>
       <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
         <Typography sx={{ color: C.navy, fontFamily: TITLE_FONT_FAMILY, fontWeight: W.extrabold, fontSize: F.subtitle }}>Comparación histórica</Typography>
-        <Chip size="small" color="warning" label="Datos preliminares (mock)" />
+        <Chip color="warning" label="Datos preliminares (mock)" sx={{ fontSize: F.md, fontWeight: W.bold, height: 36, px: 1 }} />
       </Stack>
       {loading || !data ? (
         <Typography sx={{ color: C.tm }}>Cargando…</Typography>
       ) : (
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+        <Stack direction="column" spacing={3}>
           <HistoricoChart title="Matemática" data={data.por_materia.matematica} />
           <HistoricoChart title="Prácticas del Lenguaje" data={data.por_materia.lenguaje} />
         </Stack>
