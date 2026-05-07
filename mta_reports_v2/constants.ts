@@ -142,6 +142,15 @@ export const LAYOUT_SIZES = {
   dotSmall: 10,
 } as const
 
+export const SLIDE_BASE = {
+  width: 1280,
+  height: 720,
+} as const
+
+export const ZOOM = {
+  fitPadding: 24,
+} as const
+
 export const BAR_CHART = {
   size: { thin: 13, thick: 26 },
   rowHeight: { normal: 50, tall: 80 },
