@@ -25,7 +25,7 @@ import {
   useAppointmentFreeListByMonth,
   useAppointmentReschedule,
 } from '@/mta_schedule/hooks'
-import { availableDays, distinctAvailableAppointments } from '@/mta_schedule/utils'
+import { appointmentDateFromISOString, availableDays, distinctAvailableAppointments, slotLabelFromBeginning } from '@/mta_schedule/utils'
 import { useForm } from 'react-hook-form'
 import { rules } from '@/shared/forms/messages'
 import { handleServiceError } from '@/shared/service'
@@ -62,7 +62,7 @@ const RescheduleDialog: React.FC<Props> = ({ open, onClose, originalAppointment,
 
   const reschedule = useAppointmentReschedule()
 
-  const initialDate = dayjs(originalAppointment.begins_at)
+  const initialDate = appointmentDateFromISOString(originalAppointment.begins_at)
 
   const [refDate, setRefDate] = useState(initialDate)
   const [selectedAppointmentData, setSelectedAppointmentData] = useState<I_AppointmentAvailable | null>(null)
@@ -78,7 +78,7 @@ const RescheduleDialog: React.FC<Props> = ({ open, onClose, originalAppointment,
   useEffect(() => {
     if (!open || !originalAppointment) return
 
-    const fixedDate = dayjs(originalAppointment.begins_at)
+    const fixedDate = appointmentDateFromISOString(originalAppointment.begins_at)
 
     setRefDate(fixedDate)
     reset({
@@ -103,13 +103,13 @@ const RescheduleDialog: React.FC<Props> = ({ open, onClose, originalAppointment,
       return
     }
 
-    const choosenDate = selectedDate.date()
+    const choosenDate = selectedDate.date()  // Already in local time from form
     const availableOptions = freeByMonth[choosenDate] ?? []
 
     setAppointmentOptions(
       Object.entries(distinctAvailableAppointments(availableOptions)).map(([datetime, availbleAppointments]) => ({
         value: availbleAppointments[0].id,
-        label: `${dayjs(datetime).format('HH:mm')} a ${dayjs(datetime).add(300, 'minute').format('HH:mm')} hrs (${availbleAppointments.length} turnos disponibles)`,
+        label: `${slotLabelFromBeginning(datetime)} (${availbleAppointments.length} turnos disponibles)`,
       })),
     )
   }
@@ -122,7 +122,7 @@ const RescheduleDialog: React.FC<Props> = ({ open, onClose, originalAppointment,
       return
     }
 
-    const choosenDate = selectedDate.date()
+    const choosenDate = selectedDate.date()  // Already in local time from form
     const availableAppointments = freeByMonth[choosenDate] ?? []
 
     setSelectedAppointmentData(availableAppointments.find((appointment) => appointment.id === originalAppointment.id) || null)

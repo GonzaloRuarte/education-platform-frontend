@@ -76,9 +76,7 @@ const AppointmentCreateForm = () => {
             <Spacer />
 
             <Body1>
-              Los turnos de la mañana comienzan a las 8 am y terminan a la 1 pm (rango
-              escolar de la mañana), mientras que los turnos de la tarde comienzan a
-              la 1 pm y terminan a las 6 pm (rango escolar de la tarde).
+              Elegí una franja habilitada. El horario de inicio debe coincidir exactamente con una opción disponible.
             </Body1>
 
             <Spacer size="m" />

@@ -29,6 +29,7 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PUBLIC_API_BASE_PATH=http://localhost:8000/api
+ENV NEXT_PUBLIC_APPOINTMENT_SCHEDULE_PROFILE=expanded_6_blocks
 
 RUN \
   if [ -f yarn.lock ]; then yarn run build; \
@@ -61,6 +62,7 @@ EXPOSE 3000
 ENV NODE_ENV=staging
 ENV PORT=3000
 ENV NEXT_PUBLIC_API_BASE_PATH=http://localhost:8000/api
+ENV NEXT_PUBLIC_APPOINTMENT_SCHEDULE_PROFILE=expanded_6_blocks
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # server.js is created by next build from the standalone output

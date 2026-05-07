@@ -17,7 +17,7 @@ const AppointmentRequestPage = () => {
       <Page.Title>Solicitar {APPOINTMENT_NAME.singular}</Page.Title>
       <Page.Content>
         <Bold>
-          Cuidado: La evaluación dura 80 minutos y debe iniciarse al menos 80 minutos antes de que finalice el turno.
+          Cuidado: elegí una franja habilitada; el inicio del turno debe coincidir exactamente con una opción disponible.
         </Bold>
         <Spacer size="l" />
         {isLoading || accessibleSchools === undefined || selectedSchool === undefined ? (

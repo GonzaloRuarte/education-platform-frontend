@@ -9,7 +9,7 @@ import {
   useNavigateToAppointmentList,
 } from '@/mta_schedule/hooks'
 import { I_AppointmentAvailable, T_AppointmentId } from '@/mta_schedule/types'
-import { availableDays, distinctAvailableAppointments } from '@/mta_schedule/utils'
+import { availableDays, distinctAvailableAppointments, slotLabelFromBeginning } from '@/mta_schedule/utils'
 import { SchoolGradeSelectControlled } from '@/mta_schools/components/SchoolGradeSelect'
 import { SchoolSelectControlled } from '@/mta_schools/components/SchoolSelect'
 import { SchoolGrade } from '@/mta_schools/constants'
@@ -84,13 +84,13 @@ const AppointmentRequestForm = ({ selectedSchool, availableSchools, lockSchool }
       return
     }
 
-    const choosenDate = selectedDate.date()
+    const choosenDate = selectedDate.date()  // Already in local time from form
     const availableOptions = appointmentFreeListByMonth[choosenDate] ?? []
 
     setAppointmentOptions(
       Object.entries(distinctAvailableAppointments(availableOptions)).map(([datetime, availbleAppointments]) => ({
         value: availbleAppointments[0].id,
-        label: `${dayjs(datetime).format('HH:mm')} a ${dayjs(datetime).add(300, 'minute').format('HH:mm')} hrs (${availbleAppointments.length} turnos disponibles)`,
+        label: `${slotLabelFromBeginning(datetime)} (${availbleAppointments.length} turnos disponibles)`,
       })),
     )
   }
@@ -104,7 +104,7 @@ const AppointmentRequestForm = ({ selectedSchool, availableSchools, lockSchool }
       return
     }
 
-    const choosenDate = selectedDate.date()
+    const choosenDate = selectedDate.date()  // Already in local time from form
     const availableAppointments = appointmentFreeListByMonth[choosenDate] ?? []
 
     setSelectedAppointmentData(availableAppointments.find((appointment) => appointment.id === appointment_id) || null)
