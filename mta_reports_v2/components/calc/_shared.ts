@@ -100,7 +100,7 @@ export function groupBy(
   pp: Record<string, { n_correctas: number; n_total: number }>,
   estudiantes: Array<Record<string, boolean>>,
 ): I_ItemAurora[] {
-  const strip = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+  const strip = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/-/g, ' ').replace(/\s+/g, ' ').toLowerCase()
   const tagMap: Record<string, string> = {}
   const register = (canonical: string, variants: string[]) => {
     for (const v of variants) tagMap[strip(v.trim())] = canonical
@@ -215,7 +215,7 @@ export function groupByMicrocompetencia(
     const tags = q.tags.split(';').map(t => t.trim()).filter(Boolean)
     for (const tag of tags) {
       if (!tag.startsWith(MICROCOMPETENCIA_PREFIX)) continue
-      const slug = tag.slice(MICROCOMPETENCIA_PREFIX.length)
+      const slug = tag.slice(MICROCOMPETENCIA_PREFIX.length).replace(/-/g, '_')
       // Si el slug no está mapeado, se usa tal cual (degradación elegante).
       const label = MICROCOMPETENCIA_LABELS[slug] ?? slug
       if (!groups[label]) groups[label] = new Set()
