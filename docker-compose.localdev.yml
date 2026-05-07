@@ -29,6 +29,7 @@ services:
       # override ONLY the hostnames (because inside Docker, localhost != your machine)
       POSTGRES_HOST: db
       REDIS_HOST: redis
+      APPOINTMENT_SCHEDULE_PROFILE: expanded_6_blocks
 
       # optional, but keep it here if you like:
       DJANGO_EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
