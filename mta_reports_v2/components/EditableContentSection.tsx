@@ -126,20 +126,26 @@ const EditableContentSection = <F extends string,>({
               </Button>
             </>
           )}
-          <Logo width={metaLogoSize.w} height={metaLogoSize.h} />
+          <Box sx={{ width: 'min(30cqi, 380px)', '& img': { width: '100%', height: 'auto', display: 'block' } }}>
+            <Logo width={metaLogoSize.w} height={metaLogoSize.h} />
+          </Box>
         </Stack>
       </Stack>
 
-      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', pt: { xs: 6, md: 12 }, pr: { xs: 0, md: 1 }, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', pr: { xs: 0, md: 1 }, display: 'flex', flexDirection: 'column' }}>
         {slide.isLoading ? (
           <Typography sx={{ color: C.tm }}>Cargando...</Typography>
         ) : (
-          children({ renderField, isEditing: slide.isEditing })
+          <Box sx={{ mt: 'auto', pt: { xs: 6, md: 12 } }}>
+            {children({ renderField, isEditing: slide.isEditing })}
+          </Box>
         )}
       </Box>
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
-        <LogoAustral width={australLogoSize.w} height={australLogoSize.h} />
+        <Box sx={{ width: 'min(22.7cqi, 288px)', '& img': { width: '100%', height: 'auto', display: 'block' } }}>
+          <LogoAustral width={australLogoSize.w} height={australLogoSize.h} />
+        </Box>
       </Box>
 
       <QuillEditorStyles />
