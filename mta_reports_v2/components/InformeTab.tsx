@@ -1,9 +1,10 @@
 'use client'
 
 import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
+import type { I_Subject } from '@/mta_reports_v2/hooks'
 
 interface InformeTabProps {
-  schoolId: number
+  subject: I_Subject
   initialEditing?: boolean
 }
 
@@ -17,9 +18,9 @@ const fields = {
   },
 }
 
-const InformeTab = ({ schoolId, initialEditing }: InformeTabProps) => (
+const InformeTab = ({ subject, initialEditing }: InformeTabProps) => (
   <EditableTab
-    schoolId={schoolId}
+    subject={subject}
     initialEditing={initialEditing}
     diapositivaId="informe"
     successMessage='Sección "El Informe" actualizada correctamente'

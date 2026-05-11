@@ -4,12 +4,13 @@ import { Box, Stack, Typography } from '@mui/material'
 import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
 import { SubjectBadge } from '@/mta_reports_v2/components/shared/SubjectBadge'
 import { COLORS, FONT_WEIGHTS, RADIUS, TITLE_FONT_FAMILY } from '@/mta_reports_v2/constants'
+import type { I_Subject } from '@/mta_reports_v2/hooks'
 
 const C = COLORS
 const W = FONT_WEIGHTS
 
 interface MatematicaTabProps {
-  schoolId: number
+  subject: I_Subject
   initialEditing?: boolean
 }
 
@@ -44,9 +45,9 @@ const sectionHeadingSx = {
   mb: 1.5,
 }
 
-const MatematicaTab = ({ schoolId, initialEditing }: MatematicaTabProps) => (
+const MatematicaTab = ({ subject, initialEditing }: MatematicaTabProps) => (
   <EditableTab
-    schoolId={schoolId}
+    subject={subject}
     initialEditing={initialEditing}
     diapositivaId="matematica"
     successMessage='Sección "Matemática" actualizada correctamente'

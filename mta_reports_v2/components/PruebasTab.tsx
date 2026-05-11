@@ -1,9 +1,10 @@
 'use client'
 
 import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
+import type { I_Subject } from '@/mta_reports_v2/hooks'
 
 interface PruebasTabProps {
-  schoolId: number
+  subject: I_Subject
   initialEditing?: boolean
 }
 
@@ -30,9 +31,9 @@ const fields = {
   },
 }
 
-const PruebasTab = ({ schoolId, initialEditing }: PruebasTabProps) => (
+const PruebasTab = ({ subject, initialEditing }: PruebasTabProps) => (
   <EditableTab
-    schoolId={schoolId}
+    subject={subject}
     initialEditing={initialEditing}
     diapositivaId="pruebas"
     successMessage='Sección "Las pruebas" actualizada correctamente'

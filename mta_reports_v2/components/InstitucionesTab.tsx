@@ -2,9 +2,10 @@
 
 import { Box } from '@mui/material'
 import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
+import type { I_Subject } from '@/mta_reports_v2/hooks'
 
 interface InstitucionesTabProps {
-  schoolId: number
+  subject: I_Subject
   initialEditing?: boolean
 }
 
@@ -74,9 +75,9 @@ const columnSx = {
   },
 }
 
-const InstitucionesTab = ({ schoolId, initialEditing }: InstitucionesTabProps) => (
+const InstitucionesTab = ({ subject, initialEditing }: InstitucionesTabProps) => (
   <EditableTab
-    schoolId={schoolId}
+    subject={subject}
     initialEditing={initialEditing}
     diapositivaId="instituciones"
     successMessage='Sección "Instituciones participantes" actualizada correctamente'

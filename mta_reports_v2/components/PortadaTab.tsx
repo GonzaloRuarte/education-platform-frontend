@@ -5,6 +5,7 @@ import Box from '@mui/material/Box'
 import Image from 'next/image'
 import { Stack } from '@mui/material'
 import { useEditableSlide } from '@/mta_reports_v2/hooks'
+import type { I_Subject } from '@/mta_reports_v2/hooks'
 import { COLORS, FONT_WEIGHTS, TITLE_FONT_FAMILY, SPACING, Z_INDEX } from '@/mta_reports_v2/constants'
 import Footer from '@/shared/layout/Footer'
 import Logo from '@/shared/components/Logo'
@@ -21,7 +22,7 @@ const C = COLORS
 const metaLogoSize = new ImageSize(350, 100)
 
 interface PortadaTabProps {
-  schoolId: number
+  subject: I_Subject
   initialEditing?: boolean
 }
 
@@ -36,9 +37,9 @@ const editorModules = {
 
 const editorFormats = ['bold', 'italic', 'underline', 'color']
 
-const PortadaTab = ({ schoolId, initialEditing }: PortadaTabProps) => {
+const PortadaTab = ({ subject, initialEditing }: PortadaTabProps) => {
   const slide = useEditableSlide<'title' | 'subtitle'>({
-    schoolId,
+    subject,
     diapositivaId: 'portada',
     successMessage: 'Portada actualizada correctamente',
     fields,

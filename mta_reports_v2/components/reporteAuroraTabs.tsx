@@ -27,6 +27,7 @@ import { calcScatter } from './calc/ScatterTab'
 import { calcTabla } from './calc/TablaTab'
 import type { FilterDef, MultiFilterDef } from './ReporteAuroraSidebar'
 import type { I_EscuelaMiembro } from '@/mta_reports_v2/types'
+import type { I_Subject } from '@/mta_reports_v2/hooks'
 
 const C = COLORS
 
@@ -41,6 +42,10 @@ export type TabKind = 'static' | 'data'
 
 export type TabRenderCtx = {
   escuelaId: number | null
+  // Sujeto del reporte (escuela XOR agrupamiento). Los tabs de slides editables lo usan
+  // para construir la URL del endpoint. `escuelaId` se mantiene para `HistoricoTab`, que
+  // sigue siendo school-only.
+  subject: I_Subject
   editRequested: boolean
   materia: string
   anio: string
@@ -128,43 +133,43 @@ const filtersSemaforoSplitLike = (ctx: TabFiltersCtx): Array<FilterDef> =>
 export const TABS: ReadonlyArray<TabDef> = [
   {
     id: 'cover', label: 'Portada', kind: 'static',
-    render: ({ escuelaId, editRequested }) =>
-      escuelaId !== null ? <PortadaTab schoolId={escuelaId} initialEditing={editRequested} /> : null,
+    render: ({ subject, editRequested }) =>
+      subject.id !== null ? <PortadaTab subject={subject} initialEditing={editRequested} /> : null,
   },
   {
     id: 'intro', label: 'Introducción', kind: 'static',
-    render: ({ escuelaId, editRequested }) =>
-      escuelaId !== null ? <IntroduccionTab schoolId={escuelaId} initialEditing={editRequested} /> : null,
+    render: ({ subject, editRequested }) =>
+      subject.id !== null ? <IntroduccionTab subject={subject} initialEditing={editRequested} /> : null,
   },
   {
     id: 'pruebas', label: 'Las pruebas', kind: 'static',
-    render: ({ escuelaId, editRequested }) =>
-      escuelaId !== null ? <PruebasTab schoolId={escuelaId} initialEditing={editRequested} /> : null,
+    render: ({ subject, editRequested }) =>
+      subject.id !== null ? <PruebasTab subject={subject} initialEditing={editRequested} /> : null,
   },
   {
     id: 'informe', label: 'El informe', kind: 'static',
-    render: ({ escuelaId, editRequested }) =>
-      escuelaId !== null ? <InformeTab schoolId={escuelaId} initialEditing={editRequested} /> : null,
+    render: ({ subject, editRequested }) =>
+      subject.id !== null ? <InformeTab subject={subject} initialEditing={editRequested} /> : null,
   },
   {
     id: 'matematica', label: 'Presentación Matemática', kind: 'static',
-    render: ({ escuelaId, editRequested }) =>
-      escuelaId !== null ? <MatematicaTab schoolId={escuelaId} initialEditing={editRequested} /> : null,
+    render: ({ subject, editRequested }) =>
+      subject.id !== null ? <MatematicaTab subject={subject} initialEditing={editRequested} /> : null,
   },
   {
     id: 'lenguaje', label: 'Presentación PDL', kind: 'static',
-    render: ({ escuelaId, editRequested }) =>
-      escuelaId !== null ? <LenguajeTab schoolId={escuelaId} initialEditing={editRequested} /> : null,
+    render: ({ subject, editRequested }) =>
+      subject.id !== null ? <LenguajeTab subject={subject} initialEditing={editRequested} /> : null,
   },
   {
     id: 'pisa', label: 'Presentación PISA', kind: 'static',
-    render: ({ escuelaId, editRequested }) =>
-      escuelaId !== null ? <PisaTab schoolId={escuelaId} initialEditing={editRequested} /> : null,
+    render: ({ subject, editRequested }) =>
+      subject.id !== null ? <PisaTab subject={subject} initialEditing={editRequested} /> : null,
   },
   {
     id: 'instituciones', label: 'Instituciones', kind: 'static',
-    render: ({ escuelaId, editRequested }) =>
-      escuelaId !== null ? <InstitucionesTab schoolId={escuelaId} initialEditing={editRequested} /> : null,
+    render: ({ subject, editRequested }) =>
+      subject.id !== null ? <InstitucionesTab subject={subject} initialEditing={editRequested} /> : null,
   },
   {
     id: 'presentacion', label: 'Presentación Resultados', kind: 'static',

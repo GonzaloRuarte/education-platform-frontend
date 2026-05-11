@@ -27,15 +27,12 @@ import {
   ReportHeader, FilterPillsBar, TabPager,
 } from '@/mta_reports_v2/components/ReporteAuroraChrome'
 
-// Tabs que dependen de un `schoolId` real (slides editables per-escuela y el
-// histórico). Para sujetos `grouping` los excluimos del orden visible: el editor
-// de slides es per-escuela en el backend y el histórico requiere school_id. Lo
-// que sigue disponible para grouping son todos los tabs de datos (que consumen
-// `rawData` agregado) más las slides estáticas sin storage (`presentacion`,
-// `cierre`).
+// Tabs que dependen de un `schoolId` real. Las slides editables se guardan ahora
+// por sujeto (escuela XOR agrupamiento) contra el mismo modelo `ReporteSlideContent`,
+// así que están disponibles para ambos. Sólo `historico` sigue siendo school-only
+// porque consume datos por escuela.
 const SCHOOL_ONLY_TAB_IDS: ReadonlySet<TabId> = new Set<TabId>([
-  'cover', 'intro', 'pruebas', 'informe', 'matematica', 'lenguaje', 'pisa',
-  'instituciones', 'historico',
+  'historico',
 ])
 
 const C = COLORS
@@ -253,7 +250,9 @@ const ReporteAurora = () => {
   const is16x9Slide = SLIDE_16_9_TABS.has(tab)
 
   const renderCtx: TabRenderCtx = {
-    escuelaId, editRequested, materia, anio, division, toma,
+    escuelaId,
+    subject: { kind: subjectKind, id: subjectId },
+    editRequested, materia, anio, division, toma,
     divisiones, setDivision,
     semaforoAnio, setSemaforoAnio,
     resumenData, detalleData, semaforoBandas, semaforoEstudiantes, scatterPoints, tablaRows,

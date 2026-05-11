@@ -3,9 +3,10 @@
 import { Box } from '@mui/material'
 import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
 import { SubjectBadge } from '@/mta_reports_v2/components/shared/SubjectBadge'
+import type { I_Subject } from '@/mta_reports_v2/hooks'
 
 interface LenguajeTabProps {
-  schoolId: number
+  subject: I_Subject
   initialEditing?: boolean
 }
 
@@ -23,9 +24,9 @@ const fields = {
   },
 }
 
-const LenguajeTab = ({ schoolId, initialEditing }: LenguajeTabProps) => (
+const LenguajeTab = ({ subject, initialEditing }: LenguajeTabProps) => (
   <EditableTab
-    schoolId={schoolId}
+    subject={subject}
     initialEditing={initialEditing}
     diapositivaId="lenguaje"
     successMessage='Sección "Prácticas del Lenguaje" actualizada correctamente'

@@ -47,21 +47,25 @@ const reportPathFor = (row: I_AuroraReportListItem, edit = false): string => {
 
 const SubjectCell = ({ row }: { row: I_AuroraReportListItem }) => {
   const { name } = subjectFor(row)
+  const isGrouping = row.grouping !== null
+  const memberSchools = isGrouping ? row.grouping_school_names ?? [] : []
+  const title =
+    isGrouping && memberSchools.length > 0 ? (
+      <Box component="ul" sx={{ m: 0, pl: 2 }}>
+        {memberSchools.map((n) => (
+          <li key={n}>{n}</li>
+        ))}
+      </Box>
+    ) : (
+      `Id ${row.id}`
+    )
   return (
-    <Tooltip placement="left" title={`Id ${row.id}`}>
+    <Tooltip placement="left" title={title}>
       <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
         <span>{name}</span>
       </Box>
     </Tooltip>
   )
-}
-
-// Lista las escuelas asociadas al reporte: para reportes de escuela es solo la
-// propia; para agrupamientos es el listado de escuelas miembro (poblado desde el
-// backend en `grouping_school_names`).
-const schoolsFor = (row: I_AuroraReportListItem): string[] => {
-  if (row.grouping !== null) return row.grouping_school_names ?? []
-  return row.school_name ? [row.school_name] : []
 }
 
 const TypeCell = ({ row }: { row: I_AuroraReportListItem }) => {
@@ -77,59 +81,6 @@ const TypeCell = ({ row }: { row: I_AuroraReportListItem }) => {
         sx={{ '& .MuiChip-icon': { ml: 1 } }}
       />
     </Box>
-  )
-}
-
-// Tope de caracteres para la columna de escuelas en agrupamientos: fijamos un
-// ancho visual consistente. Cortamos en la última coma antes del tope (evita
-// partir un nombre por la mitad) y agregamos "…".
-const SCHOOLS_ABBREV_CHARS = 40
-const abbreviateSchools = (names: string[]): string => {
-  const joined = names.join(', ')
-  if (joined.length <= SCHOOLS_ABBREV_CHARS) return joined
-  const slice = joined.slice(0, SCHOOLS_ABBREV_CHARS)
-  const lastComma = slice.lastIndexOf(',')
-  const cut = lastComma > 0 ? slice.slice(0, lastComma) : slice
-  return `${cut}, …`
-}
-
-const SchoolsCell = ({ row }: { row: I_AuroraReportListItem }) => {
-  const names = schoolsFor(row)
-  if (names.length === 0) {
-    return <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>—</Box>
-  }
-  const isGrouping = row.grouping !== null
-  const display = isGrouping ? abbreviateSchools(names) : names[0]
-  const cell = (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        height: '100%',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      {display}
-    </Box>
-  )
-  // El tooltip con la lista completa solo tiene sentido para agrupamientos (la
-  // celda está abreviada). Para escuela el nombre completo ya se muestra.
-  if (!isGrouping) return cell
-  return (
-    <Tooltip
-      placement="left"
-      title={
-        <Box component="ul" sx={{ m: 0, pl: 2 }}>
-          {names.map((n) => (
-            <li key={n}>{n}</li>
-          ))}
-        </Box>
-      }
-    >
-      {cell}
-    </Tooltip>
   )
 }
 
@@ -149,21 +100,13 @@ const baseColumns: Array<GridColDef<I_AuroraReportListItem>> = [
   {
     field: 'subject',
     headerName: 'Sujeto',
-    flex: 1.2,
+    flex: 1.8,
     // Sortable false porque no hay un único campo subyacente: la grilla ordena por
     // school__name o grouping__name según el tipo, lo cual no se mapea a una
     // columna virtual sin un cambio mayor en el backend.
     sortable: false,
     valueGetter: (_value, row) => subjectFor(row).name,
     renderCell: ({ row }) => <SubjectCell row={row} />,
-  },
-  {
-    field: 'schools',
-    headerName: 'Escuela',
-    flex: 1.8,
-    sortable: false,
-    valueGetter: (_value, row) => schoolsFor(row).join(', '),
-    renderCell: ({ row }) => <SchoolsCell row={row} />,
   },
   { field: 'toma', headerName: 'Toma', flex: 0.6 },
 ]
