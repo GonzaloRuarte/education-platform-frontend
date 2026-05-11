@@ -81,10 +81,9 @@ const ReporteAurora = () => {
   const [neeFilter, setNeeFilter] = useState('Con NEE')
   const [selectedStudentLabel, setSelectedStudentLabel] = useState<string>('Todos los alumnos')
   // Sólo aplica a agrupamiento. `null` = "Todas las escuelas" (atajo del multi-select
-  // de la sidebar). `detalleSchool` vive aparte: el DetalleTab muestra una sola escuela
-  // a la vez y por lo tanto necesita un valor distinto al multi global.
+  // de la sidebar). Es la única fuente de selección de escuelas — todos los tabs
+  // (incluido Detalle) consumen este estado.
   const [selectedSchools, setSelectedSchools] = useState<string[] | null>(null)
-  const [detalleSchool, setDetalleSchool] = useState<string>('')
 
   const { rawData, loading, error, getMaterias, getAnios, getDivisiones } =
     useReporteAurora({ kind: subjectKind, id: subjectId }, toma)
@@ -94,22 +93,10 @@ const ReporteAurora = () => {
     () => (isAgrupamiento ? rawData?.escuelas ?? [] : []),
     [isAgrupamiento, rawData],
   )
-  // Default del DetalleTab = primera escuela del agrupamiento. Si la selección se
-  // queda colgada (cambió el agrupamiento o desapareció la escuela), saltamos a la primera.
-  useEffect(() => {
-    if (!isAgrupamiento || escuelas.length === 0) return
-    if (!detalleSchool || !escuelas.some(e => e.id === detalleSchool)) {
-      setDetalleSchool(escuelas[0].id)
-    }
-  }, [isAgrupamiento, escuelas, detalleSchool])
 
   const schoolSelection = useMemo<ReadonlySet<string> | null>(
     () => (selectedSchools && selectedSchools.length > 0 ? new Set(selectedSchools) : null),
     [selectedSchools],
-  )
-  const detalleSchoolSelection = useMemo<ReadonlySet<string> | null>(
-    () => (isAgrupamiento && detalleSchool ? new Set([detalleSchool]) : null),
-    [isAgrupamiento, detalleSchool],
   )
 
   const materias = useMemo(() => getMaterias(), [getMaterias])
@@ -118,6 +105,10 @@ const ReporteAurora = () => {
   const isSemaforoTab = tab === 'semaforoLenguaje' || tab === 'semaforoMatematica'
 
   const divisiones = useMemo(() => {
+    // En agrupamiento, cuando hay un subconjunto de escuelas elegido, mezclar divisiones
+    // de distintas escuelas es ambiguo (la "A" de una no es la "A" de otra), así que
+    // colapsamos a "Todas".
+    if (isAgrupamiento && selectedSchools !== null) return ['Todas']
     if (isSemaforoTab) {
       const divSet = new Set<string>()
       for (const a of ANIO_ORDER) {
@@ -127,7 +118,7 @@ const ReporteAurora = () => {
       return divs.length > 0 ? ['Todas', ...divs] : ['Todas']
     }
     return getDivisiones(materia, anio)
-  }, [isSemaforoTab, materia, anio, getDivisiones])
+  }, [isAgrupamiento, selectedSchools, isSemaforoTab, materia, anio, getDivisiones])
 
   useEffect(() => {
     // Si el tab actual quedó fuera del orden visible (por ejemplo: el componente
@@ -167,15 +158,12 @@ const ReporteAurora = () => {
   }, [isSemaforoTab])
 
   const resumenData = useMemo(
-    () => (rawData && toma ? calcResumen(rawData, { materia, anio, division, toma, neeFilter }) : null),
-    [rawData, materia, anio, division, toma, neeFilter],
+    () => (rawData && toma ? calcResumen(rawData, { materia, anio, division, toma, neeFilter }, schoolSelection) : null),
+    [rawData, materia, anio, division, toma, neeFilter, schoolSelection],
   )
-  // DetalleTab filtra por una sola escuela elegida en el tab (no por el multi-select
-  // de la sidebar). Esa es la decisión de UX: el detalle es una vista per-escuela
-  // mientras que resumen/semáforo/scatter son agregados que sí respetan el multi.
   const detalleData = useMemo(
-    () => (rawData && toma ? calcDetalle(rawData, { materia, anio, division, toma, neeFilter }, detalleSchoolSelection) : null),
-    [rawData, materia, anio, division, toma, neeFilter, detalleSchoolSelection],
+    () => (rawData && toma ? calcDetalle(rawData, { materia, anio, division, toma, neeFilter }, schoolSelection) : null),
+    [rawData, materia, anio, division, toma, neeFilter, schoolSelection],
   )
   const semaforoBandas = useMemo(
     () => (rawData && toma ? calcSemaforo(rawData, materia, division, toma, neeFilter, schoolSelection) : {}),
@@ -271,7 +259,6 @@ const ReporteAurora = () => {
     resumenData, detalleData, semaforoBandas, semaforoEstudiantes, scatterPoints, tablaRows,
     selectedStudentId,
     isAgrupamiento, escuelas, selectedSchools,
-    detalleSchool, setDetalleSchool,
   }
 
   const sidebarFilters = useMemo<Array<FilterDef>>(
@@ -286,7 +273,6 @@ const ReporteAurora = () => {
     setNeeFilter('Con NEE')
     setSelectedStudentLabel('Todos los alumnos')
     setSelectedSchools(null)
-    if (escuelas.length > 0) setDetalleSchool(escuelas[0].id)
   }
 
   const filterPills = useMemo(() => {
@@ -445,6 +431,6 @@ function AuroraFontTheme({ children }: { children: ReactNode }) {
 }
 
 export default withAuth(ReporteAurora, {
-  allowedCapabilities: ['manage_admin_users'],
+  allowedCapabilities: ['view_reports'],
   logoutDestination: 'dashboard',
 })

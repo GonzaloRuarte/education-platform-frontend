@@ -11,7 +11,8 @@ const W = FONT_WEIGHTS
 
 const headCellSx = { fontWeight: W.bold, color: C.navy, bgcolor: C.lightBlue }
 
-function TablaTab({ rows }: { rows: I_TablaRow[] }) {
+function TablaTab({ rows, isAgrupamiento = false }: { rows: I_TablaRow[]; isAgrupamiento?: boolean }) {
+  const colSpan = isAgrupamiento ? 4 : 3
   return (
     <Paper elevation={0} sx={{ ...CARD_SX, overflow: 'hidden', maxWidth: TABLA.maxWidth, mx: 'auto', display: 'flex', flexDirection: 'column', minHeight: 0, maxHeight: '100%' }}>
       <Box sx={{ px: SPACING.gutterX, pt: TABLA.headerPt, pb: TABLA.headerPb, flexShrink: 0 }}>
@@ -24,6 +25,7 @@ function TablaTab({ rows }: { rows: I_TablaRow[] }) {
           <TableHead>
             <TableRow>
               <TableCell sx={headCellSx}>ID Alumno</TableCell>
+              {isAgrupamiento && <TableCell sx={headCellSx}>Escuela</TableCell>}
               <TableCell align="right" sx={headCellSx}>Matemática %</TableCell>
               <TableCell align="right" sx={headCellSx}>PDL %</TableCell>
             </TableRow>
@@ -31,13 +33,18 @@ function TablaTab({ rows }: { rows: I_TablaRow[] }) {
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} align="center" sx={{ color: C.navy, py: TABLA.emptyPy }}>
+                <TableCell colSpan={colSpan} align="center" sx={{ color: C.navy, py: TABLA.emptyPy }}>
                   Sin datos para los filtros seleccionados
                 </TableCell>
               </TableRow>
             ) : rows.map(row => (
               <TableRow key={row.id} hover sx={{ '&:nth-of-type(even)': { bgcolor: 'action.hover' } }}>
                 <TableCell sx={{ color: C.navy, fontWeight: W.semibold }}>{row.id}</TableCell>
+                {isAgrupamiento && (
+                  <TableCell sx={{ color: C.navy }}>
+                    {row.school ?? <Typography variant="caption" color="text.disabled">-</Typography>}
+                  </TableCell>
+                )}
                 <TableCell align="right">
                   {row.mat != null ? `${row.mat}%` : <Typography variant="caption" color="text.disabled">-</Typography>}
                 </TableCell>

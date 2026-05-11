@@ -46,35 +46,124 @@ const reportPathFor = (row: I_AuroraReportListItem, edit = false): string => {
 }
 
 const SubjectCell = ({ row }: { row: I_AuroraReportListItem }) => {
-  const { kind, name } = subjectFor(row)
-  const isGrouping = kind === 'grouping'
+  const { name } = subjectFor(row)
   return (
     <Tooltip placement="left" title={`Id ${row.id}`}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}>
-        <Chip
-          size="small"
-          variant="outlined"
-          icon={isGrouping ? <GroupsIcon /> : <SchoolIcon />}
-          label={isGrouping ? 'Agrupamiento' : 'Escuela'}
-          color={isGrouping ? 'secondary' : 'primary'}
-        />
+      <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
         <span>{name}</span>
       </Box>
     </Tooltip>
   )
 }
 
+// Lista las escuelas asociadas al reporte: para reportes de escuela es solo la
+// propia; para agrupamientos es el listado de escuelas miembro (poblado desde el
+// backend en `grouping_school_names`).
+const schoolsFor = (row: I_AuroraReportListItem): string[] => {
+  if (row.grouping !== null) return row.grouping_school_names ?? []
+  return row.school_name ? [row.school_name] : []
+}
+
+const TypeCell = ({ row }: { row: I_AuroraReportListItem }) => {
+  const isGrouping = row.grouping !== null
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+      <Chip
+        size="small"
+        variant="outlined"
+        icon={isGrouping ? <GroupsIcon /> : <SchoolIcon />}
+        label={isGrouping ? 'Agrupamiento' : 'Escuela'}
+        color={isGrouping ? 'secondary' : 'primary'}
+        sx={{ '& .MuiChip-icon': { ml: 1 } }}
+      />
+    </Box>
+  )
+}
+
+// Tope de caracteres para la columna de escuelas en agrupamientos: fijamos un
+// ancho visual consistente. Cortamos en la última coma antes del tope (evita
+// partir un nombre por la mitad) y agregamos "…".
+const SCHOOLS_ABBREV_CHARS = 40
+const abbreviateSchools = (names: string[]): string => {
+  const joined = names.join(', ')
+  if (joined.length <= SCHOOLS_ABBREV_CHARS) return joined
+  const slice = joined.slice(0, SCHOOLS_ABBREV_CHARS)
+  const lastComma = slice.lastIndexOf(',')
+  const cut = lastComma > 0 ? slice.slice(0, lastComma) : slice
+  return `${cut}, …`
+}
+
+const SchoolsCell = ({ row }: { row: I_AuroraReportListItem }) => {
+  const names = schoolsFor(row)
+  if (names.length === 0) {
+    return <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>—</Box>
+  }
+  const isGrouping = row.grouping !== null
+  const display = isGrouping ? abbreviateSchools(names) : names[0]
+  const cell = (
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        height: '100%',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {display}
+    </Box>
+  )
+  // El tooltip con la lista completa solo tiene sentido para agrupamientos (la
+  // celda está abreviada). Para escuela el nombre completo ya se muestra.
+  if (!isGrouping) return cell
+  return (
+    <Tooltip
+      placement="left"
+      title={
+        <Box component="ul" sx={{ m: 0, pl: 2 }}>
+          {names.map((n) => (
+            <li key={n}>{n}</li>
+          ))}
+        </Box>
+      }
+    >
+      {cell}
+    </Tooltip>
+  )
+}
+
 const baseColumns: Array<GridColDef<I_AuroraReportListItem>> = [
+  {
+    field: 'kind',
+    headerName: 'Reporte',
+    flex: 0.8,
+    sortable: false,
+    // singleSelect → el panel de filtros muestra dropdown Escuela/Agrupamiento.
+    // El backend traduce estos labels a `grouping__isnull` (ver views.py de mta_reports_v2).
+    type: 'singleSelect',
+    valueOptions: ['Escuela', 'Agrupamiento'],
+    valueGetter: (_value, row) => (row.grouping !== null ? 'Agrupamiento' : 'Escuela'),
+    renderCell: ({ row }) => <TypeCell row={row} />,
+  },
   {
     field: 'subject',
     headerName: 'Sujeto',
-    flex: 1.6,
+    flex: 1.2,
     // Sortable false porque no hay un único campo subyacente: la grilla ordena por
     // school__name o grouping__name según el tipo, lo cual no se mapea a una
     // columna virtual sin un cambio mayor en el backend.
     sortable: false,
     valueGetter: (_value, row) => subjectFor(row).name,
     renderCell: ({ row }) => <SubjectCell row={row} />,
+  },
+  {
+    field: 'schools',
+    headerName: 'Escuela',
+    flex: 1.8,
+    sortable: false,
+    valueGetter: (_value, row) => schoolsFor(row).join(', '),
+    renderCell: ({ row }) => <SchoolsCell row={row} />,
   },
   { field: 'toma', headerName: 'Toma', flex: 0.6 },
 ]
@@ -312,7 +401,7 @@ function ReportesAuroraListPage() {
     const statusColumn: GridColDef<I_AuroraReportListItem> = {
       field: 'status',
       headerName: 'Estado',
-      flex: 0.6,
+      flex: 0.8,
       renderCell: ({ row }) => (
         <Box
           onClick={(e) => e.stopPropagation()}
@@ -355,10 +444,10 @@ function ReportesAuroraListPage() {
         </Box>
       ),
     }
-    const cols = [...baseColumns, statusColumn]
-    if (!canEdit) return cols
+    if (!canEdit) return baseColumns
     return [
-      ...cols,
+      ...baseColumns,
+      statusColumn,
       {
         field: 'actions',
         headerName: 'Acciones',
@@ -467,9 +556,9 @@ function ReportesAuroraListPage() {
         <ListPage
           columns={columns}
           useList={useAuroraReportList}
-          useBatchDelete={useAuroraReportBatchDelete}
+          useBatchDelete={canEdit ? useAuroraReportBatchDelete : undefined}
           entityName={AURORA_REPORT_NAME}
-          onCreate={navigateToAuroraReportCreate}
+          onCreate={canEdit ? navigateToAuroraReportCreate : undefined}
           customButtons={customButtons}
           onRowClick={handleRowClick}
           filtersData={{ ready: 1 }}
@@ -480,6 +569,6 @@ function ReportesAuroraListPage() {
 }
 
 export default withAuth(ReportesAuroraListPage, {
-  allowedCapabilities: ['manage_admin_users'],
+  allowedCapabilities: ['view_reports'],
   logoutDestination: 'dashboard',
 })

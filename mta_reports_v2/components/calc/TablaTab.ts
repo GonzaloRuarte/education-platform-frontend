@@ -25,6 +25,9 @@ export function calcTabla(
   })
   if (!infos.length) return []
 
+  const schoolNameById = new Map<string, string>(
+    (raw.escuelas ?? []).map(e => [e.id, e.name]),
+  )
   const anonById = buildAnonIds(infos.map(i => i.combo), division)
   const rowsById = new Map<string, I_TablaRow>()
   for (const { students, qids, key } of infos) {
@@ -34,6 +37,8 @@ export function calcTabla(
       let row = rowsById.get(anonId)
       if (!row) {
         row = { id: anonId }
+        const name = s.school ? schoolNameById.get(s.school) : undefined
+        if (name) row.school = name
         rowsById.set(anonId, row)
       }
       const answered = qids.filter(k => k in s.respuestas)

@@ -165,6 +165,8 @@ interface I_TablaRow {
   id: string
   mat?: number
   len?: number
+  // Nombre de la escuela. Sólo se popula en reportes de agrupamiento.
+  school?: string
 }
 
 type T_AuroraReportStatus = 'draft' | 'published'
@@ -178,6 +180,9 @@ interface I_AuroraReportListItem {
   school_name: string | null
   grouping: number | null
   grouping_name: string | null
+  // Sólo viene seteado (no-null) para reportes de agrupamiento. Lista los nombres
+  // de las escuelas miembro para mostrarlos en la columna "Escuela" del listado.
+  grouping_school_names: string[] | null
   toma: string
   blob_path: string
   last_generated_at: string | null

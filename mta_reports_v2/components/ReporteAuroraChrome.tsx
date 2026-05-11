@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Box, Stack, Chip, IconButton, Select, MenuItem, Tooltip } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
@@ -89,11 +90,28 @@ export function TabPager<T extends string>({
     },
     arrow: { sx: { color: C.white } },
   }
+  const [prevOpen, setPrevOpen] = useState(false)
+  const [nextOpen, setNextOpen] = useState(false)
+  // Si el botón se deshabilita mientras el tooltip está abierto (caso típico:
+  // se clickea la flecha y pasamos a ser primero/último), MUI no dispara el
+  // mouseleave del span wrapper y el tooltip queda colgado. Forzamos el cierre.
+  useEffect(() => { if (isFirst) setPrevOpen(false) }, [isFirst])
+  useEffect(() => { if (isLast) setNextOpen(false) }, [isLast])
+  const handlePrev = () => { setPrevOpen(false); onPrev() }
+  const handleNext = () => { setNextOpen(false); onNext() }
   return (
     <Box sx={{ flexShrink: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, bgcolor: C.pagerBg, borderTop: `1px solid ${C.pagerBorder}`, px: 1, py: 1 }}>
-      <Tooltip title="Página Anterior" arrow placement="top" disableHoverListener={isFirst} disableFocusListener={isFirst} disableTouchListener={isFirst} slotProps={tooltipSlotProps}>
+      <Tooltip
+        title="Página Anterior"
+        arrow
+        placement="top"
+        open={prevOpen}
+        onOpen={() => { if (!isFirst) setPrevOpen(true) }}
+        onClose={() => setPrevOpen(false)}
+        slotProps={tooltipSlotProps}
+      >
         <span>
-          <IconButton size="small" onClick={onPrev} disabled={isFirst} sx={arrowBtnSx}>
+          <IconButton size="small" onClick={handlePrev} disabled={isFirst} sx={arrowBtnSx}>
             <ChevronLeftIcon fontSize="small" />
           </IconButton>
         </span>
@@ -144,9 +162,17 @@ export function TabPager<T extends string>({
           <MenuItem key={id} value={id}>{idx + 1}. {labelOf(id)}</MenuItem>
         ))}
       </Select>
-      <Tooltip title="Página Siguiente" arrow placement="top" disableHoverListener={isLast} disableFocusListener={isLast} disableTouchListener={isLast} slotProps={tooltipSlotProps}>
+      <Tooltip
+        title="Página Siguiente"
+        arrow
+        placement="top"
+        open={nextOpen}
+        onOpen={() => { if (!isLast) setNextOpen(true) }}
+        onClose={() => setNextOpen(false)}
+        slotProps={tooltipSlotProps}
+      >
         <span>
-          <IconButton size="small" onClick={onNext} disabled={isLast} sx={arrowBtnSx}>
+          <IconButton size="small" onClick={handleNext} disabled={isLast} sx={arrowBtnSx}>
             <ChevronRightIcon fontSize="small" />
           </IconButton>
         </span>

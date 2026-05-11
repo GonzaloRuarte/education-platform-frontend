@@ -8,6 +8,8 @@ import { BP, HorizontalBarChart, MiVsTodosLegend, ChartCard } from '@/mta_report
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, FILL_COLUMN_SX, BAR_CHART } from '@/mta_reports_v2/constants'
 import type { I_DetalleTabData, I_EscuelaMiembro } from '@/mta_reports_v2/types'
 
+
+
 const C = COLORS
 const F = FONT_SIZES
 const W = FONT_WEIGHTS
@@ -32,22 +34,23 @@ const expectedSet = (xs: string[]) => new Set(xs.map(norm))
 
 interface DetalleTabProps {
   data: I_DetalleTabData
-  // Sólo aplica en agrupamiento. En escuela `escuelas` queda en [] y el selector
-  // de escuelas no se renderiza.
+  // Sólo aplica en agrupamiento — sirve para mostrar el nombre de la escuela en
+  // la etiqueta "Mi colegio" / "Mi escuela" cuando hay exactamente una escuela
+  // seleccionada en el sidebar. En escuela suelta `escuelas` queda en [].
   isAgrupamiento?: boolean
   escuelas?: I_EscuelaMiembro[]
-  school?: string
-  onSchoolChange?: (id: string) => void
+  // Selección viene del multi-select de la sidebar. `null` = todas las escuelas.
+  selectedSchools?: string[] | null
 }
 
-function DetalleTab({ data, isAgrupamiento = false, escuelas = [], school, onSchoolChange }: DetalleTabProps) {
+function DetalleTab({ data, isAgrupamiento = false, escuelas = [], selectedSchools = null }: DetalleTabProps) {
   const d = data
   const isLenguaje = (d.lenComp?.length ?? 0) > 0
-  const showSchoolSelect = isAgrupamiento && escuelas.length > 0
-  const currentSchoolName = showSchoolSelect
-    ? (escuelas.find(e => e.id === school)?.name ?? '')
-    : ''
-  const barMiLabel = showSchoolSelect && currentSchoolName ? currentSchoolName : 'Mi colegio'
+  const singleSchool = isAgrupamiento && selectedSchools && selectedSchools.length === 1
+    ? escuelas.find(e => e.id === selectedSchools[0]) ?? null
+    : null
+  const barMiLabel = singleSchool ? singleSchool.name : 'Mi colegio'
+  const boxplotMiLabel = singleSchool ? singleSchool.name : 'Mi escuela'
   const barLegend = <MiVsTodosLegend miLabel={barMiLabel.toLowerCase()} />
 
   const [selectedStudentId, setSelectedStudentId] = useState<string | number>('all')
@@ -91,25 +94,6 @@ function DetalleTab({ data, isAgrupamiento = false, escuelas = [], school, onSch
 
   return (
     <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-      {showSchoolSelect && (
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <Typography variant="body2" sx={{ fontWeight: W.semibold, color: C.navy, whiteSpace: 'nowrap', fontSize: F.lg }}>
-            Escuela
-          </Typography>
-          <FormControl size="small" sx={{ minWidth: 240 }}>
-            <Select
-              value={school ?? ''}
-              onChange={(e) => onSchoolChange?.(String(e.target.value))}
-              MenuProps={{ PaperProps: { sx: { maxHeight: 320 } } }}
-              sx={{ fontSize: F.lg }}
-            >
-              {escuelas.map(e => (
-                <MenuItem key={e.id} value={e.id} sx={{ fontSize: F.lg }}>{e.name}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Stack>
-      )}
       <Grid2 container spacing={1.5} alignItems="stretch" sx={{ flex: 1, minHeight: 0 }}>
       <Grid2 size={{ xs: 12, md: 7 }} sx={{ display: 'flex', flexDirection: 'column' }}>
         <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
@@ -139,7 +123,7 @@ function DetalleTab({ data, isAgrupamiento = false, escuelas = [], school, onSch
             <Stack direction="row" justifyContent="center" spacing={1} sx={{ mt: 0.5, width: '100%', flex: 1, minHeight: 0 }}>
               <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0 }}>
                 <BP d={d.boxplotMi} color={C.navyMid} w={190} h={360} />
-                <Typography variant="caption" sx={{ color: C.tm }}>{showSchoolSelect && currentSchoolName ? currentSchoolName : 'Mi escuela'}</Typography>
+                <Typography variant="caption" sx={{ color: C.tm }}>{boxplotMiLabel}</Typography>
               </Box>
               <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0 }}>
                 <BP d={d.boxplotTodos} color={C.boxplotTodos} w={190} h={360} />

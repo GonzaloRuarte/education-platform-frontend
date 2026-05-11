@@ -62,11 +62,9 @@ export type TabRenderCtx = {
   isAgrupamiento: boolean
   escuelas: I_EscuelaMiembro[]
   // `null` = "Todas las escuelas del agrupamiento". Se aplica al highlight del
-  // chart de resumen, a las bandas del semáforo y al subset del scatter/tabla.
+  // chart de resumen, al detalle, a las bandas del semáforo y al subset del
+  // scatter/tabla.
   selectedSchools: string[] | null
-  // Selector propio del DetalleTab; default = primera escuela del agrupamiento.
-  detalleSchool: string
-  setDetalleSchool: (v: string) => void
 }
 
 export type TabFiltersCtx = {
@@ -187,17 +185,17 @@ export const TABS: ReadonlyArray<TabDef> = [
   {
     id: 'detalleLenguaje', label: 'Prácticas del Lenguaje', kind: 'data',
     filters: filtersDetalleLenguajeLike,
-    render: ({ detalleData, materia, anio, toma, isAgrupamiento, escuelas, detalleSchool, setDetalleSchool }) =>
+    render: ({ detalleData, materia, anio, toma, isAgrupamiento, escuelas, selectedSchools }) =>
       detalleData
-        ? <DetalleTab data={detalleData} isAgrupamiento={isAgrupamiento} escuelas={escuelas} school={detalleSchool} onSchoolChange={setDetalleSchool} />
+        ? <DetalleTab data={detalleData} isAgrupamiento={isAgrupamiento} escuelas={escuelas} selectedSchools={selectedSchools} />
         : (toma ? <NoData materia={materia} anio={anio} toma={toma} /> : null),
   },
   {
     id: 'detalleMatematica', label: 'Matemática', kind: 'data',
     filters: filtersDetalleMatematicaLike,
-    render: ({ detalleData, materia, anio, toma, isAgrupamiento, escuelas, detalleSchool, setDetalleSchool }) =>
+    render: ({ detalleData, materia, anio, toma, isAgrupamiento, escuelas, selectedSchools }) =>
       detalleData
-        ? <DetalleTab data={detalleData} isAgrupamiento={isAgrupamiento} escuelas={escuelas} school={detalleSchool} onSchoolChange={setDetalleSchool} />
+        ? <DetalleTab data={detalleData} isAgrupamiento={isAgrupamiento} escuelas={escuelas} selectedSchools={selectedSchools} />
         : (toma ? <NoData materia={materia} anio={anio} toma={toma} /> : null),
   },
   {
@@ -223,7 +221,7 @@ export const TABS: ReadonlyArray<TabDef> = [
   {
     id: 'tabla', label: 'Resumen por alumno', kind: 'data',
     filters: filtersScatterLike,
-    render: ({ tablaRows }) => <TablaTab rows={tablaRows} />,
+    render: ({ tablaRows, isAgrupamiento }) => <TablaTab rows={tablaRows} isAgrupamiento={isAgrupamiento} />,
   },
   {
     id: 'cierre', label: 'Cierre', kind: 'static',
