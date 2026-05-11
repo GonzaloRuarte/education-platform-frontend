@@ -194,7 +194,7 @@ function ReportesAuroraListPage() {
         // `cancelled` es terminal: corta el polling igual que `done`. No esperamos a
         // que `groupings_written` llegue al total porque las tasks pendientes se
         // saltan y nunca van a llegar.
-        if ((s.status === 'running' || groupingsPending) && s.status !== 'cancelled') {
+        if (s.status !== 'never' && s.status !== 'cancelled' && (s.status === 'running' || groupingsPending)) {
           setIsRegenerating(true)
           setRegenProgress({
             written: s.schools_written ?? 0,
@@ -237,7 +237,7 @@ function ReportesAuroraListPage() {
         const groupingsPending = groupingsTotal > 0 && groupingsWritten < groupingsTotal
         // Retomamos polling también si una tanda de agrupamientos quedó incompleta
         // (p.ej. el usuario refrescó la página mientras los workers seguían procesando).
-        if (s.status === 'running' || groupingsPending) {
+        if (s.status !== 'never' && (s.status === 'running' || groupingsPending)) {
           setIsRegenerating(true)
           setRegenProgress({
             written: s.schools_written ?? 0,
