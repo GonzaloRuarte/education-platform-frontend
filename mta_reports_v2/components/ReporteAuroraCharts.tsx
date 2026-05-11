@@ -21,10 +21,13 @@ function Leg({ c, t }: { c: string; t: string }) {
   )
 }
 
-function MiVsTodosLegend() {
+// Label de la serie "mi" cambia según el sujeto del reporte:
+//   - escuela:      "Mi colegio"  (sin override)
+//   - agrupamiento: "Mis alumnos" (override desde el caller)
+function MiVsTodosLegend({ miLabel = 'mi colegio' }: { miLabel?: string }) {
   return (
     <>
-      <Leg c={C.navyMid} t="% Correctas mi colegio" />
+      <Leg c={C.navyMid} t={`% Correctas ${miLabel}`} />
       <Leg c={C.iceBlue} t="% Correctas todos los colegios" />
     </>
   )
@@ -33,12 +36,18 @@ function MiVsTodosLegend() {
 function AllSchoolsBarChart({
   bars,
   miId,
+  highlightIds,
+  highlightLabel = 'Mi escuela',
   minHeight,
   bottomMargin,
   fill = false,
 }: {
   bars: { id: string; p: number }[]
   miId: string
+  // Para reportes de agrupamiento: set de meta_ids a resaltar con el color "mi".
+  // Si se pasa, ignora `miId` y resalta todos los que están en el set.
+  highlightIds?: ReadonlySet<string>
+  highlightLabel?: string
   minHeight?: number
   bottomMargin?: number
   fill?: boolean
@@ -46,6 +55,8 @@ function AllSchoolsBarChart({
   const containerRef = useRef<HTMLDivElement>(null)
   const height = useResponsiveHeight(containerRef, { minHeight, bottomMargin })
   const [hoverIdx, setHoverIdx] = useState<number | null>(null)
+  const isHighlighted = (id: string) =>
+    highlightIds ? highlightIds.has(id) : id === miId
 
   const sorted = [...bars].sort((a, b) => b.p - a.p)
   const prom = sorted.length
@@ -81,12 +92,15 @@ function AllSchoolsBarChart({
     if (!needsScroll) return
     const el = scrollRef.current
     if (!el) return
-    const idx = sorted.findIndex(b => b.id === miId)
+    // Auto-scroll a la primera barra resaltada (si hay alguna) para que el usuario
+    // arranque viéndola sin tener que desplazar manualmente.
+    const idx = sorted.findIndex(b => isHighlighted(b.id))
     if (idx < 0) return
     const target = Math.max(0, idx * BAR_CHART.minBarWidth - (el.clientWidth - BAR_CHART.minBarWidth) / 2)
     el.scrollLeft = target
     applyStickyY(el, target)
-  }, [needsScroll, scrollWidth, miId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsScroll, scrollWidth, miId, highlightIds])
 
   return (
     <Box ref={containerRef} sx={wrapperSx}>
@@ -127,7 +141,7 @@ function AllSchoolsBarChart({
               <Bar
                 dataKey="p"
                 shape={(props: any) => {
-                  const isMe = sorted[props.index]?.id === miId
+                  const isMe = isHighlighted(sorted[props.index]?.id)
                   const isHover = props.index === hoverIdx
                   const baseFill = isMe ? C.navyMid : C.iceBlue
                   return (
@@ -150,7 +164,7 @@ function AllSchoolsBarChart({
         </Box>
       </Box>
       <Box sx={{ mt: 0.75, flexShrink: 0 }}>
-        <Leg c={C.navyMid} t="Mi escuela" />
+        <Leg c={C.navyMid} t={highlightLabel} />
         <Leg c={C.iceBlue} t="Otras escuelas" />
         <Typography variant="caption" sx={{ ml: 0.5, color: C.tm, fontSize: F.md }}>
           Promedio programa: <strong>{prom}%</strong>
@@ -219,12 +233,14 @@ function HorizontalBarChart({
   baseHeight = BAR_CHART.baseHeight.normal,
   barSize = BAR_CHART.size.thin,
   frame = false,
+  miLabel = 'Mi colegio',
 }: {
   items: I_ItemAurora[]
   rowHeight?: number
   baseHeight?: number
   barSize?: number
   frame?: boolean
+  miLabel?: string
 }) {
   const [hoverIdx, setHoverIdx] = useState<number | null>(null)
 
@@ -299,7 +315,7 @@ function HorizontalBarChart({
                 <Box sx={{ fontWeight: W.bold, color: C.navy, mb: 0.5, wordBreak: 'break-word' }}>{row.name}</Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                   <Box component="span" sx={{ width: LAYOUT_SIZES.dotSmall, height: LAYOUT_SIZES.dotSmall, borderRadius: RADIUS.circle, bgcolor: C.navyMid, flexShrink: 0, display: 'inline-block' }} />
-                  Mi colegio: <strong style={{ marginLeft: 4 }}>{row.mi}%</strong>
+                  {miLabel}: <strong style={{ marginLeft: 4 }}>{row.mi}%</strong>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                   <Box component="span" sx={{ width: LAYOUT_SIZES.dotSmall, height: LAYOUT_SIZES.dotSmall, borderRadius: RADIUS.circle, bgcolor: C.iceBlue, border: `1.5px solid ${C.gridDivider}`, flexShrink: 0, display: 'inline-block' }} />
@@ -309,7 +325,7 @@ function HorizontalBarChart({
             )
           }}
         />
-        <Bar dataKey="mi" fill={C.navyMid} barSize={barSize} name="Mi colegio" shape={makeShape(C.navyMid)}>
+        <Bar dataKey="mi" fill={C.navyMid} barSize={barSize} name={miLabel} shape={makeShape(C.navyMid)}>
           <LabelList dataKey="mi" position="right" formatter={(v: number) => `${v} %`} style={{ fontSize: F.lg, fill: C.navy }} />
         </Bar>
         <Bar dataKey="todos" fill={C.iceBlue} barSize={barSize} name="Todos los colegios" shape={makeShape(C.iceBlue)}>
@@ -414,9 +430,12 @@ interface KPICardProps {
   mi: number | string
   todos: number | string
   suffix?: string
+  // Por defecto "Mi Colegio" (multilinea con <br />). El caller de agrupamiento
+  // pasa un ReactNode con el texto "Mis alumnos".
+  miLabel?: React.ReactNode
 }
 
-function KPICard({ title, subtitle, mi, todos, suffix = '%' }: KPICardProps) {
+function KPICard({ title, subtitle, mi, todos, suffix = '%', miLabel }: KPICardProps) {
   const fmt = (v: number | string) => typeof v === 'number' ? (suffix ? `${v} ${suffix}` : `${v}`) : v
   return (
     <Box component="article" sx={{ ...CARD_SX, border: '2px solid', borderColor: C.blackAlpha18, flex: 1, minWidth: 160, display: 'flex', flexDirection: 'column', px: S.kpiCardPx, py: S.kpiCardPy }}>
@@ -426,7 +445,7 @@ function KPICard({ title, subtitle, mi, todos, suffix = '%' }: KPICardProps) {
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1 }}>
         <Box sx={{ bgcolor: C.navyMid, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 2, borderRadius: RADIUS.lg }}>
-          <Typography sx={{ color: C.white, fontSize: F.kpiLabel, fontWeight: W.medium }}>Mi <br /> Colegio</Typography>
+          <Typography sx={{ color: C.white, fontSize: F.kpiLabel, fontWeight: W.medium }}>{miLabel ?? <>Mi <br /> Colegio</>}</Typography>
           <Typography sx={{ color: C.white, fontWeight: W.kpi, fontSize: F.kpiValue, pr: 4 }}>{fmt(mi)}</Typography>
         </Box>
         <Box sx={{ bgcolor: C.iceBlue, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 1.5, borderRadius: RADIUS.lg }}>

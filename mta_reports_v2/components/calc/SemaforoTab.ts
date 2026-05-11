@@ -7,6 +7,7 @@ import {
   bandForCount,
   filterEstudiantes,
   findCombo,
+  type T_SchoolSelection,
 } from './_shared'
 
 export interface SemaforoEstudianteBand {
@@ -21,12 +22,13 @@ export function calcSemaforo(
   division: string,
   toma: string,
   neeFilter: string = 'Todos',
+  schools: T_SchoolSelection = null,
 ): Record<string, I_SemaforoBandas> {
   const result: Record<string, I_SemaforoBandas> = {}
   for (const anio of ANIO_ORDER) {
     const combo = findCombo(raw, materia, anio, toma)
     if (!combo) continue
-    const estudiantes = filterEstudiantes(combo, division, neeFilter)
+    const estudiantes = filterEstudiantes(combo, division, neeFilter, schools)
     const nonPisaIds = combo.preguntas.filter(q => !q.es_pisa).map(q => String(q.id))
     const bands = { verde: 0, amarillo: 0, naranja: 0, rojo: 0 }
     for (const est of estudiantes) {
@@ -44,12 +46,13 @@ export function calcSemaforoEstudiantes(
   division: string,
   toma: string,
   neeFilter: string = 'Todos',
+  schools: T_SchoolSelection = null,
 ): Record<string, SemaforoEstudianteBand[]> {
   const result: Record<string, SemaforoEstudianteBand[]> = {}
   for (const anio of ANIO_ORDER) {
     const combo = findCombo(raw, materia, anio, toma)
     if (!combo) continue
-    const estudiantes = filterEstudiantes(combo, division, neeFilter)
+    const estudiantes = filterEstudiantes(combo, division, neeFilter, schools)
     const nonPisaIds = combo.preguntas.filter(q => !q.es_pisa).map(q => String(q.id))
     result[anio] = estudiantes.map(est => {
       const correct = nonPisaIds.filter(k => k in est.respuestas && est.respuestas[k]).length

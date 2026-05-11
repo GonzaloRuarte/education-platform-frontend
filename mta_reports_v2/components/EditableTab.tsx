@@ -8,9 +8,10 @@ import {
   RenderFieldArgs,
 } from '@/mta_reports_v2/components/EditableContentSection'
 import { australFilterSx } from '@/mta_reports_v2/components/shared/SlideContainer'
+import type { I_Subject } from '@/mta_reports_v2/hooks'
 
 interface EditableTabProps<F extends string> {
-  schoolId: number
+  subject: I_Subject
   initialEditing?: boolean
   diapositivaId: string
   successMessage: string
@@ -21,7 +22,7 @@ interface EditableTabProps<F extends string> {
 }
 
 const EditableTab = <F extends string,>({
-  schoolId,
+  subject,
   initialEditing,
   diapositivaId,
   successMessage,
@@ -41,7 +42,7 @@ const EditableTab = <F extends string,>({
 
   const section = (
     <EditableContentSection
-      schoolId={schoolId}
+      subject={subject}
       diapositivaId={diapositivaId}
       successMessage={successMessage}
       fields={fields}

@@ -5,17 +5,23 @@ import { useAuthResources, useHasCapabilities } from '@/mta_auth/hooks'
 import { apiUrl } from '@/config'
 import { axiosGet, axiosPatch } from '@/shared/data/axios'
 import { errorToast, successToast } from '@/shared/toasts'
+import type { I_Subject } from './viewer'
 
 export interface SlideFieldConfig {
   defaultHtml: string
 }
 
 export interface UseEditableSlideOptions<F extends string> {
-  schoolId: number
+  subject: I_Subject
   diapositivaId: string
   successMessage: string
   fields: Record<F, SlideFieldConfig>
   initialEditing?: boolean
+}
+
+const slideUrl = (subject: I_Subject, diapositivaId: string): string => {
+  const segment = subject.kind === 'grouping' ? 'agrupamiento' : 'escuela'
+  return `/reportes-aurora/${segment}/${subject.id}/diapositiva/${diapositivaId}/`
 }
 
 export interface UseEditableSlideResult<F extends string> {
@@ -37,7 +43,7 @@ const isEffectivelyEmpty = (html: string) =>
   html.replace(/<(.|\n)*?>/g, '').replace(/&nbsp;/g, ' ').trim().length === 0
 
 export const useEditableSlide = <F extends string>({
-  schoolId,
+  subject,
   diapositivaId,
   successMessage,
   fields,
@@ -73,7 +79,7 @@ export const useEditableSlide = <F extends string>({
 
     setIsLoading(true)
     axiosGet<Record<F, string>>({
-      url: apiUrl(`/reportes-aurora/escuela/${schoolId}/diapositiva/${diapositivaId}/`),
+      url: apiUrl(slideUrl(subject, diapositivaId)),
       requestSetup: authResources,
       options: {},
     })
@@ -98,7 +104,7 @@ export const useEditableSlide = <F extends string>({
       alive = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authResources.accessToken, schoolId, diapositivaId])
+  }, [authResources.accessToken, subject.kind, subject.id, diapositivaId])
 
   const startEditing = () => {
     setDraft(content)
@@ -118,7 +124,7 @@ export const useEditableSlide = <F extends string>({
     try {
       setIsSaving(true)
       const saved = await axiosPatch<Record<F, string>, Record<F, string>>({
-        url: apiUrl(`/reportes-aurora/escuela/${schoolId}/diapositiva/${diapositivaId}/`),
+        url: apiUrl(slideUrl(subject, diapositivaId)),
         requestSetup: authResources,
         options: {},
         data: nextContent,

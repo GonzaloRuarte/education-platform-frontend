@@ -1,9 +1,10 @@
 'use client'
 
 import { EditableTab } from '@/mta_reports_v2/components/EditableTab'
+import type { I_Subject } from '@/mta_reports_v2/hooks'
 
 interface PisaTabProps {
-  schoolId: number
+  subject: I_Subject
   initialEditing?: boolean
 }
 
@@ -21,9 +22,9 @@ const fields = {
   },
 }
 
-const PisaTab = ({ schoolId, initialEditing }: PisaTabProps) => (
+const PisaTab = ({ subject, initialEditing }: PisaTabProps) => (
   <EditableTab
-    schoolId={schoolId}
+    subject={subject}
     initialEditing={initialEditing}
     diapositivaId="pisa"
     successMessage='Sección "Ejercicios tipo PISA" actualizada correctamente'

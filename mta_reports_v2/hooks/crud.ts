@@ -14,7 +14,30 @@ import type {
 type T_AuroraReportRegenerateAllResponse = {
   status: 'generated' | 'already_complete' | 'no_eligible_schools'
   created_count?: number
+  groupings_created?: number
+  groupings_enqueued?: number
 }
+
+export type T_AuroraReportRegenerateStatus =
+  | { status: 'never'; year: number }
+  | {
+      status: 'running' | 'done' | 'failed' | 'cancelled'
+      year: number
+      run_id?: string
+      started_at?: string
+      finished_at?: string | null
+      schools_total?: number
+      schools_written?: number
+      // Progreso de agrupamientos. Se popula al disparar "Generar reportes faltantes":
+      // `groupings_total` cuenta los pares (grouping, toma) elegibles, `groupings_written`
+      // los que ya escribieron blob en este run (filtrado por `groupings_started_at`).
+      groupings_total?: number
+      groupings_written?: number
+      groupings_started_at?: string | null
+      cancel_requested_at?: string | null
+      error?: string | null
+      traceback?: string | null
+    }
 
 const AURORA_REPORTS_PATH = '/reportes-aurora'
 
@@ -30,6 +53,24 @@ const useAuroraReportRegenerateAll = actionHook<T_EmptyPayload, T_AuroraReportRe
   axiosPost,
   useAuthResources,
 )
+const useAuroraReportCancelRegenerate = actionHook<T_EmptyPayload, T_AuroraReportRegenerateStatus>(
+  `${AURORA_REPORTS_PATH}/cancel-regenerate`,
+  axiosPost,
+  useAuthResources,
+)
+
+const useAuroraReportRegenerateStatus = () => {
+  const auth = useAuthResources()
+  return useCallback(
+    () =>
+      axiosGet<T_AuroraReportRegenerateStatus>({
+        url: apiUrl(`${AURORA_REPORTS_PATH}/regenerate-status/`),
+        requestSetup: auth,
+        options: {},
+      }),
+    [auth],
+  )
+}
 
 const useAuroraReportPublish = () => {
   const auth = useAuthResources()
@@ -67,6 +108,8 @@ export {
   useAuroraReportCreate,
   useAuroraReportBatchDelete,
   useAuroraReportRegenerateAll,
+  useAuroraReportCancelRegenerate,
+  useAuroraReportRegenerateStatus,
   useAuroraReportPublish,
   useAuroraReportUnpublish,
   useNavigateToAuroraReportList,

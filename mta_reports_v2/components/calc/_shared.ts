@@ -314,12 +314,31 @@ export function buildAnonIds(combos: I_RawComboDato[], division: string): Map<st
   return new Map(sorted.map((id, i) => [id, String(i + 1)]))
 }
 
-export function filterEstudiantes(combo: I_RawComboDato, division: string, neeFilter: string = 'Todos') {
+// Selección de escuelas para los filtros de agrupamiento.
+//   - `null`           → todas las escuelas (no se filtra por colegio).
+//   - `Set<meta_id>`   → sólo estudiantes cuyo `school` cae en el set.
+// `null` es el atajo idiomático del "Todas" del multi-select: anula la selección
+// individual sin tener que enumerar todos los ids.
+export type T_SchoolSelection = ReadonlySet<string> | null
+
+export function isAllSchools(sel: T_SchoolSelection): sel is null {
+  return sel === null
+}
+
+export function filterEstudiantes(
+  combo: I_RawComboDato,
+  division: string,
+  neeFilter: string = 'Todos',
+  schools: T_SchoolSelection = null,
+) {
   let students = division.toLowerCase() === 'todas'
     ? combo.estudiantes_mi
     : combo.estudiantes_mi.filter(s => !s.division || s.division === division)
   if (neeFilter === 'Sin NEE') {
     students = students.filter(s => !s.nee)
+  }
+  if (schools !== null) {
+    students = students.filter(s => s.school != null && schools.has(s.school))
   }
   return students
 }
@@ -337,12 +356,13 @@ export function prepareCombo(
   toma: string,
   division: string,
   neeFilter: string = 'Todos',
+  schools: T_SchoolSelection = null,
 ): PreparedCombo | null {
   const combo = findCombo(raw, materia, anio, toma)
   if (!combo) return null
   return {
     combo,
-    students: filterEstudiantes(combo, division, neeFilter),
+    students: filterEstudiantes(combo, division, neeFilter, schools),
     qids: combo.preguntas.map(q => String(q.id)),
   }
 }

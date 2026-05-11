@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { Box, Stack, Typography } from '@mui/material'
 import { COLORS, SPACING, Z_INDEX } from '@/mta_reports_v2/constants'
 import { useEditableSlide, SlideFieldConfig } from '@/mta_reports_v2/hooks'
+import type { I_Subject } from '@/mta_reports_v2/hooks'
 import Logo from '@/shared/components/Logo'
 import LogoAustral from '@/shared/components/LogoAustral'
 import Button from '@/shared/components/Button'
@@ -30,7 +31,7 @@ export interface RenderFieldArgs<F extends string> {
 }
 
 interface EditableContentSectionProps<F extends string> {
-  schoolId: number
+  subject: I_Subject
   diapositivaId: string
   successMessage: string
   fields: Record<F, FieldConfig>
@@ -53,7 +54,7 @@ const editorModules = {
 const editorFormats = ['header', 'bold', 'italic', 'underline', 'color', 'background', 'align', 'list', 'link', 'blockquote']
 
 const EditableContentSection = <F extends string,>({
-  schoolId,
+  subject,
   diapositivaId,
   successMessage,
   fields,
@@ -61,7 +62,7 @@ const EditableContentSection = <F extends string,>({
   children,
 }: EditableContentSectionProps<F>) => {
   const slide = useEditableSlide<F>({
-    schoolId,
+    subject,
     diapositivaId,
     successMessage,
     fields,
@@ -126,20 +127,26 @@ const EditableContentSection = <F extends string,>({
               </Button>
             </>
           )}
-          <Logo width={metaLogoSize.w} height={metaLogoSize.h} />
+          <Box sx={{ width: 'min(30cqi, 380px)', '& img': { width: '100%', height: 'auto', display: 'block' } }}>
+            <Logo width={metaLogoSize.w} height={metaLogoSize.h} />
+          </Box>
         </Stack>
       </Stack>
 
-      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', pt: { xs: 6, md: 12 }, pr: { xs: 0, md: 1 }, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', pr: { xs: 0, md: 1 }, display: 'flex', flexDirection: 'column' }}>
         {slide.isLoading ? (
           <Typography sx={{ color: C.tm }}>Cargando...</Typography>
         ) : (
-          children({ renderField, isEditing: slide.isEditing })
+          <Box sx={{ mt: 'auto', pt: { xs: 6, md: 12 } }}>
+            {children({ renderField, isEditing: slide.isEditing })}
+          </Box>
         )}
       </Box>
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
-        <LogoAustral width={australLogoSize.w} height={australLogoSize.h} />
+        <Box sx={{ width: 'min(22.7cqi, 288px)', '& img': { width: '100%', height: 'auto', display: 'block' } }}>
+          <LogoAustral width={australLogoSize.w} height={australLogoSize.h} />
+        </Box>
       </Box>
 
       <QuillEditorStyles />

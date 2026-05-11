@@ -6,7 +6,9 @@ import Paper from '@mui/material/Paper'
 import HighlightOffIcon from '@mui/icons-material/HighlightOff'
 import { BP, HorizontalBarChart, MiVsTodosLegend, ChartCard } from '@/mta_reports_v2/components/ReporteAuroraCharts'
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, FILL_COLUMN_SX, BAR_CHART } from '@/mta_reports_v2/constants'
-import type { I_DetalleTabData } from '@/mta_reports_v2/types'
+import type { I_DetalleTabData, I_EscuelaMiembro } from '@/mta_reports_v2/types'
+
+
 
 const C = COLORS
 const F = FONT_SIZES
@@ -32,11 +34,24 @@ const expectedSet = (xs: string[]) => new Set(xs.map(norm))
 
 interface DetalleTabProps {
   data: I_DetalleTabData
+  // Sólo aplica en agrupamiento — sirve para mostrar el nombre de la escuela en
+  // la etiqueta "Mi colegio" / "Mi escuela" cuando hay exactamente una escuela
+  // seleccionada en el sidebar. En escuela suelta `escuelas` queda en [].
+  isAgrupamiento?: boolean
+  escuelas?: I_EscuelaMiembro[]
+  // Selección viene del multi-select de la sidebar. `null` = todas las escuelas.
+  selectedSchools?: string[] | null
 }
 
-function DetalleTab({ data }: DetalleTabProps) {
+function DetalleTab({ data, isAgrupamiento = false, escuelas = [], selectedSchools = null }: DetalleTabProps) {
   const d = data
   const isLenguaje = (d.lenComp?.length ?? 0) > 0
+  const singleSchool = isAgrupamiento && selectedSchools && selectedSchools.length === 1
+    ? escuelas.find(e => e.id === selectedSchools[0]) ?? null
+    : null
+  const barMiLabel = singleSchool ? singleSchool.name : 'Mi colegio'
+  const boxplotMiLabel = singleSchool ? singleSchool.name : 'Mi escuela'
+  const barLegend = <MiVsTodosLegend miLabel={barMiLabel.toLowerCase()} />
 
   const [selectedStudentId, setSelectedStudentId] = useState<string | number>('all')
 
@@ -76,7 +91,6 @@ function DetalleTab({ data }: DetalleTabProps) {
   const contItems = selectedStudent
     ? (isLenguaje ? (selectedStudent.lenCont ?? []) : selectedStudent.contenido)
     : (isLenguaje ? (d.lenCont ?? []) : d.contenido)
-  const barLegend = <MiVsTodosLegend />
 
   return (
     <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
@@ -85,7 +99,7 @@ function DetalleTab({ data }: DetalleTabProps) {
         <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
           <ChartCard num="01" title="Resultados por competencia" subtitle="Porcentaje de respuestas correctas" legend={barLegend} dense>
             {compItems.length > 0
-              ? <HorizontalBarChart items={compItems} rowHeight={BAR_CHART.rowHeight.tall} baseHeight={BAR_CHART.baseHeight.compact} barSize={BAR_CHART.size.thick} frame />
+              ? <HorizontalBarChart items={compItems} rowHeight={BAR_CHART.rowHeight.tall} baseHeight={BAR_CHART.baseHeight.compact} barSize={BAR_CHART.size.thick} frame miLabel={barMiLabel} />
               : <Typography variant="caption" sx={{ color: C.tm }}>Sin datos</Typography>}
           </ChartCard>
           <ChartCard
@@ -98,7 +112,7 @@ function DetalleTab({ data }: DetalleTabProps) {
             bodySx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}
           >
             {contItems.length > 0
-              ? <HorizontalBarChart items={contItems} rowHeight={BAR_CHART.rowHeight.tall} baseHeight={BAR_CHART.baseHeight.compact} barSize={BAR_CHART.size.thick} frame />
+              ? <HorizontalBarChart items={contItems} rowHeight={BAR_CHART.rowHeight.tall} baseHeight={BAR_CHART.baseHeight.compact} barSize={BAR_CHART.size.thick} frame miLabel={barMiLabel} />
               : <Typography variant="caption" sx={{ color: C.tm }}>Sin datos</Typography>}
           </ChartCard>
         </Stack>
@@ -109,7 +123,7 @@ function DetalleTab({ data }: DetalleTabProps) {
             <Stack direction="row" justifyContent="center" spacing={1} sx={{ mt: 0.5, width: '100%', flex: 1, minHeight: 0 }}>
               <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0 }}>
                 <BP d={d.boxplotMi} color={C.navyMid} w={190} h={360} />
-                <Typography variant="caption" sx={{ color: C.tm }}>Mi escuela</Typography>
+                <Typography variant="caption" sx={{ color: C.tm }}>{boxplotMiLabel}</Typography>
               </Box>
               <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0 }}>
                 <BP d={d.boxplotTodos} color={C.boxplotTodos} w={190} h={360} />

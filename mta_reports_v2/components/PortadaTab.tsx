@@ -5,6 +5,7 @@ import Box from '@mui/material/Box'
 import Image from 'next/image'
 import { Stack } from '@mui/material'
 import { useEditableSlide } from '@/mta_reports_v2/hooks'
+import type { I_Subject } from '@/mta_reports_v2/hooks'
 import { COLORS, FONT_WEIGHTS, TITLE_FONT_FAMILY, SPACING, Z_INDEX } from '@/mta_reports_v2/constants'
 import Footer from '@/shared/layout/Footer'
 import Logo from '@/shared/components/Logo'
@@ -21,7 +22,7 @@ const C = COLORS
 const metaLogoSize = new ImageSize(350, 100)
 
 interface PortadaTabProps {
-  schoolId: number
+  subject: I_Subject
   initialEditing?: boolean
 }
 
@@ -36,9 +37,9 @@ const editorModules = {
 
 const editorFormats = ['bold', 'italic', 'underline', 'color']
 
-const PortadaTab = ({ schoolId, initialEditing }: PortadaTabProps) => {
+const PortadaTab = ({ subject, initialEditing }: PortadaTabProps) => {
   const slide = useEditableSlide<'title' | 'subtitle'>({
-    schoolId,
+    subject,
     diapositivaId: 'portada',
     successMessage: 'Portada actualizada correctamente',
     fields,
@@ -46,7 +47,7 @@ const PortadaTab = ({ schoolId, initialEditing }: PortadaTabProps) => {
   })
 
   const fontSizeFor = (key: 'title' | 'subtitle') =>
-    key === 'title' ? 'clamp(36px, 4.5vw, 54px)' : 'clamp(24px, 3vw, 42px)'
+    key === 'title' ? 'min(4.25cqi, 54px)' : 'min(3.3cqi, 42px)'
   const fontWeightFor = (key: 'title' | 'subtitle') => (key === 'title' ? FONT_WEIGHTS.black : FONT_WEIGHTS.bold)
   const lineHeightFor = (key: 'title' | 'subtitle') => (key === 'title' ? 1.1 : 1.2)
 
@@ -125,7 +126,9 @@ const PortadaTab = ({ schoolId, initialEditing }: PortadaTabProps) => {
         </Box>
         <Box flex={1} display="flex" alignItems="center" justifyContent="center" minWidth={0}>
           <Stack alignItems="left" spacing={4} sx={{ px: 4, width: '100%' }}>
-            <Logo width={metaLogoSize.w} height={metaLogoSize.h} variant='color' />
+            <Box sx={{ width: 'min(27.5cqi, 350px)', '& img': { width: '100%', height: 'auto', display: 'block' } }}>
+              <Logo width={metaLogoSize.w} height={metaLogoSize.h} variant='color' />
+            </Box>
             {renderField('title', 'portada-title')}
             {renderField('subtitle', 'portada-subtitle')}
           </Stack>

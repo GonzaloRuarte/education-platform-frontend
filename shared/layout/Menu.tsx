@@ -143,9 +143,7 @@ const Menu = () => {
               <MenuBlock isSubMenu>
                 <MenuItem label={'Reportes Power BI'} href={P.D._.reportes.path} />
                 <MenuItem label={P.D._.reportes._.meta.label} href={P.D._.reportes._.meta.path} />
-                <RRCC allowedCapabilities={['manage_admin_users']}>
-                  <MenuItem label={P.D._.reportesAurora.label} href={P.D._.reportesAurora.path} />
-                </RRCC>
+                <MenuItem label={P.D._.reportesAurora.label} href={P.D._.reportesAurora.path} />
               </MenuBlock>
             }
           />
