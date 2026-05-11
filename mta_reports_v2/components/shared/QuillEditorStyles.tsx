@@ -122,15 +122,15 @@ const QuillEditorStyles = () => (
 
     .title-editor .ql-editor {
       font-family: ${TITLE_FONT_FAMILY};
-      font-size: clamp(26px, 3.6vw, 38px);
+      font-size: min(3cqi, 38px);
       font-weight: ${W.extrabold};
       line-height: 1.05;
       color: ${C.midNavy};
     }
 
     .body-editor .ql-editor {
-      font-size: clamp(18px, 2.2vw, 24px);
-      line-height: 1.48;
+      font-size: min(1.9cqi, 24px);
+      line-height: 1.4;
       font-weight: ${W.normal};
     }
   `}</style>

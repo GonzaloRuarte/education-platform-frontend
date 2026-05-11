@@ -6,7 +6,7 @@ import Paper from '@mui/material/Paper'
 import HighlightOffIcon from '@mui/icons-material/HighlightOff'
 import { BP, HorizontalBarChart, MiVsTodosLegend, ChartCard } from '@/mta_reports_v2/components/ReporteAuroraCharts'
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, FILL_COLUMN_SX, BAR_CHART } from '@/mta_reports_v2/constants'
-import type { I_DetalleTabData } from '@/mta_reports_v2/types'
+import type { I_DetalleTabData, I_EscuelaMiembro } from '@/mta_reports_v2/types'
 
 const C = COLORS
 const F = FONT_SIZES
@@ -32,11 +32,23 @@ const expectedSet = (xs: string[]) => new Set(xs.map(norm))
 
 interface DetalleTabProps {
   data: I_DetalleTabData
+  // Sólo aplica en agrupamiento. En escuela `escuelas` queda en [] y el selector
+  // de escuelas no se renderiza.
+  isAgrupamiento?: boolean
+  escuelas?: I_EscuelaMiembro[]
+  school?: string
+  onSchoolChange?: (id: string) => void
 }
 
-function DetalleTab({ data }: DetalleTabProps) {
+function DetalleTab({ data, isAgrupamiento = false, escuelas = [], school, onSchoolChange }: DetalleTabProps) {
   const d = data
   const isLenguaje = (d.lenComp?.length ?? 0) > 0
+  const showSchoolSelect = isAgrupamiento && escuelas.length > 0
+  const currentSchoolName = showSchoolSelect
+    ? (escuelas.find(e => e.id === school)?.name ?? '')
+    : ''
+  const barMiLabel = showSchoolSelect && currentSchoolName ? currentSchoolName : 'Mi colegio'
+  const barLegend = <MiVsTodosLegend miLabel={barMiLabel.toLowerCase()} />
 
   const [selectedStudentId, setSelectedStudentId] = useState<string | number>('all')
 
@@ -76,16 +88,34 @@ function DetalleTab({ data }: DetalleTabProps) {
   const contItems = selectedStudent
     ? (isLenguaje ? (selectedStudent.lenCont ?? []) : selectedStudent.contenido)
     : (isLenguaje ? (d.lenCont ?? []) : d.contenido)
-  const barLegend = <MiVsTodosLegend />
 
   return (
     <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+      {showSchoolSelect && (
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <Typography variant="body2" sx={{ fontWeight: W.semibold, color: C.navy, whiteSpace: 'nowrap', fontSize: F.lg }}>
+            Escuela
+          </Typography>
+          <FormControl size="small" sx={{ minWidth: 240 }}>
+            <Select
+              value={school ?? ''}
+              onChange={(e) => onSchoolChange?.(String(e.target.value))}
+              MenuProps={{ PaperProps: { sx: { maxHeight: 320 } } }}
+              sx={{ fontSize: F.lg }}
+            >
+              {escuelas.map(e => (
+                <MenuItem key={e.id} value={e.id} sx={{ fontSize: F.lg }}>{e.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Stack>
+      )}
       <Grid2 container spacing={1.5} alignItems="stretch" sx={{ flex: 1, minHeight: 0 }}>
       <Grid2 size={{ xs: 12, md: 7 }} sx={{ display: 'flex', flexDirection: 'column' }}>
         <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
           <ChartCard num="01" title="Resultados por competencia" subtitle="Porcentaje de respuestas correctas" legend={barLegend} dense>
             {compItems.length > 0
-              ? <HorizontalBarChart items={compItems} rowHeight={BAR_CHART.rowHeight.tall} baseHeight={BAR_CHART.baseHeight.compact} barSize={BAR_CHART.size.thick} frame />
+              ? <HorizontalBarChart items={compItems} rowHeight={BAR_CHART.rowHeight.tall} baseHeight={BAR_CHART.baseHeight.compact} barSize={BAR_CHART.size.thick} frame miLabel={barMiLabel} />
               : <Typography variant="caption" sx={{ color: C.tm }}>Sin datos</Typography>}
           </ChartCard>
           <ChartCard
@@ -98,7 +128,7 @@ function DetalleTab({ data }: DetalleTabProps) {
             bodySx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}
           >
             {contItems.length > 0
-              ? <HorizontalBarChart items={contItems} rowHeight={BAR_CHART.rowHeight.tall} baseHeight={BAR_CHART.baseHeight.compact} barSize={BAR_CHART.size.thick} frame />
+              ? <HorizontalBarChart items={contItems} rowHeight={BAR_CHART.rowHeight.tall} baseHeight={BAR_CHART.baseHeight.compact} barSize={BAR_CHART.size.thick} frame miLabel={barMiLabel} />
               : <Typography variant="caption" sx={{ color: C.tm }}>Sin datos</Typography>}
           </ChartCard>
         </Stack>
@@ -109,7 +139,7 @@ function DetalleTab({ data }: DetalleTabProps) {
             <Stack direction="row" justifyContent="center" spacing={1} sx={{ mt: 0.5, width: '100%', flex: 1, minHeight: 0 }}>
               <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0 }}>
                 <BP d={d.boxplotMi} color={C.navyMid} w={190} h={360} />
-                <Typography variant="caption" sx={{ color: C.tm }}>Mi escuela</Typography>
+                <Typography variant="caption" sx={{ color: C.tm }}>{showSchoolSelect && currentSchoolName ? currentSchoolName : 'Mi escuela'}</Typography>
               </Box>
               <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0 }}>
                 <BP d={d.boxplotTodos} color={C.boxplotTodos} w={190} h={360} />

@@ -1,6 +1,9 @@
 export {
   useEscuelaReporteAurora,
+  useAgrupamientoReporteAurora,
+  useReporteAurora,
 } from './viewer'
+export type { I_Subject, T_SubjectKind } from './viewer'
 
 export { useEditableSlide } from './useEditableSlide'
 export type { SlideFieldConfig, UseEditableSlideResult } from './useEditableSlide'
@@ -15,6 +18,8 @@ export {
   useAuroraReportCreate,
   useAuroraReportBatchDelete,
   useAuroraReportRegenerateAll,
+  useAuroraReportCancelRegenerate,
+  useAuroraReportRegenerateStatus,
   useAuroraReportPublish,
   useAuroraReportUnpublish,
   useNavigateToAuroraReportList,

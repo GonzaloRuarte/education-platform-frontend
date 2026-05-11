@@ -207,7 +207,7 @@ export const SLIDE_TITLE_SX = {
   fontFamily: TITLE_FONT_FAMILY,
   fontWeight: FONT_WEIGHTS.extrabold,
   color: COLORS.navy,
-  fontSize: 'clamp(36px, 5vw, 52px)',
+  fontSize: 'min(4.1cqi, 52px)',
   lineHeight: 1.05,
 } as const
 
@@ -215,7 +215,7 @@ export const SLIDE_HERO_TITLE_SX = {
   fontFamily: TITLE_FONT_FAMILY,
   fontWeight: FONT_WEIGHTS.black,
   color: COLORS.royal,
-  fontSize: 'clamp(40px, 5.5vw, 64px)',
+  fontSize: 'min(5cqi, 64px)',
   lineHeight: 1.1,
 } as const
 

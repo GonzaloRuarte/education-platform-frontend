@@ -12,18 +12,28 @@ import {
   isLenguajeMateria,
   r1,
   studentScores,
+  type T_SchoolSelection,
 } from './_shared'
 
 export function calcDetalle(
   raw: I_RawEscuelaDatos,
   f: I_FiltrosAurora,
+  schools: T_SchoolSelection = null,
 ): I_DetalleTabData | null {
   const combo = findCombo(raw, f.materia, f.anio, f.toma)
   if (!combo) return null
   if (!combo.todos?.por_pregunta) return null
 
-  const filtered = filterEstudiantes(combo, f.division, f.neeFilter)
-  const estudiantes_mi = filtered.map(s => s.respuestas)
+  // El listado de alumnos del dropdown se construye SIEMPRE sobre el universo del
+  // agrupamiento (sin filtro de escuela). Los agregados de los charts se calculan
+  // sobre el subset filtrado por escuela, así "Mi escuela" en el boxplot puede
+  // representar una escuela específica mientras el dropdown sigue mostrando todos
+  // los alumnos.
+  const allStudents = filterEstudiantes(combo, f.division, f.neeFilter)
+  const aggStudents = schools === null
+    ? allStudents
+    : allStudents.filter(s => s.school != null && schools.has(s.school))
+  const estudiantes_mi = aggStudents.map(s => s.respuestas)
   const pp = combo.todos.por_pregunta
   const allIds = new Set(combo.preguntas.map(q => String(q.id)))
   const scores45 = studentScores(allIds, estudiantes_mi)
@@ -44,7 +54,7 @@ export function calcDetalle(
 
   const isLenguaje = isLenguajeRaw
 
-  const estudiantes = filtered.map((s, idx) => {
+  const estudiantes = allStudents.map((s, idx) => {
     const respuestas = s.respuestas
     const answered = [...allIds].filter(k => k in respuestas)
     const score = answered.length

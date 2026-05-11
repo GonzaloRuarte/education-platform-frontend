@@ -107,19 +107,37 @@ interface I_RawTodos {
   por_escuela: Array<{ id: string; pct: number; n: number }>
 }
 
+interface I_RawEstudianteMi {
+  id: string
+  division: string | null
+  nee?: boolean
+  respuestas: Record<string, boolean>
+  // Sólo viene seteado en payloads de agrupamiento (backend lo derivó del meta_id
+  // de la escuela de origen). Para reportes de escuela queda undefined.
+  school?: string | null
+}
+
 interface I_RawComboDato {
   materia: string
   anio: string
   toma: string
   preguntas: I_RawPregunta[]
-  estudiantes_mi: Array<{ id: string; division: string | null; nee?: boolean; respuestas: Record<string, boolean> }>
+  estudiantes_mi: I_RawEstudianteMi[]
   todos: I_RawTodos
+}
+
+interface I_EscuelaMiembro {
+  id: string   // matchea estudiante.school y todos.por_escuela[].id
+  name: string
 }
 
 interface I_RawEscuelaDatos {
   colegio: string
   colegio_meta_id: string
   datos: I_RawComboDato[]
+  // Sólo presente en payloads de agrupamiento. Lista las escuelas miembro para
+  // poblar el filtro multi-select de la sidebar y la leyenda por color del scatter.
+  escuelas?: I_EscuelaMiembro[]
   report_id?: number | null
   report_status?: T_AuroraReportStatus | null
 }
@@ -138,6 +156,9 @@ interface I_ScatterPoint {
   id: string
   pdl: number
   mat: number
+  // Meta_id de la escuela de origen — sólo poblado en agrupamiento. Driver del
+  // color por escuela en el scatter.
+  school?: string | null
 }
 
 interface I_TablaRow {
@@ -150,8 +171,13 @@ type T_AuroraReportStatus = 'draft' | 'published'
 
 interface I_AuroraReportListItem {
   id: number
-  school: number
-  school_name: string
+  // Un reporte apunta a UN sujeto: o una escuela o un agrupamiento (XOR enforce-ado
+  // en el backend). Exactamente uno de los pares school/school_name vs
+  // grouping/grouping_name viene seteado por fila.
+  school: number | null
+  school_name: string | null
+  grouping: number | null
+  grouping_name: string | null
   toma: string
   blob_path: string
   last_generated_at: string | null
@@ -180,7 +206,9 @@ export type {
   I_RawPregunta,
   I_RawTodos,
   I_RawComboDato,
+  I_RawEstudianteMi,
   I_RawEscuelaDatos,
+  I_EscuelaMiembro,
   I_SemaforoBandas,
   I_ScatterPoint,
   I_TablaRow,

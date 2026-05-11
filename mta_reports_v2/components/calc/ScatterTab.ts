@@ -6,6 +6,7 @@ import {
   buildAnonIds,
   calcPercentage,
   prepareCombo,
+  type T_SchoolSelection,
 } from './_shared'
 
 export function calcScatter(
@@ -14,9 +15,10 @@ export function calcScatter(
   division: string,
   toma: string,
   neeFilter: string = 'Todos',
+  schools: T_SchoolSelection = null,
 ): I_ScatterPoint[] {
-  const len = prepareCombo(raw, 'Prácticas del Lenguaje', anio, toma, division, neeFilter)
-  const mat = prepareCombo(raw, 'Matemática',             anio, toma, division, neeFilter)
+  const len = prepareCombo(raw, 'Prácticas del Lenguaje', anio, toma, division, neeFilter, schools)
+  const mat = prepareCombo(raw, 'Matemática',             anio, toma, division, neeFilter, schools)
   if (!len || !mat) return []
 
   const anonById = buildAnonIds([len.combo, mat.combo], division)
@@ -31,6 +33,7 @@ export function calcScatter(
       id: anonId,
       pdl: calcPercentage(len.qids.filter(k => k in lenS.respuestas), lenS.respuestas),
       mat: calcPercentage(mat.qids.filter(k => k in matS.respuestas), matS.respuestas),
+      school: lenS.school ?? matS.school ?? null,
     })
   }
   return points
