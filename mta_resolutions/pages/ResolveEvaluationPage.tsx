@@ -26,8 +26,35 @@ import { useStore } from '@/shared/state'
 import { HorizontalRule } from '@mui/icons-material'
 import { Box } from '@mui/material'
 import { StickyPinned } from '@/shared/components/StickyPinned'
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import 'react-quill-new/dist/quill.snow.css'
+
+const quickScrollToTop = () => {
+  const startY = window.scrollY
+  if (startY <= 0) return
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    window.scrollTo(0, 0)
+    return
+  }
+
+  const durationMs = 140
+  const startAt = performance.now()
+
+  const step = (now: number) => {
+    const elapsed = now - startAt
+    const progress = Math.min(elapsed / durationMs, 1)
+    const eased = 1 - Math.pow(1 - progress, 3)
+
+    window.scrollTo(0, Math.round(startY * (1 - eased)))
+
+    if (progress < 1) {
+      window.requestAnimationFrame(step)
+    }
+  }
+
+  window.requestAnimationFrame(step)
+}
 
 const ResolutionStatusView = ({
   title,
@@ -181,6 +208,7 @@ const ResolveEvaluationPage = () => {
   const { currentPage } = useResolutionPagination()
   const isOfflineSubmitted = useStore((state) => state.resolution_offlineSubmitted)
   const { runtimeStatus, runtimeMessage } = useResolutionRuntime()
+  const hasInitializedPageRef = useRef(false)
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -190,6 +218,15 @@ const ResolveEvaluationPage = () => {
     window.addEventListener('beforeunload', handler)
     return () => window.removeEventListener('beforeunload', handler)
   }, [])
+
+  useEffect(() => {
+    if (!hasInitializedPageRef.current) {
+      hasInitializedPageRef.current = true
+      return
+    }
+
+    quickScrollToTop()
+  }, [currentPage])
 
   let content: ReactNode
 
