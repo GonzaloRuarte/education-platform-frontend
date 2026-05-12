@@ -11,11 +11,18 @@ import type {
   T_AuroraReportList,
 } from '@/mta_reports_v2/types'
 
+type T_AuroraReportRegenerateAllRequestData = {
+  // True = sólo generar pares faltantes (no toca blobs ya generados).
+  // False / ausente = regenerar TODOS los reportes (palanca para refrescar blobs stale).
+  only_missing?: boolean
+}
+
 type T_AuroraReportRegenerateAllResponse = {
   status: 'generated' | 'already_complete' | 'no_eligible_schools'
   created_count?: number
   groupings_created?: number
   groupings_enqueued?: number
+  only_missing?: boolean
 }
 
 export type T_AuroraReportRegenerateStatus =
@@ -35,6 +42,9 @@ export type T_AuroraReportRegenerateStatus =
       groupings_written?: number
       groupings_started_at?: string | null
       cancel_requested_at?: string | null
+      // True si el run activo es "Generar reportes faltantes". El front lo usa para
+      // mostrar la etiqueta de progreso sólo sobre el botón clickeado.
+      only_missing?: boolean
       error?: string | null
       traceback?: string | null
     }
@@ -48,7 +58,7 @@ const useAuroraReportCreate = creationHook<I_AuroraReportCreateRequestData, I_Cr
   useAuthResources,
 )
 const useAuroraReportBatchDelete = batchDeletionHook<number>(AURORA_REPORTS_PATH, axiosDelete, useAuthResources)
-const useAuroraReportRegenerateAll = actionHook<T_EmptyPayload, T_AuroraReportRegenerateAllResponse>(
+const useAuroraReportRegenerateAll = actionHook<T_AuroraReportRegenerateAllRequestData, T_AuroraReportRegenerateAllResponse>(
   `${AURORA_REPORTS_PATH}/regenerate-all-missing`,
   axiosPost,
   useAuthResources,

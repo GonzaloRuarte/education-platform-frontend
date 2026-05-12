@@ -27,13 +27,12 @@ import {
   ReportHeader, FilterPillsBar, TabPager,
 } from '@/mta_reports_v2/components/ReporteAuroraChrome'
 
-// Tabs que dependen de un `schoolId` real. Las slides editables se guardan ahora
-// por sujeto (escuela XOR agrupamiento) contra el mismo modelo `ReporteSlideContent`,
-// así que están disponibles para ambos. Sólo `historico` sigue siendo school-only
-// porque consume datos por escuela.
-const SCHOOL_ONLY_TAB_IDS: ReadonlySet<TabId> = new Set<TabId>([
-  'historico',
-])
+// Tabs que dependen de un `schoolId` real. Las slides editables se guardan por
+// sujeto (escuela XOR agrupamiento) contra el mismo modelo `ReporteSlideContent`,
+// y el histórico de agrupamiento agrega en runtime los blobs por escuela, así que
+// hoy no hay tabs exclusivos de escuela. Mantenemos el set + el filter de
+// `visibleTabOrder` por si más adelante un tab vuelve a ser school-only.
+const SCHOOL_ONLY_TAB_IDS: ReadonlySet<TabId> = new Set<TabId>()
 
 const C = COLORS
 
@@ -260,9 +259,16 @@ const ReporteAurora = () => {
     isAgrupamiento, escuelas, selectedSchools,
   }
 
+  // El filtro NEE es client-side sobre las respuestas crudas de cada alumno.
+  // Histórico consume una agregación del backend (`/historico/`) que no expone
+  // ese eje, así que el control no haría nada — lo ocultamos en ese tab.
+  const tabSupportsNEE = tab !== 'historico'
   const sidebarFilters = useMemo<Array<FilterDef>>(
-    () => [...(tabDef.filters?.({ materias, divisiones, anios, materiaFilter, anioFilter, divFilter, studentFilter, escuelasFilter }) ?? []), neeFilterDef],
-    [tabDef, materias, divisiones, anios, materiaFilter, anioFilter, divFilter, studentFilter, escuelasFilter, neeFilterDef],
+    () => [
+      ...(tabDef.filters?.({ materias, divisiones, anios, materiaFilter, anioFilter, divFilter, studentFilter, escuelasFilter }) ?? []),
+      ...(tabSupportsNEE ? [neeFilterDef] : []),
+    ],
+    [tabDef, tabSupportsNEE, materias, divisiones, anios, materiaFilter, anioFilter, divFilter, studentFilter, escuelasFilter, neeFilterDef],
   )
 
   const resetFilters = () => {
