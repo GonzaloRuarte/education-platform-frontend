@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useAuthResources } from '@/mta_auth/hooks'
 import { axiosGet } from '@/shared/data/axios'
 import { apiUrl } from '@/config'
+import type { I_Subject } from './viewer'
 
 export interface I_HistoricoBar {
   toma: string  // p.ej. "1-2024"
@@ -20,19 +21,26 @@ export interface I_HistoricoData {
   por_anio: Record<string, I_HistoricoBar[]>
 }
 
-export const useHistoricoEscuela = (schoolId: number | null) => {
+const historicoUrl = (subject: I_Subject): string => {
+  if (subject.kind === 'grouping') {
+    return apiUrl(`/reportes-aurora/agrupamiento/${subject.id}/historico/`)
+  }
+  return apiUrl(`/reportes-aurora/escuela/${subject.id}/historico/`)
+}
+
+export const useHistoricoSubject = (subject: I_Subject) => {
   const [data, setData] = useState<I_HistoricoData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const authResources = useAuthResources()
 
   useEffect(() => {
-    if (schoolId === null) return
+    if (subject.id === null) return
     let alive = true
     setLoading(true)
     setError(null)
     axiosGet<I_HistoricoData>({
-      url: apiUrl(`/reportes-aurora/escuela/${schoolId}/historico/`),
+      url: historicoUrl(subject),
       requestSetup: authResources,
       options: {},
     })
@@ -40,7 +48,10 @@ export const useHistoricoEscuela = (schoolId: number | null) => {
       .catch(err => { if (alive) setError(err?.message ?? 'Error al cargar') })
       .finally(() => { if (alive) setLoading(false) })
     return () => { alive = false }
-  }, [schoolId, authResources.accessToken]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [subject.kind, subject.id, authResources.accessToken]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return { data, loading, error }
 }
+
+export const useHistoricoEscuela = (schoolId: number | null) =>
+  useHistoricoSubject({ kind: 'school', id: schoolId })

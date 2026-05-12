@@ -178,6 +178,7 @@ interface I_AuroraReportListItem {
   // grouping/grouping_name viene seteado por fila.
   school: number | null
   school_name: string | null
+  school_meta_id: number | null
   grouping: number | null
   grouping_name: string | null
   // Sólo viene seteado (no-null) para reportes de agrupamiento. Lista los nombres

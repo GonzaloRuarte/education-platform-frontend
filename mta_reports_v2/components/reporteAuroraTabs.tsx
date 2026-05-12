@@ -42,9 +42,8 @@ export type TabKind = 'static' | 'data'
 
 export type TabRenderCtx = {
   escuelaId: number | null
-  // Sujeto del reporte (escuela XOR agrupamiento). Los tabs de slides editables lo usan
-  // para construir la URL del endpoint. `escuelaId` se mantiene para `HistoricoTab`, que
-  // sigue siendo school-only.
+  // Sujeto del reporte (escuela XOR agrupamiento). Los tabs de slides editables y el
+  // tab de Histórico lo usan para construir la URL del endpoint.
   subject: I_Subject
   editRequested: boolean
   materia: string
@@ -185,7 +184,7 @@ export const TABS: ReadonlyArray<TabDef> = [
   },
   {
     id: 'historico', label: 'Histórico', kind: 'data',
-    render: ({ escuelaId }) => escuelaId !== null ? <HistoricoTab schoolId={escuelaId} /> : null,
+    render: ({ subject }) => subject.id !== null ? <HistoricoTab subject={subject} /> : null,
   },
   {
     id: 'detalleLenguaje', label: 'Prácticas del Lenguaje', kind: 'data',

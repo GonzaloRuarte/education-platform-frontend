@@ -56,8 +56,10 @@ const SubjectCell = ({ row }: { row: I_AuroraReportListItem }) => {
           <li key={n}>{n}</li>
         ))}
       </Box>
-    ) : (
+    ) : isGrouping ? (
       `Id ${row.id}`
+    ) : (
+      `Meta ID ${row.school_meta_id ?? '—'}`
     )
   return (
     <Tooltip placement="left" title={title}>
@@ -120,6 +122,11 @@ function ReportesAuroraListPage() {
   const publish = useAuroraReportPublish()
   const unpublish = useAuroraReportUnpublish()
   const [isRegenerating, setIsRegenerating] = useState(false)
+  // Cuál de los dos botones disparó el run en curso. Lo usamos para mostrar la etiqueta
+  // de progreso SOLO sobre el botón clickeado — el otro queda disabled pero conserva su
+  // label idle. Al cargar la página durante un run, se deriva del flag `only_missing`
+  // del status blob.
+  const [activeMode, setActiveMode] = useState<'full' | 'only_missing' | null>(null)
   const [regenProgress, setRegenProgress] = useState<{ written: number; total: number } | null>(null)
   // Progreso de agrupamientos. Va por separado del de escuelas porque las tasks de
   // agrupamiento se encolan una por una y pueden seguir corriendo después de que el
@@ -181,6 +188,7 @@ function ReportesAuroraListPage() {
                 'Volvé a apretar "Generar reportes faltantes" si querés reintentar.',
             )
             setIsRegenerating(false)
+            setActiveMode(null)
             setRegenProgress(null)
             setGroupingsProgress(null)
             stopPolling()
@@ -196,6 +204,10 @@ function ReportesAuroraListPage() {
         // saltan y nunca van a llegar.
         if (s.status !== 'never' && s.status !== 'cancelled' && (s.status === 'running' || groupingsPending)) {
           setIsRegenerating(true)
+          // Sincronizamos `activeMode` con lo que dice el status blob — necesario para
+          // page reloads en medio de un run (el state local arranca en null).
+          const onlyMissing = 'only_missing' in s ? s.only_missing : false
+          setActiveMode(onlyMissing ? 'only_missing' : 'full')
           setRegenProgress({
             written: s.schools_written ?? 0,
             total: s.schools_total ?? 0,
@@ -215,6 +227,7 @@ function ReportesAuroraListPage() {
         } else if (s.status !== 'never') {
           // Schools done + groupings done (o sin agrupamientos elegibles): apagamos.
           setIsRegenerating(false)
+          setActiveMode(null)
           setRegenProgress(null)
           setGroupingsProgress(null)
           stopPolling()
@@ -239,6 +252,8 @@ function ReportesAuroraListPage() {
         // (p.ej. el usuario refrescó la página mientras los workers seguían procesando).
         if (s.status !== 'never' && (s.status === 'running' || groupingsPending)) {
           setIsRegenerating(true)
+          const onlyMissing = 'only_missing' in s ? s.only_missing : false
+          setActiveMode(onlyMissing ? 'only_missing' : 'full')
           setRegenProgress({
             written: s.schools_written ?? 0,
             total: s.schools_total ?? 0,
@@ -290,6 +305,7 @@ function ReportesAuroraListPage() {
       // Optimista: el backend ya marcó `cancelled` y las tasks pendientes lo van a
       // ver al arrancar. Apagamos el banner sin esperar al próximo tick del polling.
       setIsRegenerating(false)
+      setActiveMode(null)
       setRegenProgress(null)
       setGroupingsProgress(null)
       stopPolling()
@@ -302,9 +318,10 @@ function ReportesAuroraListPage() {
     }
   }
 
-  const handleRegenerateAll = async (reload: () => void) => {
+  const handleRegenerateAll = async (reload: () => void, onlyMissing: boolean) => {
     if (isRegenerating) return
     setIsRegenerating(true)
+    setActiveMode(onlyMissing ? 'only_missing' : 'full')
     // Capturamos el run_id actual antes de disparar el POST. Lo usa `startPolling` para
     // ignorar el estado del run viejo hasta que el backend rote a uno nuevo (sin esto, el
     // primer tick lee `done` del anterior y apaga el flag inmediatamente).
@@ -316,25 +333,32 @@ function ReportesAuroraListPage() {
       // Sin baseline el polling se comporta como antes; aceptable.
     }
     try {
-      const res = await regenerateAll()
+      const res = await regenerateAll({ only_missing: onlyMissing })
       if (res.status === 'generated') {
-        successToast('Se están regenerando los reportes.')
+        successToast(
+          onlyMissing
+            ? 'Se están generando los reportes faltantes.'
+            : 'Se están regenerando todos los reportes.',
+        )
         reload()
         startPolling(baselineRunId)
       } else if (res.status === 'already_complete') {
-        warningToast('Ya se generaron todos los reportes.')
+        warningToast('No hay reportes faltantes por generar.')
         setIsRegenerating(false)
+        setActiveMode(null)
         setRegenProgress(null)
         setGroupingsProgress(null)
       } else if (res.status === 'no_eligible_schools') {
         warningToast('No hay escuelas con datos para reportar.')
         setIsRegenerating(false)
+        setActiveMode(null)
         setRegenProgress(null)
         setGroupingsProgress(null)
       }
     } catch (err) {
       handleServiceError(err)
       setIsRegenerating(false)
+      setActiveMode(null)
       setRegenProgress(null)
       setGroupingsProgress(null)
     }
@@ -419,8 +443,10 @@ function ReportesAuroraListPage() {
     ]
   }, [canEdit, busyId])
 
-  const buttonLabel = (() => {
-    if (!isRegenerating) return 'Generar reportes faltantes'
+  // Etiquetas: cuando hay un run en curso, ambos botones muestran el mismo texto de
+  // progreso porque el banner ya distingue qué se está generando. Cuando está idle,
+  // cada botón muestra su acción específica.
+  const progressSegments = (() => {
     const segments: string[] = []
     if (regenProgress && regenProgress.total > 0) {
       segments.push(`escuelas ${regenProgress.written}/${regenProgress.total}`)
@@ -428,20 +454,32 @@ function ReportesAuroraListPage() {
     if (groupingsProgress && groupingsProgress.total > 0) {
       segments.push(`agrupamientos ${groupingsProgress.written}/${groupingsProgress.total}`)
     }
-    return segments.length > 0 ? `Generando… ${segments.join(' · ')}` : 'Generando…'
+    return segments
   })()
+  const progressLabel = progressSegments.length > 0
+    ? `Generando… ${progressSegments.join(' · ')}`
+    : 'Generando…'
 
   const customButtons = canEdit
     ? ({ reload }: { reload: () => void }) => {
       reloadRef.current = reload
       return (
-        <Button
-          onClick={() => handleRegenerateAll(reload)}
-          startIcon={<AutorenewIcon />}
-          disabled={isRegenerating}
-        >
-          {buttonLabel}
-        </Button>
+        <>
+          <Button
+            onClick={() => handleRegenerateAll(reload, false)}
+            startIcon={<AutorenewIcon />}
+            disabled={isRegenerating}
+          >
+            {activeMode === 'full' ? progressLabel : 'Regenerar todos los reportes'}
+          </Button>
+          <Button
+            onClick={() => handleRegenerateAll(reload, true)}
+            startIcon={<AutorenewIcon />}
+            disabled={isRegenerating}
+          >
+            {activeMode === 'only_missing' ? progressLabel : 'Generar reportes faltantes'}
+          </Button>
+        </>
       )
     }
     : undefined

@@ -1,37 +1,101 @@
 'use client'
 
+import { useState } from 'react'
 import { Box, Stack, Typography } from '@mui/material'
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { useHistoricoEscuela, type I_HistoricoBar } from '@/mta_reports_v2/hooks'
-import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, TITLE_FONT_FAMILY, LAYOUT_SIZES, AXIS } from '@/mta_reports_v2/constants'
+import { Bar, BarChart, CartesianGrid, Rectangle, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { useHistoricoSubject, type I_HistoricoBar, type I_Subject } from '@/mta_reports_v2/hooks'
+import { ChartCard, Leg } from '@/mta_reports_v2/components/ReporteAuroraCharts'
+import { AXIS, BAR_CHART, BOX_SHADOWS, CHART_MARGINS, COLORS, FONT_SIZES, FONT_WEIGHTS, LAYOUT_SIZES, RADIUS, TITLE_FONT_FAMILY } from '@/mta_reports_v2/constants'
 
 const C = COLORS
 const F = FONT_SIZES
 const W = FONT_WEIGHTS
 
-interface HistoricoTabProps { schoolId: number }
+interface HistoricoTabProps { subject: I_Subject }
 
-const HistoricoChart = ({ title, data }: { title: string; data: I_HistoricoBar[] }) => (
-  <Box sx={{ flex: 1, bgcolor: C.white, borderRadius: RADIUS.lg, p: 3 }}>
-    <Typography sx={{ color: C.navy, fontWeight: W.extrabold, mb: 2 }}>{title}</Typography>
-    <Box sx={{ height: LAYOUT_SIZES.chartHeight }}>
+const HistoricoChart = ({ data }: { data: I_HistoricoBar[] }) => {
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null)
+
+  const makeShape = (fill: string) => (props: any) => {
+    const isHover = props.index === hoverIdx
+    return (
+      <Rectangle
+        {...props}
+        fill={fill}
+        radius={BAR_CHART.radius.vertical}
+        style={{
+          transition: 'opacity 0.15s ease, filter 0.15s ease',
+          opacity: hoverIdx === null || isHover ? 1 : 0.55,
+          filter: isHover ? 'brightness(0.92)' : 'none',
+        }}
+      />
+    )
+  }
+
+  return (
+    <Box>
+      <Box sx={{ height: LAYOUT_SIZES.chartHeight }}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke={C.gridLight} />
-          <XAxis dataKey="toma" />
-          <YAxis domain={AXIS.percentDomain} />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="pct_mi_colegio" name="Mi colegio" fill={C.navyMid} />
-          <Bar dataKey="pct_promedio_red" name="Promedio red" fill={C.iceBlue} />
+        <BarChart
+          data={data}
+          margin={{ ...CHART_MARGINS.vertical, bottom: 8 }}
+          onMouseMove={(s: any) => setHoverIdx(typeof s?.activeTooltipIndex === 'number' ? s.activeTooltipIndex : null)}
+          onMouseLeave={() => setHoverIdx(null)}
+        >
+          <CartesianGrid vertical={false} stroke={C.gridDivider} strokeWidth={1} strokeDasharray="1 8" strokeLinecap="round" />
+          <XAxis dataKey="toma" tick={{ fontSize: F.md, fill: C.tm }} axisLine={{ stroke: C.gridDivider }} tickLine={false} />
+          <YAxis
+            domain={AXIS.percentDomain}
+            tickFormatter={v => `${v}%`}
+            tick={{ fontSize: F.md, fill: C.tm }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <Tooltip
+            cursor={{ fill: 'transparent' }}
+            content={({ active, payload }: any) => {
+              if (!active || !payload?.length) return null
+              const row = payload[0].payload as I_HistoricoBar
+              return (
+                <Box sx={{
+                  bgcolor: C.white,
+                  border: `1px solid ${C.gridDivider}`,
+                  borderRadius: RADIUS.sm,
+                  px: 1.5,
+                  py: 1,
+                  fontSize: F.lg,
+                  color: C.darkGrey,
+                  lineHeight: 1.9,
+                  boxShadow: BOX_SHADOWS.tooltip,
+                }}>
+                  <Box sx={{ fontWeight: W.bold, color: C.navy, mb: 0.5 }}>Toma {row.toma}</Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                    <Box component="span" sx={{ width: LAYOUT_SIZES.dotSmall, height: LAYOUT_SIZES.dotSmall, borderRadius: RADIUS.circle, bgcolor: C.navyMid, flexShrink: 0, display: 'inline-block' }} />
+                    Mi colegio: <strong style={{ marginLeft: 4 }}>{row.pct_mi_colegio}%</strong>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                    <Box component="span" sx={{ width: LAYOUT_SIZES.dotSmall, height: LAYOUT_SIZES.dotSmall, borderRadius: RADIUS.circle, bgcolor: C.iceBlue, border: `1.5px solid ${C.gridDivider}`, flexShrink: 0, display: 'inline-block' }} />
+                    Promedio red: <strong style={{ marginLeft: 4 }}>{row.pct_promedio_red}%</strong>
+                  </Box>
+                </Box>
+              )
+            }}
+          />
+          <Bar dataKey="pct_mi_colegio" name="Mi colegio" fill={C.navyMid} shape={makeShape(C.navyMid)} />
+          <Bar dataKey="pct_promedio_red" name="Promedio red" fill={C.iceBlue} shape={makeShape(C.iceBlue)} />
         </BarChart>
       </ResponsiveContainer>
+      </Box>
+      <Box sx={{ mt: 0.75 }}>
+        <Leg c={C.navyMid} t="% Correctas mi colegio" />
+        <Leg c={C.iceBlue} t="% Correctas promedio red" />
+      </Box>
     </Box>
-  </Box>
-)
+  )
+}
 
-const HistoricoTab = ({ schoolId }: HistoricoTabProps) => {
-  const { data, loading } = useHistoricoEscuela(schoolId)
+const HistoricoTab = ({ subject }: HistoricoTabProps) => {
+  const { data, loading } = useHistoricoSubject(subject)
 
   return (
     <Box sx={{ maxHeight: '80vh', overflowY: 'auto', pr: 1 }}>
@@ -42,8 +106,12 @@ const HistoricoTab = ({ schoolId }: HistoricoTabProps) => {
         <Typography sx={{ color: C.tm }}>Cargando…</Typography>
       ) : (
         <Stack direction="column" spacing={3}>
-          <HistoricoChart title="Matemática" data={data.por_materia.matematica} />
-          <HistoricoChart title="Prácticas del Lenguaje" data={data.por_materia.lenguaje} />
+          <ChartCard num="01" title="Matemática" dense>
+            <HistoricoChart data={data.por_materia.matematica} />
+          </ChartCard>
+          <ChartCard num="02" title="Prácticas del Lenguaje" dense>
+            <HistoricoChart data={data.por_materia.lenguaje} />
+          </ChartCard>
         </Stack>
       )}
     </Box>

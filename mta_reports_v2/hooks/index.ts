@@ -10,7 +10,7 @@ export type { SlideFieldConfig, UseEditableSlideResult } from './useEditableSlid
 
 export { useResponsiveHeight, useResponsiveBox } from './useResponsiveSize'
 
-export { useHistoricoEscuela } from './historico'
+export { useHistoricoEscuela, useHistoricoSubject } from './historico'
 export type { I_HistoricoData, I_HistoricoBar } from './historico'
 
 export {
