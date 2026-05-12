@@ -99,7 +99,7 @@ const baseColumns: Array<GridColDef<I_AuroraReportListItem>> = [
   },
   {
     field: 'subject',
-    headerName: 'Sujeto',
+    headerName: 'Escuela',
     flex: 1.8,
     // Sortable false porque no hay un único campo subyacente: la grilla ordena por
     // school__name o grouping__name según el tipo, lo cual no se mapea a una
