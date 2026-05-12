@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Stack, Typography, Chip } from '@mui/material'
+import { Box, Stack, Typography } from '@mui/material'
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useHistoricoEscuela, type I_HistoricoBar } from '@/mta_reports_v2/hooks'
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, TITLE_FONT_FAMILY, LAYOUT_SIZES, AXIS } from '@/mta_reports_v2/constants'
@@ -37,7 +37,6 @@ const HistoricoTab = ({ schoolId }: HistoricoTabProps) => {
     <Box sx={{ maxHeight: '80vh', overflowY: 'auto', pr: 1 }}>
       <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
         <Typography sx={{ color: C.navy, fontFamily: TITLE_FONT_FAMILY, fontWeight: W.extrabold, fontSize: F.subtitle }}>Comparación histórica</Typography>
-        <Chip color="warning" label="Datos preliminares (mock)" sx={{ fontSize: F.md, fontWeight: W.bold, height: 36, px: 1 }} />
       </Stack>
       {loading || !data ? (
         <Typography sx={{ color: C.tm }}>Cargando…</Typography>
