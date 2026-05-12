@@ -154,9 +154,11 @@ function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => vo
           ? <MultiSelectFilter key={def.label} def={def} />
           : <SingleSelectFilter key={def.label} def={def} />
       ))}
-      <Button fullWidth onClick={onReset} sx={{ mt: SPACING.buttonInnerPadding, py: SPACING.buttonInnerPadding, fontSize: F.btnLabel, fontWeight: W.medium, color: C.white, backgroundColor: C.navy, '&:hover': { backgroundColor: C.midNavy, opacity: 0.9 } }}>
-        Borrar filtros
-      </Button>
+      {filters.length > 0 && (
+        <Button fullWidth onClick={onReset} sx={{ mt: SPACING.buttonInnerPadding, py: SPACING.buttonInnerPadding, fontSize: F.btnLabel, fontWeight: W.medium, color: C.white, backgroundColor: C.navy, '&:hover': { backgroundColor: C.midNavy, opacity: 0.9 } }}>
+          Borrar filtros
+        </Button>
+      )}
       <Box sx={{ flex: 1 }} />
       <Box sx={{ pt: 1.5, display: 'flex', justifyContent: 'center' }}>
         <Box sx={{ position: 'relative', width: sidebarAustralLogoSize.w, height: sidebarAustralLogoSize.h }}>

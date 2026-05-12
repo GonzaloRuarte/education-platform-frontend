@@ -29,6 +29,13 @@ import { GridColDef, GridRowParams } from '@mui/x-data-grid'
 // Cada fila apunta a UN sujeto: escuela XOR agrupamiento. Centralizamos la decisión
 // acá para que tanto el render de la columna como las navegaciones (row click, botón
 // editar) consuman exactamente la misma lógica.
+//
+// Para escuelas, el `id` que exponemos es el `meta_id` (= 100 + pk típicamente), que
+// es el identificador que las rutas /reports/escuela/.../ del frontend y los
+// endpoints /reportes-aurora/escuela/<meta_id>/ del backend esperan ahora. El pk
+// interno (`row.school`) queda confinado al backend (FKs, blob paths). Si la escuela
+// no tiene meta_id seteado (caso defensivo, hoy no debería pasar) caemos al pk
+// interno y la navegación va a 404.
 type T_SubjectKind = 'school' | 'grouping'
 const subjectFor = (
   row: I_AuroraReportListItem,
@@ -36,7 +43,11 @@ const subjectFor = (
   if (row.grouping !== null) {
     return { kind: 'grouping', id: row.grouping, name: row.grouping_name ?? '—' }
   }
-  return { kind: 'school', id: row.school ?? 0, name: row.school_name ?? '—' }
+  return {
+    kind: 'school',
+    id: row.school_meta_id ?? row.school ?? 0,
+    name: row.school_name ?? '—',
+  }
 }
 
 const reportPathFor = (row: I_AuroraReportListItem, edit = false): string => {

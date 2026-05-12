@@ -26,7 +26,7 @@ import { calcSemaforo, calcSemaforoEstudiantes } from './calc/SemaforoTab'
 import { calcScatter } from './calc/ScatterTab'
 import { calcTabla } from './calc/TablaTab'
 import type { FilterDef, MultiFilterDef } from './ReporteAuroraSidebar'
-import type { I_EscuelaMiembro } from '@/mta_reports_v2/types'
+import type { I_EscuelaMiembro, I_RawHistoricoData } from '@/mta_reports_v2/types'
 import type { I_Subject } from '@/mta_reports_v2/hooks'
 
 const C = COLORS
@@ -69,6 +69,9 @@ export type TabRenderCtx = {
   // chart de resumen, al detalle, a las bandas del semáforo y al subset del
   // scatter/tabla.
   selectedSchools: string[] | null
+  // Datos del histórico inlineados en el payload del reporte. Vienen ya
+  // pre-calculados desde el backend — el viewer no hace un GET separado.
+  historicoData: I_RawHistoricoData | null
 }
 
 export type TabFiltersCtx = {
@@ -184,7 +187,7 @@ export const TABS: ReadonlyArray<TabDef> = [
   },
   {
     id: 'historico', label: 'Histórico', kind: 'data',
-    render: ({ subject }) => subject.id !== null ? <HistoricoTab subject={subject} /> : null,
+    render: ({ historicoData }) => <HistoricoTab data={historicoData} />,
   },
   {
     id: 'detalleLenguaje', label: 'Prácticas del Lenguaje', kind: 'data',

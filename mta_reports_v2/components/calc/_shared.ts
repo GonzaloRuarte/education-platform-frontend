@@ -286,7 +286,7 @@ export function findCombo(
   anio: string,
   toma: string,
 ): I_RawComboDato | undefined {
-  const allMat = materia === 'Todos'
+  const allMat = materia === 'Todas'
   const allAnio = anio === 'Todos'
   if (!allMat && !allAnio) {
     return raw.datos.find(d => d.materia === materia && d.anio === anio && d.toma === toma)

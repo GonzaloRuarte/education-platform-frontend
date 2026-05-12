@@ -10,7 +10,7 @@ Cara frontend de los **Reportes Aurora**: listado, edición de slides, viewer in
 |---|---|---|
 | `pages/ReportesAuroraListPage.tsx` | `/reports` | Grilla con filtros, publish/draft inline, botón "Generar reportes faltantes" con polling. Concentra toda la lógica de polling de regeneración. |
 | `pages/ReporteAuroraCreatePage.tsx` | `/reports/agregar` | Form simple: escuela + toma (hoy hardcodeada `'1-2026'`) → POST. |
-| `pages/ReporteAurora.tsx` | `/reports/escuela/:schoolId/toma/:toma` y `/reports/agrupamiento/:groupingId/toma/:toma` | Viewer principal (mismo componente para ambos sujetos). Tabs, sidebars de filtros, editor de slides. |
+| `pages/ReporteAurora.tsx` | `/reports/escuela/:schoolId/toma/:toma` y `/reports/agrupamiento/:groupingId/toma/:toma` | Viewer principal (mismo componente para ambos sujetos). Tabs, sidebars de filtros, editor de slides. **`schoolId` en la URL es el `meta_id` de la escuela** (= 100 + pk típicamente), no la pk interna — el backend rutea por meta_id en todos sus endpoints `/reportes-aurora/escuela/<...>/...`. La list page construye los hrefs desde `row.school_meta_id` vía `subjectFor`. `groupingId` sigue siendo la pk interna (Grouping no tiene meta_id propio). |
 
 ## Modelo mental — sujeto XOR
 

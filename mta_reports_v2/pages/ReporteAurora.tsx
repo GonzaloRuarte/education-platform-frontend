@@ -41,6 +41,12 @@ const ReporteAurora = () => {
   // /reports/agrupamiento/[groupingId]/toma/[toma]. Next.js solo entrega los
   // params que existen en la ruta concreta, así que ambos vienen como opcionales
   // y exactamente uno está presente en cada render.
+  //
+  // Para escuelas el valor de `escuelaId` es el `meta_id` (= 100 + pk típicamente),
+  // no la pk interna — la list page lo construye desde `row.school_meta_id` y el
+  // backend de `/reportes-aurora/escuela/<school_meta_id>/...` resuelve internamente
+  // al pk antes de delegar a los services. Para agrupamientos sigue siendo la pk
+  // interna (Grouping no tiene meta_id propio).
   const params = useParams<{ escuelaId?: string; groupingId?: string; toma: string }>()
   const searchParams = useSearchParams()
   const groupingIdParam = params?.groupingId ? Number(params.groupingId) : null
@@ -70,7 +76,7 @@ const ReporteAurora = () => {
     return visibleTabOrder[0] ?? 'resumen'
   }, [editRequested, visibleTabOrder])
   const [tab, setTab] = useState<TabId>(initialTab)
-  const [materia, setMateria] = useState('Todos')
+  const [materia, setMateria] = useState('Todas')
   const [anio, setAnio] = useState('Todos')
   const [division, setDivision] = useState('Todas')
   const [semaforoAnio, setSemaforoAnio] = useState<string>('3ro')
@@ -127,7 +133,7 @@ const ReporteAurora = () => {
     }
   }, [visibleTabOrder, tab])
   useEffect(() => {
-    if (materia === 'Todos') return
+    if (materia === 'Todas') return
     if (materias.length > 0 && !materias.includes(materia)) setMateria(materias[0])
   }, [materias, materia])
   useEffect(() => {
@@ -202,7 +208,7 @@ const ReporteAurora = () => {
   }
 
   const divFilter = useMemo<FilterDef>(() => ({ label: 'División', value: division, opts: divisiones, set: setDivision }), [division, divisiones])
-  const materiaFilter = useMemo<FilterDef>(() => ({ label: 'Materia', value: materia, opts: ['Todos', ...(materias.length > 0 ? materias : [materia].filter(m => m && m !== 'Todos'))], set: setMateria }), [materia, materias])
+  const materiaFilter = useMemo<FilterDef>(() => ({ label: 'Materia', value: materia, opts: ['Todas', ...(materias.length > 0 ? materias : [materia].filter(m => m && m !== 'Todas'))], set: setMateria }), [materia, materias])
   const anioFilter = useMemo<FilterDef>(() => ({ label: 'Año', value: anio, opts: ['Todos', ...(anios.length > 0 ? anios : ANIO_ORDER.slice())], set: setAnio }), [anio, anios])
   const neeFilterDef = useMemo<FilterDef>(() => ({ label: 'NEE', value: neeFilter, opts: ['Con NEE', 'Sin NEE'], set: setNeeFilter }), [neeFilter])
   const escuelasFilter = useMemo<MultiFilterDef | undefined>(
@@ -257,6 +263,7 @@ const ReporteAurora = () => {
     resumenData, detalleData, semaforoBandas, semaforoEstudiantes, scatterPoints, tablaRows,
     selectedStudentId,
     isAgrupamiento, escuelas, selectedSchools,
+    historicoData: rawData?.historico ?? null,
   }
 
   // El filtro NEE es client-side sobre las respuestas crudas de cada alumno.
@@ -272,7 +279,7 @@ const ReporteAurora = () => {
   )
 
   const resetFilters = () => {
-    setMateria('Todos')
+    setMateria('Todas')
     setAnio('Todos')
     setDivision('Todas')
     setNeeFilter('Con NEE')

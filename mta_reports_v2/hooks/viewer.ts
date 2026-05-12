@@ -59,7 +59,7 @@ const useReporteAurora = (subject: I_Subject, toma: string | null) => {
 
   const getAnios = useCallback((materia: string): string[] => {
     const available = new Set(uniqueFrom('anio', d =>
-      materia === 'Todos' || d.materia === materia,
+      materia === 'Todas' || d.materia === materia,
     ))
     return ANIO_ORDER.filter(a => available.has(a))
   }, [uniqueFrom])
@@ -67,7 +67,7 @@ const useReporteAurora = (subject: I_Subject, toma: string | null) => {
   const getDivisiones = useCallback((materia: string, anio: string): string[] => {
     if (!rawData) return []
     const matching = rawData.datos.filter(d =>
-      (materia === 'Todos' || d.materia === materia) &&
+      (materia === 'Todas' || d.materia === materia) &&
       (anio === 'Todos' || d.anio === anio),
     )
     if (matching.length === 0) return []
