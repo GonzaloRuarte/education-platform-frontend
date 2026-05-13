@@ -3,17 +3,17 @@
 import { useState } from 'react'
 import { Box, Stack, Typography } from '@mui/material'
 import { Bar, BarChart, CartesianGrid, Rectangle, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { useHistoricoSubject, type I_HistoricoBar, type I_Subject } from '@/mta_reports_v2/hooks'
 import { ChartCard, Leg } from '@/mta_reports_v2/components/ReporteAuroraCharts'
 import { AXIS, BAR_CHART, BOX_SHADOWS, CHART_MARGINS, COLORS, FONT_SIZES, FONT_WEIGHTS, LAYOUT_SIZES, RADIUS, TITLE_FONT_FAMILY } from '@/mta_reports_v2/constants'
+import type { I_RawHistoricoBar, I_RawHistoricoData } from '@/mta_reports_v2/types'
 
 const C = COLORS
 const F = FONT_SIZES
 const W = FONT_WEIGHTS
 
-interface HistoricoTabProps { subject: I_Subject }
+interface HistoricoTabProps { data: I_RawHistoricoData | null | undefined }
 
-const HistoricoChart = ({ data }: { data: I_HistoricoBar[] }) => {
+const HistoricoChart = ({ data }: { data: I_RawHistoricoBar[] }) => {
   const [hoverIdx, setHoverIdx] = useState<number | null>(null)
 
   const makeShape = (fill: string) => (props: any) => {
@@ -43,7 +43,7 @@ const HistoricoChart = ({ data }: { data: I_HistoricoBar[] }) => {
           onMouseLeave={() => setHoverIdx(null)}
         >
           <CartesianGrid vertical={false} stroke={C.gridDivider} strokeWidth={1} strokeDasharray="1 8" strokeLinecap="round" />
-          <XAxis dataKey="toma" tick={{ fontSize: F.md, fill: C.tm }} axisLine={{ stroke: C.gridDivider }} tickLine={false} />
+          <XAxis dataKey="toma" tick={{ fontSize: F.lg, fill: C.tm, fontWeight: W.medium }} axisLine={{ stroke: C.gridDivider }} tickLine={false} />
           <YAxis
             domain={AXIS.percentDomain}
             tickFormatter={v => `${v}%`}
@@ -55,7 +55,7 @@ const HistoricoChart = ({ data }: { data: I_HistoricoBar[] }) => {
             cursor={{ fill: 'transparent' }}
             content={({ active, payload }: any) => {
               if (!active || !payload?.length) return null
-              const row = payload[0].payload as I_HistoricoBar
+              const row = payload[0].payload as I_RawHistoricoBar
               return (
                 <Box sx={{
                   bgcolor: C.white,
@@ -71,39 +71,37 @@ const HistoricoChart = ({ data }: { data: I_HistoricoBar[] }) => {
                   <Box sx={{ fontWeight: W.bold, color: C.navy, mb: 0.5 }}>Toma {row.toma}</Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                     <Box component="span" sx={{ width: LAYOUT_SIZES.dotSmall, height: LAYOUT_SIZES.dotSmall, borderRadius: RADIUS.circle, bgcolor: C.navyMid, flexShrink: 0, display: 'inline-block' }} />
-                    Mi colegio: <strong style={{ marginLeft: 4 }}>{row.pct_mi_colegio}%</strong>
+                    Mi colegio: <strong style={{ marginLeft: 4 }}>{row.pct_mi_colegio.toFixed(1)}%</strong>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                     <Box component="span" sx={{ width: LAYOUT_SIZES.dotSmall, height: LAYOUT_SIZES.dotSmall, borderRadius: RADIUS.circle, bgcolor: C.iceBlue, border: `1.5px solid ${C.gridDivider}`, flexShrink: 0, display: 'inline-block' }} />
-                    Promedio red: <strong style={{ marginLeft: 4 }}>{row.pct_promedio_red}%</strong>
+                    Todos los colegios: <strong style={{ marginLeft: 4 }}>{row.pct_promedio_red.toFixed(1)}%</strong>
                   </Box>
                 </Box>
               )
             }}
           />
           <Bar dataKey="pct_mi_colegio" name="Mi colegio" fill={C.navyMid} shape={makeShape(C.navyMid)} />
-          <Bar dataKey="pct_promedio_red" name="Promedio red" fill={C.iceBlue} shape={makeShape(C.iceBlue)} />
+          <Bar dataKey="pct_promedio_red" name="Todos los colegios" fill={C.iceBlue} shape={makeShape(C.iceBlue)} />
         </BarChart>
       </ResponsiveContainer>
       </Box>
       <Box sx={{ mt: 0.75 }}>
         <Leg c={C.navyMid} t="% Correctas mi colegio" />
-        <Leg c={C.iceBlue} t="% Correctas promedio red" />
+        <Leg c={C.iceBlue} t="% Correctas todos los colegios" />
       </Box>
     </Box>
   )
 }
 
-const HistoricoTab = ({ subject }: HistoricoTabProps) => {
-  const { data, loading } = useHistoricoSubject(subject)
-
+const HistoricoTab = ({ data }: HistoricoTabProps) => {
   return (
     <Box sx={{ maxHeight: '80vh', overflowY: 'auto', pr: 1 }}>
       <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
-        <Typography sx={{ color: C.navy, fontFamily: TITLE_FONT_FAMILY, fontWeight: W.extrabold, fontSize: F.subtitle }}>Comparación histórica</Typography>
+        <Typography sx={{ color: C.navy, fontFamily: TITLE_FONT_FAMILY, fontWeight: W.extrabold, fontSize: F.subtitle }}>Evolución del % de respuestas correctas por toma</Typography>
       </Stack>
-      {loading || !data ? (
-        <Typography sx={{ color: C.tm }}>Cargando…</Typography>
+      {!data ? (
+        <Typography sx={{ color: C.tm }}>Sin datos históricos.</Typography>
       ) : (
         <Stack direction="column" spacing={3}>
           <ChartCard num="01" title="Matemática" dense>

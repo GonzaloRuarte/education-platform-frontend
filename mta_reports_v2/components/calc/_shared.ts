@@ -286,7 +286,7 @@ export function findCombo(
   anio: string,
   toma: string,
 ): I_RawComboDato | undefined {
-  const allMat = materia === 'Todos'
+  const allMat = materia === 'Todas'
   const allAnio = anio === 'Todos'
   if (!allMat && !allAnio) {
     return raw.datos.find(d => d.materia === materia && d.anio === anio && d.toma === toma)
@@ -299,19 +299,6 @@ export function findCombo(
   if (matching.length === 0) return undefined
   if (matching.length === 1) return matching[0]
   return aggregateCombos(matching, materia, anio, toma)
-}
-
-// Mapa id_real → id anónimo secuencial (1..N), ordenado por id real.
-// Se construye sobre el conjunto SIN filtro NEE para que toggleando NEE los ids
-// no se reasignen. Se calcula sobre la unión de combos para que un mismo alumno
-// tenga el mismo id anónimo en scatter y tabla (dos materias).
-export function buildAnonIds(combos: I_RawComboDato[], division: string): Map<string, string> {
-  const ids = new Set<string>()
-  for (const c of combos) {
-    for (const s of filterEstudiantes(c, division, 'Todos')) ids.add(s.id)
-  }
-  const sorted = [...ids].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
-  return new Map(sorted.map((id, i) => [id, String(i + 1)]))
 }
 
 // Selección de escuelas para los filtros de agrupamiento.

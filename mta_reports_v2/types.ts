@@ -79,7 +79,6 @@ interface I_DetalleTabData {
   boxplotTodosLenguaje?: I_BoxplotAurora
   estudiantes: Array<{
     id: string
-    dni: string
     score: number
     contenido: I_ItemAurora[]
     competencia: I_ItemAurora[]
@@ -131,6 +130,21 @@ interface I_EscuelaMiembro {
   name: string
 }
 
+interface I_RawHistoricoBar {
+  toma: string
+  pct_mi_colegio: number
+  pct_promedio_red: number
+  participantes: number
+}
+
+interface I_RawHistoricoData {
+  por_materia: {
+    matematica: I_RawHistoricoBar[]
+    lenguaje: I_RawHistoricoBar[]
+  }
+  por_anio: Record<string, I_RawHistoricoBar[]>
+}
+
 interface I_RawEscuelaDatos {
   colegio: string
   colegio_meta_id: string
@@ -140,6 +154,10 @@ interface I_RawEscuelaDatos {
   escuelas?: I_EscuelaMiembro[]
   report_id?: number | null
   report_status?: T_AuroraReportStatus | null
+  // Datos del histórico inlineados en el mismo payload del reporte para evitar
+  // un GET extra al abrir el tab "Histórico". Lo computa y persiste el backend
+  // al generar el reporte.
+  historico?: I_RawHistoricoData
 }
 
 // ─── Tipos de estado de UI ───────────────────────────────────────────────────
@@ -214,6 +232,8 @@ export type {
   I_RawComboDato,
   I_RawEstudianteMi,
   I_RawEscuelaDatos,
+  I_RawHistoricoBar,
+  I_RawHistoricoData,
   I_EscuelaMiembro,
   I_SemaforoBandas,
   I_ScatterPoint,

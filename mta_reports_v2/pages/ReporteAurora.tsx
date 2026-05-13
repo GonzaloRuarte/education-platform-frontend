@@ -22,6 +22,7 @@ import {
   TAB_BY_ID, TAB_ORDER, tabLabel as resolveTabLabel,
 } from '@/mta_reports_v2/components/reporteAuroraTabs'
 import type { TabId, TabRenderCtx } from '@/mta_reports_v2/components/reporteAuroraTabs'
+import type { I_RawHistoricoBar, I_RawHistoricoData } from '@/mta_reports_v2/types'
 import { ANIO_LABELS } from '@/mta_reports_v2/semaforo_data'
 import {
   ReportHeader, FilterPillsBar, TabPager,
@@ -41,6 +42,12 @@ const ReporteAurora = () => {
   // /reports/agrupamiento/[groupingId]/toma/[toma]. Next.js solo entrega los
   // params que existen en la ruta concreta, así que ambos vienen como opcionales
   // y exactamente uno está presente en cada render.
+  //
+  // Para escuelas el valor de `escuelaId` es el `meta_id` (= 100 + pk típicamente),
+  // no la pk interna — la list page lo construye desde `row.school_meta_id` y el
+  // backend de `/reportes-aurora/escuela/<school_meta_id>/...` resuelve internamente
+  // al pk antes de delegar a los services. Para agrupamientos sigue siendo la pk
+  // interna (Grouping no tiene meta_id propio).
   const params = useParams<{ escuelaId?: string; groupingId?: string; toma: string }>()
   const searchParams = useSearchParams()
   const groupingIdParam = params?.groupingId ? Number(params.groupingId) : null
@@ -70,7 +77,7 @@ const ReporteAurora = () => {
     return visibleTabOrder[0] ?? 'resumen'
   }, [editRequested, visibleTabOrder])
   const [tab, setTab] = useState<TabId>(initialTab)
-  const [materia, setMateria] = useState('Todos')
+  const [materia, setMateria] = useState('Todas')
   const [anio, setAnio] = useState('Todos')
   const [division, setDivision] = useState('Todas')
   const [semaforoAnio, setSemaforoAnio] = useState<string>('3ro')
@@ -127,7 +134,7 @@ const ReporteAurora = () => {
     }
   }, [visibleTabOrder, tab])
   useEffect(() => {
-    if (materia === 'Todos') return
+    if (materia === 'Todas') return
     if (materias.length > 0 && !materias.includes(materia)) setMateria(materias[0])
   }, [materias, materia])
   useEffect(() => {
@@ -184,6 +191,40 @@ const ReporteAurora = () => {
     () => (rawData && toma ? calcTabla(rawData, anio, division, toma, neeFilter) : []),
     [rawData, anio, division, toma, neeFilter],
   )
+  // El backend computa mal `pct_mi_colegio` para la toma corriente cuando hay
+  // resoluciones parciales (divide por todas las preguntas no-PISA del combo en
+  // lugar de las efectivamente respondidas, aplastando el % a ~20%). El KPI
+  // "40 ítems" de ResumenTab sí filtra por respondidas, así que sobreescribimos
+  // la barra de la toma actual con esos valores. Fix backend pendiente.
+  const historicoData = useMemo<I_RawHistoricoData | null>(() => {
+    const original = rawData?.historico ?? null
+    if (!original || !rawData || !toma) return original
+    const patchSeries = (
+      mat: 'Matemática' | 'Prácticas del Lenguaje',
+      series: I_RawHistoricoBar[],
+    ): I_RawHistoricoBar[] => {
+      const kpi = calcResumen(rawData, { materia: mat, anio: 'Todos', division: 'Todas', toma, neeFilter: 'Todos' })
+      if (!kpi) return series
+      const next = series.slice()
+      const idx = next.findIndex(b => b.toma === toma)
+      const patched: I_RawHistoricoBar = {
+        toma,
+        pct_mi_colegio: kpi.general.pct40.mi,
+        pct_promedio_red: kpi.general.pct40.todos,
+        participantes: kpi.general.muestra.mi,
+      }
+      if (idx === -1) next.push(patched)
+      else next[idx] = { ...next[idx], ...patched }
+      return next
+    }
+    return {
+      ...original,
+      por_materia: {
+        matematica: patchSeries('Matemática', original.por_materia.matematica),
+        lenguaje: patchSeries('Prácticas del Lenguaje', original.por_materia.lenguaje),
+      },
+    }
+  }, [rawData, toma])
 
   const schoolName = rawData?.colegio ?? (loading ? 'Cargando…' : 'Escuela')
   const reportStatus = rawData?.report_status
@@ -202,7 +243,7 @@ const ReporteAurora = () => {
   }
 
   const divFilter = useMemo<FilterDef>(() => ({ label: 'División', value: division, opts: divisiones, set: setDivision }), [division, divisiones])
-  const materiaFilter = useMemo<FilterDef>(() => ({ label: 'Materia', value: materia, opts: ['Todos', ...(materias.length > 0 ? materias : [materia].filter(m => m && m !== 'Todos'))], set: setMateria }), [materia, materias])
+  const materiaFilter = useMemo<FilterDef>(() => ({ label: 'Materia', value: materia, opts: ['Todas', ...(materias.length > 0 ? materias : [materia].filter(m => m && m !== 'Todas'))], set: setMateria }), [materia, materias])
   const anioFilter = useMemo<FilterDef>(() => ({ label: 'Año', value: anio, opts: ['Todos', ...(anios.length > 0 ? anios : ANIO_ORDER.slice())], set: setAnio }), [anio, anios])
   const neeFilterDef = useMemo<FilterDef>(() => ({ label: 'NEE', value: neeFilter, opts: ['Con NEE', 'Sin NEE'], set: setNeeFilter }), [neeFilter])
   const escuelasFilter = useMemo<MultiFilterDef | undefined>(
@@ -224,7 +265,7 @@ const ReporteAurora = () => {
       for (const s of semaforoEstudiantesAll[a]) set.add(s.id)
     }
     const ids = [...set].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
-    return ['Todos los alumnos', ...ids.map(id => `Alumno ${id}`)]
+    return ['Todos los alumnos', ...ids]
   }, [semaforoEstudiantesAll])
 
   const studentFilter = useMemo<FilterDef>(
@@ -234,7 +275,7 @@ const ReporteAurora = () => {
 
   const selectedStudentId = selectedStudentLabel === 'Todos los alumnos'
     ? 'all'
-    : selectedStudentLabel.replace(/^Alumno\s+/, '')
+    : selectedStudentLabel
 
   useEffect(() => {
     if (!studentLabelOpts.includes(selectedStudentLabel)) setSelectedStudentLabel('Todos los alumnos')
@@ -257,6 +298,7 @@ const ReporteAurora = () => {
     resumenData, detalleData, semaforoBandas, semaforoEstudiantes, scatterPoints, tablaRows,
     selectedStudentId,
     isAgrupamiento, escuelas, selectedSchools,
+    historicoData,
   }
 
   // El filtro NEE es client-side sobre las respuestas crudas de cada alumno.
@@ -272,7 +314,7 @@ const ReporteAurora = () => {
   )
 
   const resetFilters = () => {
-    setMateria('Todos')
+    setMateria('Todas')
     setAnio('Todos')
     setDivision('Todas')
     setNeeFilter('Con NEE')

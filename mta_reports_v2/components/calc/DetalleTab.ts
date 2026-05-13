@@ -54,7 +54,7 @@ export function calcDetalle(
 
   const isLenguaje = isLenguajeRaw
 
-  const estudiantes = allStudents.map((s, idx) => {
+  const estudiantes = allStudents.map((s) => {
     const respuestas = s.respuestas
     const answered = [...allIds].filter(k => k in respuestas)
     const score = answered.length
@@ -70,8 +70,7 @@ export function calcDetalle(
       : groupBy('contenido', combo.preguntas, pp, one)
     const stComp = groupBy('competencia', combo.preguntas, pp, one)
     return {
-      id: String(idx + 1),
-      dni: s.id,
+      id: s.id,
       score,
       contenido:   isLenguaje ? [] : stCont,
       competencia: isLenguaje ? [] : stComp,
