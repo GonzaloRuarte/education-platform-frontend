@@ -79,7 +79,6 @@ interface I_DetalleTabData {
   boxplotTodosLenguaje?: I_BoxplotAurora
   estudiantes: Array<{
     id: string
-    dni: string
     score: number
     contenido: I_ItemAurora[]
     competencia: I_ItemAurora[]

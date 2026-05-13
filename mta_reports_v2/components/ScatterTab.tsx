@@ -26,7 +26,7 @@ function ScatterTooltip({ active, payload, schoolNameById }: any) {
   const schoolName = d.school && schoolNameById ? schoolNameById[d.school] : undefined
   return (
     <Paper elevation={2} sx={{ bgcolor: C.white, p: S.groupSpacing, border: '1px solid', borderColor: 'divider' }}>
-      <Typography variant="caption" sx={{ color: C.navy, fontWeight: W.bold }}>Alumno #{d.id}</Typography>
+      <Typography variant="caption" sx={{ color: C.navy, fontWeight: W.bold }}>{d.id}</Typography>
       <Typography variant="caption" sx={{ display: 'block', color: C.tm }}>PDL: {d.pdl}%</Typography>
       <Typography variant="caption" sx={{ display: 'block', color: C.tm }}>Mat: {d.mat}%</Typography>
       {schoolName && (

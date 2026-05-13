@@ -162,7 +162,7 @@ function DetalleTab({ data, isAgrupamiento = false, escuelas = [], selectedSchoo
                   <MenuItem value="all">Todos</MenuItem>
                   {d.estudiantes.map(est => (
                     <MenuItem key={est.id} value={est.id}>
-                      Alumno {est.id}
+                      {est.id}
                     </MenuItem>
                   ))}
                 </Select>

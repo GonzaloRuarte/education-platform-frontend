@@ -265,7 +265,7 @@ const ReporteAurora = () => {
       for (const s of semaforoEstudiantesAll[a]) set.add(s.id)
     }
     const ids = [...set].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
-    return ['Todos los alumnos', ...ids.map(id => `Alumno ${id}`)]
+    return ['Todos los alumnos', ...ids]
   }, [semaforoEstudiantesAll])
 
   const studentFilter = useMemo<FilterDef>(
@@ -275,7 +275,7 @@ const ReporteAurora = () => {
 
   const selectedStudentId = selectedStudentLabel === 'Todos los alumnos'
     ? 'all'
-    : selectedStudentLabel.replace(/^Alumno\s+/, '')
+    : selectedStudentLabel
 
   useEffect(() => {
     if (!studentLabelOpts.includes(selectedStudentLabel)) setSelectedStudentLabel('Todos los alumnos')

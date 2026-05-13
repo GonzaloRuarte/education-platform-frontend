@@ -3,7 +3,6 @@ import type {
   I_TablaRow,
 } from '@/mta_reports_v2/types'
 import {
-  buildAnonIds,
   calcPercentage,
   prepareCombo,
 } from './_shared'
@@ -28,18 +27,15 @@ export function calcTabla(
   const schoolNameById = new Map<string, string>(
     (raw.escuelas ?? []).map(e => [e.id, e.name]),
   )
-  const anonById = buildAnonIds(infos.map(i => i.combo), division)
   const rowsById = new Map<string, I_TablaRow>()
   for (const { students, qids, key } of infos) {
     for (const s of students) {
-      const anonId = anonById.get(s.id)
-      if (!anonId) continue
-      let row = rowsById.get(anonId)
+      let row = rowsById.get(s.id)
       if (!row) {
-        row = { id: anonId }
+        row = { id: s.id }
         const name = s.school ? schoolNameById.get(s.school) : undefined
         if (name) row.school = name
-        rowsById.set(anonId, row)
+        rowsById.set(s.id, row)
       }
       const answered = qids.filter(k => k in s.respuestas)
       row[key] = calcPercentage(answered, s.respuestas)
