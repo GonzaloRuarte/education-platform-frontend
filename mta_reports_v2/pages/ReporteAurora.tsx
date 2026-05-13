@@ -22,6 +22,7 @@ import {
   TAB_BY_ID, TAB_ORDER, tabLabel as resolveTabLabel,
 } from '@/mta_reports_v2/components/reporteAuroraTabs'
 import type { TabId, TabRenderCtx } from '@/mta_reports_v2/components/reporteAuroraTabs'
+import type { I_RawHistoricoBar, I_RawHistoricoData } from '@/mta_reports_v2/types'
 import { ANIO_LABELS } from '@/mta_reports_v2/semaforo_data'
 import {
   ReportHeader, FilterPillsBar, TabPager,
@@ -190,6 +191,40 @@ const ReporteAurora = () => {
     () => (rawData && toma ? calcTabla(rawData, anio, division, toma, neeFilter) : []),
     [rawData, anio, division, toma, neeFilter],
   )
+  // El backend computa mal `pct_mi_colegio` para la toma corriente cuando hay
+  // resoluciones parciales (divide por todas las preguntas no-PISA del combo en
+  // lugar de las efectivamente respondidas, aplastando el % a ~20%). El KPI
+  // "40 ítems" de ResumenTab sí filtra por respondidas, así que sobreescribimos
+  // la barra de la toma actual con esos valores. Fix backend pendiente.
+  const historicoData = useMemo<I_RawHistoricoData | null>(() => {
+    const original = rawData?.historico ?? null
+    if (!original || !rawData || !toma) return original
+    const patchSeries = (
+      mat: 'Matemática' | 'Prácticas del Lenguaje',
+      series: I_RawHistoricoBar[],
+    ): I_RawHistoricoBar[] => {
+      const kpi = calcResumen(rawData, { materia: mat, anio: 'Todos', division: 'Todas', toma, neeFilter: 'Todos' })
+      if (!kpi) return series
+      const next = series.slice()
+      const idx = next.findIndex(b => b.toma === toma)
+      const patched: I_RawHistoricoBar = {
+        toma,
+        pct_mi_colegio: kpi.general.pct40.mi,
+        pct_promedio_red: kpi.general.pct40.todos,
+        participantes: kpi.general.muestra.mi,
+      }
+      if (idx === -1) next.push(patched)
+      else next[idx] = { ...next[idx], ...patched }
+      return next
+    }
+    return {
+      ...original,
+      por_materia: {
+        matematica: patchSeries('Matemática', original.por_materia.matematica),
+        lenguaje: patchSeries('Prácticas del Lenguaje', original.por_materia.lenguaje),
+      },
+    }
+  }, [rawData, toma])
 
   const schoolName = rawData?.colegio ?? (loading ? 'Cargando…' : 'Escuela')
   const reportStatus = rawData?.report_status
@@ -263,7 +298,7 @@ const ReporteAurora = () => {
     resumenData, detalleData, semaforoBandas, semaforoEstudiantes, scatterPoints, tablaRows,
     selectedStudentId,
     isAgrupamiento, escuelas, selectedSchools,
-    historicoData: rawData?.historico ?? null,
+    historicoData,
   }
 
   // El filtro NEE es client-side sobre las respuestas crudas de cada alumno.
