@@ -45,7 +45,7 @@ function ResumenTab({ data, isAgrupamiento = false, escuelas = [], selectedSchoo
       </Stack>
       <ChartCard
         num="01"
-        title="Porcentaje de respuesta correcta por colegio sobre los 40 ítems"
+        title="Porcentaje de respuestas correctas por colegio sobre los 40 ítems"
         dense
         sx={{ ...FILL_COLUMN_SX, bgcolor: 'transparent', border: 'none', p: 0 }}
         bodySx={FILL_COLUMN_SX}
