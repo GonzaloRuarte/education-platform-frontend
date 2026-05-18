@@ -1,17 +1,17 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
-import GroupingUpdateForm from '@/mta_schools/components/GroupingUpdateForm'
 import { GROUPING_NAME } from '@/mta_schools/constants'
-import { useGroupingDelete, useGroupingDetail, useNavigateToGroupingList } from '@/mta_schools/hooks'
-import EditionPage from '@/shared/pages/EditionPage'
+import { useGroupingDelete, useGroupingDetail, useGroupingUpdate, useNavigateToGroupingList } from '@/mta_schools/hooks'
+import ResourceEditionPage from '@/shared/resources/ResourceEditionPage'
 
 const GroupingEditPage = () => (
-  <EditionPage
-    EditionForm={GroupingUpdateForm}
+  <ResourceEditionPage
+    resourceKey="grouping"
     entityName={GROUPING_NAME}
     useDelete={useGroupingDelete}
     useDetail={useGroupingDetail}
+    useUpdate={useGroupingUpdate}
     onExit={useNavigateToGroupingList()}
   />
 )

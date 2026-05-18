@@ -8,26 +8,18 @@ import {
   useNavigateToGroupingCreate,
   useNavigateToGroupingDetail,
 } from '@/mta_schools/hooks'
-import { I_GroupingListItem } from '@/mta_schools/types'
-import ListPage from '@/shared/pages/ListPage'
-import { idExposeColumn } from '@/shared/pages/utils'
-import { GridColDef } from '@mui/x-data-grid'
-
-const columns: Array<GridColDef<I_GroupingListItem>> = [
-  idExposeColumn({ field: 'name', headerName: 'Nombre', flex: 1.5 }),
-  { field: 'schools_count', headerName: 'Cantidad de escuelas', flex: 1 },
-]
+import ResourceListPage from '@/shared/resources/ResourceListPage'
 
 const GroupingListPage = () => {
   const navToDetail = useNavigateToGroupingDetail()
   const navToCreate = useNavigateToGroupingCreate()
 
   return (
-    <ListPage
-      columns={columns}
+    <ResourceListPage
+      resourceKey="grouping"
       useList={useGroupingList}
       entityName={GROUPING_NAME}
-      onRowClick={ListPage.mapNavToOnRowClick(navToDetail)}
+      onRowClickId={navToDetail}
       onCreate={navToCreate}
       useBatchDelete={useGroupingBatchDelete}
     />
