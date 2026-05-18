@@ -1,5 +1,5 @@
 import ForgotAccessForm from '@/mta_auth/components/ForgotAccessForm'
-import { avoidAuthorized } from '@/mta_auth/hocs/avoidAuthoirzed'
+import { avoidAuthorized } from '@/mta_auth/hocs/AvoidAuthorized'
 import pages from '@/pages'
 import Logo from '@/shared/components/Logo'
 import Spacer from '@/shared/components/Spacer'

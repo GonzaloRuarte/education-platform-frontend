@@ -2,22 +2,22 @@
 
 import { useHasCapabilities, useIsAuthorized } from '@/mta_auth/hooks'
 import { useNavigateToDashboardHome } from '@/shared/hooks'
-import { useEffect } from 'react'
+import { ComponentProps, FC, useEffect } from 'react'
 
-const AvoidAuthorized = () => {
-  const navigateToDashboardHome = useNavigateToDashboardHome()
-  const isAuthorized = useIsAuthorized()
-  const canAccessDashboard = useHasCapabilities(['access_dashboard'])
+export const avoidAuthorized = (WrappedComponent: FC) => {
+  const AvoidAuthorizedHOC = (props: ComponentProps<typeof WrappedComponent>) => {
+    const navigateToDashboardHome = useNavigateToDashboardHome()
+    const isAuthorized = useIsAuthorized()
+    const canAccessDashboard = useHasCapabilities(['access_dashboard'])
 
-  const avoidAuthoruzed = () => {
-    if (isAuthorized && canAccessDashboard) {
-      navigateToDashboardHome()
-      return
-    }
+    useEffect(() => {
+      if (isAuthorized && canAccessDashboard) {
+        navigateToDashboardHome()
+      }
+    }, [isAuthorized, canAccessDashboard, navigateToDashboardHome])
+
+    return <WrappedComponent {...props} />
   }
 
-  useEffect(avoidAuthoruzed, [isAuthorized, canAccessDashboard])
-  return <></>
+  return AvoidAuthorizedHOC
 }
-
-export default AvoidAuthorized

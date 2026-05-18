@@ -1,5 +1,5 @@
 import DashboardLoginForm from '@/mta_auth/components/DashboardLoginForm'
-import { avoidAuthorized } from '@/mta_auth/hocs/avoidAuthoirzed'
+import { avoidAuthorized } from '@/mta_auth/hocs/AvoidAuthorized'
 import Logo from '@/shared/components/Logo'
 import Spacer from '@/shared/components/Spacer'
 import { H3 } from '@/shared/components/Typography'
