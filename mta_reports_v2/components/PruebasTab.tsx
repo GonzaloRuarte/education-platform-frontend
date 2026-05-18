@@ -38,7 +38,6 @@ const PruebasTab = ({ subject, initialEditing }: PruebasTabProps) => (
     diapositivaId="pruebas"
     successMessage='Sección "Las pruebas" actualizada correctamente'
     fields={fields}
-    withAustralFilter
   />
 )
 

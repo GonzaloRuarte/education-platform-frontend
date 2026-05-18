@@ -7,7 +7,6 @@ import { COLORS, SPACING, Z_INDEX } from '@/mta_reports_v2/constants'
 import { useEditableSlide, SlideFieldConfig } from '@/mta_reports_v2/hooks'
 import type { I_Subject } from '@/mta_reports_v2/hooks'
 import Logo from '@/shared/components/Logo'
-import LogoAustral from '@/shared/components/LogoAustral'
 import Button from '@/shared/components/Button'
 import { ImageSize } from '@/shared/utils'
 import { QuillEditorStyles } from '@/mta_reports_v2/components/shared/QuillEditorStyles'
@@ -17,7 +16,6 @@ const ReactQuill = dynamic(async () => (await import('react-quill-new')).default
 
 const C = COLORS
 const metaLogoSize = new ImageSize(257, 73, { scale: 1.48 })
-const australLogoSize = new ImageSize(412, 72, { scale: 0.7 })
 
 type FieldVariant = 'title' | 'body'
 
@@ -141,12 +139,6 @@ const EditableContentSection = <F extends string,>({
             {children({ renderField, isEditing: slide.isEditing })}
           </Box>
         )}
-      </Box>
-
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
-        <Box sx={{ width: 'min(22.7cqi, 288px)', '& img': { width: '100%', height: 'auto', display: 'block' } }}>
-          <LogoAustral width={australLogoSize.w} height={australLogoSize.h} />
-        </Box>
       </Box>
 
       <QuillEditorStyles />

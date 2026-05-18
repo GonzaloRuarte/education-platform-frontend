@@ -77,7 +77,7 @@ const SchoolEditForm = ({ data }: I_Props) => {
           type="number"
           name="meta_id"
           rules={{ ...rules.required() }}
-          label="Meta ID"
+          label="ID externo"
         />
         <GroupingMultiSelectControlled<I_FormFields> control={control} name="group_ids" label="Agrupamientos" />
       </MagicGrid>

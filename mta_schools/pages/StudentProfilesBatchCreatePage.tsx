@@ -135,7 +135,7 @@ const StudentProfilesBatchCreatePageContent = ({ selectedSchool, availableSchool
                 Descargá este archivo: es la plantilla oficial que debés usar para cargar los datos de los nuevos alumnos. Incluye una columna NEE para completar con Sí o No. Por favor, no lo reemplaces por otro formato.
               </Body1>
               <Spacer />
-              <Button LinkComponent={Link} href="/Meta--PlanillaBaseAlumnos.xlsx">
+              <Button LinkComponent={Link} href="/PlanillaBaseAlumnos.xlsx">
                 Descargar
               </Button>
             </Pastilla>

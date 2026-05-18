@@ -2,14 +2,11 @@
 
 import { Box, Checkbox, Chip, FormControl, ListItemText, MenuItem, Select, Typography } from '@mui/material'
 import Button from '@/shared/components/Button'
-import LogoAustral from '@/shared/components/LogoAustral'
-import { ImageSize } from '@/shared/utils'
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING, LAYOUT_SIZES, BOX_SHADOWS } from '@/mta_reports_v2/constants'
 
 const C = COLORS
 const F = FONT_SIZES
 const W = FONT_WEIGHTS
-const sidebarAustralLogoSize = new ImageSize(412, 72, { scale: 0.6 })
 
 // Sentinel del item "Todas" en los selects multi. Se usa como value de un
 // MenuItem y como marcador del estado "selección que anula a todas las demás".
@@ -160,24 +157,6 @@ function Sidebar({ filters, onReset }: { filters: FilterDef[]; onReset: () => vo
         </Button>
       )}
       <Box sx={{ flex: 1 }} />
-      <Box sx={{ pt: 1.5, display: 'flex', justifyContent: 'center' }}>
-        <Box sx={{ position: 'relative', width: sidebarAustralLogoSize.w, height: sidebarAustralLogoSize.h }}>
-          <LogoAustral width={sidebarAustralLogoSize.w} height={sidebarAustralLogoSize.h} />
-          <Box sx={{
-            position: 'absolute',
-            inset: 0,
-            backgroundColor: C.navyMid,
-            WebkitMaskImage: 'url(/logo_austral_@2x.png)',
-            maskImage: 'url(/logo_austral_@2x.png)',
-            WebkitMaskRepeat: 'no-repeat',
-            maskRepeat: 'no-repeat',
-            WebkitMaskSize: 'contain',
-            maskSize: 'contain',
-            WebkitMaskPosition: 'center',
-            maskPosition: 'center',
-          }} />
-        </Box>
-      </Box>
     </Box>
   )
 }

@@ -15,6 +15,7 @@ import RecoverEvaluationSubjects from '@/mta_evaluations/appServices/RecoverEval
 import LocalizationProvider from '@/shared/datetime/LocalizationProvider'
 import LoadFormulasResources from '@/shared/formulas/appServices/LoadFormulasResources'
 import '@/shared/globals.css'
+import { PRODUCT_DESCRIPTION, PRODUCT_NAME } from '@/shared/product'
 
 const monstserrat = Montserrat({
   weight: ['300', '400', '500', '700'],
@@ -30,10 +31,10 @@ const openSans = Open_Sans({
   variable: '--font-segoe-fallback',
 })
 
-const APP_NAME = 'Meta Evaluaciones'
-const APP_DEFAULT_TITLE = 'Meta Evaluaciones'
-const APP_TITLE_TEMPLATE = '%s - Meta Evaluaciones'
-const APP_DESCRIPTION = 'Sistema de evaluaciones para escuelas.'
+const APP_NAME = PRODUCT_NAME
+const APP_DEFAULT_TITLE = PRODUCT_NAME
+const APP_TITLE_TEMPLATE = `%s - ${PRODUCT_NAME}`
+const APP_DESCRIPTION = PRODUCT_DESCRIPTION
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,

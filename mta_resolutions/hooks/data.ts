@@ -950,7 +950,7 @@ const useResolutionDownloadState = () => {
 
     const link = document.createElement('a')
     link.href = url
-    link.download = `MetaResolucion--turno_${resolutionState.appointment_id}-estudiante_${resolutionState.student_personal_id}-${new Date().toISOString()}.json`
+    link.download = `Resolucion--turno_${resolutionState.appointment_id}-estudiante_${resolutionState.student_personal_id}-${new Date().toISOString()}.json`
 
     document.body.appendChild(link)
     link.click()

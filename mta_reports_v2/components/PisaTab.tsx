@@ -13,7 +13,7 @@ const fields = {
   body: {
     defaultHtml:
       '<p>Las pruebas están compuestas por un total de 45 ejercicios, de los cuales 5 se clasifican como “ejercicios tipo PISA”, ya que responden al estilo y formato característicos de las evaluaciones internacionales de estas características.</p>' +
-      '<p>Estos 5 ejercicios fueron incorporados a partir de 2023 como parte del proceso de mejora continua del Programa META. Como resultado de esta incorporación, los informes presentan tres tipos de resultados:</p>' +
+      '<p>Estos 5 ejercicios fueron incorporados a partir de 2023 como parte del proceso de mejora continua del programa. Como resultado de esta incorporación, los informes presentan tres tipos de resultados:</p>' +
       '<p>a) Los obtenidos en los <strong>40 ejercicios tradicionales</strong>, lo cual permite mantener la comparabilidad con los resultados de aplicaciones anteriores a la introducción de los ítems tipo PISA.</p>' +
       '<p>b) Los correspondientes a los <strong>5 ejercicios tipo PISA</strong>.</p>' +
       '<p>c) Los resultados globales basados en los <strong>45 ejercicios que conforman la prueba completa</strong>.</p>' +

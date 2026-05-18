@@ -7,7 +7,6 @@ import {
   FieldConfig,
   RenderFieldArgs,
 } from '@/mta_reports_v2/components/EditableContentSection'
-import { australFilterSx } from '@/mta_reports_v2/components/shared/SlideContainer'
 import type { I_Subject } from '@/mta_reports_v2/hooks'
 
 interface EditableTabProps<F extends string> {
@@ -17,7 +16,6 @@ interface EditableTabProps<F extends string> {
   successMessage: string
   fields: Record<F, FieldConfig>
   maxWidth?: number
-  withAustralFilter?: boolean
   children?: (args: RenderFieldArgs<F>) => ReactNode
 }
 
@@ -28,7 +26,6 @@ const EditableTab = <F extends string,>({
   successMessage,
   fields,
   maxWidth = 820,
-  withAustralFilter = true,
   children,
 }: EditableTabProps<F>) => {
   const defaultRender = ({ renderField }: RenderFieldArgs<F>) => {
@@ -52,7 +49,7 @@ const EditableTab = <F extends string,>({
     </EditableContentSection>
   )
 
-  return withAustralFilter ? <Box sx={{ height: '100%', ...australFilterSx }}>{section}</Box> : section
+  return section
 }
 
 export { EditableTab }

@@ -3,10 +3,10 @@
 import { I_EvaluationToResolve, I_ResolutionState } from '@/mta_resolutions/types'
 import { T_AppointmentId } from '@/mta_schedule/types'
 
-const DB_NAME = 'meta_resolution_offline'
+const DB_NAME = 'assessment_resolution_offline'
 const DB_VERSION = 1
 const STORE_NAME = 'resolution_snapshots'
-const ACTIVE_SNAPSHOT_KEY_STORAGE = 'meta_resolution-active-snapshot-key'
+const ACTIVE_SNAPSHOT_KEY_STORAGE = 'assessment_resolution-active-snapshot-key'
 
 export interface I_ResolutionOfflineSnapshotMetadata {
   resolution_startedAt: string | null
@@ -221,4 +221,3 @@ export const clearCurrentResolutionOfflineData = async (resolutionState?: I_Reso
 
   await clearResolutionOfflineDataForKey(key)
 }
-

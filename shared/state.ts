@@ -23,7 +23,7 @@ type T_CombinedSlices = I_AuthSlice &
   I_UserSlice &
   I_SchoolSlice
 
-const PERSIST_KEY = 'meta_system-data'
+const PERSIST_KEY = 'assessment_system-data'
 const PERSIST_VERSION = 8
 
 const excludeForPartialize = (state: T_CombinedSlices, fields: Array<keyof T_CombinedSlices>) =>

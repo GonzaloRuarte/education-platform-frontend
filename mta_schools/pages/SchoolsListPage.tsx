@@ -15,7 +15,7 @@ import { GridColDef } from '@mui/x-data-grid'
 
 const columns: Array<GridColDef> = [
   idExposeColumn({ field: 'name', headerName: 'Nombre', flex: 1.5 }),
-  { field: 'meta_id', headerName: 'Meta ID', flex: 1 },
+  { field: 'meta_id', headerName: 'ID externo', flex: 1 },
   { field: 'district', headerName: 'Distrito', flex: 1 },
   {
     field: 'groups',

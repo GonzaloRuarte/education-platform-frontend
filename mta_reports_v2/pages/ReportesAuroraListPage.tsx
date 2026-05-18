@@ -70,7 +70,7 @@ const SubjectCell = ({ row }: { row: I_AuroraReportListItem }) => {
     ) : isGrouping ? (
       `Id ${row.id}`
     ) : (
-      `Meta ID ${row.school_meta_id ?? '—'}`
+      `ID externo ${row.school_meta_id ?? '—'}`
     )
   return (
     <Tooltip placement="left" title={title}>
