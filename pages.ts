@@ -15,12 +15,8 @@ const appointmentAdminDashboardPath = '/dashboard/turnos/tablero'
 const resolutionInspectionPath = '/dashboard/turnos/estado-resolucion'
 const questionBankCreatePath = '/dashboard/banco-de-preguntas/crear'
 const questionBankEditPath = '/dashboard/banco-de-preguntas/{questionId:number}'
-const reportEditPath = '/dashboard/reportes/{reportId:number}'
 const dashboardForgotAccessPath = '/dashboard/login/recuperar-acceso'
 const dashboardResetPasswordPath = '/dashboard/login/restablecer-password/{uid:string}/{token:string}'
-// META report bundles (computed artifacts)
-const metaReportsListPath = '/dashboard/reportes/meta'
-const metaReportsDetailPath = '/dashboard/reportes/meta/{bundleId:number}'
 const reportesAuroraListPath = '/dashboard/reportes_aurora'
 const reportesAuroraEscuelaPath = '/dashboard/reportes_aurora/escuela/{escuelaId:number}'
 
@@ -179,30 +175,6 @@ const pages = {
           },
         },
       },
-      reportes: {
-        path: '/dashboard/reportes',
-        label: 'Reportes',
-        _: {
-          agregar: {
-            path: '/dashboard/reportes/agregar',
-            label: 'Agregar reporte',
-          },
-          editar: {
-            path: reportEditPath,
-            label: 'Editar reporte',
-          },
-          meta: {
-            path: metaReportsListPath,
-            label: 'Reportes META',
-            _: {
-              detalle: {
-                path: metaReportsDetailPath,
-                label: 'Detalle Reporte META',
-              },
-            },
-          },
-        },
-      },
       reportesAurora: {
         path: reportesAuroraListPath,
         label: 'Reportes Aurora',
@@ -311,9 +283,6 @@ export {
   evaluationsPreviewPath,
   questionBankCreatePath,
   questionBankEditPath,
-  reportEditPath,
-  metaReportsListPath,
-  metaReportsDetailPath,
 }
 
 export default pages

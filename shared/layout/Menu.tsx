@@ -135,18 +135,7 @@ const Menu = () => {
         )}
 
         <RRCC allowedCapabilities={['view_reports']}>
-          <MenuItem
-            Icon={QueryStatsIcon}
-            label={P.D._.reportes.label}
-            href={P.D._.reportes.path}
-            subMenu={
-              <MenuBlock isSubMenu>
-                <MenuItem label={'Reportes Power BI'} href={P.D._.reportes.path} />
-                <MenuItem label={P.D._.reportes._.meta.label} href={P.D._.reportes._.meta.path} />
-                <MenuItem label={P.D._.reportesAurora.label} href={P.D._.reportesAurora.path} />
-              </MenuBlock>
-            }
-          />
+          <MenuItem Icon={QueryStatsIcon} label={P.D._.reportesAurora.label} href={P.D._.reportesAurora.path} />
         </RRCC>
 
         <RRCC allowedCapabilities={['dev_access']}>
