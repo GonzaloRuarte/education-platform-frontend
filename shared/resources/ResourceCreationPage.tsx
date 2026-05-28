@@ -21,6 +21,7 @@ interface I_ResourceCreationPageProps<T_RequestData, T_Response> {
   useCreate: T_CreateServiceHook<T_RequestData, T_Response>
   onCancel: T_VoidFn
   onCreated?: T_VoidFn
+  initialData?: T_ResourceRecord
 }
 
 export default function ResourceCreationPage<T_RequestData, T_Response>({
@@ -29,6 +30,7 @@ export default function ResourceCreationPage<T_RequestData, T_Response>({
   useCreate,
   onCancel,
   onCreated,
+  initialData,
 }: I_ResourceCreationPageProps<T_RequestData, T_Response>) {
   const schema = useResourceSchema(resourceKey)
   const create = useCreate()
@@ -64,6 +66,7 @@ export default function ResourceCreationPage<T_RequestData, T_Response>({
           <ResourceForm
             resource={schema.data}
             mode="create"
+            initialData={initialData}
             submitLabel="Agregar"
             onSubmit={handleSubmit}
           />

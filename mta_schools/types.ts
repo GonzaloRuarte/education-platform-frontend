@@ -72,7 +72,7 @@ interface I_SchoolCreateRequestData {
 interface I_StudentProfileCreateRequestData {
   cohort: string
   personal_id: string
-  school_id: T_SchoolId
+  school: T_SchoolId
   nee: boolean
   nee_comments?: string
 }

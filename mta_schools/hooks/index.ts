@@ -62,6 +62,7 @@ import { I_CreationCommonResponse, T_EmptyPayload } from '@/shared/types'
 const SCHOOLS_PATH = '/schools'
 const SCHOOL_RESOURCE_KEY = 'school'
 const GROUPING_RESOURCE_KEY = 'grouping'
+const STUDENT_PROFILE_RESOURCE_KEY = 'student_profile'
 const GROUPING_STAFF_PROFILE = '/grouping-staff-profiles'
 const GROUPING_STAFF_ANON_PROFILE = '/grouping-staff-anonymized-profiles'
 
@@ -92,12 +93,11 @@ const useGroupingAllNames = (...args: Parameters<typeof useGroupingList>) => {
 
 const STUDENT_PROFILE_PATH = '/student-profiles'
 const STUDENTS_BY_SCHOOL_PATH = '/student-profiles/list-by-school/{schoolId:string}'
-const useStudentProfileDetail = detailHook<T_StudentProfileId, I_StudentProfileDetail>(STUDENT_PROFILE_PATH, axiosGet, useAuthResources)
-const useStudentProfileList = listHook<T_StudentProfileList>(STUDENT_PROFILE_PATH, axiosGet, useAuthResources)
+const useStudentProfileDetail = resourceRecordDetailHook<T_StudentProfileId, I_StudentProfileDetail>(STUDENT_PROFILE_RESOURCE_KEY)
+const useStudentProfileList = resourceRecordListHook<T_StudentProfileList>(STUDENT_PROFILE_RESOURCE_KEY)
 const useStudentProfileListBySchool = listHookV3<typeof STUDENTS_BY_SCHOOL_PATH, T_StudentProfileList>(STUDENTS_BY_SCHOOL_PATH, axiosGet, useAuthResources)
-const useStudentProfileCreate = creationHook<I_StudentProfileCreateRequestData, I_CreationCommonResponse>(STUDENT_PROFILE_PATH, axiosPost, useAuthResources)
-const useStudentProfileUpdate = updateHook<T_StudentProfileId, I_StudentProfileCreateRequestData, I_CreationCommonResponse>(STUDENT_PROFILE_PATH, axiosPatch, useAuthResources)
-const useStudentProfileBatchDelete = batchDeletionHook<T_StudentProfileId>(STUDENT_PROFILE_PATH, axiosDelete, useAuthResources)
+const useStudentProfileCreate = resourceRecordCreateHook<I_StudentProfileCreateRequestData, I_CreationCommonResponse>(STUDENT_PROFILE_RESOURCE_KEY)
+const useStudentProfileUpdate = resourceRecordUpdateHook<T_StudentProfileId, I_StudentProfileCreateRequestData, I_CreationCommonResponse>(STUDENT_PROFILE_RESOURCE_KEY)
 const useStudentProfileBatchCreate = creationHook<T_StudentProfileBatchCreateRequestData, I_CreationCommonResponse>(`${STUDENT_PROFILE_PATH}/batch-create`, axiosPost, useRequestSetupWithMultipart)
 
 const COHORTS_BY_SCHOOL_PATH = '/cohorts/distinct-by-school/{schoolId:string}'
@@ -222,7 +222,6 @@ export {
   useStudentProfileListBySchool,
   useStudentProfileUpdate,
   useStudentProfileDetail,
-  useStudentProfileBatchDelete,
   useExecutiveProfileListByUserSchool,
   useGroupingStaffProfileList,
   useGroupingStaffProfileCreate,

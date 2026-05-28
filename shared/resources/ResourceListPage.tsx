@@ -11,7 +11,7 @@ import { handleServiceError } from '@/shared/service'
 import { T_BatchDeletionServiceHook, T_ListServiceHook, T_VoidFn } from '@/shared/types'
 import { EntityName } from '@/shared/utils'
 import { GridColDef } from '@mui/x-data-grid'
-import { useEffect, useMemo, useState } from 'react'
+import { ReactNode, useEffect, useMemo, useState } from 'react'
 
 import { resourceFieldOptionsPath, useResourceSchema } from './hooks'
 import { resourceActionCapabilities, resourceAllowsAction, resourceFieldIsVisible } from './permissions'
@@ -24,6 +24,8 @@ interface I_ResourceListPageProps<T_Id, T_Response extends I_PaginatedResponse> 
   onRowClickId?: (id: T_Id) => void
   onCreate?: T_VoidFn
   useBatchDelete?: T_BatchDeletionServiceHook<T_Id>
+  customButtons?: ReactNode
+  filtersData?: Record<string, any>
 }
 
 const columnTypeByFieldType: Partial<Record<I_ResourceField['type'], GridColDef['type']>> = {
@@ -148,6 +150,8 @@ export default function ResourceListPage<T_Id extends number | string, T_Respons
   onRowClickId,
   onCreate,
   useBatchDelete,
+  customButtons,
+  filtersData,
 }: I_ResourceListPageProps<T_Id, T_Response>) {
   const schema = useResourceSchema(resourceKey)
   const canList = resourceAllowsAction(schema.data, 'list')
@@ -185,6 +189,8 @@ export default function ResourceListPage<T_Id extends number | string, T_Respons
       onRowClick={onRowClickId ? (params) => onRowClickId(params.id as T_Id) : undefined}
       onCreate={canCreate && hasCreateCapability ? onCreate : undefined}
       useBatchDelete={canDelete && hasDeleteCapability ? useBatchDelete : undefined}
+      customButtons={customButtons}
+      filtersData={filtersData}
       initialPageSize={schema.data.page_size as any}
       stateKey={`resource:${schema.data.key}`}
     />
