@@ -59,8 +59,7 @@ interface I_StudentProfileDetail {
   cohort: string
   nee: boolean
   nee_comments?: string
-  user_id: T_UserId
-  school_id: T_SchoolId
+  school: T_SchoolId
 }
 interface I_SchoolCreateRequestData {
   name: string
@@ -100,7 +99,7 @@ interface I_StudentProfileListItem {
   cohort: string
   created_at: string
   updated_at: string
-  school: string
+  school: T_SchoolId | I_SchoolName
   personal_id: T_StudentProfilePersonalId
   nee: boolean
 }

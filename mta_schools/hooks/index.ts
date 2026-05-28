@@ -56,7 +56,6 @@ import {
   resourceRecordListHook,
   resourceRecordUpdateHook,
 } from '@/shared/resources/hooks'
-import { httpService } from '@/shared/service'
 import { I_CreationCommonResponse, T_EmptyPayload } from '@/shared/types'
 
 const SCHOOLS_PATH = '/schools'
