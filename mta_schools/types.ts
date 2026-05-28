@@ -106,11 +106,6 @@ interface I_StudentProfileListItem {
 
 type T_StudentProfileList = I_PaginatedResponse<I_StudentProfileListItem>
 
-interface I_CohortsDistinctBySchool {
-  school_id: T_SchoolId
-  cohorts: Array<string>
-}
-
 interface I_SchoolStaffProfileListItem {
   id: T_SchoolStaffProfileId
   user_id: T_UserId
@@ -246,7 +241,6 @@ export type {
   I_SchoolUpdateRequestData,
   T_SchoolNames,
   I_StudentProfileCreateRequestData,
-  I_CohortsDistinctBySchool,
   T_StudentProfileBatchCreateRequestData,
   T_SchoolStaffProfileList,
   I_SchoolStaffProfileListItem,

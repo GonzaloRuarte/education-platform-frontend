@@ -1,6 +1,5 @@
 import { useAuthResources, useRequestSetupWithMultipart } from '@/mta_auth/hooks'
 import {
-  I_CohortsDistinctBySchool,
   I_GroupingCreateRequestData,
   I_GroupingDetail,
   I_GroupingStaffProfileCreateRequestData,
@@ -8,7 +7,6 @@ import {
   I_GroupingStaffProfileUpdateRequestData,
   I_SchoolCreateRequestData,
   I_SchoolDetail,
-  I_SchoolName,
   I_SchoolStaffProfileCreateRequestData,
   I_SchoolStaffProfileDetail,
   I_SchoolStaffProfileUpdateRequestData,
@@ -21,10 +19,8 @@ import {
   T_ExecutiveProfileId,
   T_GroupingId,
   T_GroupingList,
-  T_GroupingNames,
   T_GroupingStaffProfileId,
   T_SchoolId,
-  T_SchoolNames,
   T_SchoolsList,
   T_SchoolStaffProfileId,
   T_SchoolStaffProfileList,
@@ -107,9 +103,6 @@ const useStudentProfileCreate = resourceRecordCreateHook<I_StudentProfileCreateR
 const useStudentProfileUpdate = resourceRecordUpdateHook<T_StudentProfileId, I_StudentProfileCreateRequestData, I_CreationCommonResponse>(STUDENT_PROFILE_RESOURCE_KEY)
 const useStudentProfileBatchCreate = creationHook<T_StudentProfileBatchCreateRequestData, I_CreationCommonResponse>(`${STUDENT_PROFILE_PATH}/batch-create`, axiosPost, useRequestSetupWithMultipart)
 
-const COHORTS_BY_SCHOOL_PATH = '/cohorts/distinct-by-school/{schoolId:string}'
-const useCohortsDistinctBySchool = actionDataHookV3<typeof COHORTS_BY_SCHOOL_PATH, T_EmptyPayload, I_CohortsDistinctBySchool>(COHORTS_BY_SCHOOL_PATH, axiosGet, useAuthResources)
-
 const SCHOOL_STAFF_PROFILE = '/school-staff-profiles'
 const EXECUTIVE_PROFILE = '/executive-profiles'
 const useSchoolStaffProfileList = listHook<T_SchoolStaffProfileList>(SCHOOL_STAFF_PROFILE, axiosGet, useAuthResources)
@@ -173,7 +166,6 @@ const useNavigateToGroupingStaffAnonymizedProfileCreate = navigationHook(pages.D
 const useNavigateToGroupingStaffAnonymizedProfileDetail = navigationWithIdHook(pages.D._.usuarios._.responsableAgrupamientoAnon.path)
 
 export {
-  useCohortsDistinctBySchool,
   useNavigateToSchoolCreate,
   useNavigateToSchoolDetail,
   useNavigateToSchoolList,
