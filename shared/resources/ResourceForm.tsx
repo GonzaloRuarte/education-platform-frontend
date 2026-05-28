@@ -1,5 +1,6 @@
 'use client'
 
+import { useUserCapabilities } from '@/mta_auth/hooks'
 import Spacer from '@/shared/components/Spacer'
 import Submit from '@/shared/components/Submit'
 import InputControlled from '@/shared/forms/InputControlled'
@@ -20,6 +21,7 @@ import { SubmitHandler, useController, useForm } from 'react-hook-form'
 
 import { I_ResourceDefinition, I_ResourceField, T_ResourceRecord } from './types'
 import { useResourceFieldOptions } from './hooks'
+import { resourceFieldIsVisible } from './permissions'
 
 type T_ResourceFormMode = 'create' | 'update'
 
@@ -218,7 +220,10 @@ export default function ResourceForm({
   submitLabel,
   onSubmit,
 }: I_ResourceFormProps) {
-  const fields = resource.fields.filter((field) => isRenderedFormField(field, mode))
+  const userCapabilities = useUserCapabilities()
+  const fields = resource.fields.filter(
+    (field) => isRenderedFormField(field, mode) && resourceFieldIsVisible(field, userCapabilities),
+  )
   const { handleSubmit, control } = useForm<T_ResourceRecord>({
     defaultValues: buildDefaultValues(fields, initialData),
   })

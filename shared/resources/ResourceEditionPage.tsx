@@ -1,6 +1,7 @@
 'use client'
 
 import { useInProgress } from '@/shared/hooks'
+import { useHasCapabilities } from '@/mta_auth/hooks'
 import { BackButton, ReloadButton } from '@/shared/components/buttons'
 import DeleteInstanceButton from '@/shared/components/DeleteInstanceButton'
 import Page from '@/shared/components/Page'
@@ -14,6 +15,7 @@ import { ReactNode } from 'react'
 
 import ResourceForm from './ResourceForm'
 import { useResourceSchema } from './hooks'
+import { resourceActionCapabilities, resourceAllowsAction } from './permissions'
 import { T_ResourceRecord } from './types'
 
 interface I_ResourceEditionPageProps<
@@ -53,6 +55,10 @@ export default function ResourceEditionPage<
   const detail = useDetail(id)
   const update = useUpdate()
   const { setInProgressStatus } = useInProgress()
+  const hasUpdateCapability = useHasCapabilities(resourceActionCapabilities(schema.data, 'update'))
+  const hasDeleteCapability = useHasCapabilities(resourceActionCapabilities(schema.data, 'delete'))
+  const canUpdate = resourceAllowsAction(schema.data, 'update') && hasUpdateCapability
+  const canDelete = resourceAllowsAction(schema.data, 'delete') && hasDeleteCapability
 
   const reload = () => {
     schema.reload()
@@ -76,7 +82,7 @@ export default function ResourceEditionPage<
       <Page.Toolbar>
         <BackButton onClick={onExit} />
         <ReloadButton onClick={reload} />
-        {useDelete !== undefined && (
+        {useDelete !== undefined && canDelete && (
           <DeleteInstanceButton
             callback={onExit}
             entityName={entityName}
@@ -88,6 +94,8 @@ export default function ResourceEditionPage<
       <Page.Content>
         {schema.data === undefined || detail.data === undefined ? (
           <Spinner />
+        ) : !canUpdate ? (
+          <>No tienes permisos para editar {entityName.singular}.</>
         ) : (
           <>
             <ResourceForm

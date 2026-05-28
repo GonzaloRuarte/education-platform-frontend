@@ -1,7 +1,8 @@
 'use client'
 
 import { apiUrl } from '@/config'
-import { useAuthResources } from '@/mta_auth/hooks'
+import { useAuthResources, useHasCapabilities, useUserCapabilities } from '@/mta_auth/hooks'
+import { Typography } from '@mui/material'
 import Spinner from '@/shared/components/Spinner'
 import { axiosGet } from '@/shared/data/axios'
 import { I_PaginatedResponse } from '@/shared/data/types'
@@ -13,6 +14,7 @@ import { GridColDef } from '@mui/x-data-grid'
 import { useEffect, useMemo, useState } from 'react'
 
 import { resourceFieldOptionsPath, useResourceSchema } from './hooks'
+import { resourceActionCapabilities, resourceAllowsAction, resourceFieldIsVisible } from './permissions'
 import { I_ResourceField, I_ResourceStaticOption } from './types'
 
 interface I_ResourceListPageProps<T_Id, T_Response extends I_PaginatedResponse> {
@@ -148,17 +150,32 @@ export default function ResourceListPage<T_Id extends number | string, T_Respons
   useBatchDelete,
 }: I_ResourceListPageProps<T_Id, T_Response>) {
   const schema = useResourceSchema(resourceKey)
+  const canList = resourceAllowsAction(schema.data, 'list')
+  const userCapabilities = useUserCapabilities()
   const visibleFields = useMemo(
-    () => schema.data?.fields.filter((field) => field.visible_in_list) ?? [],
-    [schema.data],
+    () =>
+      canList
+        ? schema.data?.fields.filter(
+            (field) => field.visible_in_list && resourceFieldIsVisible(field, userCapabilities),
+          ) ?? []
+        : [],
+    [schema.data, canList, userCapabilities],
   )
   const relationOptionLookups = useResourceRelationOptionLookups(resourceKey, visibleFields)
   const columns = useMemo(
     () => visibleFields.map((field) => fieldToColumn(field, relationOptionLookups[field.key])),
     [visibleFields, relationOptionLookups],
   )
+  const canCreate = resourceAllowsAction(schema.data, 'create')
+  const canDelete = resourceAllowsAction(schema.data, 'delete')
+  const hasCreateCapability = useHasCapabilities(resourceActionCapabilities(schema.data, 'create'))
+  const hasDeleteCapability = useHasCapabilities(resourceActionCapabilities(schema.data, 'delete'))
 
   if (schema.data === undefined) return <Spinner />
+
+  if (!canList) {
+    return <Typography>No tienes permisos para listar {entityName.plural}.</Typography>
+  }
 
   return (
     <ListPage<T_Id, T_Response>
@@ -166,8 +183,8 @@ export default function ResourceListPage<T_Id extends number | string, T_Respons
       useList={useList}
       entityName={entityName}
       onRowClick={onRowClickId ? (params) => onRowClickId(params.id as T_Id) : undefined}
-      onCreate={onCreate}
-      useBatchDelete={useBatchDelete}
+      onCreate={canCreate && hasCreateCapability ? onCreate : undefined}
+      useBatchDelete={canDelete && hasDeleteCapability ? useBatchDelete : undefined}
       initialPageSize={schema.data.page_size as any}
       stateKey={`resource:${schema.data.key}`}
     />

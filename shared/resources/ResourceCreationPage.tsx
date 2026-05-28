@@ -2,6 +2,7 @@
 
 import { useInProgress } from '@/shared/hooks'
 import { CancelButton } from '@/shared/components/buttons'
+import { useHasCapabilities } from '@/mta_auth/hooks'
 import Page from '@/shared/components/Page'
 import Spinner from '@/shared/components/Spinner'
 import { handleServiceError } from '@/shared/service'
@@ -11,6 +12,7 @@ import { EntityName, sentence } from '@/shared/utils'
 
 import ResourceForm from './ResourceForm'
 import { useResourceSchema } from './hooks'
+import { resourceActionCapabilities, resourceAllowsAction } from './permissions'
 import { T_ResourceRecord } from './types'
 
 interface I_ResourceCreationPageProps<T_RequestData, T_Response> {
@@ -31,6 +33,8 @@ export default function ResourceCreationPage<T_RequestData, T_Response>({
   const schema = useResourceSchema(resourceKey)
   const create = useCreate()
   const { setInProgressStatus } = useInProgress()
+  const hasCreateCapability = useHasCapabilities(resourceActionCapabilities(schema.data, 'create'))
+  const canCreate = resourceAllowsAction(schema.data, 'create') && hasCreateCapability
 
   const handleSubmit = (payload: T_ResourceRecord) => {
     const afterCreate = onCreated ?? onCancel
@@ -54,6 +58,8 @@ export default function ResourceCreationPage<T_RequestData, T_Response>({
       <Page.Content>
         {schema.data === undefined ? (
           <Spinner />
+        ) : !canCreate ? (
+          <>No tienes permisos para agregar {entityName.singular}.</>
         ) : (
           <ResourceForm
             resource={schema.data}

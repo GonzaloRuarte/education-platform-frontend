@@ -15,6 +15,7 @@ type T_ResourceFieldType =
 
 type T_ResourceOptionSourceKind = 'static' | 'resource'
 type T_ResourceRelationKind = 'foreign_key' | 'many_to_many'
+type T_ResourceCrudAction = 'list' | 'retrieve' | 'create' | 'update' | 'delete'
 
 interface I_ResourceStaticOption {
   value: string | number
@@ -51,6 +52,7 @@ interface I_ResourceField {
   sortable: boolean
   filterable: boolean
   pii: boolean
+  visible_capability?: string | null
   help_text?: string
   option_source?: I_ResourceOptionSource
   relation?: I_ResourceRelation
@@ -63,6 +65,7 @@ interface I_ResourceDefinition {
   primary_key_fields: Array<string>
   fields: Array<I_ResourceField>
   capabilities: Record<string, string>
+  business_actions: Array<T_ResourceCrudAction>
   default_sort: Array<string>
   page_size: number
 }
@@ -75,6 +78,7 @@ export type {
   I_ResourceOptionSource,
   I_ResourceRelation,
   I_ResourceStaticOption,
+  T_ResourceCrudAction,
   T_ResourceFieldType,
   T_ResourceOptionSourceKind,
   T_ResourceRecord,
