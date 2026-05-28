@@ -58,7 +58,6 @@ import {
 } from '@/shared/resources/hooks'
 import { I_CreationCommonResponse, T_EmptyPayload } from '@/shared/types'
 
-const SCHOOLS_PATH = '/schools'
 const SCHOOL_RESOURCE_KEY = 'school'
 const GROUPING_RESOURCE_KEY = 'grouping'
 const STUDENT_PROFILE_RESOURCE_KEY = 'student_profile'
@@ -66,7 +65,16 @@ const GROUPING_STAFF_PROFILE = '/grouping-staff-profiles'
 const GROUPING_STAFF_ANON_PROFILE = '/grouping-staff-anonymized-profiles'
 
 const useSchoolList = resourceRecordListHook<T_SchoolsList>(SCHOOL_RESOURCE_KEY)
-const useSchoolAllNames = listHook<T_SchoolNames>(`${SCHOOLS_PATH}/all-names`, axiosGet, useAuthResources)
+const useSchoolAllNames = (options?: Parameters<typeof useSchoolList>[0]) => {
+  const result = useSchoolList({ page_size: 1000, ...options })
+  return {
+    ...result,
+    data: result.data?.results.map((school) => ({
+      id: school.id,
+      name: school.name,
+    })),
+  }
+}
 const useSchoolCreate = resourceRecordCreateHook<I_SchoolCreateRequestData, I_CreationCommonResponse>(SCHOOL_RESOURCE_KEY)
 const useSchoolDelete = resourceRecordDeleteHook<T_SchoolId>(SCHOOL_RESOURCE_KEY)
 const useSchoolBatchDelete = resourceRecordBatchDeleteHook<T_SchoolId>(SCHOOL_RESOURCE_KEY)
