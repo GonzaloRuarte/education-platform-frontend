@@ -1,3 +1,5 @@
+'use client'
+
 import DashboardLoginForm from '@/mta_auth/components/DashboardLoginForm'
 import { avoidAuthorized } from '@/mta_auth/hocs/AvoidAuthorized'
 import Logo from '@/shared/components/Logo'

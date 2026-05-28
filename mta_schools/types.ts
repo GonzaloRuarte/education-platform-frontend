@@ -43,9 +43,8 @@ interface I_SchoolListItem {
   id: T_SchoolId
   name: string
   district: string
-  staff: Array<I_SchoolStaffListItem>
-  groups: Array<I_GroupingName>
   contact_email: string
+  groups_count: number
 }
 type T_SchoolsList = I_PaginatedResponse<I_SchoolListItem>
 interface I_SchoolName {
@@ -68,7 +67,7 @@ interface I_SchoolCreateRequestData {
   district: string
   contact_email: string
   max_executives: number
-  group_ids: Array<T_GroupingId>
+  groups: Array<T_GroupingId>
 }
 interface I_StudentProfileCreateRequestData {
   cohort: string
@@ -85,9 +84,7 @@ interface I_SchoolDetail {
   district: string
   contact_email: string
   max_executives: number
-  meta_id: number
-  groups: Array<I_GroupingName>
-  staff: Array<I_SchoolStaffListItem>
+  groups: Array<T_GroupingId>
 }
 
 interface I_SchoolUpdateRequestData {
@@ -95,8 +92,7 @@ interface I_SchoolUpdateRequestData {
   district: string
   contact_email: string
   max_executives: number
-  meta_id: number
-  group_ids: Array<T_GroupingId>
+  groups: Array<T_GroupingId>
 }
 
 interface I_StudentProfileListItem {

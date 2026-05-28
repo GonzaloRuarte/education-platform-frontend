@@ -126,6 +126,16 @@ const pages = {
         path: '/dashboard/evaluaciones',
         label: 'Evaluaciones',
         _: {
+          materias: {
+            path: '/dashboard/evaluaciones/materias',
+            label: 'Materias',
+            _: {
+              agregar: {
+                path: '/dashboard/evaluaciones/materias/agregar',
+                label: 'Agregar materia',
+              },
+            },
+          },
           editar: {
             path: '/dashboard/evaluaciones/{id:number}',
             label: 'Editar evaluación',

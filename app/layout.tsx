@@ -11,7 +11,7 @@ import theme from '@/shared/theme'
 import { ToastContainer } from 'react-toastify'
 
 import { MAIN_BG_COLOR } from '@/config'
-import RecoverEvaluationSubjects from '@/mta_evaluations/appServices/RecoverEvaluationSubjects'
+import LoadEvaluationSubjectCache from '@/mta_evaluations/appServices/LoadEvaluationSubjectCache'
 import LocalizationProvider from '@/shared/datetime/LocalizationProvider'
 import LoadFormulasResources from '@/shared/formulas/appServices/LoadFormulasResources'
 import '@/shared/globals.css'
@@ -93,7 +93,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 <GlobalBackdrop />
                 <ApplicationServices
                   version={'0.2.0'}
-                  services={[RecoverEvaluationSubjects, LoadFormulasResources]}
+                  services={[LoadEvaluationSubjectCache, LoadFormulasResources]}
                   d={{}}
                 />
                 {children}

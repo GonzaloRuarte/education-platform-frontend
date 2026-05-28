@@ -10,6 +10,7 @@ import { successToast } from '@/shared/toasts'
 import { T_DeletionServiceHook, T_DetailServiceHook, T_UpdateServiceHook, T_VoidFn } from '@/shared/types'
 import { EntityName, sentence } from '@/shared/utils'
 import { useParams } from 'next/navigation'
+import { ReactNode } from 'react'
 
 import ResourceForm from './ResourceForm'
 import { useResourceSchema } from './hooks'
@@ -28,6 +29,7 @@ interface I_ResourceEditionPageProps<
   useDelete?: T_DeletionServiceHook<T_Id, any>
   onExit: T_VoidFn
   idFieldName?: string
+  renderAfterForm?: (args: { id: T_Id; data: T_Data; reload: T_VoidFn }) => ReactNode
 }
 
 export default function ResourceEditionPage<
@@ -43,6 +45,7 @@ export default function ResourceEditionPage<
   useDelete,
   onExit,
   idFieldName = 'id',
+  renderAfterForm,
 }: I_ResourceEditionPageProps<T_Id, T_Data, T_RequestData, T_Response>) {
   const urlParams = useParams()
   const id = urlParams[idFieldName] as unknown as T_Id
@@ -86,13 +89,16 @@ export default function ResourceEditionPage<
         {schema.data === undefined || detail.data === undefined ? (
           <Spinner />
         ) : (
-          <ResourceForm
-            resource={schema.data}
-            mode="update"
-            initialData={detail.data as T_ResourceRecord}
-            submitLabel="Guardar"
-            onSubmit={handleSubmit}
-          />
+          <>
+            <ResourceForm
+              resource={schema.data}
+              mode="update"
+              initialData={detail.data as T_ResourceRecord}
+              submitLabel="Guardar"
+              onSubmit={handleSubmit}
+            />
+            {renderAfterForm?.({ id, data: detail.data, reload })}
+          </>
         )}
       </Page.Content>
     </Page>

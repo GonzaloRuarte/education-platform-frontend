@@ -48,29 +48,47 @@ import {
 
 import pages from '@/pages'
 import { actionDataHookV3, listHookV3 } from '@/shared/hooks/dataServices/v3'
+import {
+  resourceRecordBatchDeleteHook,
+  resourceRecordCreateHook,
+  resourceRecordDeleteHook,
+  resourceRecordDetailHook,
+  resourceRecordListHook,
+  resourceRecordUpdateHook,
+} from '@/shared/resources/hooks'
 import { httpService } from '@/shared/service'
 import { I_CreationCommonResponse, T_EmptyPayload } from '@/shared/types'
 
 const SCHOOLS_PATH = '/schools'
-const GROUPINGS_PATH = '/groupings'
+const SCHOOL_RESOURCE_KEY = 'school'
+const GROUPING_RESOURCE_KEY = 'grouping'
 const GROUPING_STAFF_PROFILE = '/grouping-staff-profiles'
 const GROUPING_STAFF_ANON_PROFILE = '/grouping-staff-anonymized-profiles'
 
-const useSchoolList = listHook<T_SchoolsList>(SCHOOLS_PATH, axiosGet, useAuthResources)
+const useSchoolList = resourceRecordListHook<T_SchoolsList>(SCHOOL_RESOURCE_KEY)
 const useSchoolAllNames = listHook<T_SchoolNames>(`${SCHOOLS_PATH}/all-names`, axiosGet, useAuthResources)
-const useSchoolCreate = creationHook<I_SchoolCreateRequestData, I_CreationCommonResponse>(SCHOOLS_PATH, axiosPost, useAuthResources)
-const useSchoolDelete = deletionHook<T_SchoolId>(SCHOOLS_PATH, axiosDelete, useAuthResources)
-const useSchoolBatchDelete = batchDeletionHook<T_SchoolId>(SCHOOLS_PATH, axiosDelete, useAuthResources)
-const useSchoolDetail = detailHook<T_SchoolId, I_SchoolDetail>(SCHOOLS_PATH, axiosGet, useAuthResources)
-const useSchoolUpdate = updateHook<T_SchoolId, I_SchoolUpdateRequestData, I_SchoolDetail>(SCHOOLS_PATH, axiosPatch, useAuthResources)
+const useSchoolCreate = resourceRecordCreateHook<I_SchoolCreateRequestData, I_CreationCommonResponse>(SCHOOL_RESOURCE_KEY)
+const useSchoolDelete = resourceRecordDeleteHook<T_SchoolId>(SCHOOL_RESOURCE_KEY)
+const useSchoolBatchDelete = resourceRecordBatchDeleteHook<T_SchoolId>(SCHOOL_RESOURCE_KEY)
+const useSchoolDetail = resourceRecordDetailHook<T_SchoolId, I_SchoolDetail>(SCHOOL_RESOURCE_KEY)
+const useSchoolUpdate = resourceRecordUpdateHook<T_SchoolId, I_SchoolUpdateRequestData, I_SchoolDetail>(SCHOOL_RESOURCE_KEY)
 
-const useGroupingList = listHook<T_GroupingList>(GROUPINGS_PATH, axiosGet, useAuthResources)
-const useGroupingCreate = creationHook<I_GroupingCreateRequestData, I_CreationCommonResponse>(GROUPINGS_PATH, axiosPost, useAuthResources)
-const useGroupingDelete = deletionHook<T_GroupingId>(GROUPINGS_PATH, axiosDelete, useAuthResources)
-const useGroupingBatchDelete = batchDeletionHook<T_GroupingId>(GROUPINGS_PATH, axiosDelete, useAuthResources)
-const useGroupingDetail = detailHook<T_GroupingId, I_GroupingDetail>(GROUPINGS_PATH, axiosGet, useAuthResources)
-const useGroupingUpdate = updateHook<T_GroupingId, I_GroupingCreateRequestData, I_GroupingDetail>(GROUPINGS_PATH, axiosPatch, useAuthResources)
-const useGroupingAllNames = listHook<T_GroupingNames>(GROUPINGS_PATH, axiosGet, useAuthResources)
+const useGroupingList = resourceRecordListHook<T_GroupingList>(GROUPING_RESOURCE_KEY)
+const useGroupingCreate = resourceRecordCreateHook<I_GroupingCreateRequestData, I_CreationCommonResponse>(GROUPING_RESOURCE_KEY)
+const useGroupingDelete = resourceRecordDeleteHook<T_GroupingId>(GROUPING_RESOURCE_KEY)
+const useGroupingBatchDelete = resourceRecordBatchDeleteHook<T_GroupingId>(GROUPING_RESOURCE_KEY)
+const useGroupingDetail = resourceRecordDetailHook<T_GroupingId, I_GroupingDetail>(GROUPING_RESOURCE_KEY)
+const useGroupingUpdate = resourceRecordUpdateHook<T_GroupingId, I_GroupingCreateRequestData, I_GroupingDetail>(GROUPING_RESOURCE_KEY)
+const useGroupingAllNames = (...args: Parameters<typeof useGroupingList>) => {
+  const result = useGroupingList(...args)
+  return {
+    ...result,
+    data: result.data?.results.map((grouping) => ({
+      id: grouping.id,
+      name: grouping.name,
+    })),
+  }
+}
 
 const STUDENT_PROFILE_PATH = '/student-profiles'
 const STUDENTS_BY_SCHOOL_PATH = '/student-profiles/list-by-school/{schoolId:string}'

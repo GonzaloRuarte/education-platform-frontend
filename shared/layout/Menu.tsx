@@ -85,7 +85,17 @@ const Menu = () => {
         </RRCC>
 
         <RRCC allowedCapabilities={['manage_evaluation_content']}>
-          <MenuItem Icon={FactCheckIcon} label={P.D._.evaluaciones.label} href={P.D._.evaluaciones.path} />
+          <MenuItem
+            Icon={FactCheckIcon}
+            label={P.D._.evaluaciones.label}
+            href={P.D._.evaluaciones.path}
+            subMenu={
+              <MenuBlock isSubMenu>
+                <MenuItem label={P.D._.evaluaciones.label} href={P.D._.evaluaciones.path} />
+                <MenuItem label={P.D._.evaluaciones._.materias.label} href={P.D._.evaluaciones._.materias.path} />
+              </MenuBlock>
+            }
+          />
         </RRCC>
         <RRCC allowedCapabilities={['manage_evaluation_content']}>
           <MenuItem Icon={QuizIcon} label={P.D._.bancoDePreguntas.label} href={P.D._.bancoDePreguntas.path} />

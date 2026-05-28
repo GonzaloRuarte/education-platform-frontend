@@ -8,59 +8,18 @@ import {
   useSchoolBatchDelete,
   useSchoolList,
 } from '@/mta_schools/hooks'
-import ListPage from '@/shared/pages/ListPage'
-import { idExposeColumn } from '@/shared/pages/utils'
-import { Chip } from '@mui/material'
-import { GridColDef } from '@mui/x-data-grid'
-
-const columns: Array<GridColDef> = [
-  idExposeColumn({ field: 'name', headerName: 'Nombre', flex: 1.5 }),
-  { field: 'meta_id', headerName: 'ID externo', flex: 1 },
-  { field: 'district', headerName: 'Distrito', flex: 1 },
-  {
-    field: 'groups',
-    headerName: 'Agrupamientos',
-    flex: 1.8,
-    sortable: false,
-    filterable: false,
-    renderCell: ({ value }) => {
-      if (!value || value.length === 0) return <>Ninguno</>
-      return (
-        <>
-          <Chip size="small" label={value[0].name} />
-          {value.length > 1 && <Chip size="small" label={`y ${value.length - 1} más`} sx={{ ml: 0.5 }} />}
-        </>
-      )
-    },
-  },
-  {
-    field: 'staff',
-    headerName: 'Responsables institucionales',
-    flex: 1.5,
-    renderCell: ({ value }) => {
-      if (!value || value.length === 0) return <>-</>
-      const FinalChip = () => <Chip size="small" key={value[0].user_id} label={value[0].full_name} />
-      if (value.length === 1) return <FinalChip />
-      return (
-        <>
-          <FinalChip /> <Chip size="small" label={`y ${value.length - 1} más`} />
-        </>
-      )
-    },
-  },
-  { field: 'contact_email', headerName: 'Contacto', flex: 1 },
-]
+import ResourceListPage from '@/shared/resources/ResourceListPage'
 
 const SchoolsListPage = () => {
   const navigateToSchoolDetail = useNavigateToSchoolDetail()
   const navigateToSchoolCreate = useNavigateToSchoolCreate()
 
   return (
-    <ListPage
-      columns={columns}
+    <ResourceListPage
+      resourceKey="school"
       useList={useSchoolList}
       entityName={SCHOOL_NAME}
-      onRowClick={ListPage.mapNavToOnRowClick(navigateToSchoolDetail)}
+      onRowClickId={navigateToSchoolDetail}
       onCreate={navigateToSchoolCreate}
       useBatchDelete={useSchoolBatchDelete}
     />

@@ -17,7 +17,7 @@ type T_ResourceOptionSourceKind = 'static' | 'resource'
 type T_ResourceRelationKind = 'foreign_key' | 'many_to_many'
 
 interface I_ResourceStaticOption {
-  value: string
+  value: string | number
   label: string
 }
 

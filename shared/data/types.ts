@@ -56,8 +56,8 @@ type T_HttpMethod = T_GetMethod | T_PostMethod | T_DeleteMethod | T_PatchMethod
 
 interface I_PaginatedResponse<T_ResultsInstance = unknown> {
   count: number
-  next: string
-  previous: string
+  next: string | null
+  previous: string | null
   results: Array<T_ResultsInstance>
 }
 

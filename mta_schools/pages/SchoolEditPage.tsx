@@ -1,18 +1,20 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
-import SchoolEditForm from '@/mta_schools/components/SchoolEditForm'
+import SchoolRelatedStaff from '@/mta_schools/components/SchoolRelatedStaff'
 import { SCHOOL_NAME } from '@/mta_schools/constants'
-import { useSchoolDelete, useSchoolDetail, useNavigateToSchoolList } from '@/mta_schools/hooks'
-import EditionPage from '@/shared/pages/EditionPage'
+import { useSchoolDelete, useSchoolDetail, useSchoolUpdate, useNavigateToSchoolList } from '@/mta_schools/hooks'
+import ResourceEditionPage from '@/shared/resources/ResourceEditionPage'
 
 const SchoolEditPage = () => (
-  <EditionPage
-    EditionForm={SchoolEditForm}
+  <ResourceEditionPage
+    resourceKey="school"
     entityName={SCHOOL_NAME}
     useDelete={useSchoolDelete}
     useDetail={useSchoolDetail}
+    useUpdate={useSchoolUpdate}
     onExit={useNavigateToSchoolList()}
+    renderAfterForm={({ id }) => <SchoolRelatedStaff schoolId={Number(id)} />}
   />
 )
 

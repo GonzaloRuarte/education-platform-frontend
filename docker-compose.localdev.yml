@@ -9,7 +9,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    command: sh -c 'exec redis-server --requirepass "$REDIS_PASSWORD"'
+    command: sh -c 'exec redis-server --requirepass "$$REDIS_PASSWORD"'
     ports:
       - "${REDIS_PORT:-6379}:6379"
     env_file: ../meta-backend/.env
@@ -18,12 +18,12 @@ services:
   backend:
     build:
       context: ../meta-backend
-      dockerfile: Dockerfile.pre_staging
+      dockerfile: Dockerfile
     command: >
       sh -c "python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
     volumes:
-      - ../meta-backend:/app          # live-reload code on save
+      - ../meta-backend:/application  # live-reload code on save
     env_file: ../meta-backend/.env
     environment:
       # override ONLY the hostnames (because inside Docker, localhost != your machine)

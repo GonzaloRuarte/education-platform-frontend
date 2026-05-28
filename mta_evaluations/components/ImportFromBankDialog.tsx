@@ -4,7 +4,6 @@ import { GridColDef } from '@mui/x-data-grid'
 import { FC } from 'react'
 
 import ListPage from '@/shared/pages/ListPage'
-import Chip from '@/shared/components/Chip'
 import Button from '@/shared/components/Button'
 import { stripTags } from '@/shared/utils'
 import { useQuestionList } from '@/mta_questionbank/hooks'       // you already have the list hook
@@ -13,7 +12,7 @@ import { successToast } from '@/shared/toasts'
 import { handleServiceError } from '@/shared/service'
 import { QUESTION_NAME } from '@/mta_evaluations/constants'
 import { T_EvaluationPageId } from '@/mta_evaluations/types'
-import { useSubjectLabel } from '@/mta_evaluations/components/SubjectOptions'
+import { SubjectChip } from '@/mta_evaluations/components/SubjectOptions'
 
 interface I_Props {
   evaluationPageId: T_EvaluationPageId          // close the modal
@@ -36,9 +35,7 @@ const ImportFromBankDialog: FC<I_Props> = ({ evaluationPageId }) => {
     field: 'subject_id',
     headerName: 'Materia',
     flex: 1,
-    renderCell: ({ value }) => (
-      <Chip variant="outlined" size="small" label={useSubjectLabel(value)} />
-    ),
+    renderCell: ({ value }) => <SubjectChip id={value} />,
   },
 
   /*──── difficulty: 1-5 stars or plain number ───────────────────*/

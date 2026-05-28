@@ -1,15 +1,22 @@
 'use client'
 
 import { withAuth } from '@/mta_auth/hocs/withAuth'
-import SchoolCreateForm from '@/mta_schools/components/SchoolCreateForm'
 import { SCHOOL_NAME } from '@/mta_schools/constants'
-import { useNavigateToSchoolList } from '@/mta_schools/hooks'
-import CreationPage from '@/shared/pages/CreationPage'
+import { useNavigateToSchoolList, useSchoolCreate } from '@/mta_schools/hooks'
+import ResourceCreationPage from '@/shared/resources/ResourceCreationPage'
 
 const SchoolCreatePage = () => {
   const navigateToSchoolList = useNavigateToSchoolList()
 
-  return <CreationPage CreationForm={SchoolCreateForm} entityName={SCHOOL_NAME} onCancel={navigateToSchoolList} />
+  return (
+    <ResourceCreationPage
+      resourceKey="school"
+      entityName={SCHOOL_NAME}
+      useCreate={useSchoolCreate}
+      onCancel={navigateToSchoolList}
+      onCreated={navigateToSchoolList}
+    />
+  )
 }
 
 export default withAuth(SchoolCreatePage, {

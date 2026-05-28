@@ -1,3 +1,5 @@
+'use client'
+
 import ForgotAccessForm from '@/mta_auth/components/ForgotAccessForm'
 import { avoidAuthorized } from '@/mta_auth/hocs/AvoidAuthorized'
 import pages from '@/pages'

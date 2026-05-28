@@ -5,13 +5,13 @@ import { StateCreator } from 'zustand'
 
 interface I_EvaluationsSlice {
   evaluations_subjects: T_EvaluationSubjectList | undefined;
-  evaluations_subjectLabels: Record<string, string>;     // ← NEW
+  evaluations_subjectLabels: Record<string, string>;
   evaluations_storeSubjects: (subjects: T_EvaluationSubjectList) => void;
 }
 
 const createEvaluationsSlice: StateCreator<I_EvaluationsSlice> = (set) => ({
   evaluations_subjects: undefined,
-  evaluations_subjectLabels: {},                         // ← NEW
+  evaluations_subjectLabels: {},
   evaluations_storeSubjects: (subjects) =>
     set(() => ({
       evaluations_subjects: subjects,
