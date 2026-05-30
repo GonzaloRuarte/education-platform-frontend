@@ -1,4 +1,4 @@
-import { customCache } from '@/shared/serciveWorker'
+import { customCache } from '@/shared/serviceWorker'
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist'
 import { Serwist } from 'serwist'
 

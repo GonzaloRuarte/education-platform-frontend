@@ -8,7 +8,6 @@ import {
   useNavigateToExecutiveProfileDetail,
   useExecutiveProfileBatchDelete,
   useExecutiveProfileList,
-  useExecutiveProfileListByUserSchool,
 } from '@/mta_schools/hooks'
 import { useSchoolScopeResources } from '@/mta_schools/hooks/state'
 import { I_ExecutiveProfileListItem } from '@/mta_schools/types'
@@ -35,7 +34,7 @@ const ExecutiveProfileListPage = () => {
   return (
     <ListPage
       columns={columns}
-      useList={canManageSchools ? useExecutiveProfileList : useExecutiveProfileListByUserSchool}
+      useList={useExecutiveProfileList}
       entityName={EXECUTIVE_PROFILE_NAME}
       onRowClick={ListPage.mapNavToOnRowClick(navToDetail)}
       onCreate={navToCreate}
