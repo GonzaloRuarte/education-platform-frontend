@@ -10,7 +10,7 @@ import { useHasCapabilities } from '@/mta_auth/hooks'
 import { APPOINTMENT_MAX_STUDENTS } from '@/mta_schedule/constants'
 import { useStudentProfileListBySchool } from '@/mta_schools/hooks'
 import {
-  I_StudentProfileListItem,
+  I_StudentProfileScopedListItem,
   T_SchoolId,
   T_StudentProfileId,
   T_StudentProfilePersonalId,
@@ -47,8 +47,8 @@ const columns = (
   addedStudents: T_AddedStudents,
   onAddedStudentsChange: T_OnAddedStudentsChange,
   canViewStudentDni: boolean,
-): Array<GridColDef<I_StudentProfileListItem>> => {
-  const baseColumns: Array<GridColDef<I_StudentProfileListItem>> = [
+): Array<GridColDef<I_StudentProfileScopedListItem>> => {
+  const baseColumns: Array<GridColDef<I_StudentProfileScopedListItem>> = [
     { field: 'cohort', headerName: 'División', flex: 1 },
     {
       field: 'actions',

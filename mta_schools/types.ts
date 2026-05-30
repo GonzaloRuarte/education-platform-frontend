@@ -106,6 +106,15 @@ interface I_StudentProfileListItem {
 
 type T_StudentProfileList = I_PaginatedResponse<I_StudentProfileListItem>
 
+interface I_StudentProfileScopedListItem {
+  id: T_StudentProfileId
+  cohort: string
+  personal_id: T_StudentProfilePersonalId
+  nee: boolean
+}
+
+type T_StudentProfileScopedList = I_PaginatedResponse<I_StudentProfileScopedListItem>
+
 interface I_SchoolStaffProfileListItem {
   id: T_SchoolStaffProfileId
   user_id: T_UserId
@@ -235,8 +244,10 @@ export type {
   I_SchoolDetail,
   I_SchoolListItem,
   I_StudentProfileListItem,
+  I_StudentProfileScopedListItem,
   T_SchoolsList,
   T_StudentProfileList,
+  T_StudentProfileScopedList,
   I_SchoolCreateRequestData,
   I_SchoolUpdateRequestData,
   T_SchoolNames,

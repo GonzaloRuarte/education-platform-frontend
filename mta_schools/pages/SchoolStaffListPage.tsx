@@ -8,7 +8,6 @@ import {
   useNavigateToSchoolStaffProfileDetail,
   useSchoolStaffProfileBatchDelete,
   useSchoolStaffProfileList,
-  useSchoolStaffProfileListByUserSchool,
 } from '@/mta_schools/hooks'
 import { useSchoolScopeResources } from '@/mta_schools/hooks/state'
 import { I_SchoolStaffProfileListItem } from '@/mta_schools/types'
@@ -31,12 +30,11 @@ const SchoolStaffProfileListPage = () => {
   const navToCreate = useNavigateToSchoolStaffProfileCreate()
   const canManageSchools = useHasCapabilities(['manage_schools'])
   const { selectedSchool, isLoading } = useSchoolScopeResources()
-  const useListHook = canManageSchools ? useSchoolStaffProfileList : useSchoolStaffProfileListByUserSchool
 
   return (
     <ListPage
       columns={columns}
-      useList={useListHook}
+      useList={useSchoolStaffProfileList}
       entityName={SCHOOL_STAFF_PROFILE_NAME}
       onRowClick={ListPage.mapNavToOnRowClick(navToDetail)}
       onCreate={navToCreate}

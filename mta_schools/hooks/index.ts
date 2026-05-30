@@ -29,6 +29,7 @@ import {
   T_StudentProfileBatchCreateRequestData,
   T_StudentProfileId,
   T_StudentProfileList,
+  T_StudentProfileScopedList,
 } from '@/mta_schools/types'
 import { axiosDelete, axiosGet, axiosPatch, axiosPost } from '@/shared/data/axios'
 import {
@@ -98,7 +99,7 @@ const STUDENT_PROFILE_PATH = '/student-profiles'
 const STUDENTS_BY_SCHOOL_PATH = '/student-profiles/list-by-school/{schoolId:string}'
 const useStudentProfileDetail = resourceRecordDetailHook<T_StudentProfileId, I_StudentProfileDetail>(STUDENT_PROFILE_RESOURCE_KEY)
 const useStudentProfileList = resourceRecordListHook<T_StudentProfileList>(STUDENT_PROFILE_RESOURCE_KEY)
-const useStudentProfileListBySchool = listHookV3<typeof STUDENTS_BY_SCHOOL_PATH, T_StudentProfileList>(STUDENTS_BY_SCHOOL_PATH, axiosGet, useAuthResources)
+const useStudentProfileListBySchool = listHookV3<typeof STUDENTS_BY_SCHOOL_PATH, T_StudentProfileScopedList>(STUDENTS_BY_SCHOOL_PATH, axiosGet, useAuthResources)
 const useStudentProfileCreate = resourceRecordCreateHook<I_StudentProfileCreateRequestData, I_CreationCommonResponse>(STUDENT_PROFILE_RESOURCE_KEY)
 const useStudentProfileUpdate = resourceRecordUpdateHook<T_StudentProfileId, I_StudentProfileCreateRequestData, I_CreationCommonResponse>(STUDENT_PROFILE_RESOURCE_KEY)
 const useStudentProfileBatchCreate = creationHook<T_StudentProfileBatchCreateRequestData, I_CreationCommonResponse>(`${STUDENT_PROFILE_PATH}/batch-create`, axiosPost, useRequestSetupWithMultipart)
@@ -106,7 +107,6 @@ const useStudentProfileBatchCreate = creationHook<T_StudentProfileBatchCreateReq
 const SCHOOL_STAFF_PROFILE = '/school-staff-profiles'
 const EXECUTIVE_PROFILE = '/executive-profiles'
 const useSchoolStaffProfileList = listHook<T_SchoolStaffProfileList>(SCHOOL_STAFF_PROFILE, axiosGet, useAuthResources)
-const useSchoolStaffProfileListByUserSchool = listHook<T_SchoolStaffProfileList>(`${SCHOOL_STAFF_PROFILE}/list-by-user-school`, axiosGet, useAuthResources)
 const useExecutiveProfileList = listHook<T_ExecutiveProfileList>(EXECUTIVE_PROFILE, axiosGet, useAuthResources)
 const useExecutiveProfileListByUserSchool = listHook<T_ExecutiveProfileList>(`${EXECUTIVE_PROFILE}/list-by-user-school`, axiosGet, useAuthResources)
 const useSchoolStaffProfileBatchDelete = batchDeletionHook<T_SchoolStaffProfileId>(SCHOOL_STAFF_PROFILE, axiosDelete, useAuthResources)
@@ -206,7 +206,6 @@ export {
   useSchoolStaffProfileDelete,
   useSchoolStaffProfileDetail,
   useSchoolStaffProfileList,
-  useSchoolStaffProfileListByUserSchool,
   useSchoolStaffProfileUpdate,
   useExecutiveProfileBatchDelete,
   useExecutiveProfileCreate,
