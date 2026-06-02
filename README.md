@@ -1,13 +1,80 @@
-# Meta Frontend
+# Retrobolt Runtime DB Admin Frontend
 
-Frontend layer for the Meta schools evaluation system
+This is a clean frontend implementation for the cleaned Retrobolt backend DB Admin surface.
 
-#### Prestaging environment commands
+It is intentionally small and generic:
+
+- no React, Next, MUI, or generated client dependency;
+- no compile-time table/model/resource list;
+- no compiled field labels, field types, enum values, relation labels, or CRUD URLs per resource;
+- no legacy dashboard routes or old capability vocabulary;
+- ordinary CRUD is discovered from the backend at runtime through `surface=db_admin`.
+
+## Runtime contract
+
+The frontend uses only these backend contracts:
+
+```text
+POST /api/token/
+POST /api/token/refresh/
+GET /api/resources/?surface=db_admin
+GET /api/resources/{resource_key}/?surface=db_admin
+GET /api/resources/{resource_key}/records/?surface=db_admin
+POST /api/resources/{resource_key}/records/?surface=db_admin
+GET /api/resources/{resource_key}/records/{record_pk}/?surface=db_admin
+PATCH /api/resources/{resource_key}/records/{record_pk}/?surface=db_admin
+DELETE /api/resources/{resource_key}/records/{record_pk}/?surface=db_admin
+GET /api/resources/{resource_key}/options/{field_key}/?surface=db_admin
+```
+
+The only capability name compiled into the frontend is `access_db_admin`, because this app is only the DB Admin shell.
+Resource/action/field truth still comes from backend metadata.
+
+## Local commands
 
 ```bash
-docker compose -f 'docker-compose.pre_staging.yml' up -d --build
-
-# Build and run the app
-docker build -t meta_frontend_prestaging-app:latest -f Dockerfile.pre_staging .
-docker run --name meta_frontend_prestaging-app-1 -p 3000:3000 --detach meta_frontend_prestaging-app:latest
+npm run typecheck
+npm run build
+npm run validate
 ```
+
+`npm run build` compiles `src/app.ts` into `dist/assets/app.js` and copies `public/*` into `dist/`.
+
+The built app is static. Serve `dist/` from any static server. Configure the backend origin in one of two ways:
+
+1. Edit `dist/config.js` / `public/config.js`:
+
+```js
+window.__RETROBOLT_ADMIN_CONFIG__ = { apiBaseUrl: "https://backend.example.com" };
+```
+
+2. Or set the API base URL on the login screen. It is stored in local storage.
+
+Leave it blank when the frontend and backend are on the same origin.
+
+## Design constraints
+
+The admin does not know what tables/resources exist at compile time. It discovers them from `/api/resources/?surface=db_admin` after login.
+
+The admin does not define forms per model. It renders fields based on backend schema metadata:
+
+- `type`
+- `label`
+- `required`
+- `nullable`
+- `editable`
+- `readonly_on_update`
+- `write_only`
+- `visible_in_list`
+- `pii`
+- `option_source`
+- `relation`
+- `sortable`, `filterable`, `searchable`
+
+The admin does not create product workflows. It is for ordinary DB Admin CRUD only.
+Appointments, resolution workflows, reports, evaluation authoring, imports, password recovery, and other product commands should remain explicit future apps/pages fed by backend workflow metadata.
+
+## Completion plan
+
+The smallest remaining work is tracked in
+[`docs/DB_ADMIN_COMPLETION_PLAN.md`](docs/DB_ADMIN_COMPLETION_PLAN.md).
