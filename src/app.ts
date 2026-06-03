@@ -118,6 +118,11 @@ type ResourceNavigation = {
   order?: number;
 };
 
+type RecordIdentity = {
+  kind: "single_pk" | "composite" | string;
+  fields: string[];
+};
+
 type ResourceSchema = {
   key: string;
   label: string;
@@ -130,6 +135,7 @@ type ResourceSchema = {
   page_size: number;
   destructive_actions?: Record<string, DestructiveAction>;
   navigation?: ResourceNavigation;
+  record_identity?: RecordIdentity;
   list_query_contract?: unknown;
 };
 
@@ -1431,15 +1437,19 @@ function editableFields(schema: ResourceSchema, creating: boolean): ResourceFiel
   return schema.fields.filter((field) => field.editable && (creating || !field.readonly_on_update));
 }
 
+function identityFields(schema: ResourceSchema): string[] {
+  return schema.record_identity?.fields ?? schema.primary_key_fields;
+}
+
 function canUseSinglePk(schema: ResourceSchema): boolean {
-  return schema.primary_key_fields.length === 1;
+  return (schema.record_identity?.kind ?? "single_pk") === "single_pk" && identityFields(schema).length === 1;
 }
 
 function recordPk(schema: ResourceSchema, record: ResourceRecord): string | null {
   if (!canUseSinglePk(schema)) {
     return null;
   }
-  const [pkField] = schema.primary_key_fields;
+  const [pkField] = identityFields(schema);
   if (!pkField) {
     return null;
   }
@@ -1545,7 +1555,4 @@ async function boot(): Promise<void> {
 }
 
 void boot();
-
-
-
 
