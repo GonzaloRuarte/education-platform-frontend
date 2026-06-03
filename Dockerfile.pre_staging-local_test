@@ -38,25 +38,11 @@ RUN \
   else echo "Lockfile not found." && exit 1; \
   fi
 
-# Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=staging
-# Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED=1
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-COPY --from=builder /app/public ./public
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-USER nextjs
+COPY --from=builder /app ./
 
 EXPOSE 3000
 ENV NODE_ENV=staging
@@ -65,7 +51,5 @@ ENV NEXT_PUBLIC_API_BASE_PATH=http://localhost:8000/api
 ENV NEXT_PUBLIC_APPOINTMENT_SCHEDULE_PROFILE=expanded_6_blocks
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
 ENV HOSTNAME=0.0.0.0
-CMD ["node", "server.js"]
+CMD ["node", "-e", "const http=require('http'),fs=require('fs'),path=require('path');const root=path.join(process.cwd(),'dist');const port=process.env.PORT||3000;const types={'.html':'text/html','.js':'text/javascript','.css':'text/css'};http.createServer((req,res)=>{const clean=decodeURIComponent(req.url.split('?')[0]);let file=path.join(root,clean==='/'?'index.html':clean);if(!file.startsWith(root))file=path.join(root,'index.html');fs.readFile(file,(err,data)=>{if(err){res.writeHead(404);res.end('Not found');return;}res.writeHead(200,{'Content-Type':types[path.extname(file)]||'application/octet-stream'});res.end(data);});}).listen(port,'0.0.0.0');"]

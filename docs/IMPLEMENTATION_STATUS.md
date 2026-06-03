@@ -1,6 +1,6 @@
 # Implementation Status
 
-Date: 2026-06-02
+Date: 2026-06-03
 
 Scope: zero-dependency, runtime-discovered DB Admin frontend for the cleaned Retrobolt backend.
 
@@ -31,6 +31,7 @@ The active completion sequence lives in
 - Avoids rendering unsafe HTML from `rich_text`; values are displayed as text.
 - Includes a validation script that fails if legacy endpoint/capability fragments are accidentally compiled back into the new app.
 - Provides a static build in `dist/`.
+- Docker compose validation passes for typecheck, build, and static dist checks.
 
 ## Not done
 
@@ -41,7 +42,7 @@ The active completion sequence lives in
 - No export/import UI. Generic CRUD should not guess file workflow semantics.
 - No optimistic updates/offline behavior. DB Admin CRUD should stay online and authoritative.
 - No generated OpenAPI client. This is intentional for the first pass: the generic resource schema is the runtime source of truth.
-- No automated browser smoke test against a live backend yet. TypeScript/build/static validation pass locally.
+- No automated browser smoke test against a live backend yet. Docker compose validates TypeScript/build/static dist checks, but authenticated browser CRUD is still unproven.
 
 ## Doubts / backend metadata needed before polishing
 
@@ -96,3 +97,4 @@ The old frontend can remain a product-workflow reference only. It should not be 
 ## Deployment note
 
 The static frontend works same-origin without CORS changes. If it is served from a different origin than the backend, the backend deployment must explicitly allow that origin and JWT authorization headers. This is deployment configuration, not a reason to add frontend compatibility code.
+
