@@ -106,6 +106,13 @@ type ResourceField = {
   relation?: RelationDefinition;
 };
 
+type DestructiveAction = {
+  confirm?: boolean;
+  tone?: "danger" | "warning" | "neutral" | string;
+  label?: string;
+  message?: string;
+};
+
 type ResourceSchema = {
   key: string;
   label: string;
@@ -116,6 +123,7 @@ type ResourceSchema = {
   business_actions: ResourceAction[];
   default_sort: string[];
   page_size: number;
+  destructive_actions?: Record<string, DestructiveAction>;
   list_query_contract?: unknown;
 };
 
@@ -1361,7 +1369,8 @@ function coerceScalar(value: string): string | number {
 }
 
 async function deleteRecord(schema: ResourceSchema, recordId: string): Promise<void> {
-  const confirmed = window.confirm(`Delete this ${schema.label}?`);
+  const action = schema.destructive_actions?.delete;
+  const confirmed = action?.confirm === false || window.confirm(action?.message ?? `Delete this ${schema.label}?`);
   if (!confirmed) {
     return;
   }
@@ -1516,5 +1525,6 @@ async function boot(): Promise<void> {
 }
 
 void boot();
+
 
 
