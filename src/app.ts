@@ -52,7 +52,36 @@ type RelationDefinition = {
   resource_key: string;
   value_field: string;
   label_field: string;
+  searchable_fields?: string[];
   depends_on: string[];
+  dependencies?: Array<{ source_field: string; target_field: string; operator: string }>;
+  priority?: number | null;
+  page_size?: number;
+};
+
+type AdminControl =
+  | "text_input"
+  | "textarea"
+  | "number_input"
+  | "checkbox"
+  | "date_input"
+  | "datetime_input"
+  | "email_input"
+  | "enum_select"
+  | "fk_select"
+  | "many_to_many_select"
+  | "json_textarea"
+  | "read_only";
+
+type FieldValidation = {
+  max_length?: number;
+  min_length?: number;
+  max_value?: number | string;
+  min_value?: number | string;
+  pattern?: string;
+  required?: boolean;
+  nullable?: boolean;
+  allow_blank?: boolean;
 };
 
 type ResourceField = {
@@ -71,6 +100,8 @@ type ResourceField = {
   visible_capability: string | null;
   write_only: boolean;
   help_text?: string;
+  admin_control?: AdminControl | null;
+  validation?: FieldValidation;
   option_source?: OptionSource;
   relation?: RelationDefinition;
 };
@@ -105,6 +136,9 @@ type RelationOption = {
 };
 
 type OptionsResponse = {
+  count?: number;
+  next?: string | null;
+  previous?: string | null;
   options: RelationOption[];
 };
 
@@ -699,7 +733,7 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
   const notices: Node[] = [];
   if (schemaHasDependentRelations(schema)) {
     notices.push(el("div", { class: "notice" }, [
-      "This schema declares dependent relation selectors. The current backend options endpoint does not publish a dependency-filter protocol, so this generic UI loads scoped options without cascading.",
+      "This schema declares dependent relation selectors. The backend publishes selector metadata; cascading form selectors are still pending in this generic UI.",
     ]));
   }
   if (state.message) {
@@ -811,6 +845,7 @@ function renderRowActions(schema: ResourceSchema, record: ResourceRecord): HTMLE
 }
 
 function renderCell(field: ResourceField, value: RecordValue, optionMap?: Map<string, string>): Node {
+  const control = controlForField(field);
   if (value === null || value === undefined || value === "") {
     return el("span", { class: "cell-muted" }, ["—"]);
   }
@@ -823,7 +858,7 @@ function renderCell(field: ResourceField, value: RecordValue, optionMap?: Map<st
     return document.createTextNode(optionLabel(optionMap, value));
   }
 
-  if (field.type === "many_to_many") {
+  if (control === "many_to_many_select") {
     const values = Array.isArray(value) ? value : [value];
     return document.createTextNode(values.map((item) => optionLabel(optionMap, item)).join(", "));
   }
@@ -988,7 +1023,7 @@ async function loadOptionMap(view: ResourceViewState, field: ResourceField): Pro
     return;
   }
   try {
-    const response = await apiFetch<OptionsResponse>(withSurface(optionsPath(view.schema.key, field.key)));
+    const response = await apiFetch<OptionsResponse>(withSurface(optionsPath(view.schema.key, field.key), optionQueryParams(field)));
     for (const option of response.options) {
       map.set(String(option.value), option.label);
     }
@@ -1048,7 +1083,7 @@ async function loadFormOptions(schema: ResourceSchema): Promise<Record<string, R
     }
     if (field.relation) {
       try {
-        const response = await apiFetch<OptionsResponse>(withSurface(optionsPath(schema.key, field.key)));
+        const response = await apiFetch<OptionsResponse>(withSurface(optionsPath(schema.key, field.key), optionQueryParams(field)));
         result[field.key] = response.options;
       } catch {
         result[field.key] = [];
@@ -1058,6 +1093,39 @@ async function loadFormOptions(schema: ResourceSchema): Promise<Record<string, R
   return result;
 }
 
+function optionQueryParams(field: ResourceField): Record<string, string> {
+  const pageSize = field.relation?.page_size ?? 100;
+  return { page_size: String(pageSize) };
+}
+
+function validationAttributes(field: ResourceField, readonly: boolean): Record<string, string | number | boolean | null | undefined> {
+  const validation = field.validation ?? {};
+  return {
+    required: (validation.required ?? field.required) && !readonly,
+    maxlength: validation.max_length,
+    minlength: validation.min_length,
+    max: validation.max_value,
+    min: validation.min_value,
+    pattern: validation.pattern,
+  };
+}
+
+function controlForField(field: ResourceField): AdminControl {
+  if (field.admin_control) {
+    return field.admin_control;
+  }
+  if (field.type === "boolean") return "checkbox";
+  if (field.type === "text" || field.type === "rich_text") return "textarea";
+  if (field.type === "json") return "json_textarea";
+  if (field.type === "integer" || field.type === "decimal") return "number_input";
+  if (field.type === "date") return "date_input";
+  if (field.type === "datetime") return "datetime_input";
+  if (field.type === "email") return "email_input";
+  if (field.type === "enum") return "enum_select";
+  if (field.type === "foreign_key") return "fk_select";
+  if (field.type === "many_to_many") return "many_to_many_select";
+  return "text_input";
+}
 function renderRecordForm(
   modal: HTMLElement,
   schema: ResourceSchema,
@@ -1113,7 +1181,8 @@ function renderInputField(field: ResourceField, value: RecordValue, options: Rel
 }
 
 function inputForField(field: ResourceField, value: RecordValue, options: RelationOption[], readonly: boolean): HTMLElement {
-  if (field.type === "boolean") {
+  const control = controlForField(field);
+  if (control === "checkbox") {
     const input = el("input", {
       id: field.key,
       name: field.key,
@@ -1125,13 +1194,13 @@ function inputForField(field: ResourceField, value: RecordValue, options: Relati
     return el("div", { class: "checkbox-row" }, [input, el("span", {}, [value === true ? "Yes" : "No"])]);
   }
 
-  if (field.type === "enum" || field.type === "foreign_key") {
+  if (control === "enum_select" || control === "fk_select") {
     const select = el("select", {
       id: field.key,
       name: field.key,
       class: "select",
       disabled: readonly,
-      required: field.required && !readonly,
+      ...validationAttributes(field, readonly),
       "data-field-type": field.type,
     });
     if (field.nullable || !field.required) {
@@ -1144,7 +1213,7 @@ function inputForField(field: ResourceField, value: RecordValue, options: Relati
     return select;
   }
 
-  if (field.type === "many_to_many") {
+  if (control === "many_to_many_select") {
     const selected = new Set((Array.isArray(value) ? value : []).map((item) => String(item)));
     const select = el("select", {
       id: field.key,
@@ -1161,19 +1230,19 @@ function inputForField(field: ResourceField, value: RecordValue, options: Relati
     return select;
   }
 
-  if (field.type === "text" || field.type === "rich_text" || field.type === "json") {
+  if (control === "textarea" || control === "json_textarea") {
     const textValue = field.type === "json" ? safeJson(value ?? null) : String(value ?? "");
     return el("textarea", {
       id: field.key,
       name: field.key,
       class: "textarea",
       disabled: readonly,
-      required: field.required && !readonly,
+      ...validationAttributes(field, readonly),
       "data-field-type": field.type,
     }, [textValue]);
   }
 
-  const type = inputType(field.type);
+  const type = inputType(field, control);
   return el("input", {
     id: field.key,
     name: field.key,
@@ -1181,7 +1250,7 @@ function inputForField(field: ResourceField, value: RecordValue, options: Relati
     type,
     value: inputValue(field, value),
     disabled: readonly,
-    required: field.required && !readonly,
+    ...validationAttributes(field, readonly),
     "data-field-type": field.type,
   });
 }
@@ -1386,8 +1455,12 @@ function stripTags(value: string): string {
   return template.content.textContent ?? "";
 }
 
-function inputType(fieldType: FieldType): string {
-  switch (fieldType) {
+function inputType(field: ResourceField, control: AdminControl): string {
+  if (control === "email_input") return "email";
+  if (control === "number_input") return "number";
+  if (control === "date_input") return "date";
+  if (control === "datetime_input") return "datetime-local";
+  switch (field.type) {
     case "email":
       return "email";
     case "integer":
@@ -1443,3 +1516,5 @@ async function boot(): Promise<void> {
 }
 
 void boot();
+
+
