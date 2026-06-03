@@ -113,6 +113,11 @@ type DestructiveAction = {
   message?: string;
 };
 
+type ResourceNavigation = {
+  group?: string;
+  order?: number;
+};
+
 type ResourceSchema = {
   key: string;
   label: string;
@@ -124,6 +129,7 @@ type ResourceSchema = {
   default_sort: string[];
   page_size: number;
   destructive_actions?: Record<string, DestructiveAction>;
+  navigation?: ResourceNavigation;
   list_query_contract?: unknown;
 };
 
@@ -581,7 +587,13 @@ function renderSidebar(session: AuthSession): HTMLElement {
 
   const visibleResources = filteredResources();
   const nav = el("nav", { class: "resource-nav", "aria-label": "Resources" });
+  let currentGroup = "";
   for (const resource of visibleResources) {
+    const group = resource.navigation?.group ?? "Resources";
+    if (group !== currentGroup) {
+      currentGroup = group;
+      nav.append(el("div", { class: "resource-group" }, [group]));
+    }
     const item = el("button", {
       class: resource.key === state.selectedResourceKey ? "active" : "",
       type: "button",
@@ -1390,12 +1402,20 @@ async function deleteRecord(schema: ResourceSchema, recordId: string): Promise<v
 
 function filteredResources(): ResourceSchema[] {
   const needle = state.resourceFilter.trim().toLowerCase();
-  if (!needle) {
-    return state.resources;
-  }
-  return state.resources.filter((resource) =>
-    [resource.key, resource.label, resource.plural_label].some((value) => value.toLowerCase().includes(needle)),
-  );
+  const resources = !needle
+    ? state.resources
+    : state.resources.filter((resource) =>
+        [resource.key, resource.label, resource.plural_label, resource.navigation?.group ?? ""].some((value) => value.toLowerCase().includes(needle)),
+      );
+  return [...resources].sort((left, right) => {
+    const leftGroup = left.navigation?.group ?? "Resources";
+    const rightGroup = right.navigation?.group ?? "Resources";
+    if (leftGroup !== rightGroup) return leftGroup.localeCompare(rightGroup);
+    const leftOrder = left.navigation?.order ?? 1000;
+    const rightOrder = right.navigation?.order ?? 1000;
+    if (leftOrder !== rightOrder) return leftOrder - rightOrder;
+    return (left.plural_label || left.label || left.key).localeCompare(right.plural_label || right.label || right.key);
+  });
 }
 
 function listFields(schema: ResourceSchema): ResourceField[] {
@@ -1525,6 +1545,7 @@ async function boot(): Promise<void> {
 }
 
 void boot();
+
 
 
 
