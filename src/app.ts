@@ -11,6 +11,26 @@ type JsonPrimitive = string | number | boolean | null;
 type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
 type RecordValue = JsonValue | undefined;
 type ResourceRecord = Record<string, RecordValue>;
+type Locale = "en" | "es";
+type LocalizedText = Partial<Record<Locale | string, string>>;
+type FieldI18n = {
+  label?: LocalizedText;
+  help_text?: LocalizedText;
+  ui?: {
+    section?: LocalizedText;
+    placeholder?: LocalizedText;
+  };
+};
+type ResourceI18n = {
+  label?: LocalizedText;
+  plural_label?: LocalizedText;
+  description?: LocalizedText;
+  admin_help_text?: LocalizedText;
+};
+type ActionI18n = {
+  label?: LocalizedText;
+  message?: LocalizedText;
+};
 
 type FieldType =
   | "string"
@@ -32,6 +52,7 @@ type ResourceAction = "list" | "retrieve" | "create" | "update" | "delete";
 type StaticOption = {
   value: string;
   label: string;
+  i18n?: { label?: LocalizedText };
 };
 
 type OptionSource =
@@ -57,6 +78,7 @@ type RelationDefinition = {
   dependencies?: Array<{ source_field: string; target_field: string; operator: string }>;
   priority?: number | null;
   page_size?: number;
+  option_control?: "select" | "typeahead" | string;
 };
 
 type AdminControl =
@@ -84,6 +106,13 @@ type FieldValidation = {
   allow_blank?: boolean;
 };
 
+type FieldUi = {
+  section?: string;
+  priority?: number;
+  width?: "full" | "half" | "third" | string;
+  placeholder?: string;
+};
+
 type ResourceField = {
   key: string;
   label: string;
@@ -102,6 +131,8 @@ type ResourceField = {
   help_text?: string;
   admin_control?: AdminControl | null;
   validation?: FieldValidation;
+  ui?: FieldUi;
+  i18n?: FieldI18n;
   option_source?: OptionSource;
   relation?: RelationDefinition;
 };
@@ -111,11 +142,99 @@ type DestructiveAction = {
   tone?: "danger" | "warning" | "neutral" | string;
   label?: string;
   message?: string;
+  i18n?: ActionI18n;
 };
 
 type ResourceNavigation = {
   group?: string;
   order?: number;
+};
+
+type RelatedListDefinition = {
+  key: string;
+  label: string;
+  target_resource_key: string;
+  target_field: string;
+  source_field: string;
+  operator: string;
+  i18n?: { label?: LocalizedText };
+};
+
+type RecordResourceUrls = {
+  detail?: string;
+  update?: string;
+  delete?: string;
+};
+
+type ResourceUrls = {
+  schema?: string;
+  list?: string;
+  create?: string;
+  batch_delete?: string;
+  options_template?: string;
+};
+
+type RecordPayloadContract = {
+  relation_values?: string;
+  reverse_relations?: string;
+  nested_relations?: boolean;
+  write_shape?: string;
+  metadata_fields?: string[];
+};
+
+type MigrationSafetyContract = {
+  schema_evolution?: string;
+  query_construction?: string;
+  unsupported_fields_or_operators?: string;
+  frontend_query_shape?: string;
+  permission_changes?: string;
+  database_policy_mirroring?: {
+    status?: string;
+    source_of_truth?: string;
+    database_roles?: string[];
+    reason?: string;
+  };
+};
+
+type GridFilterItem = {
+  field: string;
+  operator: string;
+  value?: JsonValue;
+};
+
+type GridFilterModel = {
+  items: GridFilterItem[];
+  quickFilterValues: string[];
+  linkOperator: "and" | "or";
+};
+
+type FilterValueControl = {
+  kind?: "field" | "none" | string;
+  multiple?: boolean;
+};
+
+type FilterOperatorDefinition = {
+  key: string;
+  label: string;
+  value_kind: "single" | "multiple" | "none" | string;
+  field_types?: string[];
+  value_control?: FilterValueControl;
+  i18n?: { label?: LocalizedText };
+};
+
+type FilterControlReader = {
+  element: HTMLElement;
+  readValue: () => JsonValue | undefined;
+  reset: () => void;
+};
+
+type ListQueryContract = {
+  filters?: {
+    query_param?: string;
+    encoding?: string;
+    supported_operators?: string[];
+    operators?: FilterOperatorDefinition[];
+  };
 };
 
 type RecordIdentity = {
@@ -133,10 +252,18 @@ type ResourceSchema = {
   business_actions: ResourceAction[];
   default_sort: string[];
   page_size: number;
+  description?: string;
+  admin_help_text?: string;
   destructive_actions?: Record<string, DestructiveAction>;
+  resource_urls?: ResourceUrls;
+  record_payload_contract?: RecordPayloadContract;
+  migration_safety_contract?: MigrationSafetyContract;
   navigation?: ResourceNavigation;
   record_identity?: RecordIdentity;
-  list_query_contract?: unknown;
+  i18n?: ResourceI18n;
+  display_label_field?: string | null;
+  related_lists?: RelatedListDefinition[];
+  list_query_contract?: ListQueryContract;
 };
 
 type ResourcesResponse = {
@@ -187,6 +314,7 @@ type AppState = {
   loading: boolean;
   error: string | null;
   message: string | null;
+  locale: Locale;
 };
 
 type ResourceViewState = {
@@ -196,9 +324,11 @@ type ResourceViewState = {
   page: number;
   pageSize: number;
   quickSearch: string;
+  filterModel: GridFilterModel;
   sortField: string;
   sortDirection: "asc" | "desc";
   optionMaps: Record<string, Map<string, string>>;
+  selectedIds: Set<string>;
   loading: boolean;
   error: string | null;
 };
@@ -206,6 +336,7 @@ type ResourceViewState = {
 type ApiErrorPayload = {
   detail?: string;
   message?: string;
+  request_id?: string;
   [key: string]: unknown;
 };
 
@@ -214,6 +345,8 @@ const ACCESS_DB_ADMIN = "access_db_admin";
 const DEFAULT_PAGE_SIZE = 25;
 const STORAGE_SESSION = "retrobolt.admin.session";
 const STORAGE_API_BASE = "retrobolt.admin.apiBaseUrl";
+const STORAGE_LOCALE = "retrobolt.admin.locale";
+const RESOURCE_HASH_PREFIX = "#/resources/";
 const appRootElement = document.getElementById("app");
 
 if (!(appRootElement instanceof HTMLElement)) {
@@ -230,7 +363,67 @@ const state: AppState = {
   loading: false,
   error: null,
   message: null,
+  locale: loadLocale(),
 };
+
+function loadLocale(): Locale {
+  const stored = localStorage.getItem(STORAGE_LOCALE);
+  if (stored === "en" || stored === "es") return stored;
+  return navigator.language.toLowerCase().startsWith("es") ? "es" : "en";
+}
+
+function setLocale(locale: Locale): void {
+  state.locale = locale;
+  localStorage.setItem(STORAGE_LOCALE, locale);
+}
+
+function localizedText(fallback: string, text?: LocalizedText): string {
+  if (!text) return fallback;
+  return text[state.locale] || text.en || text.es || fallback;
+}
+
+function resourceName(resource: ResourceSchema, plural = false): string {
+  return localizedText(
+    plural ? (resource.plural_label || resource.label || resource.key) : (resource.label || resource.key),
+    plural ? resource.i18n?.plural_label : resource.i18n?.label,
+  );
+}
+
+function resourceDescription(resource: ResourceSchema): string {
+  return localizedText(resource.description ?? "", resource.i18n?.description);
+}
+
+function resourceHelpText(resource: ResourceSchema): string {
+  return localizedText(resource.admin_help_text ?? "", resource.i18n?.admin_help_text);
+}
+
+function fieldName(field: ResourceField): string {
+  return localizedText(field.label || field.key, field.i18n?.label);
+}
+
+function relatedListName(relatedList: RelatedListDefinition): string {
+  return localizedText(relatedList.label, relatedList.i18n?.label);
+}
+
+function fieldHelpText(field: ResourceField): string | undefined {
+  const fallback = field.help_text ?? "";
+  const text = localizedText(fallback, field.i18n?.help_text);
+  return text || undefined;
+}
+
+function fieldUiText(field: ResourceField, key: "section" | "placeholder"): string | undefined {
+  const fallback = field.ui?.[key] ?? "";
+  const text = localizedText(fallback, field.i18n?.ui?.[key]);
+  return text || undefined;
+}
+
+function actionLabel(action: DestructiveAction | undefined, fallback: string): string {
+  return localizedText(action?.label ?? fallback, action?.i18n?.label);
+}
+
+function actionMessage(action: DestructiveAction | undefined, fallback: string): string {
+  return localizedText(action?.message ?? fallback, action?.i18n?.message);
+}
 
 function configApiBaseUrl(): string {
   const stored = localStorage.getItem(STORAGE_API_BASE);
@@ -249,6 +442,9 @@ function trimTrailingSlash(value: string): string {
 }
 
 function apiUrl(path: string): string {
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
   return `${trimTrailingSlash(configApiBaseUrl())}${path}`;
 }
 
@@ -268,19 +464,71 @@ function optionsPath(resourceKey: string, fieldKey: string): string {
   return `/api/resources/${encodeURIComponent(resourceKey)}/options/${encodeURIComponent(fieldKey)}/`;
 }
 
-function withSurface(path: string, extraParams: Record<string, string> = {}): string {
+function resourceListPath(schema: ResourceSchema, params: Record<string, string> = {}): string {
+  return schema.resource_urls?.list
+    ? withQueryParams(schema.resource_urls.list, params)
+    : withSurface(recordsPath(schema.key), params);
+}
+
+function resourceCreatePath(schema: ResourceSchema): string {
+  return schema.resource_urls?.create ?? withSurface(recordsPath(schema.key));
+}
+
+function resourceBatchDeletePath(schema: ResourceSchema): string {
+  return schema.resource_urls?.batch_delete ?? withSurface(recordsPath(schema.key));
+}
+
+function resourceOptionsPath(schema: ResourceSchema, fieldKey: string, params: Record<string, string> = {}): string {
+  const template = schema.resource_urls?.options_template;
+  if (template) {
+    return withQueryParams(template.replace("{field_key}", encodeURIComponent(fieldKey)), params);
+  }
+  return withSurface(optionsPath(schema.key, fieldKey), params);
+}
+
+function parseResourceHash(): { resourceKey: string | null; params: URLSearchParams } {
+  if (!location.hash.startsWith(RESOURCE_HASH_PREFIX)) {
+    return { resourceKey: null, params: new URLSearchParams() };
+  }
+  const rest = location.hash.slice(RESOURCE_HASH_PREFIX.length);
+  const separator = rest.indexOf("?");
+  const rawKey = separator === -1 ? rest : rest.slice(0, separator);
+  const rawQuery = separator === -1 ? "" : rest.slice(separator + 1);
+  return {
+    resourceKey: rawKey ? decodeURIComponent(rawKey) : null,
+    params: new URLSearchParams(rawQuery),
+  };
+}
+
+function resourceHash(resourceKey: string, params: URLSearchParams = new URLSearchParams()): string {
+  const query = params.toString();
+  return `${RESOURCE_HASH_PREFIX}${encodeURIComponent(resourceKey)}${query ? `?${query}` : ""}`;
+}
+
+function replaceResourceHash(resourceKey: string, params: URLSearchParams = new URLSearchParams()): void {
+  const desiredHash = resourceHash(resourceKey, params);
+  if (location.hash !== desiredHash) {
+    history.replaceState(null, "", desiredHash);
+  }
+}
+
+function withQueryParams(path: string, extraParams: Record<string, string> = {}): string {
   const [base, query = ""] = path.split("?");
   if (base === undefined) {
     throw new Error("Invalid API path.");
   }
   const params = new URLSearchParams(query);
-  params.set("surface", SURFACE);
   for (const [key, value] of Object.entries(extraParams)) {
     if (value !== "") {
       params.set(key, value);
     }
   }
-  return `${base}?${params.toString()}`;
+  const serialized = params.toString();
+  return `${base}${serialized ? `?${serialized}` : ""}`;
+}
+
+function withSurface(path: string, extraParams: Record<string, string> = {}): string {
+  return withQueryParams(path, { surface: SURFACE, ...extraParams });
 }
 
 function readSession(): AuthSession | null {
@@ -386,21 +634,20 @@ async function responseErrorMessage(response: Response): Promise<string> {
     payload = null;
   }
 
-  if (payload?.detail) {
-    return payload.detail;
-  }
-  if (payload?.message) {
-    return payload.message;
-  }
-  if (payload) {
-    return flattenApiError(payload);
-  }
-  return `${response.status} ${response.statusText}`;
+  const message = payload?.detail
+    || payload?.message
+    || (payload ? flattenApiError(payload) : `${response.status} ${response.statusText}`);
+  const requestId = payload?.request_id || response.headers.get("X-Request-ID");
+  return requestId ? `${message}
+Request ID: ${requestId}` : message;
 }
 
 function flattenApiError(payload: ApiErrorPayload): string {
   const lines: string[] = [];
   for (const [key, value] of Object.entries(payload)) {
+    if (key === "request_id") {
+      continue;
+    }
     if (Array.isArray(value)) {
       lines.push(`${key}: ${value.join(", ")}`);
     } else if (value && typeof value === "object") {
@@ -410,6 +657,122 @@ function flattenApiError(payload: ApiErrorPayload): string {
     }
   }
   return lines.join("\n") || "Request failed.";
+}
+
+function defaultFilterModel(): GridFilterModel {
+  return { items: [], quickFilterValues: [], linkOperator: "and" };
+}
+
+function parseFilterModel(raw: string | null): GridFilterModel {
+  if (!raw) {
+    return defaultFilterModel();
+  }
+  try {
+    const parsed = JSON.parse(raw) as Partial<GridFilterModel>;
+    return {
+      items: Array.isArray(parsed.items)
+        ? parsed.items.filter((item) => typeof item.field === "string" && typeof item.operator === "string") as GridFilterItem[]
+        : [],
+      quickFilterValues: Array.isArray(parsed.quickFilterValues)
+        ? parsed.quickFilterValues.map((value) => String(value)).filter(Boolean)
+        : [],
+      linkOperator: parsed.linkOperator === "or" ? "or" : "and",
+    };
+  } catch {
+    return defaultFilterModel();
+  }
+}
+
+function filterModelWithQuickSearch(filterModel: GridFilterModel, value: string): GridFilterModel {
+  return {
+    ...filterModel,
+    quickFilterValues: value ? [value] : [],
+  };
+}
+
+function hasActiveFilters(view: ResourceViewState): boolean {
+  return view.filterModel.items.length > 0 || view.filterModel.quickFilterValues.length > 0;
+}
+
+function filterModelForRequest(view: ResourceViewState): GridFilterModel {
+  return filterModelWithQuickSearch(view.filterModel, view.quickSearch);
+}
+
+function hasFilterPayload(filterModel: GridFilterModel): boolean {
+  return filterModel.items.length > 0 || filterModel.quickFilterValues.length > 0;
+}
+
+function filterableFields(schema: ResourceSchema): ResourceField[] {
+  return schema.fields.filter((field) => field.filterable && !field.write_only);
+}
+
+function operatorsForField(schema: ResourceSchema, field: ResourceField): FilterOperatorDefinition[] {
+  const operators = schema.list_query_contract?.filters?.operators ?? [];
+  if (operators.length === 0) {
+    return fallbackOperatorsForField(field);
+  }
+  return operators.filter((operator) => !operator.field_types || operator.field_types.includes(field.type));
+}
+
+function fallbackOperatorsForField(field: ResourceField): FilterOperatorDefinition[] {
+  const all: FilterOperatorDefinition[] = [
+    { key: "contains", label: "contains", value_kind: "single", field_types: ["string", "text", "rich_text", "email"], value_control: { kind: "field", multiple: false } },
+    { key: "equals", label: "equals", value_kind: "single", value_control: { kind: "field", multiple: false } },
+    { key: "isAnyOf", label: "is any of", value_kind: "multiple", value_control: { kind: "field", multiple: true } },
+    { key: "isEmpty", label: "is empty", value_kind: "none", value_control: { kind: "none", multiple: false } },
+    { key: "isNotEmpty", label: "is not empty", value_kind: "none", value_control: { kind: "none", multiple: false } },
+  ];
+  return all.filter((operator) => !operator.field_types || operator.field_types.includes(field.type));
+}
+
+function operatorLabel(operator: FilterOperatorDefinition): string {
+  return localizedText(operator.label || operator.key, operator.i18n?.label);
+}
+
+function operatorNeedsValue(operator: FilterOperatorDefinition | undefined): boolean {
+  return (operator?.value_kind ?? "single") !== "none";
+}
+
+function parsePositiveInt(value: string | null, fallback: number): number {
+  const parsed = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function parseSortState(raw: string | null): { sortField: string; sortDirection: "asc" | "desc" } {
+  if (!raw) {
+    return { sortField: "", sortDirection: "asc" };
+  }
+  try {
+    const parsed = JSON.parse(raw) as Array<{ field?: string; sort?: string }>;
+    const [first] = Array.isArray(parsed) ? parsed : [];
+    if (first && typeof first.field === "string") {
+      return {
+        sortField: first.field,
+        sortDirection: first.sort === "desc" ? "desc" : "asc",
+      };
+    }
+  } catch {
+    // Ignore invalid URL state.
+  }
+  return { sortField: "", sortDirection: "asc" };
+}
+
+function resourceViewParams(view: ResourceViewState): URLSearchParams {
+  const params = new URLSearchParams();
+  params.set("page", String(view.page));
+  params.set("page_size", String(view.pageSize));
+  const filterModel = filterModelForRequest(view);
+  if (hasFilterPayload(filterModel)) {
+    params.set("filters", JSON.stringify(filterModel));
+  }
+  if (view.sortField) {
+    params.set("sort", JSON.stringify([{ field: view.sortField, sort: view.sortDirection }]));
+  }
+  return params;
+}
+
+function syncResourceViewHash(view: ResourceViewState): void {
+  replaceResourceHash(view.schema.key, resourceViewParams(view));
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(
@@ -591,6 +954,16 @@ function renderSidebar(session: AuthSession): HTMLElement {
     render();
   });
 
+  const localeSelect = el("select", { class: "select small", "aria-label": "Language" });
+  localeSelect.append(
+    el("option", { value: "en", selected: state.locale === "en" }, ["English"]),
+    el("option", { value: "es", selected: state.locale === "es" }, ["Español"]),
+  );
+  localeSelect.addEventListener("change", () => {
+    setLocale(localeSelect.value === "es" ? "es" : "en");
+    render();
+  });
+
   const visibleResources = filteredResources();
   const nav = el("nav", { class: "resource-nav", "aria-label": "Resources" });
   let currentGroup = "";
@@ -604,7 +977,7 @@ function renderSidebar(session: AuthSession): HTMLElement {
       class: resource.key === state.selectedResourceKey ? "active" : "",
       type: "button",
       title: resource.key,
-    }, [resource.plural_label || resource.label || resource.key]);
+    }, [resourceName(resource, true)]);
     item.addEventListener("click", () => {
       void selectResource(resource.key);
     });
@@ -637,7 +1010,7 @@ function renderSidebar(session: AuthSession): HTMLElement {
       el("strong", {}, [displayUser(session.user)]),
       el("span", {}, [`${session.capabilities.length} capabilities loaded`]),
     ]),
-    el("div", { class: "sidebar__section stack" }, [filterInput, refresh]),
+    el("div", { class: "sidebar__section stack" }, [filterInput, localeSelect, refresh]),
     nav,
     el("div", { class: "sidebar__section" }, [logout]),
   ]);
@@ -718,12 +1091,24 @@ function renderWelcomePage(): HTMLElement {
 function renderResourcePage(view: ResourceViewState): HTMLElement {
   const schema = view.schema;
   const createButton = el("button", { class: "button primary", type: "button" }, ["Create"]);
-  createButton.disabled = !canUseSinglePk(schema) || !hasCapability(ACCESS_DB_ADMIN) || editableFields(schema, true).length === 0;
+  createButton.disabled = !hasCapability(ACCESS_DB_ADMIN) || editableFields(schema, true).length === 0;
   createButton.addEventListener("click", () => openRecordForm(schema, "create"));
 
   const refreshButton = el("button", { class: "button", type: "button" }, ["Refresh"]);
   refreshButton.addEventListener("click", () => {
     void reloadResourceView();
+  });
+
+  const batchAction = schema.destructive_actions?.batch_delete;
+  const batchDeleteButton = el("button", {
+    class: "button danger",
+    type: "button",
+    disabled: view.selectedIds.size > 0 && canUseSinglePk(schema) ? null : true,
+  }, [actionLabel(batchAction, `Delete selected (${view.selectedIds.size})`)]);
+  batchDeleteButton.addEventListener("click", () => {
+    if (view.selectedIds.size > 0 && canUseSinglePk(schema)) {
+      void batchDeleteRecords(view);
+    }
   });
 
   const quickSearch = el("input", {
@@ -733,6 +1118,7 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
   });
   quickSearch.addEventListener("change", () => {
     view.quickSearch = quickSearch.value.trim();
+    view.filterModel = filterModelWithQuickSearch(view.filterModel, view.quickSearch);
     view.page = 1;
     void reloadResourceView();
   });
@@ -753,13 +1139,39 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
     el("span", { class: "badge" }, [`${schema.fields.length} fields`]),
   ];
   if (!canUseSinglePk(schema)) {
-    headerBits.push(el("span", { class: "badge" }, ["detail/edit/delete disabled: composite key metadata needed"]));
+    headerBits.push(el("span", { class: "badge" }, ["detail/edit/delete require backend record URLs"]));
+  }
+  if (schema.record_payload_contract) {
+    headerBits.push(el("span", { class: "badge" }, [payloadContractLabel(schema.record_payload_contract)]));
+  }
+  if (schema.migration_safety_contract) {
+    headerBits.push(el("span", { class: "badge" }, [migrationSafetyLabel(schema.migration_safety_contract)]));
   }
 
   const notices: Node[] = [];
+  const resourceHelp = resourceHelpText(schema);
+  if (resourceHelp) {
+    notices.push(el("div", { class: "notice" }, [resourceHelp]));
+  }
+  if (hasActiveFilters(view)) {
+    const clearFilters = el("button", { class: "button", type: "button" }, ["Clear filters"]);
+    clearFilters.addEventListener("click", () => {
+      view.filterModel = defaultFilterModel();
+      view.quickSearch = "";
+      view.page = 1;
+      void reloadResourceView();
+    });
+    notices.push(el("div", { class: "notice" }, [
+      "This list is filtered through backend-declared grid filter metadata.",
+      clearFilters,
+    ]));
+  }
+  if (schema.migration_safety_contract) {
+    notices.push(el("div", { class: "notice" }, [migrationSafetyNotice(schema.migration_safety_contract)]));
+  }
   if (schemaHasDependentRelations(schema)) {
     notices.push(el("div", { class: "notice" }, [
-      "This schema declares dependent relation selectors. The backend publishes selector metadata; cascading form selectors are still pending in this generic UI.",
+      "This schema declares dependent relation selectors. The form loads child options with backend-declared grid filters as parent values change.",
     ]));
   }
   if (state.message) {
@@ -772,13 +1184,13 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
   return el("section", { class: "stack" }, [
     el("header", { class: "page-header" }, [
       el("div", {}, [
-        el("h2", { class: "page-title" }, [schema.plural_label || schema.label]),
+        el("h2", { class: "page-title" }, [resourceName(schema, true)]),
         el("p", { class: "page-subtitle" }, [
-          "Runtime schema-driven DB Admin resource. The frontend does not compile table, model, or field definitions.",
+          resourceDescription(schema) || "Runtime schema-driven DB Admin resource. The frontend does not compile table, model, or field definitions.",
         ]),
         el("div", { class: "meta-line" }, headerBits),
       ]),
-      el("div", { class: "toolbar" }, [createButton, refreshButton]),
+      el("div", { class: "toolbar" }, [createButton, batchDeleteButton, refreshButton]),
     ]),
     ...notices,
     el("div", { class: "toolbar" }, [
@@ -786,9 +1198,248 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
       el("span", { class: "toolbar__spacer" }),
       el("label", { class: "meta-line" }, ["Rows", pageSize]),
     ]),
+    renderFilterBuilder(view),
     view.loading ? renderLoadingPage("Loading records...") : renderRecordsTable(view),
     renderPagination(view),
   ]);
+}
+
+
+function migrationSafetyLabel(contract: MigrationSafetyContract): string {
+  const schema = contract.schema_evolution || "schema";
+  const query = contract.query_construction || "queries";
+  return `migration/query safety: ${schema}, ${query}`;
+}
+
+function migrationSafetyNotice(contract: MigrationSafetyContract): string {
+  const dbPolicy = contract.database_policy_mirroring?.status || "unspecified";
+  const permissionChanges = contract.permission_changes || "unspecified";
+  return `Permission changes: ${permissionChanges}. DB role/RLS mirroring: ${dbPolicy}.`;
+}
+
+function payloadContractLabel(contract: RecordPayloadContract): string {
+  if (contract.nested_relations === false && contract.relation_values === "public_ids") {
+    return "payload: relation IDs, no nested rows";
+  }
+  if (contract.nested_relations === false) {
+    return "payload: no nested rows";
+  }
+  return "payload contract declared";
+}
+
+function renderFilterBuilder(view: ResourceViewState): HTMLElement {
+  const fields = filterableFields(view.schema);
+  if (fields.length === 0) {
+    return el("div", { class: "filter-builder empty" }, ["No backend-declared filterable fields for this resource."]);
+  }
+
+  const existing = el("div", { class: "filter-list" });
+  const itemFilters = view.filterModel.items;
+  if (itemFilters.length === 0) {
+    existing.append(el("span", { class: "cell-muted" }, ["No column filters."]));
+  } else {
+    itemFilters.forEach((item, index) => {
+      const field = fields.find((candidate) => candidate.key === item.field);
+      const operator = field ? operatorsForField(view.schema, field).find((candidate) => candidate.key === item.operator) : undefined;
+      const remove = el("button", { class: "button flat", type: "button", title: "Remove filter" }, ["×"]);
+      remove.addEventListener("click", () => {
+        view.filterModel.items.splice(index, 1);
+        view.page = 1;
+        void reloadResourceView();
+      });
+      existing.append(el("span", { class: "filter-chip" }, [
+        field ? fieldName(field) : item.field,
+        " ",
+        operator ? operatorLabel(operator) : item.operator,
+        operatorNeedsValue(operator) ? ` ${formatFilterValue(item.value)}` : "",
+        remove,
+      ]));
+    });
+  }
+
+  const [firstField] = fields;
+  if (!firstField) {
+    return el("div", { class: "filter-builder empty" }, ["No backend-declared filterable fields for this resource."]);
+  }
+  const fieldSelect = el("select", { class: "select" });
+  for (const field of fields) {
+    fieldSelect.append(el("option", { value: field.key }, [fieldName(field)]));
+  }
+  const operatorSelect = el("select", { class: "select" });
+  const valueControlSlot = el("span", { class: "filter-value-control" });
+  let valueControl: FilterControlReader = emptyFilterControl();
+  const linkSelect = el("select", { class: "select small", "aria-label": "Filter link operator" }, [
+    el("option", { value: "and", selected: view.filterModel.linkOperator !== "or" }, ["AND"]),
+    el("option", { value: "or", selected: view.filterModel.linkOperator === "or" }, ["OR"]),
+  ]);
+  linkSelect.addEventListener("change", () => {
+    view.filterModel.linkOperator = linkSelect.value === "or" ? "or" : "and";
+    view.page = 1;
+    void reloadResourceView();
+  });
+
+  const selectedField = (): ResourceField => fields.find((field) => field.key === fieldSelect.value) ?? firstField;
+  const selectedOperator = (): FilterOperatorDefinition | undefined => operatorsForField(view.schema, selectedField()).find((operator) => operator.key === operatorSelect.value);
+
+  function refreshOperators(): void {
+    clear(operatorSelect);
+    for (const operator of operatorsForField(view.schema, selectedField())) {
+      operatorSelect.append(el("option", { value: operator.key }, [operatorLabel(operator)]));
+    }
+    refreshValueControl();
+  }
+
+  function refreshValueControl(): void {
+    clear(valueControlSlot);
+    valueControl = renderFilterValueControl(view, selectedField(), selectedOperator());
+    valueControlSlot.append(valueControl.element);
+  }
+
+  fieldSelect.addEventListener("change", refreshOperators);
+  operatorSelect.addEventListener("change", refreshValueControl);
+  refreshOperators();
+
+  const add = el("button", { class: "button", type: "button" }, ["Add filter"]);
+  add.addEventListener("click", () => {
+    const field = selectedField();
+    const operator = selectedOperator();
+    if (!operator) {
+      return;
+    }
+    const item: GridFilterItem = { field: field.key, operator: operator.key };
+    if (operatorNeedsValue(operator)) {
+      const value = valueControl.readValue();
+      if (value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0)) {
+        return;
+      }
+      item.value = value;
+    }
+    view.filterModel.items.push(item);
+    view.filterModel.linkOperator = linkSelect.value === "or" ? "or" : "and";
+    view.page = 1;
+    valueControl.reset();
+    void reloadResourceView();
+  });
+
+  return el("section", { class: "filter-builder" }, [
+    el("div", { class: "filter-builder__header" }, [
+      el("strong", {}, ["Column filters"]),
+      el("span", { class: "cell-muted" }, ["Backend-declared fields, operators, and value controls only"]),
+    ]),
+    existing,
+    el("div", { class: "filter-builder__controls" }, [fieldSelect, operatorSelect, valueControlSlot, linkSelect, add]),
+  ]);
+}
+
+function emptyFilterControl(): FilterControlReader {
+  return {
+    element: el("span", { class: "cell-muted" }, ["No value"]),
+    readValue: () => undefined,
+    reset: () => undefined,
+  };
+}
+
+function renderFilterValueControl(
+  view: ResourceViewState,
+  field: ResourceField,
+  operator: FilterOperatorDefinition | undefined,
+): FilterControlReader {
+  if (!operator || !operatorNeedsValue(operator) || operator.value_control?.kind === "none") {
+    return emptyFilterControl();
+  }
+
+  const multiple = operator.value_control?.multiple ?? operator.value_kind === "multiple";
+  const options = filterOptionsForField(view, field);
+  if (options.length > 0) {
+    const select = el("select", { class: "select", multiple: multiple || null }) as HTMLSelectElement;
+    if (!multiple) {
+      select.append(el("option", { value: "" }, ["Select value..."]));
+    }
+    for (const option of options) {
+      select.append(el("option", { value: option.value }, [option.label]));
+    }
+    return {
+      element: select,
+      readValue: () => {
+        const values = Array.from(select.selectedOptions).map((option) => coerceFilterScalar(field, option.value));
+        return multiple ? values : values[0];
+      },
+      reset: () => {
+        Array.from(select.options).forEach((option) => { option.selected = false; });
+        if (!multiple) select.value = "";
+      },
+    };
+  }
+
+  const input = el("input", {
+    class: "input",
+    type: filterInputType(field),
+    placeholder: multiple ? "Comma-separated values" : "Value",
+  }) as HTMLInputElement;
+  return {
+    element: input,
+    readValue: () => filterValueFromInput(field, operator, input.value),
+    reset: () => { input.value = ""; },
+  };
+}
+
+function filterOptionsForField(view: ResourceViewState, field: ResourceField): RelationOption[] {
+  if (field.type === "boolean") {
+    return [
+      { value: "true", label: "True" },
+      { value: "false", label: "False" },
+    ];
+  }
+  if (field.option_source?.kind === "static") {
+    return field.option_source.options.map((option) => ({
+      value: option.value,
+      label: localizedText(option.label, option.i18n?.label),
+    }));
+  }
+  const optionMap = view.optionMaps[field.key];
+  if (!optionMap) {
+    return [];
+  }
+  return Array.from(optionMap.entries()).map(([value, label]) => ({ value, label }));
+}
+
+function filterInputType(field: ResourceField): string {
+  if (field.type === "integer" || field.type === "decimal") return "number";
+  if (field.type === "date") return "date";
+  if (field.type === "datetime") return "datetime-local";
+  if (field.type === "email") return "email";
+  return "text";
+}
+
+function filterValueFromInput(field: ResourceField, operator: FilterOperatorDefinition, raw: string): JsonValue {
+  if (operator.value_kind === "multiple") {
+    return raw.split(",").map((part) => coerceFilterScalar(field, part.trim())).filter((value) => value !== "");
+  }
+  return coerceFilterScalar(field, raw.trim());
+}
+
+function coerceFilterScalar(field: ResourceField, raw: string): JsonPrimitive {
+  if (raw === "") return "";
+  if (field.type === "integer") {
+    const parsed = Number.parseInt(raw, 10);
+    return Number.isNaN(parsed) ? raw : parsed;
+  }
+  if (field.type === "decimal") {
+    const parsed = Number.parseFloat(raw);
+    return Number.isNaN(parsed) ? raw : parsed;
+  }
+  if (field.type === "boolean") {
+    if (["true", "1", "yes", "si", "sí"].includes(raw.toLowerCase())) return true;
+    if (["false", "0", "no"].includes(raw.toLowerCase())) return false;
+  }
+  return raw;
+}
+
+function formatFilterValue(value: JsonValue | undefined): string {
+  if (value === undefined) return "";
+  if (Array.isArray(value)) return value.map((item) => String(item)).join(", ");
+  if (value && typeof value === "object") return JSON.stringify(value);
+  return String(value);
 }
 
 function renderRecordsTable(view: ResourceViewState): HTMLElement {
@@ -800,9 +1451,26 @@ function renderRecordsTable(view: ResourceViewState): HTMLElement {
 
   const table = el("table");
   const headRow = el("tr");
+  const selectableRows = view.records
+    .map((record) => recordPk(schema, record))
+    .filter((id): id is string => id !== null);
+  const canBatchSelect = canUseSinglePk(schema) && selectableRows.length > 0;
+  if (canBatchSelect) {
+    const allSelected = selectableRows.every((id) => view.selectedIds.has(id));
+    const selectAll = el("input", { type: "checkbox", checked: allSelected && selectableRows.length > 0 });
+    selectAll.addEventListener("change", () => {
+      if (selectAll.checked) {
+        selectableRows.forEach((id) => view.selectedIds.add(id));
+      } else {
+        selectableRows.forEach((id) => view.selectedIds.delete(id));
+      }
+      render();
+    });
+    headRow.append(el("th", {}, [selectAll]));
+  }
   for (const field of columns) {
     const th = el("th");
-    const label = el("button", { class: "button flat", type: "button" }, [field.label, field.pii ? " ⚠" : ""]);
+    const label = el("button", { class: "button flat", type: "button" }, [fieldName(field), field.pii ? " ⚠" : ""]);
     label.disabled = !field.sortable;
     label.title = field.sortable ? "Sort by this field" : "Sorting not declared for this field";
     label.addEventListener("click", () => {
@@ -830,6 +1498,22 @@ function renderRecordsTable(view: ResourceViewState): HTMLElement {
   const body = el("tbody");
   for (const record of view.records) {
     const row = el("tr");
+    const rowId = recordPk(schema, record);
+    if (canBatchSelect) {
+      const checkbox = el("input", { type: "checkbox", checked: rowId !== null && view.selectedIds.has(rowId), disabled: rowId === null });
+      checkbox.addEventListener("change", () => {
+        if (!rowId) {
+          return;
+        }
+        if (checkbox.checked) {
+          view.selectedIds.add(rowId);
+        } else {
+          view.selectedIds.delete(rowId);
+        }
+        render();
+      });
+      row.append(el("td", {}, [checkbox]));
+    }
     for (const field of columns) {
       row.append(el("td", {}, [renderCell(field, record[field.key], view.optionMaps[field.key])]));
     }
@@ -843,31 +1527,100 @@ function renderRecordsTable(view: ResourceViewState): HTMLElement {
 function renderRowActions(schema: ResourceSchema, record: ResourceRecord): HTMLElement {
   const actions = el("div", { class: "row-actions" });
   const recordId = recordPk(schema, record);
-  const disabled = !recordId;
+  const urls = recordResourceUrls(record);
+  const label = recordLabel(schema, record, recordId);
+  const canView = Boolean(urls.detail || recordId);
+  const canEdit = Boolean((urls.update || recordId) && editableFields(schema, false).length > 0);
+  const canDelete = Boolean(urls.delete || recordId);
 
-  const viewButton = el("button", { class: "button", type: "button", disabled }, ["View"]);
+  const viewButton = el("button", { class: "button", type: "button", disabled: canView ? null : true }, ["View"]);
   viewButton.addEventListener("click", () => {
-    if (recordId) {
-      openRecordForm(schema, "view", recordId);
+    if (canView) {
+      openRecordForm(schema, "view", recordId ?? undefined, urls, label);
     }
   });
 
-  const editButton = el("button", { class: "button", type: "button", disabled: disabled || editableFields(schema, false).length === 0 }, ["Edit"]);
+  const editButton = el("button", { class: "button", type: "button", disabled: canEdit ? null : true }, ["Edit"]);
   editButton.addEventListener("click", () => {
-    if (recordId) {
-      openRecordForm(schema, "edit", recordId);
+    if (canEdit) {
+      openRecordForm(schema, "edit", recordId ?? undefined, urls, label);
     }
   });
 
-  const deleteButton = el("button", { class: "button danger", type: "button", disabled }, ["Delete"]);
+  const deleteButton = el("button", { class: "button danger", type: "button", disabled: canDelete ? null : true }, ["Delete"]);
   deleteButton.addEventListener("click", () => {
-    if (recordId) {
-      void deleteRecord(schema, recordId);
+    if (canDelete) {
+      void deleteRecord(schema, recordId ?? undefined, urls, label);
     }
   });
 
   actions.append(viewButton, editButton, deleteButton);
+  for (const button of relatedListButtons(schema, record)) {
+    actions.append(button);
+  }
   return actions;
+}
+
+function relatedListButtons(schema: ResourceSchema, record: ResourceRecord): HTMLButtonElement[] {
+  return (schema.related_lists ?? []).map((relatedList) => {
+    const value = record[relatedList.source_field];
+    const canOpen = value !== null && value !== undefined && isScalarRecordValue(value)
+      && state.resources.some((resource) => resource.key === relatedList.target_resource_key);
+    const button = el("button", {
+      class: "button",
+      type: "button",
+      disabled: canOpen ? null : true,
+      title: canOpen ? `Open ${relatedListName(relatedList)} filtered by this row` : "Related resource is not available.",
+    }, [relatedListName(relatedList)]);
+    button.addEventListener("click", () => {
+      if (!canOpen || !isScalarRecordValue(value)) {
+        return;
+      }
+      const filterValue: JsonValue = relatedList.operator === "isAnyOf" ? [value] : value;
+      const filterModel: GridFilterModel = {
+        items: [{
+          field: relatedList.target_field,
+          operator: relatedList.operator,
+          value: filterValue,
+        }],
+        quickFilterValues: [],
+        linkOperator: "and",
+      };
+      const params = new URLSearchParams();
+      params.set("page", "1");
+      params.set("filters", JSON.stringify(filterModel));
+      void selectResource(relatedList.target_resource_key, params);
+    });
+    return button;
+  });
+}
+
+function isScalarRecordValue(value: RecordValue): value is JsonPrimitive {
+  return value === null || ["string", "number", "boolean"].includes(typeof value);
+}
+
+function recordResourceUrls(record: ResourceRecord): RecordResourceUrls {
+  const raw = record.__resource_urls;
+  if (!raw || Array.isArray(raw) || typeof raw !== "object") {
+    return {};
+  }
+  const urls: RecordResourceUrls = {};
+  if (typeof raw.detail === "string") urls.detail = raw.detail;
+  if (typeof raw.update === "string") urls.update = raw.update;
+  if (typeof raw.delete === "string") urls.delete = raw.delete;
+  return urls;
+}
+
+function recordDetailPath(schema: ResourceSchema, recordId?: string, urls: RecordResourceUrls = {}): string {
+  return urls.detail ?? withSurface(recordPath(schema.key, requireRecordId(recordId)));
+}
+
+function recordUpdatePath(schema: ResourceSchema, recordId?: string, urls: RecordResourceUrls = {}): string {
+  return urls.update ?? withSurface(recordPath(schema.key, requireRecordId(recordId)));
+}
+
+function recordDeletePath(schema: ResourceSchema, recordId?: string, urls: RecordResourceUrls = {}): string {
+  return urls.delete ?? withSurface(recordPath(schema.key, requireRecordId(recordId)));
 }
 
 function renderCell(field: ResourceField, value: RecordValue, optionMap?: Map<string, string>): Node {
@@ -940,7 +1693,7 @@ async function loadResources(): Promise<void> {
   try {
     const response = await apiFetch<ResourcesResponse>(withSurface("/api/resources/"));
     state.resources = [...response.resources].sort((left, right) =>
-      (left.plural_label || left.label || left.key).localeCompare(right.plural_label || right.label || right.key),
+      resourceName(left, true).localeCompare(resourceName(right, true)),
     );
     if (state.selectedResourceKey && !state.resources.some((resource) => resource.key === state.selectedResourceKey)) {
       state.selectedResourceKey = null;
@@ -954,35 +1707,43 @@ async function loadResources(): Promise<void> {
   }
 }
 
-async function selectResource(resourceKey: string): Promise<void> {
-  const desiredHash = `#/resources/${encodeURIComponent(resourceKey)}`;
-  if (location.hash !== desiredHash) {
-    history.replaceState(null, "", desiredHash);
+async function selectResource(
+  resourceKey: string,
+  params: URLSearchParams = new URLSearchParams(),
+  updateHash = true,
+): Promise<void> {
+  if (updateHash) {
+    replaceResourceHash(resourceKey, params);
   }
   state.selectedResourceKey = resourceKey;
   state.resourceView = null;
   state.message = null;
   render();
-  await loadResourceView(resourceKey);
+  await loadResourceView(resourceKey, params);
 }
 
-async function loadResourceView(resourceKey: string): Promise<void> {
+async function loadResourceView(resourceKey: string, params: URLSearchParams = new URLSearchParams()): Promise<void> {
   try {
     const schema = await apiFetch<ResourceSchema>(withSurface(resourcePath(resourceKey)));
+    const sort = parseSortState(params.get("sort"));
+    const filterModel = parseFilterModel(params.get("filters"));
     const view: ResourceViewState = {
       schema,
       records: [],
       count: 0,
-      page: 1,
-      pageSize: schema.page_size || DEFAULT_PAGE_SIZE,
-      quickSearch: "",
-      sortField: "",
-      sortDirection: "asc",
+      page: parsePositiveInt(params.get("page"), 1),
+      pageSize: parsePositiveInt(params.get("page_size"), schema.page_size || DEFAULT_PAGE_SIZE),
+      quickSearch: filterModel.quickFilterValues.join(" ").trim(),
+      filterModel,
+      sortField: sort.sortField,
+      sortDirection: sort.sortDirection,
       optionMaps: {},
+      selectedIds: new Set<string>(),
       loading: true,
       error: null,
     };
     state.resourceView = view;
+    syncResourceViewHash(view);
     render();
     await loadRecords(view);
   } catch (error) {
@@ -997,6 +1758,7 @@ async function reloadResourceView(): Promise<void> {
   if (!state.resourceView) {
     return;
   }
+  syncResourceViewHash(state.resourceView);
   await loadRecords(state.resourceView);
   render();
 }
@@ -1007,19 +1769,12 @@ async function loadRecords(view: ResourceViewState): Promise<void> {
   render();
   try {
     await loadListOptionMaps(view);
-    const params: Record<string, string> = {
-      page: String(view.page),
-      page_size: String(view.pageSize),
-    };
-    if (view.quickSearch) {
-      params.filters = JSON.stringify({ items: [], quickFilterValues: [view.quickSearch] });
-    }
-    if (view.sortField) {
-      params.sort = JSON.stringify([{ field: view.sortField, sort: view.sortDirection }]);
-    }
-    const response = await apiFetch<PaginatedRecords>(withSurface(recordsPath(view.schema.key), params));
+    const params = Object.fromEntries(resourceViewParams(view).entries());
+    const response = await apiFetch<PaginatedRecords>(resourceListPath(view.schema, params));
     view.records = response.results;
     view.count = response.count;
+    const visibleIds = new Set(view.records.map((record) => recordPk(view.schema, record)).filter((id): id is string => id !== null));
+    view.selectedIds = new Set([...view.selectedIds].filter((id) => visibleIds.has(id)));
   } catch (error) {
     view.error = error instanceof Error ? error.message : "Failed to load records.";
   } finally {
@@ -1028,8 +1783,13 @@ async function loadRecords(view: ResourceViewState): Promise<void> {
 }
 
 async function loadListOptionMaps(view: ResourceViewState): Promise<void> {
-  const relationFields = listFields(view.schema).filter((field) => field.relation);
-  await Promise.all(relationFields.map((field) => loadOptionMap(view, field)));
+  const optionFields = new Map<string, ResourceField>();
+  for (const field of [...listFields(view.schema), ...filterableFields(view.schema)]) {
+    if (field.option_source || field.relation) {
+      optionFields.set(field.key, field);
+    }
+  }
+  await Promise.all([...optionFields.values()].map((field) => loadOptionMap(view, field)));
 }
 
 async function loadOptionMap(view: ResourceViewState, field: ResourceField): Promise<void> {
@@ -1049,7 +1809,7 @@ async function loadOptionMap(view: ResourceViewState, field: ResourceField): Pro
     return;
   }
   try {
-    const response = await apiFetch<OptionsResponse>(withSurface(optionsPath(view.schema.key, field.key), optionQueryParams(field)));
+    const response = await apiFetch<OptionsResponse>(resourceOptionsPath(view.schema, field.key, optionQueryParams(field) ?? {}));
     for (const option of response.options) {
       map.set(String(option.value), option.label);
     }
@@ -1059,9 +1819,17 @@ async function loadOptionMap(view: ResourceViewState, field: ResourceField): Pro
   view.optionMaps[field.key] = map;
 }
 
-function openRecordForm(schema: ResourceSchema, mode: "create" | "view" | "edit", recordId?: string): void {
+function openRecordForm(
+  schema: ResourceSchema,
+  mode: "create" | "view" | "edit",
+  recordId?: string,
+  urls: RecordResourceUrls = {},
+  previewLabel = "",
+): void {
   const modal = el("div", { class: "modal-backdrop" });
-  const title = mode === "create" ? `Create ${schema.label}` : mode === "edit" ? `Edit ${schema.label}` : `${schema.label} details`;
+  const recordSuffix = previewLabel ? `: ${previewLabel}` : "";
+  const schemaName = resourceName(schema);
+  const title = mode === "create" ? `Create ${schemaName}` : mode === "edit" ? `Edit ${schemaName}${recordSuffix}` : `${schemaName} details${recordSuffix}`;
   const body = el("div", { class: "modal__body" }, [renderLoadingPage("Loading form...")]);
   const close = el("button", { class: "button", type: "button" }, ["Close"]);
   close.addEventListener("click", () => modal.remove());
@@ -1071,7 +1839,7 @@ function openRecordForm(schema: ResourceSchema, mode: "create" | "view" | "edit"
   ]);
   modal.append(modalPanel);
   document.body.append(modal);
-  void populateRecordForm(modal, body, schema, mode, recordId);
+  void populateRecordForm(modal, body, schema, mode, recordId, urls);
 }
 
 async function populateRecordForm(
@@ -1080,12 +1848,14 @@ async function populateRecordForm(
   schema: ResourceSchema,
   mode: "create" | "view" | "edit",
   recordId?: string,
+  urls: RecordResourceUrls = {},
 ): Promise<void> {
   try {
-    const record = mode === "create" ? {} : await apiFetch<ResourceRecord>(withSurface(recordPath(schema.key, requireRecordId(recordId))));
-    const optionMaps = await loadFormOptions(schema);
+    const record = mode === "create" ? {} : await apiFetch<ResourceRecord>(recordDetailPath(schema, recordId, urls));
+    const fields = mode === "view" ? detailFields(schema) : editableFields(schema, mode === "create");
+    const optionMaps = await loadFormOptions(schema, record, fields);
     clear(body);
-    body.append(renderRecordForm(modal, schema, mode, record, optionMaps, recordId));
+    body.append(renderRecordForm(modal, schema, mode, record, optionMaps, recordId, urls));
   } catch (error) {
     clear(body);
     body.append(el("div", { class: "error" }, [error instanceof Error ? error.message : "Failed to load form."]));
@@ -1099,29 +1869,105 @@ function requireRecordId(recordId: string | undefined): string {
   return recordId;
 }
 
-async function loadFormOptions(schema: ResourceSchema): Promise<Record<string, RelationOption[]>> {
-  const optionFields = schema.fields.filter((field) => field.option_source || field.relation);
+async function loadFormOptions(
+  schema: ResourceSchema,
+  record: ResourceRecord,
+  fields: ResourceField[],
+): Promise<Record<string, RelationOption[]>> {
+  const optionFields = fields.filter((field) => field.option_source || field.relation);
   const result: Record<string, RelationOption[]> = {};
   await Promise.all(optionFields.map(async (field) => {
     if (field.option_source?.kind === "static") {
-      result[field.key] = field.option_source.options.map((option) => ({ value: option.value, label: option.label }));
+      result[field.key] = field.option_source.options.map((option) => ({
+        value: option.value,
+        label: localizedText(option.label, option.i18n?.label),
+      }));
       return;
     }
     if (field.relation) {
-      try {
-        const response = await apiFetch<OptionsResponse>(withSurface(optionsPath(schema.key, field.key), optionQueryParams(field)));
-        result[field.key] = response.options;
-      } catch {
-        result[field.key] = [];
-      }
+      result[field.key] = await fetchRelationOptions(schema, field, record, true);
     }
   }));
   return result;
 }
 
-function optionQueryParams(field: ResourceField): Record<string, string> {
+async function fetchRelationOptions(
+  schema: ResourceSchema,
+  field: ResourceField,
+  values: Record<string, RecordValue> = {},
+  requireDependencies = false,
+  search = "",
+): Promise<RelationOption[]> {
+  const params = optionQueryParams(field, values, requireDependencies, search);
+  if (!params) {
+    return [];
+  }
+  try {
+    const response = await apiFetch<OptionsResponse>(resourceOptionsPath(schema, field.key, params));
+    return response.options;
+  } catch {
+    return [];
+  }
+}
+
+function optionQueryParams(
+  field: ResourceField,
+  values: Record<string, RecordValue> = {},
+  requireDependencies = false,
+  search = "",
+): Record<string, string> | null {
   const pageSize = field.relation?.page_size ?? 100;
-  return { page_size: String(pageSize) };
+  const params: Record<string, string> = { page_size: String(pageSize) };
+  const dependencyFilterModel = relationDependencyFilterModel(field, values, requireDependencies);
+  if (dependencyFilterModel === null) {
+    return null;
+  }
+  if (dependencyFilterModel.items.length > 0) {
+    params.filters = JSON.stringify(dependencyFilterModel);
+  }
+  if (search.trim()) {
+    params.q = search.trim();
+  }
+  return params;
+}
+
+function relationDependencyFilterModel(
+  field: ResourceField,
+  values: Record<string, RecordValue>,
+  requireDependencies: boolean,
+): GridFilterModel | null {
+  const dependencies = field.relation?.dependencies ?? [];
+  const items: GridFilterItem[] = [];
+  for (const dependency of dependencies) {
+    const sourceValue = values[dependency.source_field];
+    if (isMissingDependencyValue(sourceValue)) {
+      if (requireDependencies) {
+        return null;
+      }
+      continue;
+    }
+    items.push({
+      field: dependency.target_field,
+      operator: dependency.operator,
+      value: dependencyFilterValue(dependency.operator, sourceValue),
+    });
+  }
+  return { items, quickFilterValues: [], linkOperator: "and" };
+}
+
+function dependencyFilterValue(operator: string, value: RecordValue): JsonValue {
+  if (operator === "isAnyOf") {
+    return Array.isArray(value) ? value.filter(isJsonPrimitive) : isJsonPrimitive(value) ? [value] : [];
+  }
+  return isJsonPrimitive(value) || Array.isArray(value) || (value && typeof value === "object") ? value : null;
+}
+
+function isMissingDependencyValue(value: RecordValue): boolean {
+  return value === null || value === undefined || value === "" || (Array.isArray(value) && value.length === 0);
+}
+
+function isJsonPrimitive(value: RecordValue): value is JsonPrimitive {
+  return value === null || ["string", "number", "boolean"].includes(typeof value);
 }
 
 function validationAttributes(field: ResourceField, readonly: boolean): Record<string, string | number | boolean | null | undefined> {
@@ -1152,6 +1998,10 @@ function controlForField(field: ResourceField): AdminControl {
   if (field.type === "many_to_many") return "many_to_many_select";
   return "text_input";
 }
+
+function usesTypeaheadOptions(field: ResourceField): boolean {
+  return field.relation?.option_control === "typeahead";
+}
 function renderRecordForm(
   modal: HTMLElement,
   schema: ResourceSchema,
@@ -1159,13 +2009,20 @@ function renderRecordForm(
   record: ResourceRecord,
   optionsByField: Record<string, RelationOption[]>,
   recordId?: string,
+  urls: RecordResourceUrls = {},
 ): HTMLElement {
   const readonly = mode === "view";
   const form = el("form", { class: "stack" });
-  const fields = readonly ? detailFields(schema) : editableFields(schema, mode === "create");
+  const fields = sortFormFields(readonly ? detailFields(schema) : editableFields(schema, mode === "create"));
   const grid = el("div", { class: "form-grid" });
 
+  let currentSection: string | null = null;
   for (const field of fields) {
+    const section = fieldUiText(field, "section")?.trim() || null;
+    if (section && section !== currentSection) {
+      grid.append(el("div", { class: "form-section field--full" }, [section]));
+      currentSection = section;
+    }
     grid.append(renderInputField(field, record[field.key], optionsByField[field.key] ?? [], readonly));
   }
 
@@ -1180,16 +2037,33 @@ function renderRecordForm(
     footer.append(submit);
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      void submitRecordForm(form, submit, errorBox, modal, schema, mode, fields, recordId);
+      void submitRecordForm(form, submit, errorBox, modal, schema, mode, fields, recordId, urls);
     });
   }
 
   form.append(grid, errorBox, footer);
+  wireTypeaheadRelationSelectors(form, schema, fields, readonly);
+  wireDependentRelationSelectors(form, schema, fields, readonly);
   return form;
 }
 
+function sortFormFields(fields: ResourceField[]): ResourceField[] {
+  return [...fields].sort((left, right) => {
+    if (fieldDependsOn(left, right.key)) return 1;
+    if (fieldDependsOn(right, left.key)) return -1;
+    const leftPriority = left.ui?.priority ?? left.relation?.priority ?? 1000;
+    const rightPriority = right.ui?.priority ?? right.relation?.priority ?? 1000;
+    if (leftPriority !== rightPriority) return leftPriority - rightPriority;
+    return fieldName(left).localeCompare(fieldName(right));
+  });
+}
+
+function fieldDependsOn(field: ResourceField, sourceFieldKey: string): boolean {
+  return (field.relation?.depends_on ?? []).includes(sourceFieldKey);
+}
+
 function renderInputField(field: ResourceField, value: RecordValue, options: RelationOption[], readonly: boolean): HTMLElement {
-  const labelChildren: Array<Node | string> = [field.label];
+  const labelChildren: Array<Node | string> = [fieldName(field)];
   if (field.required && !readonly) {
     labelChildren.push(el("span", { class: "required" }, [" *"]));
   }
@@ -1198,12 +2072,21 @@ function renderInputField(field: ResourceField, value: RecordValue, options: Rel
   }
 
   const input = inputForField(field, value, options, readonly);
-  return el("div", { class: "field" }, [
+  return el("div", { class: fieldContainerClass(field) }, [
     el("label", { for: field.key }, labelChildren),
     input,
-    field.help_text ? el("small", {}, [field.help_text]) : null,
+    fieldHelpText(field) ? el("small", {}, [fieldHelpText(field) ?? ""]) : null,
     field.visible_capability ? el("small", {}, [`Visible only with capability: ${field.visible_capability}`]) : null,
   ]);
+}
+
+
+function fieldContainerClass(field: ResourceField): string {
+  const width = field.ui?.width;
+  if (width === "full") return "field field--full";
+  if (width === "half") return "field field--half";
+  if (width === "third") return "field field--third";
+  return "field";
 }
 
 function inputForField(field: ResourceField, value: RecordValue, options: RelationOption[], readonly: boolean): HTMLElement {
@@ -1230,11 +2113,14 @@ function inputForField(field: ResourceField, value: RecordValue, options: Relati
       "data-field-type": field.type,
     });
     if (field.nullable || !field.required) {
-      select.append(el("option", { value: "" }, ["—"]));
+      select.append(el("option", { value: "" }, [fieldUiText(field, "placeholder") ?? "—"]));
     }
     for (const option of options) {
       const optionValue = String(option.value);
       select.append(el("option", { value: optionValue, selected: String(value ?? "") === optionValue }, [option.label]));
+    }
+    if (control === "fk_select" && usesTypeaheadOptions(field) && !readonly) {
+      return relationTypeaheadControl(field, select);
     }
     return select;
   }
@@ -1253,6 +2139,9 @@ function inputForField(field: ResourceField, value: RecordValue, options: Relati
       const optionValue = String(option.value);
       select.append(el("option", { value: optionValue, selected: selected.has(optionValue) }, [option.label]));
     }
+    if (usesTypeaheadOptions(field) && !readonly) {
+      return relationTypeaheadControl(field, select);
+    }
     return select;
   }
 
@@ -1264,6 +2153,7 @@ function inputForField(field: ResourceField, value: RecordValue, options: Relati
       class: "textarea",
       disabled: readonly,
       ...validationAttributes(field, readonly),
+      placeholder: fieldUiText(field, "placeholder"),
       "data-field-type": field.type,
     }, [textValue]);
   }
@@ -1277,8 +2167,163 @@ function inputForField(field: ResourceField, value: RecordValue, options: Relati
     value: inputValue(field, value),
     disabled: readonly,
     ...validationAttributes(field, readonly),
+    placeholder: fieldUiText(field, "placeholder"),
     "data-field-type": field.type,
   });
+}
+
+function relationTypeaheadControl(field: ResourceField, select: HTMLSelectElement): HTMLElement {
+  const search = el("input", {
+    class: "input relation-search",
+    type: "search",
+    placeholder: fieldUiText(field, "placeholder") ?? "Search options...",
+    "data-typeahead-for": field.key,
+    "aria-label": `Search ${fieldName(field)} options`,
+  });
+  const wrapper = el("div", { class: "relation-typeahead" }, [search, select]);
+  return wrapper;
+}
+
+function wireTypeaheadRelationSelectors(
+  form: HTMLFormElement,
+  schema: ResourceSchema,
+  fields: ResourceField[],
+  readonly: boolean,
+): void {
+  if (readonly) {
+    return;
+  }
+  const typeaheadFields = fields.filter((field) => usesTypeaheadOptions(field));
+  for (const field of typeaheadFields) {
+    const search = typeaheadSearchInput(form, field.key);
+    const select = form.elements.namedItem(field.key);
+    if (!search || !(select instanceof HTMLSelectElement)) {
+      continue;
+    }
+    search.addEventListener("change", () => {
+      void refreshOneRelationSelector(form, schema, fields, field);
+    });
+  }
+}
+
+function typeaheadSearchInput(form: HTMLFormElement, fieldKey: string): HTMLInputElement | null {
+  return Array.from(form.querySelectorAll<HTMLInputElement>("input[data-typeahead-for]")).find((input) => input.dataset.typeaheadFor === fieldKey) ?? null;
+}
+
+async function refreshOneRelationSelector(
+  form: HTMLFormElement,
+  schema: ResourceSchema,
+  fields: ResourceField[],
+  field: ResourceField,
+): Promise<void> {
+  const select = form.elements.namedItem(field.key);
+  if (!(select instanceof HTMLSelectElement)) {
+    return;
+  }
+  const currentValue = select.multiple
+    ? Array.from(select.selectedOptions).map((option) => option.value)
+    : select.value;
+  const values = formValues(form, fields);
+  const search = typeaheadSearchInput(form, field.key)?.value ?? "";
+  const params = optionQueryParams(field, values, true, search);
+  if (!params) {
+    replaceSelectOptions(select, field, [], select.multiple ? [] : "", "Select dependencies first");
+    select.disabled = true;
+    return;
+  }
+  select.disabled = true;
+  const options = await fetchRelationOptions(schema, field, values, true, search);
+  replaceSelectOptions(select, field, options, currentValue, options.length ? "—" : "No options match");
+  select.disabled = false;
+}
+
+function wireDependentRelationSelectors(
+  form: HTMLFormElement,
+  schema: ResourceSchema,
+  fields: ResourceField[],
+  readonly: boolean,
+): void {
+  if (readonly) {
+    return;
+  }
+  const dependentFields = fields.filter((field) => ((field.relation?.dependencies ?? []).length > 0));
+  if (dependentFields.length === 0) {
+    return;
+  }
+  setDependentSelectorAvailability(form, fields, dependentFields);
+  const sourceFieldKeys = new Set(dependentFields.flatMap((field) => field.relation?.depends_on ?? []));
+  for (const sourceFieldKey of sourceFieldKeys) {
+    const element = form.elements.namedItem(sourceFieldKey);
+    if (element instanceof HTMLElement) {
+      element.addEventListener("change", () => {
+        void refreshDependentRelationSelectors(form, schema, fields, dependentFields);
+      });
+    }
+  }
+}
+
+function setDependentSelectorAvailability(
+  form: HTMLFormElement,
+  fields: ResourceField[],
+  dependentFields: ResourceField[],
+): void {
+  const values = formValues(form, fields);
+  for (const field of dependentFields) {
+    const select = form.elements.namedItem(field.key);
+    if (!(select instanceof HTMLSelectElement)) {
+      continue;
+    }
+    const dependenciesReady = relationDependencyFilterModel(field, values, true) !== null;
+    select.disabled = !dependenciesReady;
+    if (!dependenciesReady) {
+      replaceSelectOptions(select, field, [], select.multiple ? [] : "", "Select dependencies first");
+    }
+  }
+}
+
+async function refreshDependentRelationSelectors(
+  form: HTMLFormElement,
+  schema: ResourceSchema,
+  fields: ResourceField[],
+  dependentFields: ResourceField[],
+): Promise<void> {
+  for (const field of sortFormFields(dependentFields)) {
+    const select = form.elements.namedItem(field.key);
+    if (!(select instanceof HTMLSelectElement)) {
+      continue;
+    }
+    await refreshOneRelationSelector(form, schema, fields, field);
+  }
+}
+
+function formValues(form: HTMLFormElement, fields: ResourceField[]): Record<string, RecordValue> {
+  const values: Record<string, RecordValue> = {};
+  for (const field of fields) {
+    const element = form.elements.namedItem(field.key);
+    if (!element) {
+      continue;
+    }
+    values[field.key] = valueFromElement(element, field);
+  }
+  return values;
+}
+
+function replaceSelectOptions(
+  select: HTMLSelectElement,
+  field: ResourceField,
+  options: RelationOption[],
+  selectedValue: string | string[],
+  emptyLabel = "—",
+): void {
+  const selected = new Set(Array.isArray(selectedValue) ? selectedValue : [selectedValue]);
+  clear(select);
+  if (!select.multiple && (field.nullable || !field.required || options.length === 0)) {
+    select.append(el("option", { value: "" }, [emptyLabel]));
+  }
+  for (const option of options) {
+    const optionValue = String(option.value);
+    select.append(el("option", { value: optionValue, selected: selected.has(optionValue) }, [option.label]));
+  }
 }
 
 async function submitRecordForm(
@@ -1290,6 +2335,7 @@ async function submitRecordForm(
   mode: "create" | "edit",
   fields: ResourceField[],
   recordId?: string,
+  urls: RecordResourceUrls = {},
 ): Promise<void> {
   submit.disabled = true;
   submit.textContent = mode === "create" ? "Creating..." : "Saving...";
@@ -1299,17 +2345,17 @@ async function submitRecordForm(
   try {
     const payload = formPayload(form, fields, mode);
     if (mode === "create") {
-      await apiFetch<ResourceRecord>(withSurface(recordsPath(schema.key)), {
+      await apiFetch<ResourceRecord>(resourceCreatePath(schema), {
         method: "POST",
         body: JSON.stringify(payload),
       });
-      state.message = `${schema.label} created.`;
+      state.message = `${resourceName(schema)} created.`;
     } else {
-      await apiFetch<ResourceRecord>(withSurface(recordPath(schema.key, requireRecordId(recordId))), {
+      await apiFetch<ResourceRecord>(recordUpdatePath(schema, recordId, urls), {
         method: "PATCH",
         body: JSON.stringify(payload),
       });
-      state.message = `${schema.label} updated.`;
+      state.message = `${resourceName(schema)} updated.`;
     }
     modal.remove();
     await reloadResourceView();
@@ -1386,15 +2432,44 @@ function coerceScalar(value: string): string | number {
   return value;
 }
 
-async function deleteRecord(schema: ResourceSchema, recordId: string): Promise<void> {
-  const action = schema.destructive_actions?.delete;
-  const confirmed = action?.confirm === false || window.confirm(action?.message ?? `Delete this ${schema.label}?`);
+
+async function batchDeleteRecords(view: ResourceViewState): Promise<void> {
+  const ids = [...view.selectedIds];
+  if (ids.length === 0) {
+    return;
+  }
+  const action = view.schema.destructive_actions?.batch_delete;
+  const confirmed = action?.confirm === false || window.confirm(action?.message ?? `Delete ${ids.length} selected records?`);
   if (!confirmed) {
     return;
   }
   try {
-    await apiFetch<void>(withSurface(recordPath(schema.key, recordId)), { method: "DELETE" });
-    state.message = `${schema.label} deleted.`;
+    await apiFetch<void>(resourceBatchDeletePath(view.schema), {
+      method: "DELETE",
+      body: JSON.stringify({ ids: ids.map(coerceScalar) }),
+    });
+    view.selectedIds.clear();
+    state.message = `${ids.length} ${resourceName(view.schema, true)} deleted.`;
+    await reloadResourceView();
+  } catch (error) {
+    state.message = null;
+    view.error = error instanceof Error ? error.message : "Batch delete failed.";
+  } finally {
+    render();
+  }
+}
+
+async function deleteRecord(schema: ResourceSchema, recordId?: string, urls: RecordResourceUrls = {}, label = ""): Promise<void> {
+  const action = schema.destructive_actions?.delete;
+  const schemaName = resourceName(schema);
+  const fallbackMessage = label ? `Delete this ${schemaName}: ${label}?` : `Delete this ${schemaName}?`;
+  const confirmed = action?.confirm === false || window.confirm(actionMessage(action, fallbackMessage));
+  if (!confirmed) {
+    return;
+  }
+  try {
+    await apiFetch<void>(recordDeletePath(schema, recordId, urls), { method: "DELETE" });
+    state.message = label ? `${schemaName} ${label} deleted.` : `${schemaName} deleted.`;
     await reloadResourceView();
   } catch (error) {
     state.message = null;
@@ -1411,7 +2486,7 @@ function filteredResources(): ResourceSchema[] {
   const resources = !needle
     ? state.resources
     : state.resources.filter((resource) =>
-        [resource.key, resource.label, resource.plural_label, resource.navigation?.group ?? ""].some((value) => value.toLowerCase().includes(needle)),
+        [resource.key, resourceName(resource), resourceName(resource, true), resource.navigation?.group ?? ""].some((value) => value.toLowerCase().includes(needle)),
       );
   return [...resources].sort((left, right) => {
     const leftGroup = left.navigation?.group ?? "Resources";
@@ -1420,7 +2495,7 @@ function filteredResources(): ResourceSchema[] {
     const leftOrder = left.navigation?.order ?? 1000;
     const rightOrder = right.navigation?.order ?? 1000;
     if (leftOrder !== rightOrder) return leftOrder - rightOrder;
-    return (left.plural_label || left.label || left.key).localeCompare(right.plural_label || right.label || right.key);
+    return resourceName(left, true).localeCompare(resourceName(right, true));
   });
 }
 
@@ -1462,6 +2537,22 @@ function recordPk(schema: ResourceSchema, record: ResourceRecord): string | null
 
 function schemaHasDependentRelations(schema: ResourceSchema): boolean {
   return schema.fields.some((field) => (field.relation?.depends_on.length ?? 0) > 0);
+}
+
+
+function recordLabel(schema: ResourceSchema, record: ResourceRecord, fallbackId: string | null = null): string {
+  const backendLabel = record.__label;
+  if (typeof backendLabel === "string" && backendLabel.trim()) {
+    return backendLabel;
+  }
+  const displayField = schema.display_label_field;
+  if (displayField) {
+    const value = record[displayField];
+    if (isScalarRecordValue(value) && value !== null && String(value).trim()) {
+      return String(value);
+    }
+  }
+  return fallbackId ?? resourceName(schema);
 }
 
 function optionLabel(optionMap: Map<string, string> | undefined, value: RecordValue): string {
@@ -1531,9 +2622,9 @@ function displayUser(user: AuthUser): string {
 }
 
 window.addEventListener("hashchange", () => {
-  const key = location.hash.startsWith("#/resources/") ? decodeURIComponent(location.hash.slice("#/resources/".length)) : null;
-  if (key && key !== state.selectedResourceKey) {
-    void selectResource(key);
+  const parsed = parseResourceHash();
+  if (parsed.resourceKey) {
+    void selectResource(parsed.resourceKey, parsed.params, false);
   }
 });
 
@@ -1546,9 +2637,9 @@ async function boot(): Promise<void> {
   render();
   if (session.capabilities.includes(ACCESS_DB_ADMIN)) {
     await loadResources();
-    const hashKey = location.hash.startsWith("#/resources/") ? decodeURIComponent(location.hash.slice("#/resources/".length)) : null;
-    if (hashKey && state.resources.some((resource) => resource.key === hashKey)) {
-      await selectResource(hashKey);
+    const parsed = parseResourceHash();
+    if (parsed.resourceKey && state.resources.some((resource) => resource.key === parsed.resourceKey)) {
+      await selectResource(parsed.resourceKey, parsed.params, false);
     }
   }
   render();

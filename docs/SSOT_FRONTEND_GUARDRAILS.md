@@ -4,7 +4,7 @@
 
 - The frontend must not compile a list of DB tables, models, resources, or fields.
 - The frontend must not define ordinary CRUD schemas.
-- The frontend must not duplicate backend labels, required flags, nullability, enum values, relation option sources, list visibility, filterability, searchability, sortability, or PII flags.
+- The frontend must not duplicate backend labels, localized labels/messages, required flags, nullability, enum values, relation option sources, list visibility, filterability, searchability, sortability, or PII flags.
 - The frontend must not call legacy explicit endpoints for ordinary admin CRUD.
 - The frontend must not keep compatibility wrappers for removed backend endpoints.
 - The frontend must not introduce role/capability names except shell-level guards that are truly frontend-shell specific. This app compiles only `access_db_admin` because it is the entry gate for the DB Admin surface.
@@ -30,7 +30,7 @@ The backend owns:
 
 - resources available to this user and surface;
 - field definitions;
-- labels;
+- labels and localized labels/messages;
 - relation options and scopes;
 - enum options;
 - row scope;

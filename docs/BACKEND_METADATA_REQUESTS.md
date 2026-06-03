@@ -9,7 +9,7 @@ Implementation sequencing lives in
 
 ## High priority
 
-1. Opaque record identity
+1. Opaque record identity — partially complete
 
 ```json
 {
@@ -31,34 +31,47 @@ or include per-record URLs:
 }
 ```
 
-Reason: the schema already publishes `primary_key_fields`, but detail/update/delete URLs accept one `record_pk`. If composite keys or non-trivial identifiers appear, the frontend needs an opaque identity rather than guessing.
+Status: backend schemas now publish `resource_urls` for collection actions, record responses publish `__resource_urls.detail/update/delete`, and the frontend consumes those URLs before falling back to generic single-key routes. Remaining need: true composite/opaque identity resolution if non-single-key resources are exposed.
 
-2. Paginated/searchable relation options
+2. Relation option typeahead metadata — complete for current protocol
+
+The backend now supports searchable/paginated relation options:
 
 ```text
 GET /api/resources/{resource_key}/options/{field_key}/?surface=db_admin&search=abc&page=1&page_size=25
 ```
 
-Reason: a generic admin cannot know which related tables are small enough for full select boxes.
+Status: relation schemas can now publish `option_control: "typeahead"`, and the frontend renders a generic search box that reloads relation options through the same backend option endpoint. Remaining need: add that metadata to future relation fields that need typeahead UX.
 
-3. Dependent selector protocol
+3. Additional dependent selector coverage
 
-If a field declares `depends_on`, the backend should define how dependency values are sent:
+The backend now defines the dependent selector protocol with `relation.dependencies`:
 
 ```json
 {
   "relation": {
     "depends_on": ["school"],
-    "dependency_query_params": { "school": "school_id" }
+    "dependencies": [
+      {"source_field": "school", "target_field": "school", "operator": "equals"}
+    ]
   }
 }
 ```
 
-Reason: the current frontend can detect dependency metadata but cannot safely invent request parameters.
+The frontend sends those constraints through the generic grid `filters` query parameter. Remaining need: add these declarations to any future relation fields that require cascading option scopes.
 
 ## Medium priority
 
-4. Admin navigation metadata
+4. Filter operator and value-control metadata — complete
+
+The backend now includes `list_query_contract.filters.operators` with stable
+operator keys, localized labels, compatible admin field types, value kind
+(`single`, `multiple`, or `none`), and `value_control` hints. The frontend uses
+that metadata plus field option/relation metadata to render generic text,
+number, date/datetime, boolean, enum, relation, and multiple-value filter
+controls without compiling model-specific filter rules.
+
+5. Admin navigation metadata — complete for current shell
 
 ```json
 {
@@ -70,9 +83,9 @@ Reason: the current frontend can detect dependency metadata but cannot safely in
 }
 ```
 
-Reason: alphabetic fallback is generic but not ideal.
+Status: backend schemas expose navigation group/order metadata and the frontend consumes it for sidebar grouping/sorting. Remaining need: richer permission/admin grouping only if future resources need it.
 
-5. Field presentation hints
+6. Field presentation hints — complete for current shell
 
 ```json
 {
@@ -85,15 +98,15 @@ Reason: alphabetic fallback is generic but not ideal.
 }
 ```
 
-Reason: forms can remain generic while still being usable.
+Status: backend schemas publish safe field `ui` metadata and the frontend consumes `section`, `priority`, `width`, and `placeholder` generically. Remaining need: optional `ui.description` or richer layout tokens only if future forms need them.
 
-6. Validation hints
+7. Validation hints — partially complete
 
 Examples: `max_length`, `min`, `max`, `pattern`, `step`.
 
-Reason: backend validation remains authoritative, but frontend can prevent obvious mistakes.
+Status: backend exposes required/nullability/max-length/min/max/pattern-style hints where inferable, and the frontend maps them to HTML validation attributes. Remaining need: broader validator coverage and polished inline validation UX.
 
-7. Destructive action metadata
+8. Destructive action metadata — mostly complete
 
 ```json
 {
@@ -106,22 +119,35 @@ Reason: backend validation remains authoritative, but frontend can prevent obvio
 }
 ```
 
-Reason: generic delete should know when stronger confirmation is warranted.
+Status: backend exposes delete and batch-delete metadata, including localized label/message metadata; frontend consumes both. Remaining need: stronger confirmation text only for future resources that need more than the generic defaults.
 
 ## Low priority
 
-8. Resource descriptions and help text
+9. Backend-owned localized labels/messages — complete for current protocol
 
-Examples: `description`, `admin_help_text`, per-action help.
+Status: backend schemas publish `i18n` metadata for resource labels, field labels/help/UI text, related-list labels, and destructive action labels/messages; frontend resolves them generically through the language selector. Remaining need: complete translation coverage for resources whose Django/model defaults are not enough.
 
-9. Record display label
+10. Resource descriptions and help text — complete for current shell
 
-Examples: `display_field`, `display_template`, or response-level `__label`.
+Status: backend schemas now expose resource-level `description` and `admin_help_text`, including localized `i18n.description` and `i18n.admin_help_text`; the frontend renders them generically in resource pages. Remaining need: richer per-action help only if future actions require it.
 
-10. User/session bootstrap endpoint
+11. Record display label — complete for current shell
+
+Status: backend schemas publish `display_label_field`, record responses publish `__label`, and the frontend consumes those values for generic record-facing labels. Remaining need: optional display templates only if future resources need labels that cannot come from one safe public field.
+
+12. User/session bootstrap endpoint
 
 The token response currently carries enough user/capability data after login. A read-only `/api/session/` endpoint could let static frontend tabs revalidate without relying only on stored token payload.
 
 ## Deployment/configuration note
 
 If the admin frontend is served from a different origin than the API, backend deployment must allow the admin origin and `Authorization` header through CORS. The preferred production setup is still same-origin or reverse-proxy routing so the frontend can keep `apiBaseUrl` blank.
+
+## Error correlation
+
+Implemented: frontend displays backend `request_id` / `X-Request-ID` values in generic API errors. Remaining polish should stay generic and backend-owned where metadata is needed.
+
+11. Migration/query safety contract — complete for current protocol
+
+Status: backend schemas publish `migration_safety_contract`, including Django-migration ownership, structured ORM filter/query safety, permission manifest review discipline, and explicit `not_adopted` DB-role/RLS status. The frontend displays that metadata generically and does not compile permission or SQL policy assumptions.
+
