@@ -105,6 +105,14 @@ tr:hover td { background: var(--surface-muted); }
 .login-card h1 { margin: 0 0 8px; font-size: 26px; }
 .login-card p { color: var(--muted); margin: 0 0 18px; }
 .stack { display: flex; flex-direction: column; gap: 12px; }
+.preference-controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.segmented { display: inline-grid; grid-auto-flow: column; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); box-shadow: var(--shadow); }
+.segmented button { border: 0; border-right: 1px solid var(--border); background: transparent; color: var(--text); min-height: 34px; padding: 6px 10px; box-shadow: none; }
+.segmented button:last-child { border-right: 0; }
+.segmented button.active { background: var(--accent); color: white; }
+.sidebar .segmented { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); box-shadow: none; }
+.sidebar .segmented button { color: #e2e8f0; border-right-color: rgba(255,255,255,0.16); }
+.sidebar .segmented button.active { background: white; color: var(--sidebar-bg); }
 .modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.42); display: grid; place-items: center; padding: 24px; z-index: 50; }
 .modal { width: min(960px, 100%); max-height: min(880px, calc(100vh - 48px)); overflow: auto; background: var(--surface); border-radius: 14px; box-shadow: 0 20px 50px rgba(16, 24, 40, 0.24); border: 1px solid var(--border); }
 .modal__header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 16px; border-bottom: 1px solid var(--border); }

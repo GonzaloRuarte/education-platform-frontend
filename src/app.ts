@@ -481,7 +481,6 @@ const SURFACE = "db_admin";
 const ACCESS_DB_ADMIN = "access_db_admin";
 const DEFAULT_PAGE_SIZE = 25;
 const STORAGE_SESSION = "retrobolt.admin.session";
-const STORAGE_API_BASE = "retrobolt.admin.apiBaseUrl";
 const STORAGE_LOCALE = "retrobolt.admin.locale";
 const STORAGE_THEME = "retrobolt.admin.theme";
 const RESOURCE_HASH_PREFIX = "#/resources/";
@@ -510,7 +509,7 @@ const state: AppState = {
 function loadLocale(): Locale {
   const stored = localStorage.getItem(STORAGE_LOCALE);
   if (stored === "en" || stored === "es") return stored;
-  return navigator.language.toLowerCase().startsWith("es") ? "es" : "en";
+  return "es";
 }
 
 function setLocale(locale: Locale): void {
@@ -521,7 +520,7 @@ function setLocale(locale: Locale): void {
 function loadTheme(): ThemeMode {
   const stored = localStorage.getItem(STORAGE_THEME);
   if (stored === "dark" || stored === "light") return stored;
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "light";
 }
 
 function setTheme(theme: ThemeMode): void {
@@ -537,6 +536,46 @@ function applyTheme(): void {
 function localizedText(fallback: string, text?: LocalizedText): string {
   if (!text) return fallback;
   return text[state.locale] || text.en || text.es || fallback;
+}
+
+const UI_TEXT: Record<string, Record<Locale, string>> = {
+  login_title: { es: "Administración de Base de Datos", en: "Database Administration" },
+  username: { es: "Usuario", en: "Username" },
+  password: { es: "Contraseña", en: "Password" },
+  sign_in: { es: "Ingresar", en: "Sign in" },
+  signing_in: { es: "Ingresando...", en: "Signing in..." },
+  login_failed: { es: "No se pudo iniciar sesión.", en: "Login failed." },
+  language: { es: "Idioma", en: "Language" },
+  theme: { es: "Tema", en: "Theme" },
+  english: { es: "Inglés", en: "English" },
+  spanish: { es: "Español", en: "Spanish" },
+  light: { es: "Claro", en: "Light" },
+  dark: { es: "Oscuro", en: "Dark" },
+  filter_resources: { es: "Filtrar recursos...", en: "Filter resources..." },
+  resources: { es: "Recursos", en: "Resources" },
+  no_resources_match: { es: "No hay recursos que coincidan.", en: "No resources match." },
+  refresh_resources: { es: "Actualizar recursos", en: "Refresh resources" },
+  sign_out: { es: "Salir", en: "Sign out" },
+  admin_title: { es: "Retrobolt Admin", en: "Retrobolt Admin" },
+  admin_subtitle: { es: "Superficie DB Admin en tiempo de ejecución", en: "Runtime DB Admin surface" },
+  capabilities_loaded: { es: "capacidades cargadas", en: "capabilities loaded" },
+  db_admin_required: { es: "Se requiere acceso DB Admin", en: "DB Admin access required" },
+  db_admin_required_message: {
+    es: "está autenticado, pero esta interfaz solo expone la superficie DB Admin y requiere",
+    en: "is authenticated, but this frontend only exposes the runtime DB Admin surface and requires",
+  },
+  loading_admin_resources: { es: "Cargando recursos de administración...", en: "Loading admin resources..." },
+  loading_resource: { es: "Cargando recurso...", en: "Loading resource..." },
+  retry: { es: "Reintentar", en: "Retry" },
+  empty_resources_title: { es: "No se devolvieron recursos DB Admin", en: "No DB Admin resources returned" },
+  empty_resources_message: {
+    es: "El backend devolvió una lista vacía para surface=db_admin. Confirmá que el usuario tenga access_db_admin y que los recursos ResourceMeta estén expuestos.",
+    en: t("empty_resources_message"),
+  },
+};
+
+function t(key: string): string {
+  return UI_TEXT[key]?.[state.locale] ?? UI_TEXT[key]?.es ?? key;
 }
 
 function resourceName(resource: ResourceSchema, plural = false): string {
@@ -583,15 +622,7 @@ function actionMessage(action: DestructiveAction | undefined, fallback: string):
 }
 
 function configApiBaseUrl(): string {
-  const stored = localStorage.getItem(STORAGE_API_BASE);
-  if (stored !== null) {
-    return stored;
-  }
   return window.__RETROBOLT_ADMIN_CONFIG__?.apiBaseUrl ?? "";
-}
-
-function setApiBaseUrl(value: string): void {
-  localStorage.setItem(STORAGE_API_BASE, trimTrailingSlash(value.trim()));
 }
 
 function trimTrailingSlash(value: string): string {
@@ -602,7 +633,11 @@ function apiUrl(path: string): string {
   if (/^https?:\/\//i.test(path)) {
     return path;
   }
-  return `${trimTrailingSlash(configApiBaseUrl())}${path}`;
+  const base = trimTrailingSlash(configApiBaseUrl());
+  if (base.toLowerCase().endsWith("/api") && path.startsWith("/api/")) {
+    return `${base}${path.slice(4)}`;
+  }
+  return `${base}${path}`;
 }
 
 function requireResourceUrl(schema: ResourceSchema, key: keyof ResourceUrls): string {
@@ -1015,20 +1050,37 @@ function render(): void {
   appRoot.append(renderShell(session));
 }
 
-function renderLogin(): HTMLElement {
-  const apiBaseInput = el("input", {
-    class: "input",
-    name: "apiBaseUrl",
-    autocomplete: "url",
-    placeholder: "Same origin",
-    value: configApiBaseUrl(),
+function renderPreferenceControls(): HTMLElement {
+  const languageButtons = el("div", { class: "segmented", "aria-label": t("language") }, [
+    preferenceButton(t("spanish"), state.locale === "es", () => setLocale("es")),
+    preferenceButton(t("english"), state.locale === "en", () => setLocale("en")),
+  ]);
+  const themeButtons = el("div", { class: "segmented", "aria-label": t("theme") }, [
+    preferenceButton(t("light"), state.theme === "light", () => setTheme("light")),
+    preferenceButton(t("dark"), state.theme === "dark", () => setTheme("dark")),
+  ]);
+  return el("div", { class: "preference-controls" }, [languageButtons, themeButtons]);
+}
+
+function preferenceButton(label: string, active: boolean, apply: () => void): HTMLElement {
+  const button = el("button", {
+    class: active ? "active" : "",
+    type: "button",
+    "aria-pressed": active ? "true" : "false",
+  }, [label]);
+  button.addEventListener("click", () => {
+    apply();
+    render();
   });
+  return button;
+}
+function renderLogin(): HTMLElement {
   const usernameInput = el("input", {
     class: "input",
     name: "username",
     autocomplete: "username",
     required: true,
-    placeholder: "Username",
+    placeholder: t("username"),
   });
   const passwordInput = el("input", {
     class: "input",
@@ -1036,15 +1088,14 @@ function renderLogin(): HTMLElement {
     type: "password",
     autocomplete: "current-password",
     required: true,
-    placeholder: "Password",
+    placeholder: t("password"),
   });
   const errorBox = el("div", { class: "error", hidden: true });
-  const submit = el("button", { class: "button primary", type: "submit" }, ["Sign in"]);
+  const submit = el("button", { class: "button primary", type: "submit" }, [t("sign_in")]);
 
   const form = el("form", { class: "stack" }, [
-    fieldShell("API base URL", apiBaseInput, "Blank means same origin as this frontend."),
-    fieldShell("Username", usernameInput),
-    fieldShell("Password", passwordInput),
+    fieldShell(t("username"), usernameInput),
+    fieldShell(t("password"), passwordInput),
     errorBox,
     submit,
   ]);
@@ -1058,8 +1109,9 @@ function renderLogin(): HTMLElement {
     el("section", { class: "card login-card" }, [
       el("div", { class: "card__body stack" }, [
         el("div", {}, [
-          el("h1", {}, ["Administración de Base de Datos"]),
+          el("h1", {}, [t("login_title")]),
         ]),
+        renderPreferenceControls(),
         form,
       ]),
     ]),
@@ -1070,11 +1122,8 @@ async function handleLogin(form: HTMLFormElement, submit: HTMLButtonElement, err
   const data = new FormData(form);
   const username = String(data.get("username") ?? "");
   const password = String(data.get("password") ?? "");
-  const apiBaseUrl = String(data.get("apiBaseUrl") ?? "");
-  setApiBaseUrl(apiBaseUrl);
-
   submit.disabled = true;
-  submit.textContent = "Signing in...";
+  submit.textContent = t("signing_in");
   errorBox.hidden = true;
   errorBox.textContent = "";
 
@@ -1089,16 +1138,16 @@ async function handleLogin(form: HTMLFormElement, submit: HTMLButtonElement, err
     await loadResources();
   } catch (error) {
     errorBox.hidden = false;
-    errorBox.textContent = error instanceof Error ? error.message : "Login failed.";
+    errorBox.textContent = error instanceof Error ? error.message : t("login_failed");
   } finally {
     submit.disabled = false;
-    submit.textContent = "Sign in";
+    submit.textContent = t("sign_in");
     render();
   }
 }
 
 function renderForbidden(session: AuthSession): HTMLElement {
-  const logoutButton = el("button", { class: "button" }, ["Sign out"]);
+  const logoutButton = el("button", { class: "button" }, [t("sign_out")]);
   logoutButton.addEventListener("click", () => {
     clearSession();
     state.resources = [];
@@ -1108,9 +1157,9 @@ function renderForbidden(session: AuthSession): HTMLElement {
   return el("main", { class: "login-page" }, [
     el("section", { class: "card login-card" }, [
       el("div", { class: "card__body stack" }, [
-        el("h1", {}, ["DB Admin access required"]),
+        el("h1", {}, [t("db_admin_required")]),
         el("p", {}, [
-          `${displayUser(session.user)} is authenticated, but this frontend only exposes the runtime DB Admin surface and requires `,
+          `${displayUser(session.user)} ${t("db_admin_required_message")} `,
           el("code", {}, [ACCESS_DB_ADMIN]),
           ".",
         ]),
@@ -1131,7 +1180,7 @@ function renderShell(session: AuthSession): HTMLElement {
 function renderSidebar(session: AuthSession): HTMLElement {
   const filterInput = el("input", {
     class: "resource-filter",
-    placeholder: "Filter resources...",
+    placeholder: t("filter_resources"),
     value: state.resourceFilter,
   });
   filterInput.addEventListener("input", () => {
@@ -1139,31 +1188,12 @@ function renderSidebar(session: AuthSession): HTMLElement {
     render();
   });
 
-  const localeSelect = el("select", { class: "select small", "aria-label": "Language" });
-  localeSelect.append(
-    el("option", { value: "en", selected: state.locale === "en" }, ["English"]),
-    el("option", { value: "es", selected: state.locale === "es" }, ["Español"]),
-  );
-  localeSelect.addEventListener("change", () => {
-    setLocale(localeSelect.value === "es" ? "es" : "en");
-    render();
-  });
-
-  const themeSelect = el("select", { class: "select small", "aria-label": "Theme" });
-  themeSelect.append(
-    el("option", { value: "light", selected: state.theme === "light" }, ["Light"]),
-    el("option", { value: "dark", selected: state.theme === "dark" }, ["Dark"]),
-  );
-  themeSelect.addEventListener("change", () => {
-    setTheme(themeSelect.value === "dark" ? "dark" : "light");
-    render();
-  });
 
   const visibleResources = filteredResources();
-  const nav = el("nav", { class: "resource-nav", "aria-label": "Resources" });
+  const nav = el("nav", { class: "resource-nav", "aria-label": t("resources") });
   let currentGroup = "";
   for (const resource of visibleResources) {
-    const group = resource.navigation?.group ?? "Resources";
+    const group = resource.navigation?.group ?? t("resources");
     if (group !== currentGroup) {
       currentGroup = group;
       nav.append(el("div", { class: "resource-group" }, [group]));
@@ -1179,15 +1209,15 @@ function renderSidebar(session: AuthSession): HTMLElement {
     nav.append(item);
   }
   if (visibleResources.length === 0) {
-    nav.append(el("div", { class: "empty" }, ["No resources match."]));
+    nav.append(el("div", { class: "empty" }, [t("no_resources_match")]));
   }
 
-  const refresh = el("button", { class: "logout", type: "button" }, ["Refresh resources"]);
+  const refresh = el("button", { class: "logout", type: "button" }, [t("refresh_resources")]);
   refresh.addEventListener("click", () => {
     void loadResources();
   });
 
-  const logout = el("button", { class: "logout", type: "button" }, ["Sign out"]);
+  const logout = el("button", { class: "logout", type: "button" }, [t("sign_out")]);
   logout.addEventListener("click", () => {
     clearSession();
     state.resources = [];
@@ -1198,14 +1228,14 @@ function renderSidebar(session: AuthSession): HTMLElement {
 
   return el("aside", { class: "sidebar" }, [
     el("div", {}, [
-      el("h1", { class: "sidebar__title" }, ["Retrobolt Admin"]),
-      el("p", { class: "sidebar__subtitle" }, ["Runtime DB Admin surface"]),
+      el("h1", { class: "sidebar__title" }, [t("admin_title")]),
+      el("p", { class: "sidebar__subtitle" }, [t("admin_subtitle")]),
     ]),
     el("div", { class: "user-card" }, [
       el("strong", {}, [displayUser(session.user)]),
-      el("span", {}, [`${session.capabilities.length} capabilities loaded`]),
+      el("span", {}, [`${session.capabilities.length} ${t("capabilities_loaded")}`]),
     ]),
-    el("div", { class: "sidebar__section stack" }, [filterInput, localeSelect, themeSelect, refresh]),
+    el("div", { class: "sidebar__section stack" }, [filterInput, renderPreferenceControls(), refresh]),
     nav,
     el("div", { class: "sidebar__section" }, [logout]),
   ]);
@@ -1214,7 +1244,7 @@ function renderSidebar(session: AuthSession): HTMLElement {
 function renderMain(): HTMLElement {
   const main = el("main", { class: "main" });
   if (state.loading) {
-    main.append(renderLoadingPage("Loading admin resources..."));
+    main.append(renderLoadingPage(t("loading_admin_resources")));
     return main;
   }
   if (state.error) {
@@ -1230,7 +1260,7 @@ function renderMain(): HTMLElement {
     return main;
   }
   if (!state.resourceView || state.resourceView.schema.key !== state.selectedResourceKey) {
-    main.append(renderLoadingPage("Loading resource..."));
+    main.append(renderLoadingPage(t("loading_resource")));
     void loadResourceView(state.selectedResourceKey);
     return main;
   }
@@ -1243,7 +1273,7 @@ function renderLoadingPage(message: string): HTMLElement {
 }
 
 function renderErrorPage(message: string): HTMLElement {
-  const retry = el("button", { class: "button primary", type: "button" }, ["Retry"]);
+  const retry = el("button", { class: "button primary", type: "button" }, [t("retry")]);
   retry.addEventListener("click", () => {
     void loadResources();
   });
@@ -1256,9 +1286,9 @@ function renderErrorPage(message: string): HTMLElement {
 function renderEmptyPage(): HTMLElement {
   return el("section", { class: "card" }, [
     el("div", { class: "card__body stack" }, [
-      el("h2", {}, ["No DB Admin resources returned"]),
+      el("h2", {}, [t("empty_resources_title")]),
       el("p", { class: "page-subtitle" }, [
-        "The backend returned an empty resource list for surface=db_admin. Confirm the user has access_db_admin and that ResourceMeta resources are exposed.",
+        t("empty_resources_message"),
       ]),
     ]),
   ]);

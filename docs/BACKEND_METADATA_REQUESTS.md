@@ -137,7 +137,7 @@ The token response currently carries enough user/capability data after login. A 
 
 ## Deployment/configuration note
 
-If the admin frontend is served from a different origin than the API, backend deployment must allow the admin origin and `Authorization` header through CORS. The preferred production setup is still same-origin or reverse-proxy routing so the frontend can keep `apiBaseUrl` blank.
+If the admin frontend is served from a different origin than the API, backend deployment must allow the admin origin and `Authorization` header through CORS. The preferred production setup is still same-origin or reverse-proxy routing so runtime config can keep `apiBaseUrl` blank. If origins differ, `apiBaseUrl` is deployment-owned config, not a login-screen user choice.
 
 ## Error correlation
 

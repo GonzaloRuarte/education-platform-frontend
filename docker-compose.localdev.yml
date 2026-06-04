@@ -45,7 +45,7 @@ services:
     environment:
       PORT: 3000
       HOSTNAME: 0.0.0.0
-      NEXT_PUBLIC_API_BASE_PATH: http://backend:8000/api
+      NEXT_PUBLIC_API_BASE_PATH: http://localhost:8000/api
       NEXT_PUBLIC_APPOINTMENT_SCHEDULE_PROFILE: expanded_6_blocks
     ports:
       - "3000:3000"

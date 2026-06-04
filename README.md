@@ -40,17 +40,13 @@ npm run validate
 
 `npm run build` compiles `src/app.ts` into `dist/assets/app.js` and copies `public/*` into `dist/`.
 
-The built app is static. Serve `dist/` from any static server. Configure the backend origin in one of two ways:
-
-1. Edit `dist/config.js` / `public/config.js`:
+The built app is static. Serve `dist/` from any static server. Configure the backend origin through runtime config:
 
 ```js
-window.__RETROBOLT_ADMIN_CONFIG__ = { apiBaseUrl: "https://backend.example.com" };
+window.__RETROBOLT_ADMIN_CONFIG__ = { apiBaseUrl: "https://backend.example.com/api" };
 ```
 
-2. Or set the API base URL on the login screen. It is stored in local storage.
-
-Leave it blank when the frontend and backend are on the same origin.
+The Docker runner writes `dist/config.js` from `NEXT_PUBLIC_API_BASE_PATH` when the container starts. Leave it blank only when the frontend and backend are served from the same origin. Users do not set the API URL on the login screen.
 
 ## Design constraints
 
