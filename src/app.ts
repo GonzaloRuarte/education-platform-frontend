@@ -1058,8 +1058,7 @@ function renderLogin(): HTMLElement {
     el("section", { class: "card login-card" }, [
       el("div", { class: "card__body stack" }, [
         el("div", {}, [
-          el("h1", {}, ["Retrobolt DB Admin"]),
-          el("p", {}, ["Generic runtime admin. No table or field knowledge is compiled into this UI."]),
+          el("h1", {}, ["Administración de Base de Datos"]),
         ]),
         form,
       ]),
