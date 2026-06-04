@@ -36,9 +36,9 @@ const token = await fetchJson(`${apiBase}/token/`, {
   headers: { "content-type": "application/json" },
   body: JSON.stringify({ username, password }),
 });
-assert.ok(token.access, "login should return an access token");
+assert.ok(token.token?.access, "login should return an access token");
 
-const authHeaders = { authorization: `Bearer ${token.access}` };
+const authHeaders = { authorization: `Bearer ${token.token.access}` };
 const discovery = await fetchJson(`${apiBase}/resources/?surface=db_admin`, { headers: authHeaders });
 assert.ok(Array.isArray(discovery.resources), "resource discovery should return resources[]");
 assert.ok(discovery.resources.length > 0, "resource discovery should expose at least one DB Admin resource");

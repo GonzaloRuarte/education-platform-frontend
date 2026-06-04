@@ -10,7 +10,7 @@ const forbiddenFragments = [
   '/users',
   '/appointments',
   '/question-bank',
-  'manage_schools',
+  'manage_institutions',
   'manage_admin_users',
   'manage_groupings',
 ];
