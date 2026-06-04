@@ -44,3 +44,8 @@ The backend owns:
 ## Deletion rule
 
 If a frontend file starts reintroducing model-specific ordinary CRUD assumptions, delete it or move the needed information into backend metadata. Do not preserve it as a compatibility layer.
+
+
+## DB Admin testing contract
+
+Frontend static coverage is complete for the paired package reviewed on 2026-06-04: `npm run validate` and `npm run test:frontend-contracts` are covered by `npm test`. The paired backend target and tests are green locally. The authenticated Docker smoke is still a release gate that requires Docker plus `RETROBOLT_ADMIN_USERNAME` and `RETROBOLT_ADMIN_PASSWORD`, so the whole DB Admin target must not be marked complete until that smoke passes.

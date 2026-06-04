@@ -4,12 +4,14 @@ const DEFAULT_PAGE_SIZE = 25;
 const STORAGE_SESSION = "retrobolt.admin.session";
 const STORAGE_API_BASE = "retrobolt.admin.apiBaseUrl";
 const STORAGE_LOCALE = "retrobolt.admin.locale";
+const STORAGE_THEME = "retrobolt.admin.theme";
 const RESOURCE_HASH_PREFIX = "#/resources/";
 const appRootElement = document.getElementById("app");
 if (!(appRootElement instanceof HTMLElement)) {
     throw new Error("Missing #app root element.");
 }
 const appRoot = appRootElement;
+let nextToastId = 1;
 const state = {
     resources: [],
     selectedResourceKey: null,
@@ -19,6 +21,8 @@ const state = {
     error: null,
     message: null,
     locale: loadLocale(),
+    theme: loadTheme(),
+    toasts: [],
 };
 function loadLocale() {
     const stored = localStorage.getItem(STORAGE_LOCALE);
@@ -29,6 +33,20 @@ function loadLocale() {
 function setLocale(locale) {
     state.locale = locale;
     localStorage.setItem(STORAGE_LOCALE, locale);
+}
+function loadTheme() {
+    const stored = localStorage.getItem(STORAGE_THEME);
+    if (stored === "dark" || stored === "light")
+        return stored;
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+function setTheme(theme) {
+    state.theme = theme;
+    localStorage.setItem(STORAGE_THEME, theme);
+    document.documentElement.dataset.theme = theme;
+}
+function applyTheme() {
+    document.documentElement.dataset.theme = state.theme;
 }
 function localizedText(fallback, text) {
     if (!text)
@@ -85,35 +103,32 @@ function apiUrl(path) {
     }
     return `${trimTrailingSlash(configApiBaseUrl())}${path}`;
 }
-function resourcePath(resourceKey) {
-    return `/api/resources/${encodeURIComponent(resourceKey)}/`;
+function requireResourceUrl(schema, key) {
+    const url = schema.resource_urls?.[key];
+    if (!url) {
+        throw new Error(`Backend schema for ${schema.key} did not provide resource_urls.${key}.`);
+    }
+    return url;
 }
-function recordsPath(resourceKey) {
-    return `/api/resources/${encodeURIComponent(resourceKey)}/records/`;
-}
-function recordPath(resourceKey, recordPk) {
-    return `/api/resources/${encodeURIComponent(resourceKey)}/records/${encodeURIComponent(recordPk)}/`;
-}
-function optionsPath(resourceKey, fieldKey) {
-    return `/api/resources/${encodeURIComponent(resourceKey)}/options/${encodeURIComponent(fieldKey)}/`;
+function resourceSchemaPath(resourceKey) {
+    const schema = state.resources.find((resource) => resource.key === resourceKey);
+    if (!schema?.resource_urls?.schema) {
+        throw new Error(`Backend resource list did not provide resource_urls.schema for ${resourceKey}.`);
+    }
+    return schema.resource_urls.schema;
 }
 function resourceListPath(schema, params = {}) {
-    return schema.resource_urls?.list
-        ? withQueryParams(schema.resource_urls.list, params)
-        : withSurface(recordsPath(schema.key), params);
+    return withQueryParams(requireResourceUrl(schema, "list"), params);
 }
 function resourceCreatePath(schema) {
-    return schema.resource_urls?.create ?? withSurface(recordsPath(schema.key));
+    return requireResourceUrl(schema, "create");
 }
 function resourceBatchDeletePath(schema) {
-    return schema.resource_urls?.batch_delete ?? withSurface(recordsPath(schema.key));
+    return requireResourceUrl(schema, "batch_delete");
 }
 function resourceOptionsPath(schema, fieldKey, params = {}) {
-    const template = schema.resource_urls?.options_template;
-    if (template) {
-        return withQueryParams(template.replace("{field_key}", encodeURIComponent(fieldKey)), params);
-    }
-    return withSurface(optionsPath(schema.key, fieldKey), params);
+    const template = requireResourceUrl(schema, "options_template");
+    return withQueryParams(template.replace("{field_key}", encodeURIComponent(fieldKey)), params);
 }
 function parseResourceHash() {
     if (!location.hash.startsWith(RESOURCE_HASH_PREFIX)) {
@@ -311,26 +326,34 @@ function filterableFields(schema) {
 }
 function operatorsForField(schema, field) {
     const operators = schema.list_query_contract?.filters?.operators ?? [];
-    if (operators.length === 0) {
-        return fallbackOperatorsForField(field);
-    }
     return operators.filter((operator) => !operator.field_types || operator.field_types.includes(field.type));
-}
-function fallbackOperatorsForField(field) {
-    const all = [
-        { key: "contains", label: "contains", value_kind: "single", field_types: ["string", "text", "rich_text", "email"], value_control: { kind: "field", multiple: false } },
-        { key: "equals", label: "equals", value_kind: "single", value_control: { kind: "field", multiple: false } },
-        { key: "isAnyOf", label: "is any of", value_kind: "multiple", value_control: { kind: "field", multiple: true } },
-        { key: "isEmpty", label: "is empty", value_kind: "none", value_control: { kind: "none", multiple: false } },
-        { key: "isNotEmpty", label: "is not empty", value_kind: "none", value_control: { kind: "none", multiple: false } },
-    ];
-    return all.filter((operator) => !operator.field_types || operator.field_types.includes(field.type));
 }
 function operatorLabel(operator) {
     return localizedText(operator.label || operator.key, operator.i18n?.label);
 }
 function operatorNeedsValue(operator) {
     return (operator?.value_kind ?? "single") !== "none";
+}
+function sanitizeFilterModel(schema, filterModel) {
+    const fieldsByKey = new Map(filterableFields(schema).map((field) => [field.key, field]));
+    const items = filterModel.items.filter((item) => {
+        const field = fieldsByKey.get(item.field);
+        if (!field)
+            return false;
+        return operatorsForField(schema, field).some((operator) => operator.key === item.operator);
+    });
+    return {
+        items,
+        quickFilterValues: filterModel.quickFilterValues,
+        linkOperator: filterModel.linkOperator,
+    };
+}
+function sanitizeSortState(schema, sort) {
+    if (!sort.sortField)
+        return sort;
+    return schema.fields.some((field) => field.key === sort.sortField && field.sortable)
+        ? sort
+        : { sortField: "", sortDirection: "asc" };
 }
 function parsePositiveInt(value, fallback) {
     const parsed = Number.parseInt(value ?? "", 10);
@@ -406,7 +429,29 @@ function clear(node) {
         node.firstChild.remove();
     }
 }
+function notify(tone, message) {
+    const toast = { id: nextToastId++, tone, message };
+    state.toasts = [...state.toasts, toast].slice(-4);
+    window.setTimeout(() => {
+        state.toasts = state.toasts.filter((candidate) => candidate.id !== toast.id);
+        render();
+    }, 6000);
+}
+function dismissToast(toastId) {
+    state.toasts = state.toasts.filter((toast) => toast.id !== toastId);
+    render();
+}
+function renderToastRegion() {
+    const region = el("div", { class: "toast-region", role: "status", "aria-live": "polite" });
+    for (const toast of state.toasts) {
+        const close = el("button", { class: "toast__close", type: "button", "aria-label": "Dismiss" }, ["×"]);
+        close.addEventListener("click", () => dismissToast(toast.id));
+        region.append(el("div", { class: `toast toast--${toast.tone}` }, [el("span", {}, [toast.message]), close]));
+    }
+    return region;
+}
 function render() {
+    applyTheme();
     clear(appRoot);
     const session = readSession();
     if (!session) {
@@ -522,6 +567,7 @@ function renderShell(session) {
     const shell = el("div", { class: "app-shell" });
     shell.append(renderSidebar(session));
     shell.append(renderMain());
+    shell.append(renderToastRegion());
     return shell;
 }
 function renderSidebar(session) {
@@ -538,6 +584,12 @@ function renderSidebar(session) {
     localeSelect.append(el("option", { value: "en", selected: state.locale === "en" }, ["English"]), el("option", { value: "es", selected: state.locale === "es" }, ["Español"]));
     localeSelect.addEventListener("change", () => {
         setLocale(localeSelect.value === "es" ? "es" : "en");
+        render();
+    });
+    const themeSelect = el("select", { class: "select small", "aria-label": "Theme" });
+    themeSelect.append(el("option", { value: "light", selected: state.theme === "light" }, ["Light"]), el("option", { value: "dark", selected: state.theme === "dark" }, ["Dark"]));
+    themeSelect.addEventListener("change", () => {
+        setTheme(themeSelect.value === "dark" ? "dark" : "light");
         render();
     });
     const visibleResources = filteredResources();
@@ -583,7 +635,7 @@ function renderSidebar(session) {
             el("strong", {}, [displayUser(session.user)]),
             el("span", {}, [`${session.capabilities.length} capabilities loaded`]),
         ]),
-        el("div", { class: "sidebar__section stack" }, [filterInput, localeSelect, refresh]),
+        el("div", { class: "sidebar__section stack" }, [filterInput, localeSelect, themeSelect, refresh]),
         nav,
         el("div", { class: "sidebar__section" }, [logout]),
     ]);
@@ -668,10 +720,10 @@ function renderResourcePage(view) {
     const batchDeleteButton = el("button", {
         class: "button danger",
         type: "button",
-        disabled: view.selectedIds.size > 0 && canUseSinglePk(schema) ? null : true,
-    }, [actionLabel(batchAction, `Delete selected (${view.selectedIds.size})`)]);
+        disabled: view.selectedIdentities.size > 0 ? null : true,
+    }, [actionLabel(batchAction, `Delete selected (${view.selectedIdentities.size})`)]);
     batchDeleteButton.addEventListener("click", () => {
-        if (view.selectedIds.size > 0 && canUseSinglePk(schema)) {
+        if (view.selectedIdentities.size > 0) {
             void batchDeleteRecords(view);
         }
     });
@@ -700,14 +752,32 @@ function renderResourcePage(view) {
         el("span", { class: "badge" }, [`pk: ${schema.primary_key_fields.join(", ")}`]),
         el("span", { class: "badge" }, [`${schema.fields.length} fields`]),
     ];
-    if (!canUseSinglePk(schema)) {
-        headerBits.push(el("span", { class: "badge" }, ["detail/edit/delete require backend record URLs"]));
+    if (schema.record_identity?.kind === "opaque") {
+        headerBits.push(el("span", { class: "badge" }, ["opaque backend record identity"]));
+    }
+    if (schema.model_ssot_contract) {
+        headerBits.push(el("span", { class: "badge" }, [modelSsotLabel(schema.model_ssot_contract)]));
     }
     if (schema.record_payload_contract) {
         headerBits.push(el("span", { class: "badge" }, [payloadContractLabel(schema.record_payload_contract)]));
     }
+    if (schema.validation_contract) {
+        headerBits.push(el("span", { class: "badge" }, [validationContractLabel(schema.validation_contract)]));
+    }
+    if (schema.authorization_contract || schema.authorization_matrix) {
+        headerBits.push(el("span", { class: "badge" }, [authorizationLabel(schema.authorization_contract, schema.authorization_matrix)]));
+    }
+    if (schema.error_logging_contract) {
+        headerBits.push(el("span", { class: "badge" }, [errorLoggingLabel(schema.error_logging_contract)]));
+    }
+    if (schema.ux_ui_contract) {
+        headerBits.push(el("span", { class: "badge" }, [uxUiLabel(schema.ux_ui_contract)]));
+    }
     if (schema.migration_safety_contract) {
         headerBits.push(el("span", { class: "badge" }, [migrationSafetyLabel(schema.migration_safety_contract)]));
+    }
+    if (schema.testing_contract) {
+        headerBits.push(el("span", { class: "badge" }, [testingContractLabel(schema.testing_contract)]));
     }
     const notices = [];
     const resourceHelp = resourceHelpText(schema);
@@ -727,17 +797,33 @@ function renderResourcePage(view) {
             clearFilters,
         ]));
     }
+    if (schema.model_ssot_contract) {
+        notices.push(el("div", { class: "notice" }, [modelSsotNotice(schema.model_ssot_contract)]));
+    }
+    if (schema.validation_contract) {
+        notices.push(el("div", { class: "notice" }, [validationContractNotice(schema.validation_contract)]));
+    }
+    if (schema.error_logging_contract) {
+        notices.push(el("div", { class: "notice" }, [errorLoggingNotice(schema.error_logging_contract)]));
+    }
+    if (schema.authorization_contract || schema.authorization_matrix) {
+        notices.push(el("div", { class: "notice" }, [authorizationNotice(schema.authorization_contract, schema.authorization_matrix)]));
+    }
+    if (schema.ux_ui_contract) {
+        notices.push(el("div", { class: "notice" }, [uxUiNotice(schema.ux_ui_contract)]));
+    }
     if (schema.migration_safety_contract) {
         notices.push(el("div", { class: "notice" }, [migrationSafetyNotice(schema.migration_safety_contract)]));
+    }
+    if (schema.testing_contract) {
+        notices.push(el("div", { class: "notice" }, [testingContractNotice(schema.testing_contract)]));
     }
     if (schemaHasDependentRelations(schema)) {
         notices.push(el("div", { class: "notice" }, [
             "This schema declares dependent relation selectors. The form loads child options with backend-declared grid filters as parent values change.",
         ]));
     }
-    if (state.message) {
-        notices.push(el("div", { class: "success" }, [state.message]));
-    }
+    // Success messages are rendered as toasts so repeated CRUD work does not shift table layout.
     if (view.error) {
         notices.push(el("div", { class: "error" }, [view.error]));
     }
@@ -763,15 +849,100 @@ function renderResourcePage(view) {
         renderPagination(view),
     ]);
 }
+function modelSsotLabel(contract) {
+    const schema = contract.schema_source || "model schema";
+    const serializer = contract.serializer_source || "serializers";
+    return `SSOT: ${schema}, ${serializer}`;
+}
+function humanizeContractValue(value) {
+    return value
+        .replace(/[_.]+/g, " ")
+        .replace(/;/g, "; ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+function modelSsotNotice(contract) {
+    const requires = (contract.ordinary_crud_requires || []).join(", ") || "Django model + migration";
+    const forbids = (contract.ordinary_crud_forbids || []).join(", ") || "model-specific CRUD frontend/backend code";
+    return `Ordinary CRUD is generated from backend SSOT metadata. Requires: ${requires}. Forbids: ${forbids}.`;
+}
 function migrationSafetyLabel(contract) {
     const schema = contract.schema_evolution || "schema";
     const query = contract.query_construction || "queries";
-    return `migration/query safety: ${schema}, ${query}`;
+    const dbPolicy = contract.database_policy_mirroring?.status;
+    return dbPolicy ? `migration/query safety: ${schema}, ${query}, ${dbPolicy}` : `migration/query safety: ${schema}, ${query}`;
 }
 function migrationSafetyNotice(contract) {
-    const dbPolicy = contract.database_policy_mirroring?.status || "unspecified";
+    const mirror = contract.database_policy_mirroring;
+    const dbPolicy = mirror?.status || "unspecified";
     const permissionChanges = contract.permission_changes || "unspecified";
-    return `Permission changes: ${permissionChanges}. DB role/RLS mirroring: ${dbPolicy}.`;
+    const tenant = mirror?.tenant_scope ? ` Tenant scope: ${humanizeContractValue(mirror.tenant_scope)}.` : "";
+    const directSql = mirror?.direct_sql_acceptance ? ` Direct SQL acceptance: ${mirror.direct_sql_acceptance}.` : "";
+    const grantees = mirror?.role_grantee_strategy ? ` Role grants: ${humanizeContractValue(mirror.role_grantee_strategy)}.` : "";
+    return `Permission changes: ${permissionChanges}. DB role/RLS mirroring: ${dbPolicy}.${tenant}${directSql}${grantees}`;
+}
+function authorizationLabel(contract, matrix) {
+    const gate = matrix?.surface_capability || contract?.db_admin_surface_gate || "backend capability";
+    const dbPolicy = contract?.database_policy_mirroring?.status;
+    return dbPolicy ? `auth: ${gate}, DB policy ${dbPolicy}` : `auth: ${gate}`;
+}
+function authorizationNotice(contract, matrix) {
+    const roles = (matrix?.roles || []).map((role) => role.key).join(", ") || "backend-declared roles";
+    const rowVisibility = matrix?.row_visibility || "backend row scope";
+    const mirror = contract?.database_policy_mirroring;
+    const dbPolicy = mirror?.status || "not declared";
+    const db = mirror?.database ? ` Database: ${mirror.database}.` : "";
+    const roleStrategy = mirror?.role_strategy ? ` Role strategy: ${mirror.role_strategy}.` : "";
+    const tenant = mirror?.tenant_scope ? ` Tenant scope: ${humanizeContractValue(mirror.tenant_scope)}.` : "";
+    const grantees = mirror?.role_grantee_strategy ? ` Role grants: ${humanizeContractValue(mirror.role_grantee_strategy)}.` : "";
+    return `Authorization is backend-owned and default-deny. Matrix roles: ${roles}. Row visibility: ${rowVisibility}. DB-role/RLS mirroring: ${dbPolicy}.${db}${roleStrategy}${tenant}${grantees}`;
+}
+function errorLoggingLabel(contract) {
+    if (contract.durable_audit_model && contract.request_correlation) {
+        return `audit: ${contract.durable_audit_model} + request ids`;
+    }
+    if (contract.durable_audit_model) {
+        return `audit: ${contract.durable_audit_model}`;
+    }
+    return "error/logging contract declared";
+}
+function errorLoggingNotice(contract) {
+    const events = (contract.high_risk_events || []).slice(0, 4).join(", ") || "high-risk events";
+    return `User errors stay sanitized and correlated by request id. Durable audit events cover: ${events}.`;
+}
+function uxUiLabel(contract) {
+    const modes = (contract.theme_modes || []).join("/") || "theme";
+    const locales = (contract.locales || []).join("/") || "locales";
+    return `UX: ${modes}, ${locales}, runtime navigation`;
+}
+function uxUiNotice(contract) {
+    const permissionNavigation = contract.permission_navigation || "runtime navigation for available resources";
+    const localized = contract.localized_metadata || "backend-owned localized metadata";
+    return `UI uses backend metadata for navigation, fields, relation controls, destructive actions, and localized text. Permission navigation: ${permissionNavigation}. Localized metadata: ${localized}.`;
+}
+function testingContractLabel(contract) {
+    const status = contract.status ? humanizeContractValue(contract.status) : "declared";
+    const docker = contract.docker_compose_file || "docker compose";
+    return `testing: ${status}, ${docker}`;
+}
+function testingContractNotice(contract) {
+    const backend = (contract.backend_test_layers || []).slice(0, 4).map(humanizeContractValue).join(", ") || "backend regression tests";
+    const frontend = (contract.frontend_test_layers || []).slice(0, 3).map(humanizeContractValue).join(", ") || "frontend regression tests";
+    const smoke = contract.docker_smoke_command || "docker smoke test";
+    return `Testing contract: backend covers ${backend}; frontend covers ${frontend}. Docker smoke command: ${smoke}.`;
+}
+function validationContractLabel(contract) {
+    if (contract.backend_enforced && contract.frontend_advisory) {
+        return "validation: backend enforced, frontend advisory";
+    }
+    if (contract.backend_enforced) {
+        return "validation: backend enforced";
+    }
+    return "validation contract declared";
+}
+function validationContractNotice(contract) {
+    const sources = (contract.sources || []).slice(0, 4).join(", ") || "backend validation";
+    return `Validation is enforced by the backend. The frontend uses schema hints for early feedback only. Sources: ${sources}.`;
 }
 function payloadContractLabel(contract) {
     if (contract.nested_relations === false && contract.relation_values === "public_ids") {
@@ -996,18 +1167,18 @@ function renderRecordsTable(view) {
     const table = el("table");
     const headRow = el("tr");
     const selectableRows = view.records
-        .map((record) => recordPk(schema, record))
-        .filter((id) => id !== null);
-    const canBatchSelect = canUseSinglePk(schema) && selectableRows.length > 0;
+        .map((record) => recordIdentity(record))
+        .filter((identity) => identity !== null);
+    const canBatchSelect = selectableRows.length > 0;
     if (canBatchSelect) {
-        const allSelected = selectableRows.every((id) => view.selectedIds.has(id));
+        const allSelected = selectableRows.every((id) => view.selectedIdentities.has(id));
         const selectAll = el("input", { type: "checkbox", checked: allSelected && selectableRows.length > 0 });
         selectAll.addEventListener("change", () => {
             if (selectAll.checked) {
-                selectableRows.forEach((id) => view.selectedIds.add(id));
+                selectableRows.forEach((id) => view.selectedIdentities.add(id));
             }
             else {
-                selectableRows.forEach((id) => view.selectedIds.delete(id));
+                selectableRows.forEach((id) => view.selectedIdentities.delete(id));
             }
             render();
         });
@@ -1043,18 +1214,18 @@ function renderRecordsTable(view) {
     const body = el("tbody");
     for (const record of view.records) {
         const row = el("tr");
-        const rowId = recordPk(schema, record);
+        const rowIdentity = recordIdentity(record);
         if (canBatchSelect) {
-            const checkbox = el("input", { type: "checkbox", checked: rowId !== null && view.selectedIds.has(rowId), disabled: rowId === null });
+            const checkbox = el("input", { type: "checkbox", checked: rowIdentity !== null && view.selectedIdentities.has(rowIdentity), disabled: rowIdentity === null });
             checkbox.addEventListener("change", () => {
-                if (!rowId) {
+                if (!rowIdentity) {
                     return;
                 }
                 if (checkbox.checked) {
-                    view.selectedIds.add(rowId);
+                    view.selectedIdentities.add(rowIdentity);
                 }
                 else {
-                    view.selectedIds.delete(rowId);
+                    view.selectedIdentities.delete(rowIdentity);
                 }
                 render();
             });
@@ -1071,28 +1242,27 @@ function renderRecordsTable(view) {
 }
 function renderRowActions(schema, record) {
     const actions = el("div", { class: "row-actions" });
-    const recordId = recordPk(schema, record);
     const urls = recordResourceUrls(record);
-    const label = recordLabel(schema, record, recordId);
-    const canView = Boolean(urls.detail || recordId);
-    const canEdit = Boolean((urls.update || recordId) && editableFields(schema, false).length > 0);
-    const canDelete = Boolean(urls.delete || recordId);
+    const label = recordLabel(schema, record);
+    const canView = Boolean(urls.detail);
+    const canEdit = Boolean(urls.update && editableFields(schema, false).length > 0);
+    const canDelete = Boolean(urls.delete);
     const viewButton = el("button", { class: "button", type: "button", disabled: canView ? null : true }, ["View"]);
     viewButton.addEventListener("click", () => {
         if (canView) {
-            openRecordForm(schema, "view", recordId ?? undefined, urls, label);
+            openRecordForm(schema, "view", urls, label);
         }
     });
     const editButton = el("button", { class: "button", type: "button", disabled: canEdit ? null : true }, ["Edit"]);
     editButton.addEventListener("click", () => {
         if (canEdit) {
-            openRecordForm(schema, "edit", recordId ?? undefined, urls, label);
+            openRecordForm(schema, "edit", urls, label);
         }
     });
     const deleteButton = el("button", { class: "button danger", type: "button", disabled: canDelete ? null : true }, ["Delete"]);
     deleteButton.addEventListener("click", () => {
         if (canDelete) {
-            void deleteRecord(schema, recordId ?? undefined, urls, label);
+            void deleteRecord(schema, urls, label);
         }
     });
     actions.append(viewButton, editButton, deleteButton);
@@ -1151,14 +1321,20 @@ function recordResourceUrls(record) {
         urls.delete = raw.delete;
     return urls;
 }
-function recordDetailPath(schema, recordId, urls = {}) {
-    return urls.detail ?? withSurface(recordPath(schema.key, requireRecordId(recordId)));
+function recordDetailPath(urls = {}) {
+    if (!urls.detail)
+        throw new Error("Missing backend record detail URL.");
+    return urls.detail;
 }
-function recordUpdatePath(schema, recordId, urls = {}) {
-    return urls.update ?? withSurface(recordPath(schema.key, requireRecordId(recordId)));
+function recordUpdatePath(urls = {}) {
+    if (!urls.update)
+        throw new Error("Missing backend record update URL.");
+    return urls.update;
 }
-function recordDeletePath(schema, recordId, urls = {}) {
-    return urls.delete ?? withSurface(recordPath(schema.key, requireRecordId(recordId)));
+function recordDeletePath(urls = {}) {
+    if (!urls.delete)
+        throw new Error("Missing backend record delete URL.");
+    return urls.delete;
 }
 function renderCell(field, value, optionMap) {
     const control = controlForField(field);
@@ -1227,6 +1403,7 @@ async function loadResources() {
     }
     catch (error) {
         state.error = error instanceof Error ? error.message : "Failed to load resources.";
+        notify("error", state.error);
     }
     finally {
         state.loading = false;
@@ -1245,9 +1422,9 @@ async function selectResource(resourceKey, params = new URLSearchParams(), updat
 }
 async function loadResourceView(resourceKey, params = new URLSearchParams()) {
     try {
-        const schema = await apiFetch(withSurface(resourcePath(resourceKey)));
-        const sort = parseSortState(params.get("sort"));
-        const filterModel = parseFilterModel(params.get("filters"));
+        const schema = await apiFetch(resourceSchemaPath(resourceKey));
+        const sort = sanitizeSortState(schema, parseSortState(params.get("sort")));
+        const filterModel = sanitizeFilterModel(schema, parseFilterModel(params.get("filters")));
         const view = {
             schema,
             records: [],
@@ -1259,7 +1436,7 @@ async function loadResourceView(resourceKey, params = new URLSearchParams()) {
             sortField: sort.sortField,
             sortDirection: sort.sortDirection,
             optionMaps: {},
-            selectedIds: new Set(),
+            selectedIdentities: new Set(),
             loading: true,
             error: null,
         };
@@ -1271,6 +1448,7 @@ async function loadResourceView(resourceKey, params = new URLSearchParams()) {
     catch (error) {
         state.resourceView = null;
         state.error = error instanceof Error ? error.message : "Failed to load resource.";
+        notify("error", state.error);
     }
     finally {
         render();
@@ -1294,11 +1472,12 @@ async function loadRecords(view) {
         const response = await apiFetch(resourceListPath(view.schema, params));
         view.records = response.results;
         view.count = response.count;
-        const visibleIds = new Set(view.records.map((record) => recordPk(view.schema, record)).filter((id) => id !== null));
-        view.selectedIds = new Set([...view.selectedIds].filter((id) => visibleIds.has(id)));
+        const visibleIdentities = new Set(view.records.map((record) => recordIdentity(record)).filter((identity) => identity !== null));
+        view.selectedIdentities = new Set([...view.selectedIdentities].filter((identity) => visibleIdentities.has(identity)));
     }
     catch (error) {
         view.error = error instanceof Error ? error.message : "Failed to load records.";
+        notify("error", view.error);
     }
     finally {
         view.loading = false;
@@ -1340,7 +1519,7 @@ async function loadOptionMap(view, field) {
     }
     view.optionMaps[field.key] = map;
 }
-function openRecordForm(schema, mode, recordId, urls = {}, previewLabel = "") {
+function openRecordForm(schema, mode, urls = {}, previewLabel = "") {
     const modal = el("div", { class: "modal-backdrop" });
     const recordSuffix = previewLabel ? `: ${previewLabel}` : "";
     const schemaName = resourceName(schema);
@@ -1354,26 +1533,20 @@ function openRecordForm(schema, mode, recordId, urls = {}, previewLabel = "") {
     ]);
     modal.append(modalPanel);
     document.body.append(modal);
-    void populateRecordForm(modal, body, schema, mode, recordId, urls);
+    void populateRecordForm(modal, body, schema, mode, urls);
 }
-async function populateRecordForm(modal, body, schema, mode, recordId, urls = {}) {
+async function populateRecordForm(modal, body, schema, mode, urls = {}) {
     try {
-        const record = mode === "create" ? {} : await apiFetch(recordDetailPath(schema, recordId, urls));
+        const record = mode === "create" ? {} : await apiFetch(recordDetailPath(urls));
         const fields = mode === "view" ? detailFields(schema) : editableFields(schema, mode === "create");
         const optionMaps = await loadFormOptions(schema, record, fields);
         clear(body);
-        body.append(renderRecordForm(modal, schema, mode, record, optionMaps, recordId, urls));
+        body.append(renderRecordForm(modal, schema, mode, record, optionMaps, urls));
     }
     catch (error) {
         clear(body);
         body.append(el("div", { class: "error" }, [error instanceof Error ? error.message : "Failed to load form."]));
     }
-}
-function requireRecordId(recordId) {
-    if (!recordId) {
-        throw new Error("Missing record id.");
-    }
-    return recordId;
 }
 async function loadFormOptions(schema, record, fields) {
     const optionFields = fields.filter((field) => field.option_source || field.relation);
@@ -1459,8 +1632,47 @@ function validationAttributes(field, readonly) {
         minlength: validation.min_length,
         max: validation.max_value,
         min: validation.min_value,
+        step: validation.step,
         pattern: validation.pattern,
+        title: validationTitle(field),
     };
+}
+function validationTitle(field) {
+    const message = field.validation?.messages?.pattern;
+    if (message) {
+        return message;
+    }
+    return field.validation?.pattern ? `Expected pattern: ${field.validation.pattern}` : undefined;
+}
+function validationHintNodes(field, readonly) {
+    if (readonly) {
+        return [];
+    }
+    const hints = validationHints(field);
+    return hints.length ? [el("small", { class: "validation-hints" }, [hints.join(" · ")])] : [];
+}
+function validationHints(field) {
+    const validation = field.validation ?? {};
+    const hints = [];
+    if ((validation.required ?? field.required) && !field.nullable)
+        hints.push("Required");
+    if (validation.min_length !== undefined)
+        hints.push(`min ${validation.min_length} chars`);
+    if (validation.max_length !== undefined)
+        hints.push(`max ${validation.max_length} chars`);
+    if (validation.min_value !== undefined)
+        hints.push(`min ${validation.min_value}`);
+    if (validation.max_value !== undefined)
+        hints.push(`max ${validation.max_value}`);
+    if (validation.decimal_places !== undefined)
+        hints.push(`${validation.decimal_places} decimals`);
+    if (validation.format === "email")
+        hints.push("email format");
+    if (validation.format === "json")
+        hints.push("valid JSON");
+    if (validation.pattern)
+        hints.push(validation.messages?.pattern ?? "must match pattern");
+    return hints;
 }
 function controlForField(field) {
     if (field.admin_control) {
@@ -1491,7 +1703,7 @@ function controlForField(field) {
 function usesTypeaheadOptions(field) {
     return field.relation?.option_control === "typeahead";
 }
-function renderRecordForm(modal, schema, mode, record, optionsByField, recordId, urls = {}) {
+function renderRecordForm(modal, schema, mode, record, optionsByField, urls = {}) {
     const readonly = mode === "view";
     const form = el("form", { class: "stack" });
     const fields = sortFormFields(readonly ? detailFields(schema) : editableFields(schema, mode === "create"));
@@ -1515,7 +1727,7 @@ function renderRecordForm(modal, schema, mode, record, optionsByField, recordId,
         footer.append(submit);
         form.addEventListener("submit", (event) => {
             event.preventDefault();
-            void submitRecordForm(form, submit, errorBox, modal, schema, mode, fields, recordId, urls);
+            void submitRecordForm(form, submit, errorBox, modal, schema, mode, fields, urls);
         });
     }
     form.append(grid, errorBox, footer);
@@ -1553,6 +1765,7 @@ function renderInputField(field, value, options, readonly) {
         input,
         fieldHelpText(field) ? el("small", {}, [fieldHelpText(field) ?? ""]) : null,
         field.visible_capability ? el("small", {}, [`Visible only with capability: ${field.visible_capability}`]) : null,
+        ...validationHintNodes(field, readonly),
     ]);
 }
 function fieldContainerClass(field) {
@@ -1758,39 +1971,72 @@ function replaceSelectOptions(select, field, options, selectedValue, emptyLabel 
         select.append(el("option", { value: optionValue, selected: selected.has(optionValue) }, [option.label]));
     }
 }
-async function submitRecordForm(form, submit, errorBox, modal, schema, mode, fields, recordId, urls = {}) {
+async function submitRecordForm(form, submit, errorBox, modal, schema, mode, fields, urls = {}) {
     submit.disabled = true;
     submit.textContent = mode === "create" ? "Creating..." : "Saving...";
     errorBox.hidden = true;
     errorBox.textContent = "";
     try {
+        const clientErrors = clientValidationErrors(form, fields);
+        if (clientErrors.length > 0) {
+            errorBox.hidden = false;
+            errorBox.textContent = clientErrors.join("\n");
+            form.reportValidity();
+            return;
+        }
         const payload = formPayload(form, fields, mode);
         if (mode === "create") {
             await apiFetch(resourceCreatePath(schema), {
                 method: "POST",
                 body: JSON.stringify(payload),
             });
-            state.message = `${resourceName(schema)} created.`;
+            state.message = null;
+            notify("success", `${resourceName(schema)} created.`);
         }
         else {
-            await apiFetch(recordUpdatePath(schema, recordId, urls), {
+            await apiFetch(recordUpdatePath(urls), {
                 method: "PATCH",
                 body: JSON.stringify(payload),
             });
-            state.message = `${resourceName(schema)} updated.`;
+            state.message = null;
+            notify("success", `${resourceName(schema)} updated.`);
         }
         modal.remove();
         await reloadResourceView();
     }
     catch (error) {
+        const message = error instanceof Error ? error.message : "Save failed.";
         errorBox.hidden = false;
-        errorBox.textContent = error instanceof Error ? error.message : "Save failed.";
+        errorBox.textContent = message;
+        notify("error", message);
     }
     finally {
         submit.disabled = false;
         submit.textContent = mode === "create" ? "Create" : "Save";
         render();
     }
+}
+function clientValidationErrors(form, fields) {
+    const errors = [];
+    if (!form.checkValidity()) {
+        errors.push("Fix the highlighted fields before saving.");
+    }
+    for (const field of fields) {
+        const element = form.elements.namedItem(field.key);
+        if (!(element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement)) {
+            continue;
+        }
+        const raw = element.value.trim();
+        if (field.type === "json" && raw) {
+            try {
+                JSON.parse(raw);
+            }
+            catch {
+                errors.push(`${fieldName(field)} must be valid JSON.`);
+            }
+        }
+    }
+    return Array.from(new Set(errors));
 }
 function formPayload(form, fields, mode) {
     const payload = {};
@@ -1854,33 +2100,35 @@ function coerceScalar(value) {
     return value;
 }
 async function batchDeleteRecords(view) {
-    const ids = [...view.selectedIds];
-    if (ids.length === 0) {
+    const identities = [...view.selectedIdentities];
+    if (identities.length === 0) {
         return;
     }
     const action = view.schema.destructive_actions?.batch_delete;
-    const confirmed = action?.confirm === false || window.confirm(action?.message ?? `Delete ${ids.length} selected records?`);
+    const confirmed = action?.confirm === false || window.confirm(action?.message ?? `Delete ${identities.length} selected records?`);
     if (!confirmed) {
         return;
     }
     try {
         await apiFetch(resourceBatchDeletePath(view.schema), {
             method: "DELETE",
-            body: JSON.stringify({ ids: ids.map(coerceScalar) }),
+            body: JSON.stringify({ identities }),
         });
-        view.selectedIds.clear();
-        state.message = `${ids.length} ${resourceName(view.schema, true)} deleted.`;
+        view.selectedIdentities.clear();
+        state.message = null;
+        notify("success", `${identities.length} ${resourceName(view.schema, true)} deleted.`);
         await reloadResourceView();
     }
     catch (error) {
         state.message = null;
         view.error = error instanceof Error ? error.message : "Batch delete failed.";
+        notify("error", view.error);
     }
     finally {
         render();
     }
 }
-async function deleteRecord(schema, recordId, urls = {}, label = "") {
+async function deleteRecord(schema, urls = {}, label = "") {
     const action = schema.destructive_actions?.delete;
     const schemaName = resourceName(schema);
     const fallbackMessage = label ? `Delete this ${schemaName}: ${label}?` : `Delete this ${schemaName}?`;
@@ -1889,14 +2137,16 @@ async function deleteRecord(schema, recordId, urls = {}, label = "") {
         return;
     }
     try {
-        await apiFetch(recordDeletePath(schema, recordId, urls), { method: "DELETE" });
-        state.message = label ? `${schemaName} ${label} deleted.` : `${schemaName} deleted.`;
+        await apiFetch(recordDeletePath(urls), { method: "DELETE" });
+        state.message = null;
+        notify("success", label ? `${schemaName} ${label} deleted.` : `${schemaName} deleted.`);
         await reloadResourceView();
     }
     catch (error) {
         state.message = null;
         if (state.resourceView) {
             state.resourceView.error = error instanceof Error ? error.message : "Delete failed.";
+            notify("error", state.resourceView.error);
         }
     }
     finally {
@@ -1930,30 +2180,14 @@ function detailFields(schema) {
 function editableFields(schema, creating) {
     return schema.fields.filter((field) => field.editable && (creating || !field.readonly_on_update));
 }
-function identityFields(schema) {
-    return schema.record_identity?.fields ?? schema.primary_key_fields;
-}
-function canUseSinglePk(schema) {
-    return (schema.record_identity?.kind ?? "single_pk") === "single_pk" && identityFields(schema).length === 1;
-}
-function recordPk(schema, record) {
-    if (!canUseSinglePk(schema)) {
-        return null;
-    }
-    const [pkField] = identityFields(schema);
-    if (!pkField) {
-        return null;
-    }
-    const value = record[pkField];
-    if (value === null || value === undefined || Array.isArray(value) || typeof value === "object") {
-        return null;
-    }
-    return String(value);
+function recordIdentity(record) {
+    const identity = record.__identity;
+    return typeof identity === "string" && identity.trim() ? identity : null;
 }
 function schemaHasDependentRelations(schema) {
     return schema.fields.some((field) => (field.relation?.depends_on.length ?? 0) > 0);
 }
-function recordLabel(schema, record, fallbackId = null) {
+function recordLabel(schema, record) {
     const backendLabel = record.__label;
     if (typeof backendLabel === "string" && backendLabel.trim()) {
         return backendLabel;
@@ -1965,7 +2199,7 @@ function recordLabel(schema, record, fallbackId = null) {
             return String(value);
         }
     }
-    return fallbackId ?? resourceName(schema);
+    return resourceName(schema);
 }
 function optionLabel(optionMap, value) {
     if (value === null || value === undefined) {

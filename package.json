@@ -7,7 +7,11 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "tsc && node scripts/copy-public.mjs",
-    "validate": "npm run typecheck && npm run build && node scripts/check-dist.mjs"
+    "validate": "npm run typecheck && npm run build && node scripts/check-dist.mjs",
+    "test:frontend-contracts": "node scripts/db-admin-contract.test.mjs",
+    "test:docker-smoke": "node scripts/docker-smoke.mjs",
+    "test": "npm run validate && npm run test:frontend-contracts",
+    "test:all": "npm run test && npm run test:docker-smoke"
   },
   "devDependencies": {
     "typescript": "^5.8.3"

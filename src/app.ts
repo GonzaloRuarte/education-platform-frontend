@@ -12,6 +12,7 @@ type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
 type RecordValue = JsonValue | undefined;
 type ResourceRecord = Record<string, RecordValue>;
 type Locale = "en" | "es";
+type ThemeMode = "light" | "dark";
 type LocalizedText = Partial<Record<Locale | string, string>>;
 type FieldI18n = {
   label?: LocalizedText;
@@ -100,10 +101,16 @@ type FieldValidation = {
   min_length?: number;
   max_value?: number | string;
   min_value?: number | string;
+  max_digits?: number;
+  decimal_places?: number;
+  step?: number | string;
   pattern?: string;
+  format?: string;
+  choices?: string[];
   required?: boolean;
   nullable?: boolean;
   allow_blank?: boolean;
+  messages?: Record<string, string>;
 };
 
 type FieldUi = {
@@ -174,12 +181,32 @@ type ResourceUrls = {
   options_template?: string;
 };
 
+type ModelSsotContract = {
+  schema_source?: string;
+  migration_source?: string;
+  serializer_source?: string;
+  resource_discovery?: string;
+  admin_metadata_policy?: string;
+  ordinary_crud_requires?: string[];
+  ordinary_crud_forbids?: string[];
+};
+
 type RecordPayloadContract = {
   relation_values?: string;
   reverse_relations?: string;
   nested_relations?: boolean;
   write_shape?: string;
+  record_identity?: string;
+  record_actions?: string;
+  batch_delete_shape?: Record<string, string>;
   metadata_fields?: string[];
+};
+
+type ValidationContract = {
+  backend_enforced?: boolean;
+  frontend_advisory?: boolean;
+  sources?: string[];
+  frontend_metadata?: string[];
 };
 
 type MigrationSafetyContract = {
@@ -190,10 +217,108 @@ type MigrationSafetyContract = {
   permission_changes?: string;
   database_policy_mirroring?: {
     status?: string;
+    database?: string;
     source_of_truth?: string;
+    tenant_scope?: string;
     database_roles?: string[];
+    session_identity?: string;
+    migration_management?: string;
+    direct_sql_acceptance?: string;
+    role_grantee_strategy?: string;
+    runtime_grantee_setting?: string;
+    schema_owner_grantee_setting?: string;
     reason?: string;
   };
+};
+
+type AuthorizationContract = {
+  access_model?: string;
+  identity?: string;
+  db_admin_surface_gate?: string;
+  password_storage?: string;
+  first_admin_bootstrap?: string;
+  permission_ssot?: string[];
+  resource_action_matrix?: string;
+  database_policy_mirroring?: {
+    status?: string;
+    strict_completion_blocker?: boolean;
+    database?: string;
+    source_of_truth?: string;
+    tenant_scope?: string;
+    role_strategy?: string;
+    session_identity?: string;
+    api_enforcement?: string;
+    direct_sql_enforcement?: string;
+    role_grantee_strategy?: string;
+    runtime_grantee_setting?: string;
+    schema_owner_grantee_setting?: string;
+    source_of_truth_if_adopted?: string;
+    reason?: string;
+  };
+};
+
+type AuthorizationMatrix = {
+  surface?: string;
+  surface_capability?: string;
+  roles?: Array<{ key: string; label?: string; actions: Partial<Record<ResourceAction, boolean>> }>;
+  resource_action_capabilities?: Partial<Record<ResourceAction, string>>;
+  row_visibility?: string;
+  fields?: Array<{
+    key: string;
+    visible?: boolean;
+    editable?: boolean;
+    create?: boolean;
+    update?: boolean;
+    write_only?: boolean;
+    pii?: boolean;
+    visible_capability?: string | null;
+  }>;
+  relation_assignment?: Array<{ field: string; target_resource_key?: string | null; policy?: string }>;
+};
+
+type ErrorLoggingContract = {
+  user_facing_errors?: string;
+  request_correlation?: string;
+  operator_logs?: string;
+  durable_audit_model?: string;
+  high_risk_events?: string[];
+  sensitive_detail_policy?: string;
+  frontend_feedback?: string;
+};
+
+
+type TestingContract = {
+  status?: string;
+  backend_test_layers?: string[];
+  frontend_test_layers?: string[];
+  docker_compose_file?: string;
+  docker_smoke_command?: string;
+  docker_e2e_scope?: string[];
+  coverage_policy?: string;
+  frontend_commands?: string[];
+  backend_commands?: string[];
+};
+
+type UxUiContract = {
+  runtime_schema_driven?: boolean;
+  resource_navigation?: string;
+  permission_navigation?: string;
+  crud_interaction?: string;
+  list_state?: string[];
+  field_controls?: string;
+  relation_controls?: string;
+  destructive_actions?: string;
+  feedback?: string;
+  responsive_layout?: boolean;
+  theme_modes?: string[];
+  locales?: string[];
+  localized_metadata?: string;
+};
+
+type Toast = {
+  id: number;
+  tone: "success" | "error" | "info";
+  message: string;
 };
 
 type GridFilterItem = {
@@ -238,8 +363,11 @@ type ListQueryContract = {
 };
 
 type RecordIdentity = {
-  kind: "single_pk" | "composite" | string;
+  kind: "opaque" | "single_pk" | "composite" | string;
   fields: string[];
+  metadata_field?: string;
+  transport?: string;
+  record_urls?: string;
 };
 
 type ResourceSchema = {
@@ -256,8 +384,15 @@ type ResourceSchema = {
   admin_help_text?: string;
   destructive_actions?: Record<string, DestructiveAction>;
   resource_urls?: ResourceUrls;
+  model_ssot_contract?: ModelSsotContract;
   record_payload_contract?: RecordPayloadContract;
+  validation_contract?: ValidationContract;
+  authorization_contract?: AuthorizationContract;
+  authorization_matrix?: AuthorizationMatrix;
+  error_logging_contract?: ErrorLoggingContract;
+  ux_ui_contract?: UxUiContract;
   migration_safety_contract?: MigrationSafetyContract;
+  testing_contract?: TestingContract;
   navigation?: ResourceNavigation;
   record_identity?: RecordIdentity;
   i18n?: ResourceI18n;
@@ -315,6 +450,8 @@ type AppState = {
   error: string | null;
   message: string | null;
   locale: Locale;
+  theme: ThemeMode;
+  toasts: Toast[];
 };
 
 type ResourceViewState = {
@@ -328,7 +465,7 @@ type ResourceViewState = {
   sortField: string;
   sortDirection: "asc" | "desc";
   optionMaps: Record<string, Map<string, string>>;
-  selectedIds: Set<string>;
+  selectedIdentities: Set<string>;
   loading: boolean;
   error: string | null;
 };
@@ -346,6 +483,7 @@ const DEFAULT_PAGE_SIZE = 25;
 const STORAGE_SESSION = "retrobolt.admin.session";
 const STORAGE_API_BASE = "retrobolt.admin.apiBaseUrl";
 const STORAGE_LOCALE = "retrobolt.admin.locale";
+const STORAGE_THEME = "retrobolt.admin.theme";
 const RESOURCE_HASH_PREFIX = "#/resources/";
 const appRootElement = document.getElementById("app");
 
@@ -354,6 +492,7 @@ if (!(appRootElement instanceof HTMLElement)) {
 }
 
 const appRoot: HTMLElement = appRootElement;
+let nextToastId = 1;
 
 const state: AppState = {
   resources: [],
@@ -364,6 +503,8 @@ const state: AppState = {
   error: null,
   message: null,
   locale: loadLocale(),
+  theme: loadTheme(),
+  toasts: [],
 };
 
 function loadLocale(): Locale {
@@ -375,6 +516,22 @@ function loadLocale(): Locale {
 function setLocale(locale: Locale): void {
   state.locale = locale;
   localStorage.setItem(STORAGE_LOCALE, locale);
+}
+
+function loadTheme(): ThemeMode {
+  const stored = localStorage.getItem(STORAGE_THEME);
+  if (stored === "dark" || stored === "light") return stored;
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function setTheme(theme: ThemeMode): void {
+  state.theme = theme;
+  localStorage.setItem(STORAGE_THEME, theme);
+  document.documentElement.dataset.theme = theme;
+}
+
+function applyTheme(): void {
+  document.documentElement.dataset.theme = state.theme;
 }
 
 function localizedText(fallback: string, text?: LocalizedText): string {
@@ -448,42 +605,37 @@ function apiUrl(path: string): string {
   return `${trimTrailingSlash(configApiBaseUrl())}${path}`;
 }
 
-function resourcePath(resourceKey: string): string {
-  return `/api/resources/${encodeURIComponent(resourceKey)}/`;
+function requireResourceUrl(schema: ResourceSchema, key: keyof ResourceUrls): string {
+  const url = schema.resource_urls?.[key];
+  if (!url) {
+    throw new Error(`Backend schema for ${schema.key} did not provide resource_urls.${key}.`);
+  }
+  return url;
 }
 
-function recordsPath(resourceKey: string): string {
-  return `/api/resources/${encodeURIComponent(resourceKey)}/records/`;
-}
-
-function recordPath(resourceKey: string, recordPk: string): string {
-  return `/api/resources/${encodeURIComponent(resourceKey)}/records/${encodeURIComponent(recordPk)}/`;
-}
-
-function optionsPath(resourceKey: string, fieldKey: string): string {
-  return `/api/resources/${encodeURIComponent(resourceKey)}/options/${encodeURIComponent(fieldKey)}/`;
+function resourceSchemaPath(resourceKey: string): string {
+  const schema = state.resources.find((resource) => resource.key === resourceKey);
+  if (!schema?.resource_urls?.schema) {
+    throw new Error(`Backend resource list did not provide resource_urls.schema for ${resourceKey}.`);
+  }
+  return schema.resource_urls.schema;
 }
 
 function resourceListPath(schema: ResourceSchema, params: Record<string, string> = {}): string {
-  return schema.resource_urls?.list
-    ? withQueryParams(schema.resource_urls.list, params)
-    : withSurface(recordsPath(schema.key), params);
+  return withQueryParams(requireResourceUrl(schema, "list"), params);
 }
 
 function resourceCreatePath(schema: ResourceSchema): string {
-  return schema.resource_urls?.create ?? withSurface(recordsPath(schema.key));
+  return requireResourceUrl(schema, "create");
 }
 
 function resourceBatchDeletePath(schema: ResourceSchema): string {
-  return schema.resource_urls?.batch_delete ?? withSurface(recordsPath(schema.key));
+  return requireResourceUrl(schema, "batch_delete");
 }
 
 function resourceOptionsPath(schema: ResourceSchema, fieldKey: string, params: Record<string, string> = {}): string {
-  const template = schema.resource_urls?.options_template;
-  if (template) {
-    return withQueryParams(template.replace("{field_key}", encodeURIComponent(fieldKey)), params);
-  }
-  return withSurface(optionsPath(schema.key, fieldKey), params);
+  const template = requireResourceUrl(schema, "options_template");
+  return withQueryParams(template.replace("{field_key}", encodeURIComponent(fieldKey)), params);
 }
 
 function parseResourceHash(): { resourceKey: string | null; params: URLSearchParams } {
@@ -708,21 +860,7 @@ function filterableFields(schema: ResourceSchema): ResourceField[] {
 
 function operatorsForField(schema: ResourceSchema, field: ResourceField): FilterOperatorDefinition[] {
   const operators = schema.list_query_contract?.filters?.operators ?? [];
-  if (operators.length === 0) {
-    return fallbackOperatorsForField(field);
-  }
   return operators.filter((operator) => !operator.field_types || operator.field_types.includes(field.type));
-}
-
-function fallbackOperatorsForField(field: ResourceField): FilterOperatorDefinition[] {
-  const all: FilterOperatorDefinition[] = [
-    { key: "contains", label: "contains", value_kind: "single", field_types: ["string", "text", "rich_text", "email"], value_control: { kind: "field", multiple: false } },
-    { key: "equals", label: "equals", value_kind: "single", value_control: { kind: "field", multiple: false } },
-    { key: "isAnyOf", label: "is any of", value_kind: "multiple", value_control: { kind: "field", multiple: true } },
-    { key: "isEmpty", label: "is empty", value_kind: "none", value_control: { kind: "none", multiple: false } },
-    { key: "isNotEmpty", label: "is not empty", value_kind: "none", value_control: { kind: "none", multiple: false } },
-  ];
-  return all.filter((operator) => !operator.field_types || operator.field_types.includes(field.type));
 }
 
 function operatorLabel(operator: FilterOperatorDefinition): string {
@@ -731,6 +869,28 @@ function operatorLabel(operator: FilterOperatorDefinition): string {
 
 function operatorNeedsValue(operator: FilterOperatorDefinition | undefined): boolean {
   return (operator?.value_kind ?? "single") !== "none";
+}
+
+
+function sanitizeFilterModel(schema: ResourceSchema, filterModel: GridFilterModel): GridFilterModel {
+  const fieldsByKey = new Map(filterableFields(schema).map((field) => [field.key, field]));
+  const items = filterModel.items.filter((item) => {
+    const field = fieldsByKey.get(item.field);
+    if (!field) return false;
+    return operatorsForField(schema, field).some((operator) => operator.key === item.operator);
+  });
+  return {
+    items,
+    quickFilterValues: filterModel.quickFilterValues,
+    linkOperator: filterModel.linkOperator,
+  };
+}
+
+function sanitizeSortState(schema: ResourceSchema, sort: { sortField: string; sortDirection: "asc" | "desc" }): { sortField: string; sortDirection: "asc" | "desc" } {
+  if (!sort.sortField) return sort;
+  return schema.fields.some((field) => field.key === sort.sortField && field.sortable)
+    ? sort
+    : { sortField: "", sortDirection: "asc" };
 }
 
 function parsePositiveInt(value: string | null, fallback: number): number {
@@ -814,7 +974,32 @@ function clear(node: Element): void {
   }
 }
 
+function notify(tone: Toast["tone"], message: string): void {
+  const toast: Toast = { id: nextToastId++, tone, message };
+  state.toasts = [...state.toasts, toast].slice(-4);
+  window.setTimeout(() => {
+    state.toasts = state.toasts.filter((candidate) => candidate.id !== toast.id);
+    render();
+  }, 6000);
+}
+
+function dismissToast(toastId: number): void {
+  state.toasts = state.toasts.filter((toast) => toast.id !== toastId);
+  render();
+}
+
+function renderToastRegion(): HTMLElement {
+  const region = el("div", { class: "toast-region", role: "status", "aria-live": "polite" });
+  for (const toast of state.toasts) {
+    const close = el("button", { class: "toast__close", type: "button", "aria-label": "Dismiss" }, ["×"]);
+    close.addEventListener("click", () => dismissToast(toast.id));
+    region.append(el("div", { class: `toast toast--${toast.tone}` }, [el("span", {}, [toast.message]), close]));
+  }
+  return region;
+}
+
 function render(): void {
+  applyTheme();
   clear(appRoot);
   const session = readSession();
   if (!session) {
@@ -940,6 +1125,7 @@ function renderShell(session: AuthSession): HTMLElement {
   const shell = el("div", { class: "app-shell" });
   shell.append(renderSidebar(session));
   shell.append(renderMain());
+  shell.append(renderToastRegion());
   return shell;
 }
 
@@ -961,6 +1147,16 @@ function renderSidebar(session: AuthSession): HTMLElement {
   );
   localeSelect.addEventListener("change", () => {
     setLocale(localeSelect.value === "es" ? "es" : "en");
+    render();
+  });
+
+  const themeSelect = el("select", { class: "select small", "aria-label": "Theme" });
+  themeSelect.append(
+    el("option", { value: "light", selected: state.theme === "light" }, ["Light"]),
+    el("option", { value: "dark", selected: state.theme === "dark" }, ["Dark"]),
+  );
+  themeSelect.addEventListener("change", () => {
+    setTheme(themeSelect.value === "dark" ? "dark" : "light");
     render();
   });
 
@@ -1010,7 +1206,7 @@ function renderSidebar(session: AuthSession): HTMLElement {
       el("strong", {}, [displayUser(session.user)]),
       el("span", {}, [`${session.capabilities.length} capabilities loaded`]),
     ]),
-    el("div", { class: "sidebar__section stack" }, [filterInput, localeSelect, refresh]),
+    el("div", { class: "sidebar__section stack" }, [filterInput, localeSelect, themeSelect, refresh]),
     nav,
     el("div", { class: "sidebar__section" }, [logout]),
   ]);
@@ -1103,10 +1299,10 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
   const batchDeleteButton = el("button", {
     class: "button danger",
     type: "button",
-    disabled: view.selectedIds.size > 0 && canUseSinglePk(schema) ? null : true,
-  }, [actionLabel(batchAction, `Delete selected (${view.selectedIds.size})`)]);
+    disabled: view.selectedIdentities.size > 0 ? null : true,
+  }, [actionLabel(batchAction, `Delete selected (${view.selectedIdentities.size})`)]);
   batchDeleteButton.addEventListener("click", () => {
-    if (view.selectedIds.size > 0 && canUseSinglePk(schema)) {
+    if (view.selectedIdentities.size > 0) {
       void batchDeleteRecords(view);
     }
   });
@@ -1138,14 +1334,32 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
     el("span", { class: "badge" }, [`pk: ${schema.primary_key_fields.join(", ")}`]),
     el("span", { class: "badge" }, [`${schema.fields.length} fields`]),
   ];
-  if (!canUseSinglePk(schema)) {
-    headerBits.push(el("span", { class: "badge" }, ["detail/edit/delete require backend record URLs"]));
+  if (schema.record_identity?.kind === "opaque") {
+    headerBits.push(el("span", { class: "badge" }, ["opaque backend record identity"]));
+  }
+  if (schema.model_ssot_contract) {
+    headerBits.push(el("span", { class: "badge" }, [modelSsotLabel(schema.model_ssot_contract)]));
   }
   if (schema.record_payload_contract) {
     headerBits.push(el("span", { class: "badge" }, [payloadContractLabel(schema.record_payload_contract)]));
   }
+  if (schema.validation_contract) {
+    headerBits.push(el("span", { class: "badge" }, [validationContractLabel(schema.validation_contract)]));
+  }
+  if (schema.authorization_contract || schema.authorization_matrix) {
+    headerBits.push(el("span", { class: "badge" }, [authorizationLabel(schema.authorization_contract, schema.authorization_matrix)]));
+  }
+  if (schema.error_logging_contract) {
+    headerBits.push(el("span", { class: "badge" }, [errorLoggingLabel(schema.error_logging_contract)]));
+  }
+  if (schema.ux_ui_contract) {
+    headerBits.push(el("span", { class: "badge" }, [uxUiLabel(schema.ux_ui_contract)]));
+  }
   if (schema.migration_safety_contract) {
     headerBits.push(el("span", { class: "badge" }, [migrationSafetyLabel(schema.migration_safety_contract)]));
+  }
+  if (schema.testing_contract) {
+    headerBits.push(el("span", { class: "badge" }, [testingContractLabel(schema.testing_contract)]));
   }
 
   const notices: Node[] = [];
@@ -1166,17 +1380,33 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
       clearFilters,
     ]));
   }
+  if (schema.model_ssot_contract) {
+    notices.push(el("div", { class: "notice" }, [modelSsotNotice(schema.model_ssot_contract)]));
+  }
+  if (schema.validation_contract) {
+    notices.push(el("div", { class: "notice" }, [validationContractNotice(schema.validation_contract)]));
+  }
+  if (schema.error_logging_contract) {
+    notices.push(el("div", { class: "notice" }, [errorLoggingNotice(schema.error_logging_contract)]));
+  }
+  if (schema.authorization_contract || schema.authorization_matrix) {
+    notices.push(el("div", { class: "notice" }, [authorizationNotice(schema.authorization_contract, schema.authorization_matrix)]));
+  }
+  if (schema.ux_ui_contract) {
+    notices.push(el("div", { class: "notice" }, [uxUiNotice(schema.ux_ui_contract)]));
+  }
   if (schema.migration_safety_contract) {
     notices.push(el("div", { class: "notice" }, [migrationSafetyNotice(schema.migration_safety_contract)]));
+  }
+  if (schema.testing_contract) {
+    notices.push(el("div", { class: "notice" }, [testingContractNotice(schema.testing_contract)]));
   }
   if (schemaHasDependentRelations(schema)) {
     notices.push(el("div", { class: "notice" }, [
       "This schema declares dependent relation selectors. The form loads child options with backend-declared grid filters as parent values change.",
     ]));
   }
-  if (state.message) {
-    notices.push(el("div", { class: "success" }, [state.message]));
-  }
+  // Success messages are rendered as toasts so repeated CRUD work does not shift table layout.
   if (view.error) {
     notices.push(el("div", { class: "error" }, [view.error]));
   }
@@ -1205,16 +1435,116 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
 }
 
 
+function modelSsotLabel(contract: ModelSsotContract): string {
+  const schema = contract.schema_source || "model schema";
+  const serializer = contract.serializer_source || "serializers";
+  return `SSOT: ${schema}, ${serializer}`;
+}
+
+
+function humanizeContractValue(value: string): string {
+  return value
+    .replace(/[_.]+/g, " ")
+    .replace(/;/g, "; ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function modelSsotNotice(contract: ModelSsotContract): string {
+  const requires = (contract.ordinary_crud_requires || []).join(", ") || "Django model + migration";
+  const forbids = (contract.ordinary_crud_forbids || []).join(", ") || "model-specific CRUD frontend/backend code";
+  return `Ordinary CRUD is generated from backend SSOT metadata. Requires: ${requires}. Forbids: ${forbids}.`;
+}
+
 function migrationSafetyLabel(contract: MigrationSafetyContract): string {
   const schema = contract.schema_evolution || "schema";
   const query = contract.query_construction || "queries";
-  return `migration/query safety: ${schema}, ${query}`;
+  const dbPolicy = contract.database_policy_mirroring?.status;
+  return dbPolicy ? `migration/query safety: ${schema}, ${query}, ${dbPolicy}` : `migration/query safety: ${schema}, ${query}`;
 }
 
 function migrationSafetyNotice(contract: MigrationSafetyContract): string {
-  const dbPolicy = contract.database_policy_mirroring?.status || "unspecified";
+  const mirror = contract.database_policy_mirroring;
+  const dbPolicy = mirror?.status || "unspecified";
   const permissionChanges = contract.permission_changes || "unspecified";
-  return `Permission changes: ${permissionChanges}. DB role/RLS mirroring: ${dbPolicy}.`;
+  const tenant = mirror?.tenant_scope ? ` Tenant scope: ${humanizeContractValue(mirror.tenant_scope)}.` : "";
+  const directSql = mirror?.direct_sql_acceptance ? ` Direct SQL acceptance: ${mirror.direct_sql_acceptance}.` : "";
+  const grantees = mirror?.role_grantee_strategy ? ` Role grants: ${humanizeContractValue(mirror.role_grantee_strategy)}.` : "";
+  return `Permission changes: ${permissionChanges}. DB role/RLS mirroring: ${dbPolicy}.${tenant}${directSql}${grantees}`;
+}
+
+function authorizationLabel(contract?: AuthorizationContract, matrix?: AuthorizationMatrix): string {
+  const gate = matrix?.surface_capability || contract?.db_admin_surface_gate || "backend capability";
+  const dbPolicy = contract?.database_policy_mirroring?.status;
+  return dbPolicy ? `auth: ${gate}, DB policy ${dbPolicy}` : `auth: ${gate}`;
+}
+
+function authorizationNotice(contract?: AuthorizationContract, matrix?: AuthorizationMatrix): string {
+  const roles = (matrix?.roles || []).map((role) => role.key).join(", ") || "backend-declared roles";
+  const rowVisibility = matrix?.row_visibility || "backend row scope";
+  const mirror = contract?.database_policy_mirroring;
+  const dbPolicy = mirror?.status || "not declared";
+  const db = mirror?.database ? ` Database: ${mirror.database}.` : "";
+  const roleStrategy = mirror?.role_strategy ? ` Role strategy: ${mirror.role_strategy}.` : "";
+  const tenant = mirror?.tenant_scope ? ` Tenant scope: ${humanizeContractValue(mirror.tenant_scope)}.` : "";
+  const grantees = mirror?.role_grantee_strategy ? ` Role grants: ${humanizeContractValue(mirror.role_grantee_strategy)}.` : "";
+  return `Authorization is backend-owned and default-deny. Matrix roles: ${roles}. Row visibility: ${rowVisibility}. DB-role/RLS mirroring: ${dbPolicy}.${db}${roleStrategy}${tenant}${grantees}`;
+}
+
+function errorLoggingLabel(contract: ErrorLoggingContract): string {
+  if (contract.durable_audit_model && contract.request_correlation) {
+    return `audit: ${contract.durable_audit_model} + request ids`;
+  }
+  if (contract.durable_audit_model) {
+    return `audit: ${contract.durable_audit_model}`;
+  }
+  return "error/logging contract declared";
+}
+
+function errorLoggingNotice(contract: ErrorLoggingContract): string {
+  const events = (contract.high_risk_events || []).slice(0, 4).join(", ") || "high-risk events";
+  return `User errors stay sanitized and correlated by request id. Durable audit events cover: ${events}.`;
+}
+
+function uxUiLabel(contract: UxUiContract): string {
+  const modes = (contract.theme_modes || []).join("/") || "theme";
+  const locales = (contract.locales || []).join("/") || "locales";
+  return `UX: ${modes}, ${locales}, runtime navigation`;
+}
+
+function uxUiNotice(contract: UxUiContract): string {
+  const permissionNavigation = contract.permission_navigation || "runtime navigation for available resources";
+  const localized = contract.localized_metadata || "backend-owned localized metadata";
+  return `UI uses backend metadata for navigation, fields, relation controls, destructive actions, and localized text. Permission navigation: ${permissionNavigation}. Localized metadata: ${localized}.`;
+}
+
+
+function testingContractLabel(contract: TestingContract): string {
+  const status = contract.status ? humanizeContractValue(contract.status) : "declared";
+  const docker = contract.docker_compose_file || "docker compose";
+  return `testing: ${status}, ${docker}`;
+}
+
+function testingContractNotice(contract: TestingContract): string {
+  const backend = (contract.backend_test_layers || []).slice(0, 4).map(humanizeContractValue).join(", ") || "backend regression tests";
+  const frontend = (contract.frontend_test_layers || []).slice(0, 3).map(humanizeContractValue).join(", ") || "frontend regression tests";
+  const smoke = contract.docker_smoke_command || "docker smoke test";
+  return `Testing contract: backend covers ${backend}; frontend covers ${frontend}. Docker smoke command: ${smoke}.`;
+}
+
+function validationContractLabel(contract: ValidationContract): string {
+  if (contract.backend_enforced && contract.frontend_advisory) {
+    return "validation: backend enforced, frontend advisory";
+  }
+  if (contract.backend_enforced) {
+    return "validation: backend enforced";
+  }
+  return "validation contract declared";
+}
+
+function validationContractNotice(contract: ValidationContract): string {
+  const sources = (contract.sources || []).slice(0, 4).join(", ") || "backend validation";
+  return `Validation is enforced by the backend. The frontend uses schema hints for early feedback only. Sources: ${sources}.`;
 }
 
 function payloadContractLabel(contract: RecordPayloadContract): string {
@@ -1452,17 +1782,17 @@ function renderRecordsTable(view: ResourceViewState): HTMLElement {
   const table = el("table");
   const headRow = el("tr");
   const selectableRows = view.records
-    .map((record) => recordPk(schema, record))
-    .filter((id): id is string => id !== null);
-  const canBatchSelect = canUseSinglePk(schema) && selectableRows.length > 0;
+    .map((record) => recordIdentity(record))
+    .filter((identity): identity is string => identity !== null);
+  const canBatchSelect = selectableRows.length > 0;
   if (canBatchSelect) {
-    const allSelected = selectableRows.every((id) => view.selectedIds.has(id));
+    const allSelected = selectableRows.every((id) => view.selectedIdentities.has(id));
     const selectAll = el("input", { type: "checkbox", checked: allSelected && selectableRows.length > 0 });
     selectAll.addEventListener("change", () => {
       if (selectAll.checked) {
-        selectableRows.forEach((id) => view.selectedIds.add(id));
+        selectableRows.forEach((id) => view.selectedIdentities.add(id));
       } else {
-        selectableRows.forEach((id) => view.selectedIds.delete(id));
+        selectableRows.forEach((id) => view.selectedIdentities.delete(id));
       }
       render();
     });
@@ -1498,17 +1828,17 @@ function renderRecordsTable(view: ResourceViewState): HTMLElement {
   const body = el("tbody");
   for (const record of view.records) {
     const row = el("tr");
-    const rowId = recordPk(schema, record);
+    const rowIdentity = recordIdentity(record);
     if (canBatchSelect) {
-      const checkbox = el("input", { type: "checkbox", checked: rowId !== null && view.selectedIds.has(rowId), disabled: rowId === null });
+      const checkbox = el("input", { type: "checkbox", checked: rowIdentity !== null && view.selectedIdentities.has(rowIdentity), disabled: rowIdentity === null });
       checkbox.addEventListener("change", () => {
-        if (!rowId) {
+        if (!rowIdentity) {
           return;
         }
         if (checkbox.checked) {
-          view.selectedIds.add(rowId);
+          view.selectedIdentities.add(rowIdentity);
         } else {
-          view.selectedIds.delete(rowId);
+          view.selectedIdentities.delete(rowIdentity);
         }
         render();
       });
@@ -1526,31 +1856,30 @@ function renderRecordsTable(view: ResourceViewState): HTMLElement {
 
 function renderRowActions(schema: ResourceSchema, record: ResourceRecord): HTMLElement {
   const actions = el("div", { class: "row-actions" });
-  const recordId = recordPk(schema, record);
   const urls = recordResourceUrls(record);
-  const label = recordLabel(schema, record, recordId);
-  const canView = Boolean(urls.detail || recordId);
-  const canEdit = Boolean((urls.update || recordId) && editableFields(schema, false).length > 0);
-  const canDelete = Boolean(urls.delete || recordId);
+  const label = recordLabel(schema, record);
+  const canView = Boolean(urls.detail);
+  const canEdit = Boolean(urls.update && editableFields(schema, false).length > 0);
+  const canDelete = Boolean(urls.delete);
 
   const viewButton = el("button", { class: "button", type: "button", disabled: canView ? null : true }, ["View"]);
   viewButton.addEventListener("click", () => {
     if (canView) {
-      openRecordForm(schema, "view", recordId ?? undefined, urls, label);
+      openRecordForm(schema, "view", urls, label);
     }
   });
 
   const editButton = el("button", { class: "button", type: "button", disabled: canEdit ? null : true }, ["Edit"]);
   editButton.addEventListener("click", () => {
     if (canEdit) {
-      openRecordForm(schema, "edit", recordId ?? undefined, urls, label);
+      openRecordForm(schema, "edit", urls, label);
     }
   });
 
   const deleteButton = el("button", { class: "button danger", type: "button", disabled: canDelete ? null : true }, ["Delete"]);
   deleteButton.addEventListener("click", () => {
     if (canDelete) {
-      void deleteRecord(schema, recordId ?? undefined, urls, label);
+      void deleteRecord(schema, urls, label);
     }
   });
 
@@ -1611,16 +1940,19 @@ function recordResourceUrls(record: ResourceRecord): RecordResourceUrls {
   return urls;
 }
 
-function recordDetailPath(schema: ResourceSchema, recordId?: string, urls: RecordResourceUrls = {}): string {
-  return urls.detail ?? withSurface(recordPath(schema.key, requireRecordId(recordId)));
+function recordDetailPath(urls: RecordResourceUrls = {}): string {
+  if (!urls.detail) throw new Error("Missing backend record detail URL.");
+  return urls.detail;
 }
 
-function recordUpdatePath(schema: ResourceSchema, recordId?: string, urls: RecordResourceUrls = {}): string {
-  return urls.update ?? withSurface(recordPath(schema.key, requireRecordId(recordId)));
+function recordUpdatePath(urls: RecordResourceUrls = {}): string {
+  if (!urls.update) throw new Error("Missing backend record update URL.");
+  return urls.update;
 }
 
-function recordDeletePath(schema: ResourceSchema, recordId?: string, urls: RecordResourceUrls = {}): string {
-  return urls.delete ?? withSurface(recordPath(schema.key, requireRecordId(recordId)));
+function recordDeletePath(urls: RecordResourceUrls = {}): string {
+  if (!urls.delete) throw new Error("Missing backend record delete URL.");
+  return urls.delete;
 }
 
 function renderCell(field: ResourceField, value: RecordValue, optionMap?: Map<string, string>): Node {
@@ -1701,6 +2033,7 @@ async function loadResources(): Promise<void> {
     }
   } catch (error) {
     state.error = error instanceof Error ? error.message : "Failed to load resources.";
+    notify("error", state.error);
   } finally {
     state.loading = false;
     render();
@@ -1724,9 +2057,9 @@ async function selectResource(
 
 async function loadResourceView(resourceKey: string, params: URLSearchParams = new URLSearchParams()): Promise<void> {
   try {
-    const schema = await apiFetch<ResourceSchema>(withSurface(resourcePath(resourceKey)));
-    const sort = parseSortState(params.get("sort"));
-    const filterModel = parseFilterModel(params.get("filters"));
+    const schema = await apiFetch<ResourceSchema>(resourceSchemaPath(resourceKey));
+    const sort = sanitizeSortState(schema, parseSortState(params.get("sort")));
+    const filterModel = sanitizeFilterModel(schema, parseFilterModel(params.get("filters")));
     const view: ResourceViewState = {
       schema,
       records: [],
@@ -1738,7 +2071,7 @@ async function loadResourceView(resourceKey: string, params: URLSearchParams = n
       sortField: sort.sortField,
       sortDirection: sort.sortDirection,
       optionMaps: {},
-      selectedIds: new Set<string>(),
+      selectedIdentities: new Set<string>(),
       loading: true,
       error: null,
     };
@@ -1749,6 +2082,7 @@ async function loadResourceView(resourceKey: string, params: URLSearchParams = n
   } catch (error) {
     state.resourceView = null;
     state.error = error instanceof Error ? error.message : "Failed to load resource.";
+    notify("error", state.error);
   } finally {
     render();
   }
@@ -1773,10 +2107,11 @@ async function loadRecords(view: ResourceViewState): Promise<void> {
     const response = await apiFetch<PaginatedRecords>(resourceListPath(view.schema, params));
     view.records = response.results;
     view.count = response.count;
-    const visibleIds = new Set(view.records.map((record) => recordPk(view.schema, record)).filter((id): id is string => id !== null));
-    view.selectedIds = new Set([...view.selectedIds].filter((id) => visibleIds.has(id)));
+    const visibleIdentities = new Set(view.records.map((record) => recordIdentity(record)).filter((identity): identity is string => identity !== null));
+    view.selectedIdentities = new Set([...view.selectedIdentities].filter((identity) => visibleIdentities.has(identity)));
   } catch (error) {
     view.error = error instanceof Error ? error.message : "Failed to load records.";
+    notify("error", view.error);
   } finally {
     view.loading = false;
   }
@@ -1822,7 +2157,6 @@ async function loadOptionMap(view: ResourceViewState, field: ResourceField): Pro
 function openRecordForm(
   schema: ResourceSchema,
   mode: "create" | "view" | "edit",
-  recordId?: string,
   urls: RecordResourceUrls = {},
   previewLabel = "",
 ): void {
@@ -1839,7 +2173,7 @@ function openRecordForm(
   ]);
   modal.append(modalPanel);
   document.body.append(modal);
-  void populateRecordForm(modal, body, schema, mode, recordId, urls);
+  void populateRecordForm(modal, body, schema, mode, urls);
 }
 
 async function populateRecordForm(
@@ -1847,26 +2181,18 @@ async function populateRecordForm(
   body: HTMLElement,
   schema: ResourceSchema,
   mode: "create" | "view" | "edit",
-  recordId?: string,
   urls: RecordResourceUrls = {},
 ): Promise<void> {
   try {
-    const record = mode === "create" ? {} : await apiFetch<ResourceRecord>(recordDetailPath(schema, recordId, urls));
+    const record = mode === "create" ? {} : await apiFetch<ResourceRecord>(recordDetailPath(urls));
     const fields = mode === "view" ? detailFields(schema) : editableFields(schema, mode === "create");
     const optionMaps = await loadFormOptions(schema, record, fields);
     clear(body);
-    body.append(renderRecordForm(modal, schema, mode, record, optionMaps, recordId, urls));
+    body.append(renderRecordForm(modal, schema, mode, record, optionMaps, urls));
   } catch (error) {
     clear(body);
     body.append(el("div", { class: "error" }, [error instanceof Error ? error.message : "Failed to load form."]));
   }
-}
-
-function requireRecordId(recordId: string | undefined): string {
-  if (!recordId) {
-    throw new Error("Missing record id.");
-  }
-  return recordId;
 }
 
 async function loadFormOptions(
@@ -1978,8 +2304,41 @@ function validationAttributes(field: ResourceField, readonly: boolean): Record<s
     minlength: validation.min_length,
     max: validation.max_value,
     min: validation.min_value,
+    step: validation.step,
     pattern: validation.pattern,
+    title: validationTitle(field),
   };
+}
+
+function validationTitle(field: ResourceField): string | undefined {
+  const message = field.validation?.messages?.pattern;
+  if (message) {
+    return message;
+  }
+  return field.validation?.pattern ? `Expected pattern: ${field.validation.pattern}` : undefined;
+}
+
+function validationHintNodes(field: ResourceField, readonly: boolean): Node[] {
+  if (readonly) {
+    return [];
+  }
+  const hints = validationHints(field);
+  return hints.length ? [el("small", { class: "validation-hints" }, [hints.join(" · ")])] : [];
+}
+
+function validationHints(field: ResourceField): string[] {
+  const validation = field.validation ?? {};
+  const hints: string[] = [];
+  if ((validation.required ?? field.required) && !field.nullable) hints.push("Required");
+  if (validation.min_length !== undefined) hints.push(`min ${validation.min_length} chars`);
+  if (validation.max_length !== undefined) hints.push(`max ${validation.max_length} chars`);
+  if (validation.min_value !== undefined) hints.push(`min ${validation.min_value}`);
+  if (validation.max_value !== undefined) hints.push(`max ${validation.max_value}`);
+  if (validation.decimal_places !== undefined) hints.push(`${validation.decimal_places} decimals`);
+  if (validation.format === "email") hints.push("email format");
+  if (validation.format === "json") hints.push("valid JSON");
+  if (validation.pattern) hints.push(validation.messages?.pattern ?? "must match pattern");
+  return hints;
 }
 
 function controlForField(field: ResourceField): AdminControl {
@@ -2008,7 +2367,6 @@ function renderRecordForm(
   mode: "create" | "view" | "edit",
   record: ResourceRecord,
   optionsByField: Record<string, RelationOption[]>,
-  recordId?: string,
   urls: RecordResourceUrls = {},
 ): HTMLElement {
   const readonly = mode === "view";
@@ -2037,7 +2395,7 @@ function renderRecordForm(
     footer.append(submit);
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      void submitRecordForm(form, submit, errorBox, modal, schema, mode, fields, recordId, urls);
+      void submitRecordForm(form, submit, errorBox, modal, schema, mode, fields, urls);
     });
   }
 
@@ -2077,6 +2435,7 @@ function renderInputField(field: ResourceField, value: RecordValue, options: Rel
     input,
     fieldHelpText(field) ? el("small", {}, [fieldHelpText(field) ?? ""]) : null,
     field.visible_capability ? el("small", {}, [`Visible only with capability: ${field.visible_capability}`]) : null,
+    ...validationHintNodes(field, readonly),
   ]);
 }
 
@@ -2334,7 +2693,6 @@ async function submitRecordForm(
   schema: ResourceSchema,
   mode: "create" | "edit",
   fields: ResourceField[],
-  recordId?: string,
   urls: RecordResourceUrls = {},
 ): Promise<void> {
   submit.disabled = true;
@@ -2343,30 +2701,64 @@ async function submitRecordForm(
   errorBox.textContent = "";
 
   try {
+    const clientErrors = clientValidationErrors(form, fields);
+    if (clientErrors.length > 0) {
+      errorBox.hidden = false;
+      errorBox.textContent = clientErrors.join("\n");
+      form.reportValidity();
+      return;
+    }
     const payload = formPayload(form, fields, mode);
     if (mode === "create") {
       await apiFetch<ResourceRecord>(resourceCreatePath(schema), {
         method: "POST",
         body: JSON.stringify(payload),
       });
-      state.message = `${resourceName(schema)} created.`;
+      state.message = null;
+      notify("success", `${resourceName(schema)} created.`);
     } else {
-      await apiFetch<ResourceRecord>(recordUpdatePath(schema, recordId, urls), {
+      await apiFetch<ResourceRecord>(recordUpdatePath(urls), {
         method: "PATCH",
         body: JSON.stringify(payload),
       });
-      state.message = `${resourceName(schema)} updated.`;
+      state.message = null;
+      notify("success", `${resourceName(schema)} updated.`);
     }
     modal.remove();
     await reloadResourceView();
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Save failed.";
     errorBox.hidden = false;
-    errorBox.textContent = error instanceof Error ? error.message : "Save failed.";
+    errorBox.textContent = message;
+    notify("error", message);
   } finally {
     submit.disabled = false;
     submit.textContent = mode === "create" ? "Create" : "Save";
     render();
   }
+}
+
+
+function clientValidationErrors(form: HTMLFormElement, fields: ResourceField[]): string[] {
+  const errors: string[] = [];
+  if (!form.checkValidity()) {
+    errors.push("Fix the highlighted fields before saving.");
+  }
+  for (const field of fields) {
+    const element = form.elements.namedItem(field.key);
+    if (!(element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement)) {
+      continue;
+    }
+    const raw = element.value.trim();
+    if (field.type === "json" && raw) {
+      try {
+        JSON.parse(raw);
+      } catch {
+        errors.push(`${fieldName(field)} must be valid JSON.`);
+      }
+    }
+  }
+  return Array.from(new Set(errors));
 }
 
 function formPayload(form: HTMLFormElement, fields: ResourceField[], mode: "create" | "edit"): Record<string, JsonValue> {
@@ -2432,34 +2824,35 @@ function coerceScalar(value: string): string | number {
   return value;
 }
 
-
 async function batchDeleteRecords(view: ResourceViewState): Promise<void> {
-  const ids = [...view.selectedIds];
-  if (ids.length === 0) {
+  const identities = [...view.selectedIdentities];
+  if (identities.length === 0) {
     return;
   }
   const action = view.schema.destructive_actions?.batch_delete;
-  const confirmed = action?.confirm === false || window.confirm(action?.message ?? `Delete ${ids.length} selected records?`);
+  const confirmed = action?.confirm === false || window.confirm(action?.message ?? `Delete ${identities.length} selected records?`);
   if (!confirmed) {
     return;
   }
   try {
     await apiFetch<void>(resourceBatchDeletePath(view.schema), {
       method: "DELETE",
-      body: JSON.stringify({ ids: ids.map(coerceScalar) }),
+      body: JSON.stringify({ identities }),
     });
-    view.selectedIds.clear();
-    state.message = `${ids.length} ${resourceName(view.schema, true)} deleted.`;
+    view.selectedIdentities.clear();
+    state.message = null;
+    notify("success", `${identities.length} ${resourceName(view.schema, true)} deleted.`);
     await reloadResourceView();
   } catch (error) {
     state.message = null;
     view.error = error instanceof Error ? error.message : "Batch delete failed.";
+    notify("error", view.error);
   } finally {
     render();
   }
 }
 
-async function deleteRecord(schema: ResourceSchema, recordId?: string, urls: RecordResourceUrls = {}, label = ""): Promise<void> {
+async function deleteRecord(schema: ResourceSchema, urls: RecordResourceUrls = {}, label = ""): Promise<void> {
   const action = schema.destructive_actions?.delete;
   const schemaName = resourceName(schema);
   const fallbackMessage = label ? `Delete this ${schemaName}: ${label}?` : `Delete this ${schemaName}?`;
@@ -2468,13 +2861,15 @@ async function deleteRecord(schema: ResourceSchema, recordId?: string, urls: Rec
     return;
   }
   try {
-    await apiFetch<void>(recordDeletePath(schema, recordId, urls), { method: "DELETE" });
-    state.message = label ? `${schemaName} ${label} deleted.` : `${schemaName} deleted.`;
+    await apiFetch<void>(recordDeletePath(urls), { method: "DELETE" });
+    state.message = null;
+    notify("success", label ? `${schemaName} ${label} deleted.` : `${schemaName} deleted.`);
     await reloadResourceView();
   } catch (error) {
     state.message = null;
     if (state.resourceView) {
       state.resourceView.error = error instanceof Error ? error.message : "Delete failed.";
+      notify("error", state.resourceView.error);
     }
   } finally {
     render();
@@ -2512,27 +2907,9 @@ function editableFields(schema: ResourceSchema, creating: boolean): ResourceFiel
   return schema.fields.filter((field) => field.editable && (creating || !field.readonly_on_update));
 }
 
-function identityFields(schema: ResourceSchema): string[] {
-  return schema.record_identity?.fields ?? schema.primary_key_fields;
-}
-
-function canUseSinglePk(schema: ResourceSchema): boolean {
-  return (schema.record_identity?.kind ?? "single_pk") === "single_pk" && identityFields(schema).length === 1;
-}
-
-function recordPk(schema: ResourceSchema, record: ResourceRecord): string | null {
-  if (!canUseSinglePk(schema)) {
-    return null;
-  }
-  const [pkField] = identityFields(schema);
-  if (!pkField) {
-    return null;
-  }
-  const value = record[pkField];
-  if (value === null || value === undefined || Array.isArray(value) || typeof value === "object") {
-    return null;
-  }
-  return String(value);
+function recordIdentity(record: ResourceRecord): string | null {
+  const identity = record.__identity;
+  return typeof identity === "string" && identity.trim() ? identity : null;
 }
 
 function schemaHasDependentRelations(schema: ResourceSchema): boolean {
@@ -2540,7 +2917,7 @@ function schemaHasDependentRelations(schema: ResourceSchema): boolean {
 }
 
 
-function recordLabel(schema: ResourceSchema, record: ResourceRecord, fallbackId: string | null = null): string {
+function recordLabel(schema: ResourceSchema, record: ResourceRecord): string {
   const backendLabel = record.__label;
   if (typeof backendLabel === "string" && backendLabel.trim()) {
     return backendLabel;
@@ -2552,7 +2929,7 @@ function recordLabel(schema: ResourceSchema, record: ResourceRecord, fallbackId:
       return String(value);
     }
   }
-  return fallbackId ?? resourceName(schema);
+  return resourceName(schema);
 }
 
 function optionLabel(optionMap: Map<string, string> | undefined, value: RecordValue): string {
