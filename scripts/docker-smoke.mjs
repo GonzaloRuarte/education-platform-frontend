@@ -44,16 +44,24 @@ assert.ok(Array.isArray(discovery.resources), "resource discovery should return 
 assert.ok(discovery.resources.length > 0, "resource discovery should expose at least one DB Admin resource");
 
 const first = discovery.resources[0];
-assert.ok(first.key, "discovered resource should have a key");
-const schema = await fetchJson(`${apiBase}/resources/${encodeURIComponent(first.key)}/?surface=db_admin`, { headers: authHeaders });
-assert.equal(schema.key, first.key, "schema key should match discovered resource key");
-assert.ok(schema.resource_urls?.list, "schema should publish backend-owned list URL");
-assert.ok(schema.fields?.every((field) => field.i18n?.label?.en && field.i18n?.label?.es), "schema should publish bilingual field labels");
-assert.ok(schema.list_query_contract?.filters?.operators, "schema should publish frontend-used list query contract metadata");
+assert.ok(first.alias, "discovered resource should have a public alias");
+assert.ok(first.i18n?.label?.en && first.i18n?.label?.es, "discovery should publish bilingual resource labels");
+assert.ok(first.i18n?.plural_label?.en && first.i18n?.plural_label?.es, "discovery should publish bilingual plural labels");
+assert.equal(first.key, undefined, "discovery must not expose internal resource keys");
 
-const listUrl = new URL(schema.resource_urls.list, apiBase.replace(/\/api\/?$/, ""));
-const list = await fetchJson(listUrl.toString(), { headers: authHeaders });
+const schema = await fetchJson(`${apiBase}/resources/${encodeURIComponent(first.alias)}/?surface=db_admin`, { headers: authHeaders });
+assert.equal(schema.key, first.alias, "schema key should be the public resource alias");
+assert.ok(!schema.alias || schema.alias === schema.key, "schema alias should be absent or match the public resource alias");
+assert.equal(schema.resource_urls, undefined, "schema must not publish backend-owned resource URLs");
+assert.equal(schema.list_query_contract, undefined, "schema must not publish a global list query contract");
+assert.ok(schema.actions && typeof schema.actions === "object", "schema should publish action booleans");
+assert.ok(schema.fields?.every((field) => field.key && field.i18n?.label?.en && field.i18n?.label?.es), "schema should publish aliased fields with bilingual labels");
+assert.ok(schema.fields?.every((field) => !field.filterable || Array.isArray(field.filter?.operators)), "filterable fields should publish per-field operators");
+
+const list = await fetchJson(`${apiBase}/resources/${encodeURIComponent(schema.key)}/records/?surface=db_admin`, { headers: authHeaders });
 assert.equal(typeof list.count, "number", "list endpoint should return paginated count");
 assert.ok(Array.isArray(list.results), "list endpoint should return results[]");
+assert.ok(list.results.every((row) => typeof row.__identity === "string"), "records should include backend-issued __identity");
+assert.ok(list.results.every((row) => row.__resource_urls === undefined && row.__label === undefined), "records must not include old metadata helpers");
 
-console.log(`Docker smoke passed for ${first.key}: ${list.count} records.`);
+console.log(`Docker smoke passed for ${schema.key}: ${list.count} records.`);

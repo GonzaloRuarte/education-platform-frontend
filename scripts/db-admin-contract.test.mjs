@@ -16,7 +16,7 @@ function notContains(label, haystack, needle) {
 }
 
 contains("frontend app", app, "__identity");
-contains("frontend app", app, "resource.alias || resource.key");
+contains("frontend app", app, "key: String(resource.alias || \"\")");
 contains("frontend app", app, "encodeURIComponent(schema.key)");
 contains("frontend app", app, "recordDetailPath(schema, identity)");
 contains("frontend app", app, "sanitizeFilterModel(schema, parseFilterModel");

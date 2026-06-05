@@ -204,8 +204,13 @@ type ResourceSchema = {
   related_lists?: RelatedListDefinition[];
 };
 
+type ResourceDiscoveryItem = {
+  alias: string;
+  i18n?: ResourceI18n;
+};
+
 type ResourcesResponse = {
-  resources: Array<Partial<ResourceSchema> & { alias?: string; i18n?: ResourceI18n }>;
+  resources: ResourceDiscoveryItem[];
 };
 
 type PaginatedRecords = {
@@ -1759,9 +1764,9 @@ async function loadResources(): Promise<void> {
     state.dbAdminAccessDenied = false;
     state.resources = response.resources.map((resource) => ({
       ...resource,
-      key: String(resource.alias || resource.key || ""),
-      fields: resource.fields ?? [],
-      page_size: resource.page_size ?? DEFAULT_PAGE_SIZE,
+      key: String(resource.alias || ""),
+      fields: [],
+      page_size: DEFAULT_PAGE_SIZE,
     })).filter((resource) => resource.key).sort((left, right) =>
       resourceName(left, true).localeCompare(resourceName(right, true)),
     );
