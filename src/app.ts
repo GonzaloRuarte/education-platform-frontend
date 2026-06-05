@@ -48,7 +48,8 @@ type FieldType =
   | "many_to_many"
   | "json";
 
-type ResourceAction = "list" | "retrieve" | "create" | "update" | "delete";
+type ResourceAction = "list" | "retrieve" | "create" | "update" | "delete" | "batch_delete";
+type ResourceActions = Partial<Record<ResourceAction, boolean>>;
 
 type StaticOption = {
   value: string;
@@ -56,25 +57,12 @@ type StaticOption = {
   i18n?: { label?: LocalizedText };
 };
 
-type OptionSource =
-  | {
-      kind: "static";
-      options: StaticOption[];
-    }
-  | {
-      kind: "resource";
-      resource_key: string;
-      value_field: string;
-      label_field: string;
-      depends_on: string[];
-    };
+type OptionSource = {
+  kind: "static";
+  options: StaticOption[];
+};
 
 type RelationDefinition = {
-  kind: "foreign_key" | "many_to_many";
-  resource_key: string;
-  value_field: string;
-  label_field: string;
-  searchable_fields?: string[];
   depends_on: string[];
   dependencies?: Array<{ source_field: string; target_field: string; operator: string }>;
   priority?: number | null;
@@ -110,7 +98,6 @@ type FieldValidation = {
   required?: boolean;
   nullable?: boolean;
   allow_blank?: boolean;
-  messages?: Record<string, string>;
 };
 
 type FieldUi = {
@@ -129,11 +116,9 @@ type ResourceField = {
   editable: boolean;
   readonly_on_update: boolean;
   visible_in_list: boolean;
-  searchable: boolean;
   sortable: boolean;
   filterable: boolean;
   pii: boolean;
-  visible_capability: string | null;
   write_only: boolean;
   help_text?: string;
   admin_control?: AdminControl | null;
@@ -179,140 +164,6 @@ type ResourceUrls = {
   create?: string;
   batch_delete?: string;
   options_template?: string;
-};
-
-type ModelSsotContract = {
-  schema_source?: string;
-  migration_source?: string;
-  serializer_source?: string;
-  resource_discovery?: string;
-  admin_metadata_policy?: string;
-  ordinary_crud_requires?: string[];
-  ordinary_crud_forbids?: string[];
-};
-
-type RecordPayloadContract = {
-  relation_values?: string;
-  reverse_relations?: string;
-  nested_relations?: boolean;
-  write_shape?: string;
-  record_identity?: string;
-  record_actions?: string;
-  batch_delete_shape?: Record<string, string>;
-  metadata_fields?: string[];
-};
-
-type ValidationContract = {
-  backend_enforced?: boolean;
-  frontend_advisory?: boolean;
-  sources?: string[];
-  frontend_metadata?: string[];
-};
-
-type MigrationSafetyContract = {
-  schema_evolution?: string;
-  query_construction?: string;
-  unsupported_fields_or_operators?: string;
-  frontend_query_shape?: string;
-  permission_changes?: string;
-  database_policy_mirroring?: {
-    status?: string;
-    database?: string;
-    source_of_truth?: string;
-    tenant_scope?: string;
-    database_roles?: string[];
-    session_identity?: string;
-    migration_management?: string;
-    direct_sql_acceptance?: string;
-    role_grantee_strategy?: string;
-    runtime_grantee_setting?: string;
-    schema_owner_grantee_setting?: string;
-    reason?: string;
-  };
-};
-
-type AuthorizationContract = {
-  access_model?: string;
-  identity?: string;
-  db_admin_surface_gate?: string;
-  password_storage?: string;
-  first_admin_bootstrap?: string;
-  permission_ssot?: string[];
-  resource_action_matrix?: string;
-  database_policy_mirroring?: {
-    status?: string;
-    strict_completion_blocker?: boolean;
-    database?: string;
-    source_of_truth?: string;
-    tenant_scope?: string;
-    role_strategy?: string;
-    session_identity?: string;
-    api_enforcement?: string;
-    direct_sql_enforcement?: string;
-    role_grantee_strategy?: string;
-    runtime_grantee_setting?: string;
-    schema_owner_grantee_setting?: string;
-    source_of_truth_if_adopted?: string;
-    reason?: string;
-  };
-};
-
-type AuthorizationMatrix = {
-  surface?: string;
-  surface_capability?: string;
-  roles?: Array<{ key: string; label?: string; actions: Partial<Record<ResourceAction, boolean>> }>;
-  resource_action_capabilities?: Partial<Record<ResourceAction, string>>;
-  row_visibility?: string;
-  fields?: Array<{
-    key: string;
-    visible?: boolean;
-    editable?: boolean;
-    create?: boolean;
-    update?: boolean;
-    write_only?: boolean;
-    pii?: boolean;
-    visible_capability?: string | null;
-  }>;
-  relation_assignment?: Array<{ field: string; target_resource_key?: string | null; policy?: string }>;
-};
-
-type ErrorLoggingContract = {
-  user_facing_errors?: string;
-  request_correlation?: string;
-  operator_logs?: string;
-  durable_audit_model?: string;
-  high_risk_events?: string[];
-  sensitive_detail_policy?: string;
-  frontend_feedback?: string;
-};
-
-
-type TestingContract = {
-  status?: string;
-  backend_test_layers?: string[];
-  frontend_test_layers?: string[];
-  docker_compose_file?: string;
-  docker_smoke_command?: string;
-  docker_e2e_scope?: string[];
-  coverage_policy?: string;
-  frontend_commands?: string[];
-  backend_commands?: string[];
-};
-
-type UxUiContract = {
-  runtime_schema_driven?: boolean;
-  resource_navigation?: string;
-  permission_navigation?: string;
-  crud_interaction?: string;
-  list_state?: string[];
-  field_controls?: string;
-  relation_controls?: string;
-  destructive_actions?: string;
-  feedback?: string;
-  responsive_layout?: boolean;
-  theme_modes?: string[];
-  locales?: string[];
-  localized_metadata?: string;
 };
 
 type Toast = {
@@ -376,23 +227,12 @@ type ResourceSchema = {
   plural_label: string;
   primary_key_fields: string[];
   fields: ResourceField[];
-  capabilities: Partial<Record<ResourceAction, string>>;
-  business_actions: ResourceAction[];
-  default_sort: string[];
   page_size: number;
   description?: string;
   admin_help_text?: string;
   destructive_actions?: Record<string, DestructiveAction>;
+  actions?: ResourceActions;
   resource_urls?: ResourceUrls;
-  model_ssot_contract?: ModelSsotContract;
-  record_payload_contract?: RecordPayloadContract;
-  validation_contract?: ValidationContract;
-  authorization_contract?: AuthorizationContract;
-  authorization_matrix?: AuthorizationMatrix;
-  error_logging_contract?: ErrorLoggingContract;
-  ux_ui_contract?: UxUiContract;
-  migration_safety_contract?: MigrationSafetyContract;
-  testing_contract?: TestingContract;
   navigation?: ResourceNavigation;
   record_identity?: RecordIdentity;
   i18n?: ResourceI18n;
@@ -437,7 +277,6 @@ type AuthUser = {
 
 type AuthSession = {
   token: TokenPair;
-  capabilities: string[];
   user: AuthUser;
 };
 
@@ -445,6 +284,7 @@ type AppState = {
   resources: ResourceSchema[];
   selectedResourceKey: string | null;
   resourceFilter: string;
+  collapsedResourceGroups: Set<string>;
   resourceView: ResourceViewState | null;
   loading: boolean;
   error: string | null;
@@ -452,6 +292,7 @@ type AppState = {
   locale: Locale;
   theme: ThemeMode;
   toasts: Toast[];
+  dbAdminAccessDenied: boolean;
 };
 
 type ResourceViewState = {
@@ -477,12 +318,22 @@ type ApiErrorPayload = {
   [key: string]: unknown;
 };
 
+class ApiRequestError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiRequestError";
+    this.status = status;
+  }
+}
+
 const SURFACE = "db_admin";
-const ACCESS_DB_ADMIN = "access_db_admin";
 const DEFAULT_PAGE_SIZE = 25;
 const STORAGE_SESSION = "retrobolt.admin.session";
 const STORAGE_LOCALE = "retrobolt.admin.locale";
 const STORAGE_THEME = "retrobolt.admin.theme";
+const STORAGE_COLLAPSED_RESOURCE_GROUPS = "retrobolt.admin.collapsedResourceGroups";
 const RESOURCE_HASH_PREFIX = "#/resources/";
 const appRootElement = document.getElementById("app");
 
@@ -497,6 +348,7 @@ const state: AppState = {
   resources: [],
   selectedResourceKey: null,
   resourceFilter: "",
+  collapsedResourceGroups: loadCollapsedResourceGroups(),
   resourceView: null,
   loading: false,
   error: null,
@@ -504,7 +356,31 @@ const state: AppState = {
   locale: loadLocale(),
   theme: loadTheme(),
   toasts: [],
+  dbAdminAccessDenied: false,
 };
+
+function loadCollapsedResourceGroups(): Set<string> {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_COLLAPSED_RESOURCE_GROUPS) || "[]");
+    return new Set(Array.isArray(parsed) ? parsed.map(String).filter(Boolean) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function persistCollapsedResourceGroups(): void {
+  localStorage.setItem(STORAGE_COLLAPSED_RESOURCE_GROUPS, JSON.stringify([...state.collapsedResourceGroups].sort()));
+}
+
+function toggleResourceGroup(group: string): void {
+  if (state.collapsedResourceGroups.has(group)) {
+    state.collapsedResourceGroups.delete(group);
+  } else {
+    state.collapsedResourceGroups.add(group);
+  }
+  persistCollapsedResourceGroups();
+  render();
+}
 
 function loadLocale(): Locale {
   const stored = localStorage.getItem(STORAGE_LOCALE);
@@ -555,24 +431,25 @@ const UI_TEXT: Record<string, Record<Locale, string>> = {
   filter_resources: { es: "Filtrar recursos...", en: "Filter resources..." },
   resources: { es: "Recursos", en: "Resources" },
   no_resources_match: { es: "No hay recursos que coincidan.", en: "No resources match." },
+  collapse_group: { es: "Colapsar grupo", en: "Collapse group" },
+  expand_group: { es: "Expandir grupo", en: "Expand group" },
   create_resource: { es: "Crear", en: "Create" },
   
   refresh_resources: { es: "Actualizar recursos", en: "Refresh resources" },
   sign_out: { es: "Salir", en: "Sign out" },
   admin_title: { es: "Retrobolt Admin", en: "Retrobolt Admin" },
-  capabilities_loaded: { es: "capacidades cargadas", en: "capabilities loaded" },
   db_admin_required: { es: "Se requiere acceso DB Admin", en: "DB Admin access required" },
   db_admin_required_message: {
-    es: "está autenticado, pero esta interfaz solo expone la superficie DB Admin y requiere",
-    en: "is authenticated, but this frontend only exposes the runtime DB Admin surface and requires",
+    es: "está autenticado, pero el backend no habilitó la superficie DB Admin para esta sesión.",
+    en: "is authenticated, but the backend did not enable the DB Admin surface for this session.",
   },
   loading_admin_resources: { es: "Cargando recursos de administración...", en: "Loading admin resources..." },
   loading_resource: { es: "Cargando recurso...", en: "Loading resource..." },
   retry: { es: "Reintentar", en: "Retry" },
   empty_resources_title: { es: "No se devolvieron recursos DB Admin", en: "No DB Admin resources returned" },
   empty_resources_message: {
-    es: "El backend devolvió una lista vacía para surface=db_admin. Confirmá que el usuario tenga access_db_admin y que los recursos ResourceMeta estén expuestos.",
-    en: "The backend returned an empty resource list for surface=db_admin. Confirm the user has access_db_admin and that ResourceMeta resources are exposed.",
+    es: "El backend habilitó la superficie DB Admin pero no devolvió recursos expuestos para esta sesión.",
+    en: "The backend enabled the DB Admin surface but did not return exposed resources for this session.",
   },
   refresh_resource: { es: "Actualizar", en: "Refresh" },
   delete_selected: { es: "Eliminar seleccionados", en: "Delete selected" },
@@ -582,7 +459,6 @@ const UI_TEXT: Record<string, Record<Locale, string>> = {
   clear_filters: { es: "Limpiar filtros", en: "Clear filters" },
   filtered_notice: { es: "Esta lista está filtrada con metadatos de filtros definidos por el backend.", en: "This list is filtered with backend-declared filter metadata." },
   dependent_relation_notice: { es: "Este esquema declara selectores dependientes. El formulario carga opciones hijas con filtros definidos por el backend cuando cambian los valores padre.", en: "This schema declares dependent selectors. The form loads child options with filters defined by the backend when parent values change." },
-  contract_details: { es: "Detalles del contrato", en: "Contract details" },
   no_filterable_fields: { es: "No hay campos filtrables definidos por el backend para este recurso.", en: "No backend-declared filterable fields for this resource." },
   no_column_filters: { es: "No hay filtros de columna.", en: "No column filters." },
   remove_filter: { es: "Quitar filtro", en: "Remove filter" },
@@ -625,6 +501,12 @@ const UI_TEXT: Record<string, Record<Locale, string>> = {
   fix_highlighted_fields: { es: "Corregí los campos marcados antes de guardar.", en: "Fix the highlighted fields before saving." },
   valid_json_required: { es: "debe ser JSON válido.", en: "must be valid JSON." },
   required: { es: "Requerido", en: "Required" },
+  min_chars: { es: "mín {value} caracteres", en: "min {value} chars" },
+  max_chars: { es: "máx {value} caracteres", en: "max {value} chars" },
+  min_number: { es: "mín {value}", en: "min {value}" },
+  max_number: { es: "máx {value}", en: "max {value}" },
+  decimal_places: { es: "{value} decimales", en: "{value} decimals" },
+  search_field_options: { es: "Buscar opciones de {field}", en: "Search {field} options" },
   email_format: { es: "formato email", en: "email format" },
   valid_json: { es: "JSON válido", en: "valid JSON" },
   must_match_pattern: { es: "debe coincidir con el patrón", en: "must match pattern" },
@@ -644,6 +526,13 @@ const UI_TEXT: Record<string, Record<Locale, string>> = {
 
 function t(key: string): string {
   return UI_TEXT[key]?.[state.locale] ?? UI_TEXT[key]?.es ?? key;
+}
+
+function formatText(key: string, values: Record<string, string | number>): string {
+  return Object.entries(values).reduce(
+    (text, [name, value]) => text.replaceAll(`{${name}}`, String(value)),
+    t(key),
+  );
 }
 
 function resourceName(resource: ResourceSchema, plural = false): string {
@@ -797,7 +686,6 @@ function readSession(): AuthSession | null {
       parsed.token &&
       typeof parsed.token.access === "string" &&
       typeof parsed.token.refresh === "string" &&
-      Array.isArray(parsed.capabilities) &&
       parsed.user &&
       typeof parsed.user.username === "string"
     ) {
@@ -818,9 +706,6 @@ function clearSession(): void {
   localStorage.removeItem(STORAGE_SESSION);
 }
 
-function hasCapability(capability: string): boolean {
-  return readSession()?.capabilities.includes(capability) ?? false;
-}
 
 async function refreshAccessToken(): Promise<boolean> {
   const session = readSession();
@@ -871,7 +756,7 @@ async function apiFetch<T>(path: string, init: RequestInit = {}, retry = true): 
   }
 
   if (!response.ok) {
-    throw new Error(await responseErrorMessage(response));
+    throw new ApiRequestError(await responseErrorMessage(response), response.status);
   }
 
   if (response.status === 204) {
@@ -1110,7 +995,7 @@ function render(): void {
     return;
   }
 
-  if (!session.capabilities.includes(ACCESS_DB_ADMIN)) {
+  if (state.dbAdminAccessDenied) {
     appRoot.append(renderForbidden(session));
     return;
   }
@@ -1203,6 +1088,7 @@ async function handleLogin(form: HTMLFormElement, submit: HTMLButtonElement, err
     saveSession(payload);
     state.error = null;
     state.message = null;
+    state.dbAdminAccessDenied = false;
     await loadResources();
   } catch (error) {
     errorBox.hidden = false;
@@ -1219,6 +1105,7 @@ function renderForbidden(session: AuthSession): HTMLElement {
   logoutButton.addEventListener("click", () => {
     clearSession();
     state.resources = [];
+    state.dbAdminAccessDenied = false;
     render();
   });
 
@@ -1226,11 +1113,7 @@ function renderForbidden(session: AuthSession): HTMLElement {
     el("section", { class: "card login-card" }, [
       el("div", { class: "card__body stack" }, [
         el("h1", {}, [t("db_admin_required")]),
-        el("p", {}, [
-          `${displayUser(session.user)} ${t("db_admin_required_message")} `,
-          el("code", {}, [ACCESS_DB_ADMIN]),
-          ".",
-        ]),
+        el("p", {}, [`${displayUser(session.user)} ${t("db_admin_required_message")}`]),
         logoutButton,
       ]),
     ]),
@@ -1256,27 +1139,37 @@ function renderSidebar(session: AuthSession): HTMLElement {
     render();
   });
 
-
-  const visibleResources = filteredResources();
   const nav = el("nav", { class: "resource-nav", "aria-label": t("resources") });
-  let currentGroup = "";
-  for (const resource of visibleResources) {
-    const group = resource.navigation?.group ?? t("resources");
-    if (group !== currentGroup) {
-      currentGroup = group;
-      nav.append(el("div", { class: "resource-group" }, [group]));
-    }
-    const item = el("button", {
-      class: resource.key === state.selectedResourceKey ? "active" : "",
+  const groupedResources = resourcesByNavigationGroup(filteredResources());
+  for (const [group, resources] of groupedResources) {
+    const collapsed = state.collapsedResourceGroups.has(group);
+    const toggle = el("button", {
+      class: "resource-group__toggle",
       type: "button",
-      title: resource.key,
-    }, [resourceName(resource, true)]);
-    item.addEventListener("click", () => {
-      void selectResource(resource.key);
-    });
-    nav.append(item);
+      "aria-expanded": collapsed ? "false" : "true",
+      title: collapsed ? t("expand_group") : t("collapse_group"),
+    }, [
+      el("span", {}, [`${collapsed ? "▸" : "▾"} ${group}`]),
+      el("span", { class: "resource-group__count" }, [String(resources.length)]),
+    ]);
+    toggle.addEventListener("click", () => toggleResourceGroup(group));
+    nav.append(toggle);
+
+    const items = el("div", { class: "resource-group__items", hidden: collapsed ? true : null });
+    for (const resource of resources) {
+      const item = el("button", {
+        class: resource.key === state.selectedResourceKey ? "active" : "",
+        type: "button",
+        title: resource.key,
+      }, [resourceName(resource, true)]);
+      item.addEventListener("click", () => {
+        void selectResource(resource.key);
+      });
+      items.append(item);
+    }
+    nav.append(items);
   }
-  if (visibleResources.length === 0) {
+  if (groupedResources.length === 0) {
     nav.append(el("div", { class: "empty" }, [t("no_resources_match")]));
   }
 
@@ -1291,6 +1184,7 @@ function renderSidebar(session: AuthSession): HTMLElement {
     state.resources = [];
     state.selectedResourceKey = null;
     state.resourceView = null;
+    state.dbAdminAccessDenied = false;
     render();
   });
 
@@ -1300,12 +1194,20 @@ function renderSidebar(session: AuthSession): HTMLElement {
     ]),
     el("div", { class: "user-card" }, [
       el("strong", {}, [displayUser(session.user)]),
-      el("span", {}, [`${session.capabilities.length} ${t("capabilities_loaded")}`]),
     ]),
-    el("div", { class: "sidebar__section stack" }, [filterInput, renderPreferenceControls(), refresh]),
+    el("div", { class: "sidebar__section stack sidebar__controls" }, [filterInput, renderPreferenceControls(), refresh]),
     nav,
-    el("div", { class: "sidebar__section" }, [logout]),
+    el("div", { class: "sidebar__section sidebar__footer" }, [logout]),
   ]);
+}
+
+function resourcesByNavigationGroup(resources: ResourceSchema[]): Array<[string, ResourceSchema[]]> {
+  const groups = new Map<string, ResourceSchema[]>();
+  for (const resource of resources) {
+    const group = resource.navigation?.group ?? t("resources");
+    groups.set(group, [...(groups.get(group) ?? []), resource]);
+  }
+  return [...groups.entries()];
 }
 
 function renderMain(): HTMLElement {
@@ -1373,7 +1275,7 @@ function renderWelcomePage(): HTMLElement {
 function renderResourcePage(view: ResourceViewState): HTMLElement {
   const schema = view.schema;
   const createButton = el("button", { class: "button primary", type: "button" }, [t("create_resource")]);
-  createButton.disabled = !hasCapability(ACCESS_DB_ADMIN) || editableFields(schema, true).length === 0;
+  createButton.disabled = !canResourceAction(schema, "create") || editableFields(schema, true).length === 0;
   createButton.addEventListener("click", () => openRecordForm(schema, "create"));
 
   const refreshButton = el("button", { class: "button", type: "button" }, [t("refresh_resource")]);
@@ -1385,7 +1287,7 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
   const batchDeleteButton = el("button", {
     class: "button danger",
     type: "button",
-    disabled: view.selectedIdentities.size > 0 ? null : true,
+    disabled: canResourceAction(schema, "batch_delete") && view.selectedIdentities.size > 0 ? null : true,
   }, [actionLabel(batchAction, `${t("delete_selected")} (${view.selectedIdentities.size})`)]);
   batchDeleteButton.addEventListener("click", () => {
     if (view.selectedIdentities.size > 0) {
@@ -1463,7 +1365,6 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
       ]),
       el("div", { class: "toolbar" }, [createButton, batchDeleteButton, refreshButton]),
     ]),
-    renderContractDetails(schema),
     ...notices,
     el("div", { class: "toolbar" }, [
       quickSearch,
@@ -1477,168 +1378,7 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
 }
 
 
-function renderContractDetails(schema: ResourceSchema): HTMLElement | null {
-  const items: HTMLElement[] = [];
-  if (schema.model_ssot_contract) {
-    items.push(contractDetail(modelSsotLabel(schema.model_ssot_contract), modelSsotNotice(schema.model_ssot_contract)));
-  }
-  if (schema.record_payload_contract) {
-    items.push(contractDetail(payloadContractLabel(schema.record_payload_contract), "Ordinary list rows do not expand nested relation graphs."));
-  }
-  if (schema.validation_contract) {
-    items.push(contractDetail(validationContractLabel(schema.validation_contract), validationContractNotice(schema.validation_contract)));
-  }
-  if (schema.authorization_contract || schema.authorization_matrix) {
-    items.push(contractDetail(authorizationLabel(schema.authorization_contract, schema.authorization_matrix), authorizationNotice(schema.authorization_contract, schema.authorization_matrix)));
-  }
-  if (schema.error_logging_contract) {
-    items.push(contractDetail(errorLoggingLabel(schema.error_logging_contract), errorLoggingNotice(schema.error_logging_contract)));
-  }
-  if (schema.ux_ui_contract) {
-    items.push(contractDetail(uxUiLabel(schema.ux_ui_contract), uxUiNotice(schema.ux_ui_contract)));
-  }
-  if (schema.migration_safety_contract) {
-    items.push(contractDetail(migrationSafetyLabel(schema.migration_safety_contract), migrationSafetyNotice(schema.migration_safety_contract)));
-  }
-  if (schema.testing_contract) {
-    items.push(contractDetail(testingContractLabel(schema.testing_contract), testingContractNotice(schema.testing_contract)));
-  }
-  if (items.length === 0) {
-    return null;
-  }
-  return el("details", { class: "contract-details" }, [
-    el("summary", {}, [t("contract_details")]),
-    el("div", { class: "contract-details__body" }, items),
-  ]);
-}
 
-function contractDetail(label: string, body: string): HTMLElement {
-  return el("div", { class: "contract-detail" }, [
-    el("strong", {}, [label]),
-    el("span", {}, [body]),
-  ]);
-}
-function modelSsotLabel(contract: ModelSsotContract): string {
-  const schema = contract.schema_source || "model schema";
-  const serializer = contract.serializer_source || "serializers";
-  return `SSOT: ${schema}, ${serializer}`;
-}
-
-
-function humanizeContractValue(value: string): string {
-  return value
-    .replace(/[_.]+/g, " ")
-    .replace(/;/g, "; ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function modelSsotNotice(contract: ModelSsotContract): string {
-  const requires = (contract.ordinary_crud_requires || []).join(", ") || "Django model + migration";
-  const forbids = (contract.ordinary_crud_forbids || []).join(", ") || "model-specific CRUD frontend/backend code";
-  return `Ordinary CRUD is generated from backend SSOT metadata. Requires: ${requires}. Forbids: ${forbids}.`;
-}
-
-function migrationSafetyLabel(contract: MigrationSafetyContract): string {
-  const schema = contract.schema_evolution || "schema";
-  const query = contract.query_construction || "queries";
-  const dbPolicy = contract.database_policy_mirroring?.status;
-  return dbPolicy ? `migration/query safety: ${schema}, ${query}, ${dbPolicy}` : `migration/query safety: ${schema}, ${query}`;
-}
-
-function migrationSafetyNotice(contract: MigrationSafetyContract): string {
-  const mirror = contract.database_policy_mirroring;
-  const dbPolicy = mirror?.status || "unspecified";
-  const permissionChanges = contract.permission_changes || "unspecified";
-  const tenant = mirror?.tenant_scope ? ` Tenant scope: ${humanizeContractValue(mirror.tenant_scope)}.` : "";
-  const directSql = mirror?.direct_sql_acceptance ? ` Direct SQL acceptance: ${mirror.direct_sql_acceptance}.` : "";
-  const grantees = mirror?.role_grantee_strategy ? ` Role grants: ${humanizeContractValue(mirror.role_grantee_strategy)}.` : "";
-  return `Permission changes: ${permissionChanges}. DB role/RLS mirroring: ${dbPolicy}.${tenant}${directSql}${grantees}`;
-}
-
-function authorizationLabel(contract?: AuthorizationContract, matrix?: AuthorizationMatrix): string {
-  const gate = matrix?.surface_capability || contract?.db_admin_surface_gate || "backend capability";
-  const dbPolicy = contract?.database_policy_mirroring?.status;
-  return dbPolicy ? `auth: ${gate}, DB policy ${dbPolicy}` : `auth: ${gate}`;
-}
-
-function authorizationNotice(contract?: AuthorizationContract, matrix?: AuthorizationMatrix): string {
-  const roles = (matrix?.roles || []).map((role) => role.key).join(", ") || "backend-declared roles";
-  const rowVisibility = matrix?.row_visibility || "backend row scope";
-  const mirror = contract?.database_policy_mirroring;
-  const dbPolicy = mirror?.status || "not declared";
-  const db = mirror?.database ? ` Database: ${mirror.database}.` : "";
-  const roleStrategy = mirror?.role_strategy ? ` Role strategy: ${mirror.role_strategy}.` : "";
-  const tenant = mirror?.tenant_scope ? ` Tenant scope: ${humanizeContractValue(mirror.tenant_scope)}.` : "";
-  const grantees = mirror?.role_grantee_strategy ? ` Role grants: ${humanizeContractValue(mirror.role_grantee_strategy)}.` : "";
-  return `Authorization is backend-owned and default-deny. Matrix roles: ${roles}. Row visibility: ${rowVisibility}. DB-role/RLS mirroring: ${dbPolicy}.${db}${roleStrategy}${tenant}${grantees}`;
-}
-
-function errorLoggingLabel(contract: ErrorLoggingContract): string {
-  if (contract.durable_audit_model && contract.request_correlation) {
-    return `audit: ${contract.durable_audit_model} + request ids`;
-  }
-  if (contract.durable_audit_model) {
-    return `audit: ${contract.durable_audit_model}`;
-  }
-  return "error/logging contract declared";
-}
-
-function errorLoggingNotice(contract: ErrorLoggingContract): string {
-  const events = (contract.high_risk_events || []).slice(0, 4).join(", ") || "high-risk events";
-  return `User errors stay sanitized and correlated by request id. Durable audit events cover: ${events}.`;
-}
-
-function uxUiLabel(contract: UxUiContract): string {
-  const modes = (contract.theme_modes || []).join("/") || "theme";
-  const locales = (contract.locales || []).join("/") || "locales";
-  return `UX: ${modes}, ${locales}, runtime navigation`;
-}
-
-function uxUiNotice(contract: UxUiContract): string {
-  const permissionNavigation = contract.permission_navigation || "runtime navigation for available resources";
-  const localized = contract.localized_metadata || "backend-owned localized metadata";
-  return `UI uses backend metadata for navigation, fields, relation controls, destructive actions, and localized text. Permission navigation: ${permissionNavigation}. Localized metadata: ${localized}.`;
-}
-
-
-function testingContractLabel(contract: TestingContract): string {
-  const status = contract.status ? humanizeContractValue(contract.status) : "declared";
-  const docker = contract.docker_compose_file || "docker compose";
-  return `testing: ${status}, ${docker}`;
-}
-
-function testingContractNotice(contract: TestingContract): string {
-  const backend = (contract.backend_test_layers || []).slice(0, 4).map(humanizeContractValue).join(", ") || "backend regression tests";
-  const frontend = (contract.frontend_test_layers || []).slice(0, 3).map(humanizeContractValue).join(", ") || "frontend regression tests";
-  const smoke = contract.docker_smoke_command || "docker smoke test";
-  return `Testing contract: backend covers ${backend}; frontend covers ${frontend}. Docker smoke command: ${smoke}.`;
-}
-
-function validationContractLabel(contract: ValidationContract): string {
-  if (contract.backend_enforced && contract.frontend_advisory) {
-    return "validation: backend enforced, frontend advisory";
-  }
-  if (contract.backend_enforced) {
-    return "validation: backend enforced";
-  }
-  return "validation contract declared";
-}
-
-function validationContractNotice(contract: ValidationContract): string {
-  const sources = (contract.sources || []).slice(0, 4).join(", ") || "backend validation";
-  return `Validation is enforced by the backend. The frontend uses schema hints for early feedback only. Sources: ${sources}.`;
-}
-
-function payloadContractLabel(contract: RecordPayloadContract): string {
-  if (contract.nested_relations === false && contract.relation_values === "public_ids") {
-    return "payload: relation IDs, no nested rows";
-  }
-  if (contract.nested_relations === false) {
-    return "payload: no nested rows";
-  }
-  return "payload contract declared";
-}
 
 function renderFilterBuilder(view: ResourceViewState): HTMLElement {
   const fields = filterableFields(view.schema);
@@ -1867,7 +1607,7 @@ function renderRecordsTable(view: ResourceViewState): HTMLElement {
   const selectableRows = view.records
     .map((record) => recordIdentity(record))
     .filter((identity): identity is string => identity !== null);
-  const canBatchSelect = selectableRows.length > 0;
+  const canBatchSelect = canResourceAction(schema, "batch_delete") && selectableRows.length > 0;
   if (canBatchSelect) {
     const allSelected = selectableRows.every((id) => view.selectedIdentities.has(id));
     const selectAll = el("input", { type: "checkbox", checked: allSelected && selectableRows.length > 0 });
@@ -1941,9 +1681,9 @@ function renderRowActions(schema: ResourceSchema, record: ResourceRecord): HTMLE
   const actions = el("div", { class: "row-actions" });
   const urls = recordResourceUrls(record);
   const label = recordLabel(schema, record);
-  const canView = Boolean(urls.detail);
-  const canEdit = Boolean(urls.update && editableFields(schema, false).length > 0);
-  const canDelete = Boolean(urls.delete);
+  const canView = canResourceAction(schema, "retrieve") && Boolean(urls.detail);
+  const canEdit = canResourceAction(schema, "update") && Boolean(urls.update && editableFields(schema, false).length > 0);
+  const canDelete = canResourceAction(schema, "delete") && Boolean(urls.delete);
 
   const viewButton = el("button", { class: "button", type: "button", disabled: canView ? null : true }, [t("view")]);
   viewButton.addEventListener("click", () => {
@@ -2107,6 +1847,7 @@ async function loadResources(): Promise<void> {
   render();
   try {
     const response = await apiFetch<ResourcesResponse>(withSurface("/api/resources/"));
+    state.dbAdminAccessDenied = false;
     state.resources = [...response.resources].sort((left, right) =>
       resourceName(left, true).localeCompare(resourceName(right, true)),
     );
@@ -2115,8 +1856,11 @@ async function loadResources(): Promise<void> {
       state.resourceView = null;
     }
   } catch (error) {
+    state.dbAdminAccessDenied = error instanceof ApiRequestError && error.status === 403;
     state.error = error instanceof Error ? error.message : t("load_resources_failed");
-    notify("error", state.error);
+    if (!state.dbAdminAccessDenied) {
+      notify("error", state.error);
+    }
   } finally {
     state.loading = false;
     render();
@@ -2394,10 +2138,6 @@ function validationAttributes(field: ResourceField, readonly: boolean): Record<s
 }
 
 function validationTitle(field: ResourceField): string | undefined {
-  const message = field.validation?.messages?.pattern;
-  if (message) {
-    return message;
-  }
   return field.validation?.pattern ? `${t("expected_pattern")}: ${field.validation.pattern}` : undefined;
 }
 
@@ -2411,17 +2151,17 @@ function validationHintNodes(field: ResourceField, readonly: boolean): Node[] {
 
 function validationHints(field: ResourceField): string[] {
   const validation = field.validation ?? {};
-  const hints: string[] = [];
-  if ((validation.required ?? field.required) && !field.nullable) hints.push(t("required"));
-  if (validation.min_length !== undefined) hints.push(`min ${validation.min_length} chars`);
-  if (validation.max_length !== undefined) hints.push(`max ${validation.max_length} chars`);
-  if (validation.min_value !== undefined) hints.push(`min ${validation.min_value}`);
-  if (validation.max_value !== undefined) hints.push(`max ${validation.max_value}`);
-  if (validation.decimal_places !== undefined) hints.push(`${validation.decimal_places} decimals`);
-  if (validation.format === "email") hints.push(t("email_format"));
-  if (validation.format === "json") hints.push(t("valid_json"));
-  if (validation.pattern) hints.push(validation.messages?.pattern ?? t("must_match_pattern"));
-  return hints;
+  const hints = new Set<string>();
+  if ((validation.required ?? field.required) && !field.nullable) hints.add(t("required"));
+  if (validation.min_length !== undefined) hints.add(formatText("min_chars", { value: validation.min_length }));
+  if (validation.max_length !== undefined) hints.add(formatText("max_chars", { value: validation.max_length }));
+  if (validation.min_value !== undefined) hints.add(formatText("min_number", { value: validation.min_value }));
+  if (validation.max_value !== undefined) hints.add(formatText("max_number", { value: validation.max_value }));
+  if (validation.decimal_places !== undefined) hints.add(formatText("decimal_places", { value: validation.decimal_places }));
+  if (validation.format === "email") hints.add(t("email_format"));
+  if (validation.format === "json") hints.add(t("valid_json"));
+  if (validation.pattern) hints.add(t("must_match_pattern"));
+  return [...hints];
 }
 
 function controlForField(field: ResourceField): AdminControl {
@@ -2509,7 +2249,7 @@ function renderInputField(field: ResourceField, value: RecordValue, options: Rel
     labelChildren.push(el("span", { class: "required" }, [" *"]));
   }
   if (field.pii) {
-    labelChildren.push(el("span", { class: "pii" }, ["PII"]));
+    labelChildren.push(el("span", { class: "pii" }, [" PII"]));
   }
 
   const input = inputForField(field, value, options, readonly);
@@ -2517,7 +2257,6 @@ function renderInputField(field: ResourceField, value: RecordValue, options: Rel
     el("label", { for: field.key }, labelChildren),
     input,
     fieldHelpText(field) ? el("small", {}, [fieldHelpText(field) ?? ""]) : null,
-    field.visible_capability ? el("small", {}, [`Visible only with capability: ${field.visible_capability}`]) : null,
     ...validationHintNodes(field, readonly),
   ]);
 }
@@ -2620,7 +2359,7 @@ function relationTypeaheadControl(field: ResourceField, select: HTMLSelectElemen
     type: "search",
     placeholder: fieldUiText(field, "placeholder") ?? t("search_options"),
     "data-typeahead-for": field.key,
-    "aria-label": `Search ${fieldName(field)} options`,
+    "aria-label": formatText("search_field_options", { field: fieldName(field) }),
   });
   const wrapper = el("div", { class: "relation-typeahead" }, [search, select]);
   return wrapper;
@@ -2990,6 +2729,10 @@ function editableFields(schema: ResourceSchema, creating: boolean): ResourceFiel
   return schema.fields.filter((field) => field.editable && (creating || !field.readonly_on_update));
 }
 
+function canResourceAction(schema: ResourceSchema, action: ResourceAction): boolean {
+  return schema.actions?.[action] === true;
+}
+
 function recordIdentity(record: ResourceRecord): string | null {
   const identity = record.__identity;
   return typeof identity === "string" && identity.trim() ? identity : null;
@@ -3095,12 +2838,10 @@ async function boot(): Promise<void> {
     return;
   }
   render();
-  if (session.capabilities.includes(ACCESS_DB_ADMIN)) {
-    await loadResources();
-    const parsed = parseResourceHash();
-    if (parsed.resourceKey && state.resources.some((resource) => resource.key === parsed.resourceKey)) {
-      await selectResource(parsed.resourceKey, parsed.params, false);
-    }
+  await loadResources();
+  const parsed = parseResourceHash();
+  if (parsed.resourceKey && state.resources.some((resource) => resource.key === parsed.resourceKey)) {
+    await selectResource(parsed.resourceKey, parsed.params, false);
   }
   render();
 }

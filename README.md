@@ -7,7 +7,7 @@ It is intentionally small and generic:
 - no React, Next, MUI, or generated client dependency;
 - no compile-time table/model/resource list;
 - no compiled field labels, field types, enum values, relation labels, or CRUD URLs per resource;
-- no legacy dashboard routes or old capability vocabulary;
+- no legacy dashboard routes, current-user capability lists, or old capability vocabulary;
 - ordinary CRUD is discovered from the backend at runtime through `surface=db_admin`.
 
 ## Runtime contract
@@ -27,7 +27,7 @@ DELETE /api/resources/{resource_key}/records/{record_pk}/?surface=db_admin
 GET /api/resources/{resource_key}/options/{field_key}/?surface=db_admin
 ```
 
-The only capability name compiled into the frontend is `access_db_admin`, because this app is only the DB Admin shell.
+No capability name is compiled into the frontend. DB Admin access is inferred from backend resource-discovery responses and backend-provided action booleans.
 Resource/action/field truth still comes from backend metadata.
 
 ## Local commands

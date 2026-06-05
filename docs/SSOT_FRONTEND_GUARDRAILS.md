@@ -2,14 +2,28 @@
 
 ## Mandatory rules
 
-- The frontend must not compile a list of DB tables, models, resources, or fields.
+- The frontend must not compile a list of DB tables, models, resources, or
+  fields.
 - The frontend must not define ordinary CRUD schemas.
-- The frontend must not duplicate backend labels, localized labels/messages, required flags, nullability, enum values, relation option sources, list visibility, filterability, searchability, sortability, or PII flags.
+- The frontend must not duplicate backend resource labels, localized field
+  labels, localized option labels, required flags, nullability, enum values,
+  relation option sources, list visibility, filterability, searchability,
+  sortability, PII flags, validation metadata, or CRUD URLs.
+- The frontend must not request or display backend-only contract prose just to
+  mirror documentation. Public schema payload should contain runtime metadata the
+  frontend actually uses.
 - The frontend must not call legacy explicit endpoints for ordinary admin CRUD.
-- The frontend must not keep compatibility wrappers for removed backend endpoints.
-- The frontend must not introduce role/capability names except shell-level guards that are truly frontend-shell specific. This app compiles only `access_db_admin` because it is the entry gate for the DB Admin surface.
-- The frontend must not infer hidden fields or relation scopes. If the backend does not expose a field or option, the frontend must not reconstruct it.
-- Missing UX metadata should be recorded as a backend metadata need, not solved by model-specific frontend maps.
+- The frontend must not keep compatibility wrappers for removed backend
+  endpoints.
+- The frontend must not introduce role/capability names. It must not receive,
+  store, check, display, or branch on capability strings from login/session
+  payloads. Surface/action access is enforced by backend endpoint responses and
+  backend-provided boolean action metadata.
+- The frontend must not infer hidden fields, relation scopes, or database table
+  names. If the backend does not expose a field or option, the frontend must not
+  reconstruct it.
+- Missing UX metadata should be recorded as a backend metadata need, not solved
+  by model-specific frontend maps.
 
 ## Allowed frontend ownership
 
@@ -19,23 +33,26 @@ The frontend may own:
 - authentication token storage;
 - generic table mechanics;
 - generic form rendering mechanics;
-- loading, error, and empty states;
-- modal/dialog behavior;
-- local page/search/sort UI state;
-- visual density and responsive behavior.
+- localized chrome text for frontend-owned UI;
+- deduplicated localized wording for generic validation hints;
+- collapsible resource groups and independent menu/main scrolling;
+- loading, error, empty, modal/dialog, toast, and responsive behavior;
+- local page/search/sort/filter UI state;
+- visual density, light/dark theme, and language preference.
 
 ## Backend-owned truth
 
 The backend owns:
 
 - resources available to this user and surface;
-- field definitions;
-- labels and localized labels/messages;
+- field definitions and public field aliases;
+- resource/field/action/option labels and localized labels for backend-owned
+  data;
 - relation options and scopes;
-- enum options;
+- enum/static options;
 - row scope;
-- capability enforcement;
-- validation;
+- capability enforcement and the mapping from internal capabilities to public action booleans;
+- validation enforcement and machine-readable validation metadata;
 - write policies;
 - PII/visibility;
 - CRUD action effects;
@@ -43,9 +60,13 @@ The backend owns:
 
 ## Deletion rule
 
-If a frontend file starts reintroducing model-specific ordinary CRUD assumptions, delete it or move the needed information into backend metadata. Do not preserve it as a compatibility layer.
+If a frontend file starts reintroducing model-specific ordinary CRUD
+assumptions, delete it or move the needed information into backend metadata. Do
+not preserve it as a compatibility layer.
 
+## Testing gate
 
-## DB Admin testing contract
-
-Frontend static coverage is complete for the paired package reviewed on 2026-06-04: `npm run validate` and `npm run test:frontend-contracts` are covered by `npm test`. The paired backend target and tests are green locally. The authenticated Docker smoke is still a release gate that requires Docker plus `RETROBOLT_ADMIN_USERNAME` and `RETROBOLT_ADMIN_PASSWORD`, so the whole DB Admin target must not be marked complete until that smoke passes.
+Frontend static coverage is green for the reviewed package through `npm test`.
+Whole-product release completion still requires authenticated Docker/browser
+smoke with Docker plus `RETROBOLT_ADMIN_USERNAME` and
+`RETROBOLT_ADMIN_PASSWORD`.

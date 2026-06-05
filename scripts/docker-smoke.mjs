@@ -48,9 +48,8 @@ assert.ok(first.key, "discovered resource should have a key");
 const schema = await fetchJson(`${apiBase}/resources/${encodeURIComponent(first.key)}/?surface=db_admin`, { headers: authHeaders });
 assert.equal(schema.key, first.key, "schema key should match discovered resource key");
 assert.ok(schema.resource_urls?.list, "schema should publish backend-owned list URL");
-assert.ok(schema.testing_contract?.status === "complete", "schema should publish the complete testing contract");
-assert.ok(schema.authorization_contract, "schema should publish authorization contract");
-assert.ok(schema.migration_safety_contract, "schema should publish migration safety contract");
+assert.ok(schema.fields?.every((field) => field.i18n?.label?.en && field.i18n?.label?.es), "schema should publish bilingual field labels");
+assert.ok(schema.list_query_contract?.filters?.operators, "schema should publish frontend-used list query contract metadata");
 
 const listUrl = new URL(schema.resource_urls.list, apiBase.replace(/\/api\/?$/, ""));
 const list = await fetchJson(listUrl.toString(), { headers: authHeaders });
