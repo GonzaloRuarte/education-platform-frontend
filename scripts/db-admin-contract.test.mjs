@@ -15,10 +15,10 @@ function notContains(label, haystack, needle) {
   assert.ok(!haystack.includes(needle), `${label} should not include ${needle}`);
 }
 
-contains("frontend app", app, "schema.resource_urls?.[key]");
-contains("frontend app", app, 'requireResourceUrl(schema, "batch_delete")');
 contains("frontend app", app, "__identity");
-contains("frontend app", app, "list_query_contract");
+contains("frontend app", app, "resource.alias || resource.key");
+contains("frontend app", app, "encodeURIComponent(schema.key)");
+contains("frontend app", app, "recordDetailPath(schema, identity)");
 contains("frontend app", app, "sanitizeFilterModel(schema, parseFilterModel");
 contains("frontend app", app, "sanitizeSortState(schema, parseSortState");
 contains("frontend app", app, "relation?.option_control");
@@ -50,8 +50,16 @@ notContains("frontend app", app, "capabilities:");
 notContains("frontend app", app, "capabilities.includes");
 notContains("frontend app", app, "schema.business_actions");
 notContains("frontend app", app, "field.validation?.messages");
+notContains("frontend app", app, "schema.resource_urls");
+notContains("frontend app", app, "requireResourceUrl");
+notContains("frontend app", app, "__resource_urls");
+notContains("frontend app", app, "__label");
+notContains("frontend app", app, "display_label_field");
+notContains("frontend app", app, "list_query_contract");
+notContains("frontend app", app, "primary_key_fields");
 
-assert.ok(!app.includes("/api/resources/${schema.key}/records/${"), "frontend must not build record action URLs from primary keys");
+assert.ok(app.includes("/api/resources/${encodeURIComponent(schema.key)}/records/${encodeURIComponent(identity)}/?surface=${SURFACE}"), "frontend should build generic record URLs from resource alias and backend identity");
+assert.ok(!app.includes("/api/resources/${schema.key}/records/${"), "frontend must encode public aliases and identities");
 assert.ok(!app.includes("primary_key_fields[0]"), "frontend must not depend on a single primary key fallback");
 assert.ok(/data-theme/.test(css), "styles should include theme selectors");
 assert.ok(/@media \(max-width:/.test(css), "styles should include responsive rules");

@@ -25,8 +25,6 @@ type FieldI18n = {
 type ResourceI18n = {
   label?: LocalizedText;
   plural_label?: LocalizedText;
-  description?: LocalizedText;
-  admin_help_text?: LocalizedText;
 };
 type ActionI18n = {
   label?: LocalizedText;
@@ -109,7 +107,8 @@ type FieldUi = {
 
 type ResourceField = {
   key: string;
-  label: string;
+  alias?: string;
+  label?: string;
   type: FieldType;
   required: boolean;
   nullable: boolean;
@@ -127,6 +126,7 @@ type ResourceField = {
   i18n?: FieldI18n;
   option_source?: OptionSource;
   relation?: RelationDefinition;
+  filter?: { operators?: FilterOperatorDefinition[] };
 };
 
 type DestructiveAction = {
@@ -144,26 +144,12 @@ type ResourceNavigation = {
 
 type RelatedListDefinition = {
   key: string;
-  label: string;
+  label?: string;
   target_resource_key: string;
   target_field: string;
   source_field: string;
   operator: string;
   i18n?: { label?: LocalizedText };
-};
-
-type RecordResourceUrls = {
-  detail?: string;
-  update?: string;
-  delete?: string;
-};
-
-type ResourceUrls = {
-  schema?: string;
-  list?: string;
-  create?: string;
-  batch_delete?: string;
-  options_template?: string;
 };
 
 type Toast = {
@@ -204,45 +190,22 @@ type FilterControlReader = {
   reset: () => void;
 };
 
-type ListQueryContract = {
-  filters?: {
-    query_param?: string;
-    encoding?: string;
-    supported_operators?: string[];
-    operators?: FilterOperatorDefinition[];
-  };
-};
-
-type RecordIdentity = {
-  kind: "opaque" | "single_pk" | "composite" | string;
-  fields: string[];
-  metadata_field?: string;
-  transport?: string;
-  record_urls?: string;
-};
-
 type ResourceSchema = {
   key: string;
-  label: string;
-  plural_label: string;
-  primary_key_fields: string[];
+  alias?: string;
+  label?: string;
+  plural_label?: string;
   fields: ResourceField[];
   page_size: number;
-  description?: string;
-  admin_help_text?: string;
   destructive_actions?: Record<string, DestructiveAction>;
   actions?: ResourceActions;
-  resource_urls?: ResourceUrls;
   navigation?: ResourceNavigation;
-  record_identity?: RecordIdentity;
   i18n?: ResourceI18n;
-  display_label_field?: string | null;
   related_lists?: RelatedListDefinition[];
-  list_query_contract?: ListQueryContract;
 };
 
 type ResourcesResponse = {
-  resources: ResourceSchema[];
+  resources: Array<Partial<ResourceSchema> & { alias?: string; i18n?: ResourceI18n }>;
 };
 
 type PaginatedRecords = {
@@ -542,20 +505,12 @@ function resourceName(resource: ResourceSchema, plural = false): string {
   );
 }
 
-function resourceDescription(resource: ResourceSchema): string {
-  return localizedText(resource.description ?? "", resource.i18n?.description);
-}
-
-function resourceHelpText(resource: ResourceSchema): string {
-  return localizedText(resource.admin_help_text ?? "", resource.i18n?.admin_help_text);
-}
-
 function fieldName(field: ResourceField): string {
   return localizedText(field.label || field.key, field.i18n?.label);
 }
 
 function relatedListName(relatedList: RelatedListDefinition): string {
-  return localizedText(relatedList.label, relatedList.i18n?.label);
+  return localizedText(relatedList.label ?? "", relatedList.i18n?.label);
 }
 
 function fieldHelpText(field: ResourceField): string | undefined {
@@ -597,37 +552,24 @@ function apiUrl(path: string): string {
   return `${base}${path}`;
 }
 
-function requireResourceUrl(schema: ResourceSchema, key: keyof ResourceUrls): string {
-  const url = schema.resource_urls?.[key];
-  if (!url) {
-    throw new Error(`Backend schema for ${schema.key} did not provide resource_urls.${key}.`);
-  }
-  return url;
-}
-
 function resourceSchemaPath(resourceKey: string): string {
-  const schema = state.resources.find((resource) => resource.key === resourceKey);
-  if (!schema?.resource_urls?.schema) {
-    throw new Error(`Backend resource list did not provide resource_urls.schema for ${resourceKey}.`);
-  }
-  return schema.resource_urls.schema;
+  return `/api/resources/${encodeURIComponent(resourceKey)}/?surface=${SURFACE}`;
 }
 
 function resourceListPath(schema: ResourceSchema, params: Record<string, string> = {}): string {
-  return withQueryParams(requireResourceUrl(schema, "list"), params);
+  return withQueryParams(`/api/resources/${encodeURIComponent(schema.key)}/records/?surface=${SURFACE}`, params);
 }
 
 function resourceCreatePath(schema: ResourceSchema): string {
-  return requireResourceUrl(schema, "create");
+  return `/api/resources/${encodeURIComponent(schema.key)}/records/?surface=${SURFACE}`;
 }
 
 function resourceBatchDeletePath(schema: ResourceSchema): string {
-  return requireResourceUrl(schema, "batch_delete");
+  return `/api/resources/${encodeURIComponent(schema.key)}/records/?surface=${SURFACE}`;
 }
 
 function resourceOptionsPath(schema: ResourceSchema, fieldKey: string, params: Record<string, string> = {}): string {
-  const template = requireResourceUrl(schema, "options_template");
-  return withQueryParams(template.replace("{field_key}", encodeURIComponent(fieldKey)), params);
+  return withQueryParams(`/api/resources/${encodeURIComponent(schema.key)}/options/${encodeURIComponent(fieldKey)}/?surface=${SURFACE}`, params);
 }
 
 function parseResourceHash(): { resourceKey: string | null; params: URLSearchParams } {
@@ -847,8 +789,7 @@ function filterableFields(schema: ResourceSchema): ResourceField[] {
 }
 
 function operatorsForField(schema: ResourceSchema, field: ResourceField): FilterOperatorDefinition[] {
-  const operators = schema.list_query_contract?.filters?.operators ?? [];
-  return operators.filter((operator) => !operator.field_types || operator.field_types.includes(field.type));
+  return field.filter?.operators ?? [];
 }
 
 function operatorLabel(operator: FilterOperatorDefinition): string {
@@ -1317,20 +1258,7 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
     void reloadResourceView();
   });
 
-  const headerBits: Node[] = [
-    el("span", { class: "badge" }, [`key: ${schema.key}`]),
-    el("span", { class: "badge" }, [`pk: ${schema.primary_key_fields.join(", ")}`]),
-    el("span", { class: "badge" }, [`${schema.fields.length} fields`]),
-  ];
-  if (schema.record_identity?.kind === "opaque") {
-    headerBits.push(el("span", { class: "badge" }, ["opaque backend record identity"]));
-  }
-
   const notices: Node[] = [];
-  const resourceHelp = resourceHelpText(schema);
-  if (resourceHelp) {
-    notices.push(el("div", { class: "notice" }, [resourceHelp]));
-  }
   if (hasActiveFilters(view)) {
     const clearFilters = el("button", { class: "button", type: "button" }, [t("clear_filters")]);
     clearFilters.addEventListener("click", () => {
@@ -1358,10 +1286,6 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
     el("header", { class: "page-header" }, [
       el("div", {}, [
         el("h2", { class: "page-title" }, [resourceName(schema, true)]),
-        el("p", { class: "page-subtitle" }, [
-          resourceDescription(schema) || "",
-        ]),
-        el("div", { class: "meta-line" }, headerBits),
       ]),
       el("div", { class: "toolbar" }, [createButton, batchDeleteButton, refreshButton]),
     ]),
@@ -1679,30 +1603,30 @@ function renderRecordsTable(view: ResourceViewState): HTMLElement {
 
 function renderRowActions(schema: ResourceSchema, record: ResourceRecord): HTMLElement {
   const actions = el("div", { class: "row-actions" });
-  const urls = recordResourceUrls(record);
+  const identity = recordIdentity(record);
   const label = recordLabel(schema, record);
-  const canView = canResourceAction(schema, "retrieve") && Boolean(urls.detail);
-  const canEdit = canResourceAction(schema, "update") && Boolean(urls.update && editableFields(schema, false).length > 0);
-  const canDelete = canResourceAction(schema, "delete") && Boolean(urls.delete);
+  const canView = canResourceAction(schema, "retrieve") && Boolean(identity);
+  const canEdit = canResourceAction(schema, "update") && Boolean(identity && editableFields(schema, false).length > 0);
+  const canDelete = canResourceAction(schema, "delete") && Boolean(identity);
 
   const viewButton = el("button", { class: "button", type: "button", disabled: canView ? null : true }, [t("view")]);
   viewButton.addEventListener("click", () => {
     if (canView) {
-      openRecordForm(schema, "view", urls, label);
+      openRecordForm(schema, "view", identity ?? "", label);
     }
   });
 
   const editButton = el("button", { class: "button", type: "button", disabled: canEdit ? null : true }, [t("edit")]);
   editButton.addEventListener("click", () => {
     if (canEdit) {
-      openRecordForm(schema, "edit", urls, label);
+      openRecordForm(schema, "edit", identity ?? "", label);
     }
   });
 
   const deleteButton = el("button", { class: "button danger", type: "button", disabled: canDelete ? null : true }, [t("delete")]);
   deleteButton.addEventListener("click", () => {
     if (canDelete) {
-      void deleteRecord(schema, urls, label);
+      void deleteRecord(schema, identity ?? "", label);
     }
   });
 
@@ -1751,31 +1675,16 @@ function isScalarRecordValue(value: RecordValue): value is JsonPrimitive {
   return value === null || ["string", "number", "boolean"].includes(typeof value);
 }
 
-function recordResourceUrls(record: ResourceRecord): RecordResourceUrls {
-  const raw = record.__resource_urls;
-  if (!raw || Array.isArray(raw) || typeof raw !== "object") {
-    return {};
-  }
-  const urls: RecordResourceUrls = {};
-  if (typeof raw.detail === "string") urls.detail = raw.detail;
-  if (typeof raw.update === "string") urls.update = raw.update;
-  if (typeof raw.delete === "string") urls.delete = raw.delete;
-  return urls;
+function recordDetailPath(schema: ResourceSchema, identity: string): string {
+  return `/api/resources/${encodeURIComponent(schema.key)}/records/${encodeURIComponent(identity)}/?surface=${SURFACE}`;
 }
 
-function recordDetailPath(urls: RecordResourceUrls = {}): string {
-  if (!urls.detail) throw new Error("Missing backend record detail URL.");
-  return urls.detail;
+function recordUpdatePath(schema: ResourceSchema, identity: string): string {
+  return recordDetailPath(schema, identity);
 }
 
-function recordUpdatePath(urls: RecordResourceUrls = {}): string {
-  if (!urls.update) throw new Error("Missing backend record update URL.");
-  return urls.update;
-}
-
-function recordDeletePath(urls: RecordResourceUrls = {}): string {
-  if (!urls.delete) throw new Error("Missing backend record delete URL.");
-  return urls.delete;
+function recordDeletePath(schema: ResourceSchema, identity: string): string {
+  return recordDetailPath(schema, identity);
 }
 
 function renderCell(field: ResourceField, value: RecordValue, optionMap?: Map<string, string>): Node {
@@ -1848,7 +1757,12 @@ async function loadResources(): Promise<void> {
   try {
     const response = await apiFetch<ResourcesResponse>(withSurface("/api/resources/"));
     state.dbAdminAccessDenied = false;
-    state.resources = [...response.resources].sort((left, right) =>
+    state.resources = response.resources.map((resource) => ({
+      ...resource,
+      key: String(resource.alias || resource.key || ""),
+      fields: resource.fields ?? [],
+      page_size: resource.page_size ?? DEFAULT_PAGE_SIZE,
+    })).filter((resource) => resource.key).sort((left, right) =>
       resourceName(left, true).localeCompare(resourceName(right, true)),
     );
     if (state.selectedResourceKey && !state.resources.some((resource) => resource.key === state.selectedResourceKey)) {
@@ -1984,7 +1898,7 @@ async function loadOptionMap(view: ResourceViewState, field: ResourceField): Pro
 function openRecordForm(
   schema: ResourceSchema,
   mode: "create" | "view" | "edit",
-  urls: RecordResourceUrls = {},
+  identity = "",
   previewLabel = "",
 ): void {
   const modal = el("div", { class: "modal-backdrop" });
@@ -2000,7 +1914,7 @@ function openRecordForm(
   ]);
   modal.append(modalPanel);
   document.body.append(modal);
-  void populateRecordForm(modal, body, schema, mode, urls);
+  void populateRecordForm(modal, body, schema, mode, identity);
 }
 
 async function populateRecordForm(
@@ -2008,14 +1922,14 @@ async function populateRecordForm(
   body: HTMLElement,
   schema: ResourceSchema,
   mode: "create" | "view" | "edit",
-  urls: RecordResourceUrls = {},
+  identity = "",
 ): Promise<void> {
   try {
-    const record = mode === "create" ? {} : await apiFetch<ResourceRecord>(recordDetailPath(urls));
+    const record = mode === "create" ? {} : await apiFetch<ResourceRecord>(recordDetailPath(schema, identity));
     const fields = mode === "view" ? detailFields(schema) : editableFields(schema, mode === "create");
     const optionMaps = await loadFormOptions(schema, record, fields);
     clear(body);
-    body.append(renderRecordForm(modal, schema, mode, record, optionMaps, urls));
+    body.append(renderRecordForm(modal, schema, mode, record, optionMaps, identity));
   } catch (error) {
     clear(body);
     body.append(el("div", { class: "error" }, [error instanceof Error ? error.message : t("load_form_failed")]));
@@ -2190,7 +2104,7 @@ function renderRecordForm(
   mode: "create" | "view" | "edit",
   record: ResourceRecord,
   optionsByField: Record<string, RelationOption[]>,
-  urls: RecordResourceUrls = {},
+  identity = "",
 ): HTMLElement {
   const readonly = mode === "view";
   const form = el("form", { class: "stack" });
@@ -2218,7 +2132,7 @@ function renderRecordForm(
     footer.append(submit);
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      void submitRecordForm(form, submit, errorBox, modal, schema, mode, fields, urls);
+      void submitRecordForm(form, submit, errorBox, modal, schema, mode, fields, identity);
     });
   }
 
@@ -2515,7 +2429,7 @@ async function submitRecordForm(
   schema: ResourceSchema,
   mode: "create" | "edit",
   fields: ResourceField[],
-  urls: RecordResourceUrls = {},
+  identity = "",
 ): Promise<void> {
   submit.disabled = true;
   submit.textContent = mode === "create" ? t("creating") : t("saving");
@@ -2539,7 +2453,7 @@ async function submitRecordForm(
       state.message = null;
       notify("success", `${resourceName(schema)} ${t("created")}.`);
     } else {
-      await apiFetch<ResourceRecord>(recordUpdatePath(urls), {
+      await apiFetch<ResourceRecord>(recordUpdatePath(schema, identity), {
         method: "PATCH",
         body: JSON.stringify(payload),
       });
@@ -2674,7 +2588,7 @@ async function batchDeleteRecords(view: ResourceViewState): Promise<void> {
   }
 }
 
-async function deleteRecord(schema: ResourceSchema, urls: RecordResourceUrls = {}, label = ""): Promise<void> {
+async function deleteRecord(schema: ResourceSchema, identity = "", label = ""): Promise<void> {
   const action = schema.destructive_actions?.delete;
   const schemaName = resourceName(schema);
   const fallbackMessage = label ? `${t("delete_this")} ${schemaName}: ${label}?` : `${t("delete_this")} ${schemaName}?`;
@@ -2683,7 +2597,7 @@ async function deleteRecord(schema: ResourceSchema, urls: RecordResourceUrls = {
     return;
   }
   try {
-    await apiFetch<void>(recordDeletePath(urls), { method: "DELETE" });
+    await apiFetch<void>(recordDeletePath(schema, identity), { method: "DELETE" });
     state.message = null;
     notify("success", label ? `${schemaName} ${label} deleted.` : `${schemaName} deleted.`);
     await reloadResourceView();
@@ -2717,8 +2631,7 @@ function filteredResources(): ResourceSchema[] {
 }
 
 function listFields(schema: ResourceSchema): ResourceField[] {
-  const pk = new Set(schema.primary_key_fields);
-  return schema.fields.filter((field) => !field.write_only && (field.visible_in_list || pk.has(field.key)));
+  return schema.fields.filter((field) => !field.write_only && field.visible_in_list);
 }
 
 function detailFields(schema: ResourceSchema): ResourceField[] {
@@ -2744,13 +2657,8 @@ function schemaHasDependentRelations(schema: ResourceSchema): boolean {
 
 
 function recordLabel(schema: ResourceSchema, record: ResourceRecord): string {
-  const backendLabel = record.__label;
-  if (typeof backendLabel === "string" && backendLabel.trim()) {
-    return backendLabel;
-  }
-  const displayField = schema.display_label_field;
-  if (displayField) {
-    const value = record[displayField];
+  for (const field of listFields(schema)) {
+    const value = record[field.key];
     if (isScalarRecordValue(value) && value !== null && String(value).trim()) {
       return String(value);
     }
@@ -2847,4 +2755,3 @@ async function boot(): Promise<void> {
 }
 
 void boot();
-
