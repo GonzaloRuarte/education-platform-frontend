@@ -540,6 +540,7 @@ function localizedText(fallback: string, text?: LocalizedText): string {
 
 const UI_TEXT: Record<string, Record<Locale, string>> = {
   login_title: { es: "Administración de Base de Datos", en: "Database Administration" },
+  welcome_message: {es: "Bienvenido a la interfaz de administración de base de datos.", en: "Welcome to the database administration interface." },
   username: { es: "Usuario", en: "Username" },
   password: { es: "Contraseña", en: "Password" },
   sign_in: { es: "Ingresar", en: "Sign in" },
@@ -554,10 +555,11 @@ const UI_TEXT: Record<string, Record<Locale, string>> = {
   filter_resources: { es: "Filtrar recursos...", en: "Filter resources..." },
   resources: { es: "Recursos", en: "Resources" },
   no_resources_match: { es: "No hay recursos que coincidan.", en: "No resources match." },
+  create_resource: { es: "Crear", en: "Create" },
+  
   refresh_resources: { es: "Actualizar recursos", en: "Refresh resources" },
   sign_out: { es: "Salir", en: "Sign out" },
   admin_title: { es: "Retrobolt Admin", en: "Retrobolt Admin" },
-  admin_subtitle: { es: "Superficie DB Admin en tiempo de ejecución", en: "Runtime DB Admin surface" },
   capabilities_loaded: { es: "capacidades cargadas", en: "capabilities loaded" },
   db_admin_required: { es: "Se requiere acceso DB Admin", en: "DB Admin access required" },
   db_admin_required_message: {
@@ -570,8 +572,74 @@ const UI_TEXT: Record<string, Record<Locale, string>> = {
   empty_resources_title: { es: "No se devolvieron recursos DB Admin", en: "No DB Admin resources returned" },
   empty_resources_message: {
     es: "El backend devolvió una lista vacía para surface=db_admin. Confirmá que el usuario tenga access_db_admin y que los recursos ResourceMeta estén expuestos.",
-    en: t("empty_resources_message"),
+    en: "The backend returned an empty resource list for surface=db_admin. Confirm the user has access_db_admin and that ResourceMeta resources are exposed.",
   },
+  refresh_resource: { es: "Actualizar", en: "Refresh" },
+  delete_selected: { es: "Eliminar seleccionados", en: "Delete selected" },
+  quick_search: { es: "Búsqueda rápida", en: "Quick search" },
+  rows: { es: "Filas", en: "Rows" },
+  loading_records: { es: "Cargando registros...", en: "Loading records..." },
+  clear_filters: { es: "Limpiar filtros", en: "Clear filters" },
+  filtered_notice: { es: "Esta lista está filtrada con metadatos de filtros definidos por el backend.", en: t("filtered_notice") },
+  dependent_relation_notice: { es: "Este esquema declara selectores dependientes. El formulario carga opciones hijas con filtros definidos por el backend cuando cambian los valores padre.", en: t("dependent_relation_notice") },
+  contract_details: { es: "Detalles del contrato", en: "Contract details" },
+  no_filterable_fields: { es: "No hay campos filtrables definidos por el backend para este recurso.", en: "No backend-declared filterable fields for this resource." },
+  no_column_filters: { es: "No hay filtros de columna.", en: "No column filters." },
+  remove_filter: { es: "Quitar filtro", en: "Remove filter" },
+  filter_link_operator: { es: "Operador entre filtros", en: "Filter link operator" },
+  add_filter: { es: "Agregar filtro", en: "Add filter" },
+  column_filters: { es: "Filtros de columna", en: "Column filters" },
+  filter_builder_help: { es: "Solo campos, operadores y controles declarados por el backend", en: "Backend-declared fields, operators, and value controls only" },
+  no_value: { es: "Sin valor", en: "No value" },
+  select_value: { es: "Seleccionar valor...", en: "Select value..." },
+  comma_values: { es: "Valores separados por coma", en: "Comma-separated values" },
+  value: { es: "Valor", en: "Value" },
+  true: { es: "Verdadero", en: "True" },
+  false: { es: "Falso", en: "False" },
+  no_records_returned: { es: "No se devolvieron registros.", en: "No records returned." },
+  actions: { es: "Acciones", en: "Actions" },
+  view: { es: "Ver", en: "View" },
+  edit: { es: "Editar", en: "Edit" },
+  delete: { es: "Eliminar", en: "Delete" },
+  previous: { es: "Anterior", en: "Previous" },
+  next: { es: "Siguiente", en: "Next" },
+  page: { es: "Página", en: "Page" },
+  records: { es: "registros", en: "records" },
+  loading_form: { es: "Cargando formulario...", en: "Loading form..." },
+  close: { es: "Cerrar", en: "Close" },
+  cancel: { es: "Cancelar", en: "Cancel" },
+  save: { es: "Guardar", en: "Save" },
+  creating: { es: "Creando...", en: "Creating..." },
+  saving: { es: "Guardando...", en: "Saving..." },
+  created: { es: "creado", en: "created" },
+  updated: { es: "actualizado", en: "updated" },
+  deleted: { es: "eliminado", en: "deleted" },
+  selected_deleted: { es: "seleccionados eliminados", en: "selected deleted" },
+  save_failed: { es: "No se pudo guardar.", en: t("save_failed") },
+  delete_failed: { es: "No se pudo eliminar.", en: t("delete_failed") },
+  batch_delete_failed: { es: "No se pudo eliminar la selección.", en: t("batch_delete_failed") },
+  load_resources_failed: { es: "No se pudieron cargar los recursos.", en: t("load_resources_failed") },
+  load_resource_failed: { es: "No se pudo cargar el recurso.", en: t("load_resource_failed") },
+  load_records_failed: { es: "No se pudieron cargar los registros.", en: t("load_records_failed") },
+  load_form_failed: { es: "No se pudo cargar el formulario.", en: t("load_form_failed") },
+  fix_highlighted_fields: { es: "Corregí los campos marcados antes de guardar.", en: t("fix_highlighted_fields") },
+  valid_json_required: { es: "debe ser JSON válido.", en: "must be valid JSON." },
+  required: { es: "Requerido", en: "Required" },
+  email_format: { es: "formato email", en: "email format" },
+  valid_json: { es: "JSON válido", en: "valid JSON" },
+  must_match_pattern: { es: "debe coincidir con el patrón", en: "must match pattern" },
+  expected_pattern: { es: "Patrón esperado", en: "Expected pattern" },
+  search_options: { es: "Buscar opciones...", en: "Search options..." },
+  select_dependencies_first: { es: "Seleccioná primero las dependencias", en: t("select_dependencies_first") },
+  no_options_match: { es: "No hay opciones que coincidan", en: t("no_options_match") },
+  yes: { es: "Sí", en: "Yes" },
+  no: { es: "No", en: "No" },
+  sort_by_field: { es: "Ordenar por este campo", en: "Sort by this field" },
+  sorting_not_declared: { es: "Ordenamiento no declarado para este campo", en: "Sorting not declared for this field" },
+  details: { es: "detalle", en: "details" },
+  open_related: { es: "Abrir", en: "Open" },
+  related_unavailable: { es: "El recurso relacionado no está disponible.", en: "Related resource is not available." },
+  delete_this: { es: "Eliminar", en: "Delete this" },
 };
 
 function t(key: string): string {
@@ -1229,7 +1297,6 @@ function renderSidebar(session: AuthSession): HTMLElement {
   return el("aside", { class: "sidebar" }, [
     el("div", {}, [
       el("h1", { class: "sidebar__title" }, [t("admin_title")]),
-      el("p", { class: "sidebar__subtitle" }, [t("admin_subtitle")]),
     ]),
     el("div", { class: "user-card" }, [
       el("strong", {}, [displayUser(session.user)]),
@@ -1295,31 +1362,21 @@ function renderEmptyPage(): HTMLElement {
 }
 
 function renderWelcomePage(): HTMLElement {
-  const first = state.resources[0];
-  const openFirst = el("button", { class: "button primary", type: "button", disabled: first ? null : true }, ["Open first resource"]);
-  openFirst.addEventListener("click", () => {
-    if (first) {
-      void selectResource(first.key);
-    }
-  });
+
   return el("section", { class: "card" }, [
     el("div", { class: "card__body stack" }, [
-      el("h2", {}, ["DB Admin ready"]),
-      el("p", { class: "page-subtitle" }, [
-        `Discovered ${state.resources.length} resources at runtime. Select one from the sidebar to list, create, update, or delete records through the generic backend contract.`,
-      ]),
-      el("div", {}, [openFirst]),
+      el("h2", {}, [t("welcome_message")]),
     ]),
   ]);
 }
 
 function renderResourcePage(view: ResourceViewState): HTMLElement {
   const schema = view.schema;
-  const createButton = el("button", { class: "button primary", type: "button" }, ["Create"]);
+  const createButton = el("button", { class: "button primary", type: "button" }, [t("create_resource")]);
   createButton.disabled = !hasCapability(ACCESS_DB_ADMIN) || editableFields(schema, true).length === 0;
   createButton.addEventListener("click", () => openRecordForm(schema, "create"));
 
-  const refreshButton = el("button", { class: "button", type: "button" }, ["Refresh"]);
+  const refreshButton = el("button", { class: "button", type: "button" }, [t("refresh_resource")]);
   refreshButton.addEventListener("click", () => {
     void reloadResourceView();
   });
@@ -1329,7 +1386,7 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
     class: "button danger",
     type: "button",
     disabled: view.selectedIdentities.size > 0 ? null : true,
-  }, [actionLabel(batchAction, `Delete selected (${view.selectedIdentities.size})`)]);
+  }, [actionLabel(batchAction, `${t("delete_selected")} (${view.selectedIdentities.size})`)]);
   batchDeleteButton.addEventListener("click", () => {
     if (view.selectedIdentities.size > 0) {
       void batchDeleteRecords(view);
@@ -1338,7 +1395,7 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
 
   const quickSearch = el("input", {
     class: "input search",
-    placeholder: "Quick search",
+    placeholder: t("quick_search"),
     value: view.quickSearch,
   });
   quickSearch.addEventListener("change", () => {
@@ -1366,30 +1423,6 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
   if (schema.record_identity?.kind === "opaque") {
     headerBits.push(el("span", { class: "badge" }, ["opaque backend record identity"]));
   }
-  if (schema.model_ssot_contract) {
-    headerBits.push(el("span", { class: "badge" }, [modelSsotLabel(schema.model_ssot_contract)]));
-  }
-  if (schema.record_payload_contract) {
-    headerBits.push(el("span", { class: "badge" }, [payloadContractLabel(schema.record_payload_contract)]));
-  }
-  if (schema.validation_contract) {
-    headerBits.push(el("span", { class: "badge" }, [validationContractLabel(schema.validation_contract)]));
-  }
-  if (schema.authorization_contract || schema.authorization_matrix) {
-    headerBits.push(el("span", { class: "badge" }, [authorizationLabel(schema.authorization_contract, schema.authorization_matrix)]));
-  }
-  if (schema.error_logging_contract) {
-    headerBits.push(el("span", { class: "badge" }, [errorLoggingLabel(schema.error_logging_contract)]));
-  }
-  if (schema.ux_ui_contract) {
-    headerBits.push(el("span", { class: "badge" }, [uxUiLabel(schema.ux_ui_contract)]));
-  }
-  if (schema.migration_safety_contract) {
-    headerBits.push(el("span", { class: "badge" }, [migrationSafetyLabel(schema.migration_safety_contract)]));
-  }
-  if (schema.testing_contract) {
-    headerBits.push(el("span", { class: "badge" }, [testingContractLabel(schema.testing_contract)]));
-  }
 
   const notices: Node[] = [];
   const resourceHelp = resourceHelpText(schema);
@@ -1397,7 +1430,7 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
     notices.push(el("div", { class: "notice" }, [resourceHelp]));
   }
   if (hasActiveFilters(view)) {
-    const clearFilters = el("button", { class: "button", type: "button" }, ["Clear filters"]);
+    const clearFilters = el("button", { class: "button", type: "button" }, [t("clear_filters")]);
     clearFilters.addEventListener("click", () => {
       view.filterModel = defaultFilterModel();
       view.quickSearch = "";
@@ -1405,34 +1438,13 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
       void reloadResourceView();
     });
     notices.push(el("div", { class: "notice" }, [
-      "This list is filtered through backend-declared grid filter metadata.",
+      t("filtered_notice"),
       clearFilters,
     ]));
   }
-  if (schema.model_ssot_contract) {
-    notices.push(el("div", { class: "notice" }, [modelSsotNotice(schema.model_ssot_contract)]));
-  }
-  if (schema.validation_contract) {
-    notices.push(el("div", { class: "notice" }, [validationContractNotice(schema.validation_contract)]));
-  }
-  if (schema.error_logging_contract) {
-    notices.push(el("div", { class: "notice" }, [errorLoggingNotice(schema.error_logging_contract)]));
-  }
-  if (schema.authorization_contract || schema.authorization_matrix) {
-    notices.push(el("div", { class: "notice" }, [authorizationNotice(schema.authorization_contract, schema.authorization_matrix)]));
-  }
-  if (schema.ux_ui_contract) {
-    notices.push(el("div", { class: "notice" }, [uxUiNotice(schema.ux_ui_contract)]));
-  }
-  if (schema.migration_safety_contract) {
-    notices.push(el("div", { class: "notice" }, [migrationSafetyNotice(schema.migration_safety_contract)]));
-  }
-  if (schema.testing_contract) {
-    notices.push(el("div", { class: "notice" }, [testingContractNotice(schema.testing_contract)]));
-  }
   if (schemaHasDependentRelations(schema)) {
     notices.push(el("div", { class: "notice" }, [
-      "This schema declares dependent relation selectors. The form loads child options with backend-declared grid filters as parent values change.",
+      t("dependent_relation_notice"),
     ]));
   }
   // Success messages are rendered as toasts so repeated CRUD work does not shift table layout.
@@ -1445,25 +1457,67 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
       el("div", {}, [
         el("h2", { class: "page-title" }, [resourceName(schema, true)]),
         el("p", { class: "page-subtitle" }, [
-          resourceDescription(schema) || "Runtime schema-driven DB Admin resource. The frontend does not compile table, model, or field definitions.",
+          resourceDescription(schema) || "",
         ]),
         el("div", { class: "meta-line" }, headerBits),
       ]),
       el("div", { class: "toolbar" }, [createButton, batchDeleteButton, refreshButton]),
     ]),
+    renderContractDetails(schema),
     ...notices,
     el("div", { class: "toolbar" }, [
       quickSearch,
       el("span", { class: "toolbar__spacer" }),
-      el("label", { class: "meta-line" }, ["Rows", pageSize]),
+      el("label", { class: "meta-line" }, [t("rows"), pageSize]),
     ]),
     renderFilterBuilder(view),
-    view.loading ? renderLoadingPage("Loading records...") : renderRecordsTable(view),
+    view.loading ? renderLoadingPage(t("loading_records")) : renderRecordsTable(view),
     renderPagination(view),
   ]);
 }
 
 
+function renderContractDetails(schema: ResourceSchema): HTMLElement | null {
+  const items: HTMLElement[] = [];
+  if (schema.model_ssot_contract) {
+    items.push(contractDetail(modelSsotLabel(schema.model_ssot_contract), modelSsotNotice(schema.model_ssot_contract)));
+  }
+  if (schema.record_payload_contract) {
+    items.push(contractDetail(payloadContractLabel(schema.record_payload_contract), "Ordinary list rows do not expand nested relation graphs."));
+  }
+  if (schema.validation_contract) {
+    items.push(contractDetail(validationContractLabel(schema.validation_contract), validationContractNotice(schema.validation_contract)));
+  }
+  if (schema.authorization_contract || schema.authorization_matrix) {
+    items.push(contractDetail(authorizationLabel(schema.authorization_contract, schema.authorization_matrix), authorizationNotice(schema.authorization_contract, schema.authorization_matrix)));
+  }
+  if (schema.error_logging_contract) {
+    items.push(contractDetail(errorLoggingLabel(schema.error_logging_contract), errorLoggingNotice(schema.error_logging_contract)));
+  }
+  if (schema.ux_ui_contract) {
+    items.push(contractDetail(uxUiLabel(schema.ux_ui_contract), uxUiNotice(schema.ux_ui_contract)));
+  }
+  if (schema.migration_safety_contract) {
+    items.push(contractDetail(migrationSafetyLabel(schema.migration_safety_contract), migrationSafetyNotice(schema.migration_safety_contract)));
+  }
+  if (schema.testing_contract) {
+    items.push(contractDetail(testingContractLabel(schema.testing_contract), testingContractNotice(schema.testing_contract)));
+  }
+  if (items.length === 0) {
+    return null;
+  }
+  return el("details", { class: "contract-details" }, [
+    el("summary", {}, [t("contract_details")]),
+    el("div", { class: "contract-details__body" }, items),
+  ]);
+}
+
+function contractDetail(label: string, body: string): HTMLElement {
+  return el("div", { class: "contract-detail" }, [
+    el("strong", {}, [label]),
+    el("span", {}, [body]),
+  ]);
+}
 function modelSsotLabel(contract: ModelSsotContract): string {
   const schema = contract.schema_source || "model schema";
   const serializer = contract.serializer_source || "serializers";
@@ -1589,18 +1643,18 @@ function payloadContractLabel(contract: RecordPayloadContract): string {
 function renderFilterBuilder(view: ResourceViewState): HTMLElement {
   const fields = filterableFields(view.schema);
   if (fields.length === 0) {
-    return el("div", { class: "filter-builder empty" }, ["No backend-declared filterable fields for this resource."]);
+    return el("div", { class: "filter-builder empty" }, [t("no_filterable_fields")]);
   }
 
   const existing = el("div", { class: "filter-list" });
   const itemFilters = view.filterModel.items;
   if (itemFilters.length === 0) {
-    existing.append(el("span", { class: "cell-muted" }, ["No column filters."]));
+    existing.append(el("span", { class: "cell-muted" }, [t("no_column_filters")]));
   } else {
     itemFilters.forEach((item, index) => {
       const field = fields.find((candidate) => candidate.key === item.field);
       const operator = field ? operatorsForField(view.schema, field).find((candidate) => candidate.key === item.operator) : undefined;
-      const remove = el("button", { class: "button flat", type: "button", title: "Remove filter" }, ["×"]);
+      const remove = el("button", { class: "button flat", type: "button", title: t("remove_filter") }, ["×"]);
       remove.addEventListener("click", () => {
         view.filterModel.items.splice(index, 1);
         view.page = 1;
@@ -1618,7 +1672,7 @@ function renderFilterBuilder(view: ResourceViewState): HTMLElement {
 
   const [firstField] = fields;
   if (!firstField) {
-    return el("div", { class: "filter-builder empty" }, ["No backend-declared filterable fields for this resource."]);
+    return el("div", { class: "filter-builder empty" }, [t("no_filterable_fields")]);
   }
   const fieldSelect = el("select", { class: "select" });
   for (const field of fields) {
@@ -1627,7 +1681,7 @@ function renderFilterBuilder(view: ResourceViewState): HTMLElement {
   const operatorSelect = el("select", { class: "select" });
   const valueControlSlot = el("span", { class: "filter-value-control" });
   let valueControl: FilterControlReader = emptyFilterControl();
-  const linkSelect = el("select", { class: "select small", "aria-label": "Filter link operator" }, [
+  const linkSelect = el("select", { class: "select small", "aria-label": t("filter_link_operator") }, [
     el("option", { value: "and", selected: view.filterModel.linkOperator !== "or" }, ["AND"]),
     el("option", { value: "or", selected: view.filterModel.linkOperator === "or" }, ["OR"]),
   ]);
@@ -1658,7 +1712,7 @@ function renderFilterBuilder(view: ResourceViewState): HTMLElement {
   operatorSelect.addEventListener("change", refreshValueControl);
   refreshOperators();
 
-  const add = el("button", { class: "button", type: "button" }, ["Add filter"]);
+  const add = el("button", { class: "button", type: "button" }, [t("add_filter")]);
   add.addEventListener("click", () => {
     const field = selectedField();
     const operator = selectedOperator();
@@ -1682,8 +1736,8 @@ function renderFilterBuilder(view: ResourceViewState): HTMLElement {
 
   return el("section", { class: "filter-builder" }, [
     el("div", { class: "filter-builder__header" }, [
-      el("strong", {}, ["Column filters"]),
-      el("span", { class: "cell-muted" }, ["Backend-declared fields, operators, and value controls only"]),
+      el("strong", {}, [t("column_filters")]),
+      el("span", { class: "cell-muted" }, [t("filter_builder_help")]),
     ]),
     existing,
     el("div", { class: "filter-builder__controls" }, [fieldSelect, operatorSelect, valueControlSlot, linkSelect, add]),
@@ -1692,7 +1746,7 @@ function renderFilterBuilder(view: ResourceViewState): HTMLElement {
 
 function emptyFilterControl(): FilterControlReader {
   return {
-    element: el("span", { class: "cell-muted" }, ["No value"]),
+    element: el("span", { class: "cell-muted" }, [t("no_value")]),
     readValue: () => undefined,
     reset: () => undefined,
   };
@@ -1712,7 +1766,7 @@ function renderFilterValueControl(
   if (options.length > 0) {
     const select = el("select", { class: "select", multiple: multiple || null }) as HTMLSelectElement;
     if (!multiple) {
-      select.append(el("option", { value: "" }, ["Select value..."]));
+      select.append(el("option", { value: "" }, [t("select_value")]));
     }
     for (const option of options) {
       select.append(el("option", { value: option.value }, [option.label]));
@@ -1733,7 +1787,7 @@ function renderFilterValueControl(
   const input = el("input", {
     class: "input",
     type: filterInputType(field),
-    placeholder: multiple ? "Comma-separated values" : "Value",
+    placeholder: multiple ? t("comma_values") : t("value"),
   }) as HTMLInputElement;
   return {
     element: input,
@@ -1745,8 +1799,8 @@ function renderFilterValueControl(
 function filterOptionsForField(view: ResourceViewState, field: ResourceField): RelationOption[] {
   if (field.type === "boolean") {
     return [
-      { value: "true", label: "True" },
-      { value: "false", label: "False" },
+      { value: "true", label: t("true") },
+      { value: "false", label: t("false") },
     ];
   }
   if (field.option_source?.kind === "static") {
@@ -1805,7 +1859,7 @@ function renderRecordsTable(view: ResourceViewState): HTMLElement {
   const schema = view.schema;
   const columns = listFields(schema);
   if (view.records.length === 0) {
-    return el("div", { class: "card" }, [el("div", { class: "empty" }, ["No records returned."])]);
+    return el("div", { class: "card" }, [el("div", { class: "empty" }, [t("no_records_returned")])]);
   }
 
   const table = el("table");
@@ -1831,7 +1885,7 @@ function renderRecordsTable(view: ResourceViewState): HTMLElement {
     const th = el("th");
     const label = el("button", { class: "button flat", type: "button" }, [fieldName(field), field.pii ? " ⚠" : ""]);
     label.disabled = !field.sortable;
-    label.title = field.sortable ? "Sort by this field" : "Sorting not declared for this field";
+    label.title = field.sortable ? t("sort_by_field") : t("sorting_not_declared");
     label.addEventListener("click", () => {
       if (!field.sortable) {
         return;
@@ -1851,7 +1905,7 @@ function renderRecordsTable(view: ResourceViewState): HTMLElement {
     }
     headRow.append(th);
   }
-  headRow.append(el("th", {}, ["Actions"]));
+  headRow.append(el("th", {}, [t("actions")]));
   table.append(el("thead", {}, [headRow]));
 
   const body = el("tbody");
@@ -1891,21 +1945,21 @@ function renderRowActions(schema: ResourceSchema, record: ResourceRecord): HTMLE
   const canEdit = Boolean(urls.update && editableFields(schema, false).length > 0);
   const canDelete = Boolean(urls.delete);
 
-  const viewButton = el("button", { class: "button", type: "button", disabled: canView ? null : true }, ["View"]);
+  const viewButton = el("button", { class: "button", type: "button", disabled: canView ? null : true }, [t("view")]);
   viewButton.addEventListener("click", () => {
     if (canView) {
       openRecordForm(schema, "view", urls, label);
     }
   });
 
-  const editButton = el("button", { class: "button", type: "button", disabled: canEdit ? null : true }, ["Edit"]);
+  const editButton = el("button", { class: "button", type: "button", disabled: canEdit ? null : true }, [t("edit")]);
   editButton.addEventListener("click", () => {
     if (canEdit) {
       openRecordForm(schema, "edit", urls, label);
     }
   });
 
-  const deleteButton = el("button", { class: "button danger", type: "button", disabled: canDelete ? null : true }, ["Delete"]);
+  const deleteButton = el("button", { class: "button danger", type: "button", disabled: canDelete ? null : true }, [t("delete")]);
   deleteButton.addEventListener("click", () => {
     if (canDelete) {
       void deleteRecord(schema, urls, label);
@@ -1928,7 +1982,7 @@ function relatedListButtons(schema: ResourceSchema, record: ResourceRecord): HTM
       class: "button",
       type: "button",
       disabled: canOpen ? null : true,
-      title: canOpen ? `Open ${relatedListName(relatedList)} filtered by this row` : "Related resource is not available.",
+      title: canOpen ? `${t("open_related")} ${relatedListName(relatedList)}` : t("related_unavailable"),
     }, [relatedListName(relatedList)]);
     button.addEventListener("click", () => {
       if (!canOpen || !isScalarRecordValue(value)) {
@@ -1991,7 +2045,7 @@ function renderCell(field: ResourceField, value: RecordValue, optionMap?: Map<st
   }
 
   if (field.type === "boolean") {
-    return document.createTextNode(value === true ? "Yes" : "No");
+    return document.createTextNode(value === true ? t("yes") : t("no"));
   }
 
   if (field.type === "foreign_key") {
@@ -2020,20 +2074,20 @@ function renderCell(field: ResourceField, value: RecordValue, optionMap?: Map<st
 
 function renderPagination(view: ResourceViewState): HTMLElement {
   const totalPages = Math.max(1, Math.ceil(view.count / Math.max(1, view.pageSize)));
-  const previous = el("button", { class: "button", type: "button", disabled: view.page <= 1 }, ["Previous"]);
+  const previous = el("button", { class: "button", type: "button", disabled: view.page <= 1 }, [t("previous")]);
   previous.addEventListener("click", () => {
     view.page = Math.max(1, view.page - 1);
     void reloadResourceView();
   });
-  const next = el("button", { class: "button", type: "button", disabled: view.page >= totalPages }, ["Next"]);
+  const next = el("button", { class: "button", type: "button", disabled: view.page >= totalPages }, [t("next")]);
   next.addEventListener("click", () => {
     view.page += 1;
     void reloadResourceView();
   });
   return el("div", { class: "pagination" }, [
-    el("span", {}, [`${view.count} records`]),
+    el("span", {}, [`${view.count} ${t("records")}`]),
     previous,
-    el("span", {}, [`Page ${view.page} / ${totalPages}`]),
+    el("span", {}, [`${t("page")} ${view.page} / ${totalPages}`]),
     next,
   ]);
 }
@@ -2061,7 +2115,7 @@ async function loadResources(): Promise<void> {
       state.resourceView = null;
     }
   } catch (error) {
-    state.error = error instanceof Error ? error.message : "Failed to load resources.";
+    state.error = error instanceof Error ? error.message : t("load_resources_failed");
     notify("error", state.error);
   } finally {
     state.loading = false;
@@ -2110,7 +2164,7 @@ async function loadResourceView(resourceKey: string, params: URLSearchParams = n
     await loadRecords(view);
   } catch (error) {
     state.resourceView = null;
-    state.error = error instanceof Error ? error.message : "Failed to load resource.";
+    state.error = error instanceof Error ? error.message : t("load_resource_failed");
     notify("error", state.error);
   } finally {
     render();
@@ -2139,7 +2193,7 @@ async function loadRecords(view: ResourceViewState): Promise<void> {
     const visibleIdentities = new Set(view.records.map((record) => recordIdentity(record)).filter((identity): identity is string => identity !== null));
     view.selectedIdentities = new Set([...view.selectedIdentities].filter((identity) => visibleIdentities.has(identity)));
   } catch (error) {
-    view.error = error instanceof Error ? error.message : "Failed to load records.";
+    view.error = error instanceof Error ? error.message : t("load_records_failed");
     notify("error", view.error);
   } finally {
     view.loading = false;
@@ -2192,9 +2246,9 @@ function openRecordForm(
   const modal = el("div", { class: "modal-backdrop" });
   const recordSuffix = previewLabel ? `: ${previewLabel}` : "";
   const schemaName = resourceName(schema);
-  const title = mode === "create" ? `Create ${schemaName}` : mode === "edit" ? `Edit ${schemaName}${recordSuffix}` : `${schemaName} details${recordSuffix}`;
-  const body = el("div", { class: "modal__body" }, [renderLoadingPage("Loading form...")]);
-  const close = el("button", { class: "button", type: "button" }, ["Close"]);
+  const title = mode === "create" ? `${t("create_resource")} ${schemaName}` : mode === "edit" ? `${t("edit")} ${schemaName}${recordSuffix}` : `${schemaName} ${t("details")}${recordSuffix}`;
+  const body = el("div", { class: "modal__body" }, [renderLoadingPage(t("loading_form"))]);
+  const close = el("button", { class: "button", type: "button" }, [t("close")]);
   close.addEventListener("click", () => modal.remove());
   const modalPanel = el("section", { class: "modal" }, [
     el("header", { class: "modal__header" }, [el("h3", { class: "modal__title" }, [title]), close]),
@@ -2220,7 +2274,7 @@ async function populateRecordForm(
     body.append(renderRecordForm(modal, schema, mode, record, optionMaps, urls));
   } catch (error) {
     clear(body);
-    body.append(el("div", { class: "error" }, [error instanceof Error ? error.message : "Failed to load form."]));
+    body.append(el("div", { class: "error" }, [error instanceof Error ? error.message : t("load_form_failed")]));
   }
 }
 
@@ -2344,7 +2398,7 @@ function validationTitle(field: ResourceField): string | undefined {
   if (message) {
     return message;
   }
-  return field.validation?.pattern ? `Expected pattern: ${field.validation.pattern}` : undefined;
+  return field.validation?.pattern ? `${t("expected_pattern")}: ${field.validation.pattern}` : undefined;
 }
 
 function validationHintNodes(field: ResourceField, readonly: boolean): Node[] {
@@ -2358,15 +2412,15 @@ function validationHintNodes(field: ResourceField, readonly: boolean): Node[] {
 function validationHints(field: ResourceField): string[] {
   const validation = field.validation ?? {};
   const hints: string[] = [];
-  if ((validation.required ?? field.required) && !field.nullable) hints.push("Required");
+  if ((validation.required ?? field.required) && !field.nullable) hints.push(t("required"));
   if (validation.min_length !== undefined) hints.push(`min ${validation.min_length} chars`);
   if (validation.max_length !== undefined) hints.push(`max ${validation.max_length} chars`);
   if (validation.min_value !== undefined) hints.push(`min ${validation.min_value}`);
   if (validation.max_value !== undefined) hints.push(`max ${validation.max_value}`);
   if (validation.decimal_places !== undefined) hints.push(`${validation.decimal_places} decimals`);
-  if (validation.format === "email") hints.push("email format");
-  if (validation.format === "json") hints.push("valid JSON");
-  if (validation.pattern) hints.push(validation.messages?.pattern ?? "must match pattern");
+  if (validation.format === "email") hints.push(t("email_format"));
+  if (validation.format === "json") hints.push(t("valid_json"));
+  if (validation.pattern) hints.push(validation.messages?.pattern ?? t("must_match_pattern"));
   return hints;
 }
 
@@ -2415,12 +2469,12 @@ function renderRecordForm(
 
   const errorBox = el("div", { class: "error", hidden: true });
   const footer = el("div", { class: "modal__footer" });
-  const cancel = el("button", { class: "button", type: "button" }, [readonly ? "Close" : "Cancel"]);
+  const cancel = el("button", { class: "button", type: "button" }, [readonly ? t("close") : t("cancel")]);
   cancel.addEventListener("click", () => modal.remove());
   footer.append(cancel);
 
   if (!readonly) {
-    const submit = el("button", { class: "button primary", type: "submit" }, [mode === "create" ? "Create" : "Save"]);
+    const submit = el("button", { class: "button primary", type: "submit" }, [mode === "create" ? t("create_resource") : t("save")]);
     footer.append(submit);
     form.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -2488,7 +2542,7 @@ function inputForField(field: ResourceField, value: RecordValue, options: Relati
       disabled: readonly,
       "data-field-type": field.type,
     });
-    return el("div", { class: "checkbox-row" }, [input, el("span", {}, [value === true ? "Yes" : "No"])]);
+    return el("div", { class: "checkbox-row" }, [input, el("span", {}, [value === true ? t("yes") : t("no")])]);
   }
 
   if (control === "enum_select" || control === "fk_select") {
@@ -2564,7 +2618,7 @@ function relationTypeaheadControl(field: ResourceField, select: HTMLSelectElemen
   const search = el("input", {
     class: "input relation-search",
     type: "search",
-    placeholder: fieldUiText(field, "placeholder") ?? "Search options...",
+    placeholder: fieldUiText(field, "placeholder") ?? t("search_options"),
     "data-typeahead-for": field.key,
     "aria-label": `Search ${fieldName(field)} options`,
   });
@@ -2615,13 +2669,13 @@ async function refreshOneRelationSelector(
   const search = typeaheadSearchInput(form, field.key)?.value ?? "";
   const params = optionQueryParams(field, values, true, search);
   if (!params) {
-    replaceSelectOptions(select, field, [], select.multiple ? [] : "", "Select dependencies first");
+    replaceSelectOptions(select, field, [], select.multiple ? [] : "", t("select_dependencies_first"));
     select.disabled = true;
     return;
   }
   select.disabled = true;
   const options = await fetchRelationOptions(schema, field, values, true, search);
-  replaceSelectOptions(select, field, options, currentValue, options.length ? "—" : "No options match");
+  replaceSelectOptions(select, field, options, currentValue, options.length ? "—" : t("no_options_match"));
   select.disabled = false;
 }
 
@@ -2664,7 +2718,7 @@ function setDependentSelectorAvailability(
     const dependenciesReady = relationDependencyFilterModel(field, values, true) !== null;
     select.disabled = !dependenciesReady;
     if (!dependenciesReady) {
-      replaceSelectOptions(select, field, [], select.multiple ? [] : "", "Select dependencies first");
+      replaceSelectOptions(select, field, [], select.multiple ? [] : "", t("select_dependencies_first"));
     }
   }
 }
@@ -2725,7 +2779,7 @@ async function submitRecordForm(
   urls: RecordResourceUrls = {},
 ): Promise<void> {
   submit.disabled = true;
-  submit.textContent = mode === "create" ? "Creating..." : "Saving...";
+  submit.textContent = mode === "create" ? t("creating") : t("saving");
   errorBox.hidden = true;
   errorBox.textContent = "";
 
@@ -2744,25 +2798,25 @@ async function submitRecordForm(
         body: JSON.stringify(payload),
       });
       state.message = null;
-      notify("success", `${resourceName(schema)} created.`);
+      notify("success", `${resourceName(schema)} ${t("created")}.`);
     } else {
       await apiFetch<ResourceRecord>(recordUpdatePath(urls), {
         method: "PATCH",
         body: JSON.stringify(payload),
       });
       state.message = null;
-      notify("success", `${resourceName(schema)} updated.`);
+      notify("success", `${resourceName(schema)} ${t("updated")}.`);
     }
     modal.remove();
     await reloadResourceView();
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Save failed.";
+    const message = error instanceof Error ? error.message : t("save_failed");
     errorBox.hidden = false;
     errorBox.textContent = message;
     notify("error", message);
   } finally {
     submit.disabled = false;
-    submit.textContent = mode === "create" ? "Create" : "Save";
+    submit.textContent = mode === "create" ? t("create_resource") : t("save");
     render();
   }
 }
@@ -2771,7 +2825,7 @@ async function submitRecordForm(
 function clientValidationErrors(form: HTMLFormElement, fields: ResourceField[]): string[] {
   const errors: string[] = [];
   if (!form.checkValidity()) {
-    errors.push("Fix the highlighted fields before saving.");
+    errors.push(t("fix_highlighted_fields"));
   }
   for (const field of fields) {
     const element = form.elements.namedItem(field.key);
@@ -2783,7 +2837,7 @@ function clientValidationErrors(form: HTMLFormElement, fields: ResourceField[]):
       try {
         JSON.parse(raw);
       } catch {
-        errors.push(`${fieldName(field)} must be valid JSON.`);
+        errors.push(`${fieldName(field)} ${t("valid_json_required")}`);
       }
     }
   }
@@ -2859,7 +2913,7 @@ async function batchDeleteRecords(view: ResourceViewState): Promise<void> {
     return;
   }
   const action = view.schema.destructive_actions?.batch_delete;
-  const confirmed = action?.confirm === false || window.confirm(action?.message ?? `Delete ${identities.length} selected records?`);
+  const confirmed = action?.confirm === false || window.confirm(action?.message ?? `${t("delete")} ${identities.length} ${t("records")}?`);
   if (!confirmed) {
     return;
   }
@@ -2870,11 +2924,11 @@ async function batchDeleteRecords(view: ResourceViewState): Promise<void> {
     });
     view.selectedIdentities.clear();
     state.message = null;
-    notify("success", `${identities.length} ${resourceName(view.schema, true)} deleted.`);
+    notify("success", `${identities.length} ${resourceName(view.schema, true)} ${t("deleted")}.`);
     await reloadResourceView();
   } catch (error) {
     state.message = null;
-    view.error = error instanceof Error ? error.message : "Batch delete failed.";
+    view.error = error instanceof Error ? error.message : t("batch_delete_failed");
     notify("error", view.error);
   } finally {
     render();
@@ -2884,7 +2938,7 @@ async function batchDeleteRecords(view: ResourceViewState): Promise<void> {
 async function deleteRecord(schema: ResourceSchema, urls: RecordResourceUrls = {}, label = ""): Promise<void> {
   const action = schema.destructive_actions?.delete;
   const schemaName = resourceName(schema);
-  const fallbackMessage = label ? `Delete this ${schemaName}: ${label}?` : `Delete this ${schemaName}?`;
+  const fallbackMessage = label ? `${t("delete_this")} ${schemaName}: ${label}?` : `${t("delete_this")} ${schemaName}?`;
   const confirmed = action?.confirm === false || window.confirm(actionMessage(action, fallbackMessage));
   if (!confirmed) {
     return;
@@ -2897,7 +2951,7 @@ async function deleteRecord(schema: ResourceSchema, urls: RecordResourceUrls = {
   } catch (error) {
     state.message = null;
     if (state.resourceView) {
-      state.resourceView.error = error instanceof Error ? error.message : "Delete failed.";
+      state.resourceView.error = error instanceof Error ? error.message : t("delete_failed");
       notify("error", state.resourceView.error);
     }
   } finally {
