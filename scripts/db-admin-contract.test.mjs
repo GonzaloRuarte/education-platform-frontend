@@ -17,13 +17,16 @@ function notContains(label, haystack, needle) {
 
 contains("frontend app", app, "__identity");
 contains("frontend app", app, "key: String(resource.alias || \"\")");
+contains("frontend app", app, "key: String(field.alias || \"\")");
 contains("frontend app", app, "encodeURIComponent(schema.key)");
 contains("frontend app", app, "recordDetailPath(schema, identity)");
 contains("frontend app", app, "sanitizeFilterModel(schema, parseFilterModel");
 contains("frontend app", app, "sanitizeSortState(schema, parseSortState");
 contains("frontend app", app, "relation?.option_control");
 contains("frontend app", app, "relation?.dependencies");
+contains("frontend app", app, "params.q = search.trim()");
 contains("frontend app", app, "destructive_actions");
+contains("frontend app", app, "target_resource_alias");
 contains("frontend app", app, "canResourceAction(schema");
 contains("frontend app", app, "STORAGE_LOCALE");
 contains("frontend app", app, "STORAGE_THEME");
@@ -56,7 +59,10 @@ notContains("frontend app", app, "__resource_urls");
 notContains("frontend app", app, "__label");
 notContains("frontend app", app, "display_label_field");
 notContains("frontend app", app, "list_query_contract");
+notContains("frontend app", app, "target_resource_key");
 notContains("frontend app", app, "primary_key_fields");
+notContains("frontend app", app, "params.search");
+notContains("frontend app", app, "search: search.trim()");
 
 assert.ok(app.includes("/api/resources/${encodeURIComponent(schema.key)}/records/${encodeURIComponent(identity)}/?surface=${SURFACE}"), "frontend should build generic record URLs from resource alias and backend identity");
 assert.ok(!app.includes("/api/resources/${schema.key}/records/${"), "frontend must encode public aliases and identities");

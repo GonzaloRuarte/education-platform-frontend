@@ -143,9 +143,9 @@ type ResourceNavigation = {
 };
 
 type RelatedListDefinition = {
-  key: string;
+  alias: string;
   label?: string;
-  target_resource_key: string;
+  target_resource_alias: string;
   target_field: string;
   source_field: string;
   operator: string;
@@ -1646,7 +1646,7 @@ function relatedListButtons(schema: ResourceSchema, record: ResourceRecord): HTM
   return (schema.related_lists ?? []).map((relatedList) => {
     const value = record[relatedList.source_field];
     const canOpen = value !== null && value !== undefined && isScalarRecordValue(value)
-      && state.resources.some((resource) => resource.key === relatedList.target_resource_key);
+      && state.resources.some((resource) => resource.key === relatedList.target_resource_alias);
     const button = el("button", {
       class: "button",
       type: "button",
@@ -1670,7 +1670,7 @@ function relatedListButtons(schema: ResourceSchema, record: ResourceRecord): HTM
       const params = new URLSearchParams();
       params.set("page", "1");
       params.set("filters", JSON.stringify(filterModel));
-      void selectResource(relatedList.target_resource_key, params);
+      void selectResource(relatedList.target_resource_alias, params);
     });
     return button;
   });
@@ -1754,6 +1754,18 @@ function fieldShell(label: string, input: HTMLElement, helpText?: string): HTMLE
   ]);
 }
 
+function normalizeResourceSchema(schema: ResourceSchema): ResourceSchema {
+  return {
+    ...schema,
+    key: String(schema.alias || ""),
+    fields: (schema.fields ?? []).map((field) => ({
+      ...field,
+      key: String(field.alias || ""),
+    })),
+    related_lists: schema.related_lists ?? [],
+  };
+}
+
 async function loadResources(): Promise<void> {
   state.loading = true;
   state.error = null;
@@ -1803,7 +1815,7 @@ async function selectResource(
 
 async function loadResourceView(resourceKey: string, params: URLSearchParams = new URLSearchParams()): Promise<void> {
   try {
-    const schema = await apiFetch<ResourceSchema>(resourceSchemaPath(resourceKey));
+    const schema = normalizeResourceSchema(await apiFetch<ResourceSchema>(resourceSchemaPath(resourceKey)));
     const sort = sanitizeSortState(schema, parseSortState(params.get("sort")));
     const filterModel = sanitizeFilterModel(schema, parseFilterModel(params.get("filters")));
     const view: ResourceViewState = {
