@@ -27,6 +27,19 @@
 - Narrow screens use a stacked responsive layout with bounded menu height.
 - Light/dark theme and English/Spanish language selectors are persisted locally.
 - Request-id-aware generic errors and toast feedback are implemented.
+- Static yearly setup workbook shell is implemented: template download,
+  XLSX upload to dry-run, grouped workbook errors/warnings, safe in-app
+  cell corrections that are sent back to the backend as `corrected_values`,
+  duplicate-row omission decisions, dangerous-warning confirmations, and
+  final commit-plan preview. Business-row writes are still backend/runtime-gated.
+- Static audit-view workflow is implemented: scoped mutation-batch and audit-event
+  list/detail views call `/api/db-admin-audit/batches/` and
+  `/api/db-admin-audit/events/` only, display backend redaction metadata, and
+  do not expose generic/raw audit table CRUD.
+- Static platform resource-exposure inspection workflow is implemented: the UI
+  calls `/api/db-admin-resource-exposure/manifest/`, displays platform-only
+  exposure counts, redacted hidden/internal resource metadata, filters by
+  exposure/search, and does not expose hidden resources as generic CRUD.
 
 ## Not done / not proven
 
@@ -37,9 +50,13 @@
 - No product/business dashboard yet. This package is only the DB Admin generic
   CRUD shell.
 - No explicit workflow frontend for appointments, resolutions, reports,
-  evaluation authoring, imports, password recovery, or scoped business
-  dashboards.
-- No export/import UI. Generic CRUD should not guess file workflow semantics.
+  evaluation authoring, password recovery, or scoped business dashboards.
+- Setup workbook import UI is static-checked only here; authenticated
+  browser/API smoke and real runtime commit remain pending.
+- Audit-view UI is static-checked only here; authenticated browser/API smoke for
+  platform, organization, and institution audit scopes remains pending.
+- Resource-exposure inspection UI is static-checked only here; authenticated
+  platform API/browser smoke remains pending.
 - No optimistic updates/offline behavior. DB Admin CRUD remains online and
   backend-authoritative.
 - No generated OpenAPI client. The generic resource schema is the runtime source

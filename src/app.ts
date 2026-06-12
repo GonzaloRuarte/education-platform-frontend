@@ -48,6 +48,7 @@ type FieldType =
 
 type ResourceAction = "list" | "retrieve" | "create" | "update" | "delete" | "batch_delete";
 type ResourceActions = Partial<Record<ResourceAction, boolean>>;
+type WorkflowPage = "setup_workbook" | "matrix_editor" | "audit_view" | "resource_exposure";
 
 type StaticOption = {
   value: string;
@@ -251,9 +252,14 @@ type AuthSession = {
 type AppState = {
   resources: ResourceSchema[];
   selectedResourceKey: string | null;
+  selectedWorkflow: WorkflowPage | null;
   resourceFilter: string;
   collapsedResourceGroups: Set<string>;
   resourceView: ResourceViewState | null;
+  setupWorkbook: SetupWorkbookState;
+  matrixEditor: MatrixEditorState;
+  auditView: AuditViewState;
+  resourceExposure: ResourceExposureState;
   loading: boolean;
   error: string | null;
   message: string | null;
@@ -275,6 +281,355 @@ type ResourceViewState = {
   sortDirection: "asc" | "desc";
   optionMaps: Record<string, Map<string, string>>;
   selectedIdentities: Set<string>;
+  loading: boolean;
+  error: string | null;
+};
+
+type SetupWorkbookColumnManifest = {
+  key: string;
+  label?: string;
+  required?: boolean;
+  help_text?: string;
+  allowed_values?: string[];
+  example?: string;
+  lookup?: boolean;
+  resource_field_key?: string;
+  template_source?: string;
+};
+
+type SetupWorkbookSheetManifest = {
+  key: string;
+  title?: string;
+  resource_key?: string;
+  description?: string;
+  columns?: SetupWorkbookColumnManifest[];
+};
+
+type SetupWorkbookManifest = {
+  sheets?: SetupWorkbookSheetManifest[];
+  workflows?: Record<string, unknown>;
+  import?: Record<string, unknown>;
+};
+
+type SetupWorkbookIssue = {
+  severity?: "error" | "warning" | string;
+  code: string;
+  sheet?: string;
+  row?: number;
+  column?: string;
+  value?: JsonValue;
+  message: string;
+  omittable?: boolean;
+  requires_confirmation?: boolean;
+};
+
+type SetupWorkbookStagedRow = {
+  row_number: number;
+  operation?: string;
+  values?: Record<string, JsonValue>;
+  corrected_values?: Record<string, JsonValue>;
+};
+
+type SetupWorkbookCellCorrection = {
+  sheet: string;
+  row_number: number;
+  column: string;
+  value: JsonValue;
+};
+
+type SetupWorkbookSheetResult = {
+  sheet: string;
+  title?: string;
+  resource_key?: string;
+  rows?: SetupWorkbookStagedRow[];
+};
+
+type SetupWorkbookDryRunResult = {
+  status: "valid" | "invalid" | string;
+  committed?: boolean;
+  writes_performed?: boolean;
+  summary?: Record<string, JsonValue>;
+  sheets?: SetupWorkbookSheetResult[];
+  errors?: SetupWorkbookIssue[];
+  warnings?: SetupWorkbookIssue[];
+  omittable_warning_codes?: string[];
+  confirmable_warning_codes?: string[];
+};
+
+type SetupWorkbookCommitOperation = {
+  sequence: number;
+  sheet?: string;
+  row_number?: number | null;
+  resource_key?: string;
+  action?: string;
+  status?: string;
+  record_identity?: string;
+  before?: Record<string, JsonValue>;
+  after?: Record<string, JsonValue>;
+  warnings?: SetupWorkbookIssue[];
+  errors?: SetupWorkbookIssue[];
+  requires_confirmation?: boolean;
+  skip_reason?: string;
+};
+
+type SetupWorkbookCommitPlan = {
+  status: "ready" | "blocked" | string;
+  commit_allowed?: boolean;
+  business_writes_performed?: boolean;
+  requires_transaction?: boolean;
+  requires_audit_batch_before_writes?: boolean;
+  summary?: Record<string, JsonValue>;
+  rejected_reasons?: Array<{ code?: string; message?: string; [key: string]: unknown }>;
+  warnings?: SetupWorkbookIssue[];
+  operations?: SetupWorkbookCommitOperation[];
+};
+
+type SetupWorkbookState = {
+  manifest: SetupWorkbookManifest | null;
+  selectedFile: File | null;
+  dryRunResult: SetupWorkbookDryRunResult | null;
+  commitPlan: SetupWorkbookCommitPlan | null;
+  omittedRows: Set<string>;
+  confirmedWarningCodes: Set<string>;
+  cellCorrections: Map<string, SetupWorkbookCellCorrection>;
+  reason: string;
+  loading: boolean;
+  error: string | null;
+};
+
+type MatrixEditorDomain = "organization" | "institution";
+
+type MatrixEditorUniverseResource = {
+  resource_key: string;
+  alias?: string;
+  label?: string;
+  exposure?: string;
+  structured_editor_only?: boolean;
+  actions?: Partial<Record<ResourceAction, boolean>>;
+};
+
+type MatrixEditorColumnGrantColumn = {
+  key: string;
+  alias?: string;
+  label?: string;
+  type?: string;
+  pii?: boolean;
+  write_only?: boolean;
+};
+
+type MatrixEditorColumnGrantAction = {
+  action: string;
+  row_scope_type?: string | null;
+  columns?: MatrixEditorColumnGrantColumn[];
+};
+
+type MatrixEditorColumnGrantResource = {
+  resource_key: string;
+  alias?: string;
+  label?: string;
+  exposure?: string;
+  structured_editor_only?: boolean;
+  actions?: MatrixEditorColumnGrantAction[];
+};
+
+type MatrixEditorRowScopeType = {
+  key: string;
+  label?: string;
+  description?: string;
+  domain?: string;
+  customer_configurable?: boolean;
+  resource_key?: string;
+  action?: string;
+  [key: string]: JsonValue | undefined;
+};
+
+type MatrixEditorUniverse = {
+  version?: number;
+  domain: MatrixEditorDomain;
+  api_name?: string;
+  principal?: string;
+  resources?: MatrixEditorUniverseResource[];
+  role_type_bindings?: Record<string, JsonValue>;
+  row_scope_types?: MatrixEditorRowScopeType[];
+  column_grant_universe?: MatrixEditorColumnGrantResource[];
+  forbidden_customer_features?: string[];
+  role_mutation_status?: string;
+};
+
+type MatrixEditorIssue = {
+  path?: string;
+  message: string;
+};
+
+type MatrixEditorValidationResponse = {
+  valid?: boolean;
+  domain?: string;
+  principal?: string;
+  errors?: MatrixEditorIssue[];
+  warnings?: MatrixEditorIssue[];
+  mutation_status?: string;
+};
+
+type MatrixEditorPreviewResponse = {
+  valid?: boolean;
+  domain?: string;
+  principal?: string;
+  validation?: MatrixEditorValidationResponse;
+  row_scope_value_preview?: JsonValue;
+  column_grant_preview?: JsonValue;
+  would_commit?: boolean;
+  mutation_status?: string;
+};
+
+type MatrixEditorApplyResponse = {
+  valid?: boolean;
+  committed?: boolean;
+  batch_id?: number | string;
+  applied_count?: number;
+  deferred_count?: number;
+  mutation_status?: string;
+  [key: string]: JsonValue | undefined;
+};
+
+type MatrixEditorResourceProposal = {
+  resource_key: string;
+  action: "create" | "update";
+  record_identity?: string;
+  after: Record<string, JsonValue>;
+};
+
+type MatrixEditorRowScopeValueProposal = {
+  row_scope_type: string;
+  values: Array<string | number | boolean>;
+};
+
+type MatrixEditorColumnGrantProposal = {
+  resource_key: string;
+  action: string;
+  columns: string[];
+};
+
+type MatrixEditorProposalBody = {
+  resources?: MatrixEditorResourceProposal[];
+  api_entrypoints?: string[];
+  row_scope_values?: MatrixEditorRowScopeValueProposal[];
+  column_grants?: MatrixEditorColumnGrantProposal[];
+};
+
+type MatrixEditorPayload = {
+  domain: MatrixEditorDomain;
+  proposal: MatrixEditorProposalBody;
+  reason?: string;
+};
+
+type MatrixEditorResourceDraft = {
+  resource_key: string;
+  action: "create" | "update";
+  record_identity: string;
+  after_json: string;
+  error: string | null;
+};
+
+type MatrixEditorState = {
+  domain: MatrixEditorDomain;
+  universeByDomain: Partial<Record<MatrixEditorDomain, MatrixEditorUniverse>>;
+  resourceDraft: MatrixEditorResourceDraft;
+  resourceProposals: MatrixEditorResourceProposal[];
+  apiEntrypointDraft: string;
+  apiEntrypoints: string[];
+  rowScopeValues: Map<string, string>;
+  columnGrantSelections: Map<string, Set<string>>;
+  validation: MatrixEditorValidationResponse | null;
+  preview: MatrixEditorPreviewResponse | null;
+  applyResult: MatrixEditorApplyResponse | null;
+  reason: string;
+  confirmDangerous: boolean;
+  loading: boolean;
+  error: string | null;
+};
+
+type AuditViewKind = "batches" | "events";
+
+type AuditRecord = Record<string, JsonValue | undefined> & {
+  id?: string | number;
+  created_at?: string | null;
+  occurred_at?: string | null;
+  actor_username?: string;
+  domain?: string;
+  source?: string;
+  status?: string;
+  event_type?: string;
+  operation_count?: number | null;
+  request_id?: string;
+  reason?: string;
+  resource_key?: string;
+  action?: string;
+};
+
+type AuditListResponse = {
+  api_entrypoint?: string;
+  domain?: string;
+  scope?: Record<string, JsonValue>;
+  limit?: number;
+  offset?: number;
+  count?: number;
+  results?: AuditRecord[];
+};
+
+type AuditDetailResponse = {
+  api_entrypoint?: string;
+  domain?: string;
+  scope?: Record<string, JsonValue>;
+  result?: AuditRecord;
+};
+
+type AuditViewFilters = {
+  status: string;
+  source: string;
+  domain: string;
+  eventType: string;
+  limit: string;
+  offset: string;
+};
+
+type AuditViewState = {
+  kind: AuditViewKind;
+  filters: AuditViewFilters;
+  list: AuditListResponse | null;
+  detail: AuditDetailResponse | null;
+  selectedId: string | null;
+  loading: boolean;
+  error: string | null;
+};
+
+type ResourceExposureManifestItem = {
+  model: string;
+  resource_key: string;
+  exposure: string;
+  register_resource: boolean;
+  generic_discovery_eligible: boolean;
+  inspection_mode: string;
+  path: string;
+  line: number;
+};
+
+type ResourceExposureManifest = {
+  version?: number;
+  owner?: string;
+  workflow?: string;
+  platform_only?: boolean;
+  classification_ssot?: string;
+  change_workflow?: string[];
+  break_glass?: Record<string, JsonValue>;
+  redacted_internal_resource_inspection?: Record<string, JsonValue>;
+  counts_by_exposure?: Record<string, number>;
+  resources?: ResourceExposureManifestItem[];
+};
+
+type ResourceExposureState = {
+  manifest: ResourceExposureManifest | null;
+  exposureFilter: string;
+  query: string;
   loading: boolean;
   error: string | null;
 };
@@ -303,6 +658,10 @@ const STORAGE_LOCALE = "retrobolt.admin.locale";
 const STORAGE_THEME = "retrobolt.admin.theme";
 const STORAGE_COLLAPSED_RESOURCE_GROUPS = "retrobolt.admin.collapsedResourceGroups";
 const RESOURCE_HASH_PREFIX = "#/resources/";
+const SETUP_WORKBOOK_HASH = "#/setup-workbook";
+const MATRIX_EDITOR_HASH = "#/matrix-editor";
+const AUDIT_VIEW_HASH = "#/audit";
+const RESOURCE_EXPOSURE_HASH = "#/resource-exposure";
 const appRootElement = document.getElementById("app");
 
 if (!(appRootElement instanceof HTMLElement)) {
@@ -315,9 +674,14 @@ let nextToastId = 1;
 const state: AppState = {
   resources: [],
   selectedResourceKey: null,
+  selectedWorkflow: null,
   resourceFilter: "",
   collapsedResourceGroups: loadCollapsedResourceGroups(),
   resourceView: null,
+  setupWorkbook: emptySetupWorkbookState(),
+  matrixEditor: emptyMatrixEditorState(),
+  auditView: emptyAuditViewState(),
+  resourceExposure: emptyResourceExposureState(),
   loading: false,
   error: null,
   message: null,
@@ -326,6 +690,80 @@ const state: AppState = {
   toasts: [],
   dbAdminAccessDenied: false,
 };
+
+function emptySetupWorkbookState(): SetupWorkbookState {
+  return {
+    manifest: null,
+    selectedFile: null,
+    dryRunResult: null,
+    commitPlan: null,
+    omittedRows: new Set<string>(),
+    confirmedWarningCodes: new Set<string>(),
+    cellCorrections: new Map<string, SetupWorkbookCellCorrection>(),
+    reason: "",
+    loading: false,
+    error: null,
+  };
+}
+
+function emptyMatrixEditorResourceDraft(): MatrixEditorResourceDraft {
+  return {
+    resource_key: "",
+    action: "create",
+    record_identity: "",
+    after_json: "{}",
+    error: null,
+  };
+}
+
+function emptyMatrixEditorState(): MatrixEditorState {
+  return {
+    domain: "organization",
+    universeByDomain: {},
+    resourceDraft: emptyMatrixEditorResourceDraft(),
+    resourceProposals: [],
+    apiEntrypointDraft: "",
+    apiEntrypoints: [],
+    rowScopeValues: new Map<string, string>(),
+    columnGrantSelections: new Map<string, Set<string>>(),
+    validation: null,
+    preview: null,
+    applyResult: null,
+    reason: "",
+    confirmDangerous: false,
+    loading: false,
+    error: null,
+  };
+}
+
+function emptyAuditViewState(): AuditViewState {
+  return {
+    kind: "batches",
+    filters: {
+      status: "",
+      source: "",
+      domain: "",
+      eventType: "",
+      limit: "50",
+      offset: "0",
+    },
+    list: null,
+    detail: null,
+    selectedId: null,
+    loading: false,
+    error: null,
+  };
+}
+
+function emptyResourceExposureState(): ResourceExposureState {
+  return {
+    manifest: null,
+    exposureFilter: "",
+    query: "",
+    loading: false,
+    error: null,
+  };
+}
 
 function loadCollapsedResourceGroups(): Set<string> {
   try {
@@ -484,12 +922,145 @@ const UI_TEXT: Record<string, Record<Locale, string>> = {
   no_options_match: { es: "No hay opciones que coincidan", en: "No options match" },
   yes: { es: "Sí", en: "Yes" },
   no: { es: "No", en: "No" },
+  all: { es: "Todos", en: "All" },
   sort_by_field: { es: "Ordenar por este campo", en: "Sort by this field" },
   sorting_not_declared: { es: "Ordenamiento no declarado para este campo", en: "Sorting not declared for this field" },
   details: { es: "detalle", en: "details" },
   open_related: { es: "Abrir", en: "Open" },
   related_unavailable: { es: "El recurso relacionado no está disponible.", en: "Related resource is not available." },
   delete_this: { es: "Eliminar", en: "Delete this" },
+  setup_workbook: { es: "Setup anual", en: "Yearly setup" },
+  setup_workbook_title: { es: "Importación anual por workbook", en: "Yearly setup workbook import" },
+  setup_workbook_subtitle: {
+    es: "Descargá la plantilla, subí el archivo completado y revisá errores, advertencias y cambios antes de confirmar.",
+    en: "Download the template, upload the completed file, and review errors, warnings, and changes before commit.",
+  },
+  download_template: { es: "Descargar plantilla", en: "Download template" },
+  choose_workbook: { es: "Elegir workbook", en: "Choose workbook" },
+  run_dry_run: { es: "Validar sin guardar", en: "Validate without saving" },
+  build_preview: { es: "Crear preview final", en: "Build final preview" },
+  workbook_manifest_failed: { es: "No se pudo cargar el manifiesto del workbook.", en: "Failed to load workbook manifest." },
+  workbook_template_failed: { es: "No se pudo descargar la plantilla.", en: "Failed to download template." },
+  workbook_dry_run_failed: { es: "No se pudo validar el workbook.", en: "Failed to validate workbook." },
+  workbook_commit_plan_failed: { es: "No se pudo crear el preview final.", en: "Failed to build final preview." },
+  workbook_select_file: { es: "Seleccioná un archivo XLSX primero.", en: "Select an XLSX file first." },
+  workbook_summary: { es: "Resumen", en: "Summary" },
+  workbook_issues: { es: "Errores y advertencias", en: "Errors and warnings" },
+  workbook_no_issues: { es: "No hay errores ni advertencias.", en: "No errors or warnings." },
+  workbook_cell_fixes: { es: "Correcciones de celdas", en: "Cell fixes" },
+  workbook_cell_fixes_help: {
+    es: "Editá valores seguros y volvé a validar; el backend aplica estas correcciones antes de validar y crear el preview.",
+    en: "Edit safe values and validate again; the backend applies these corrections before validation and preview generation.",
+  },
+  workbook_changed_cells: { es: "Celdas corregidas", en: "Corrected cells" },
+  workbook_rows: { es: "Filas detectadas", en: "Detected rows" },
+  workbook_preview: { es: "Preview final", en: "Final preview" },
+  workbook_operations: { es: "Operaciones", en: "Operations" },
+  workbook_confirm_warning: { es: "Confirmar advertencia", en: "Confirm warning" },
+  workbook_omit_row: { es: "Omitir esta fila", en: "Omit this row" },
+  workbook_reason: { es: "Motivo o nota de auditoría", en: "Reason or audit note" },
+  workbook_no_preview: { es: "Ejecutá la validación para ver el preview.", en: "Run validation to see the preview." },
+  workbook_plan_blocked: { es: "El preview está bloqueado.", en: "The preview is blocked." },
+  workbook_plan_ready: { es: "El preview está listo para auditoría/commit runtime.", en: "The preview is ready for runtime audit/commit." },
+  workbook_no_business_writes: { es: "Esta pantalla no ejecuta escrituras de negocio.", en: "This screen does not execute business writes." },
+  workflows: { es: "Flujos", en: "Workflows" },
+  matrix_editor: { es: "Editor de matriz", en: "Matrix editor" },
+  matrix_editor_title: { es: "Editor estructurado de roles y matriz", en: "Structured role and matrix editor" },
+  matrix_editor_subtitle: {
+    es: "Cargá el universo permitido por el backend, prepará cambios de roles/asignaciones/alcances y revisá el preview efectivo antes de aplicar con auditoría.",
+    en: "Load the backend-approved universe, prepare role/assignment/scope changes, and review the effective preview before audit-first apply.",
+  },
+  matrix_domain: { es: "Dominio", en: "Domain" },
+  organization_domain: { es: "Organización", en: "Organization" },
+  institution_domain: { es: "Institución", en: "Institution" },
+  load_universe: { es: "Cargar universo", en: "Load universe" },
+  matrix_universe: { es: "Universo editable", en: "Editable universe" },
+  matrix_universe_failed: { es: "No se pudo cargar el universo del editor.", en: "Failed to load matrix editor universe." },
+  matrix_validate_failed: { es: "No se pudo validar la propuesta.", en: "Failed to validate matrix proposal." },
+  matrix_preview_failed: { es: "No se pudo crear el preview de permisos.", en: "Failed to build permissions preview." },
+  matrix_apply_failed: { es: "No se pudo aplicar la propuesta auditada.", en: "Failed to apply audited proposal." },
+  matrix_resource_operations: { es: "Cambios de rol/asignación", en: "Role and assignment changes" },
+  matrix_resource: { es: "Recurso estructurado", en: "Structured resource" },
+  matrix_action: { es: "Acción", en: "Action" },
+  matrix_record_identity: { es: "Identidad del registro", en: "Record identity" },
+  matrix_after_json: { es: "Payload after JSON", en: "After payload JSON" },
+  matrix_add_operation: { es: "Agregar cambio", en: "Add change" },
+  matrix_no_operations: { es: "No hay cambios agregados.", en: "No changes added." },
+  matrix_api_entrypoints: { es: "Entrypoints API permitidos", en: "Allowed API entrypoints" },
+  matrix_api_entrypoints_help: {
+    es: "Solo se aceptan nombres del dominio activo; la validación backend sigue siendo la fuente autoritativa.",
+    en: "Only names from the active domain are accepted; backend validation remains authoritative.",
+  },
+  matrix_add_api: { es: "Agregar API", en: "Add API" },
+  matrix_column_grants: { es: "Columnas permitidas", en: "Allowed columns" },
+  matrix_column_grants_help: {
+    es: "Elegí subconjuntos de columnas desde el universo publicado por el backend para cada recurso/acción permitida.",
+    en: "Choose column subsets from the backend-published universe for each allowed resource/action.",
+  },
+  matrix_no_column_grants: { es: "El backend no publicó columnas configurables para este dominio.", en: "The backend did not publish configurable columns for this domain." },
+  matrix_row_scope_type: { es: "Alcance", en: "Scope" },
+  matrix_row_scopes: { es: "Alcances de fila", en: "Row scopes" },
+  matrix_row_scopes_help: {
+    es: "Ingresá valores concretos separados por coma para los tipos de alcance configurables publicados por el backend.",
+    en: "Enter comma-separated concrete values for backend-published configurable scope types.",
+  },
+  matrix_reason: { es: "Motivo de auditoría", en: "Audit reason" },
+  matrix_validate: { es: "Validar", en: "Validate" },
+  matrix_preview: { es: "Preview efectivo", en: "Effective preview" },
+  matrix_apply: { es: "Aplicar con auditoría", en: "Apply with audit" },
+  matrix_confirm_apply: {
+    es: "Confirmo que estos cambios pueden crear/actualizar roles, asignaciones o alcances y deben pasar por auditoría antes de guardar.",
+    en: "I confirm these changes may create/update roles, assignments, or scopes and must be audited before saving.",
+  },
+  matrix_validation: { es: "Validación", en: "Validation" },
+  matrix_preview_result: { es: "Preview", en: "Preview" },
+  matrix_apply_result: { es: "Resultado de aplicación", en: "Apply result" },
+  matrix_valid: { es: "Válido", en: "Valid" },
+  matrix_invalid: { es: "Inválido", en: "Invalid" },
+  matrix_warning_audit: { es: "Se aplicará por el contrato audit-first del backend.", en: "This uses the backend audit-first contract." },
+  matrix_scope_value_placeholder: { es: "1, 2, codigo", en: "1, 2, code" },
+  matrix_api_placeholder: { es: "db_admin.matrix_editor.organization.validate", en: "db_admin.matrix_editor.organization.validate" },
+  audit_view: { es: "Auditoría", en: "Audit" },
+  audit_view_title: { es: "Vistas de auditoría DB Admin", en: "DB Admin audit views" },
+  audit_view_subtitle: {
+    es: "Revisá lotes de mutación y eventos de auditoría mediante las APIs filtradas por matriz; no se exponen tablas crudas.",
+    en: "Review mutation batches and audit events through matrix-scoped APIs; raw audit tables are not exposed.",
+  },
+  audit_batches: { es: "Lotes", en: "Batches" },
+  audit_events: { es: "Eventos", en: "Events" },
+  audit_status: { es: "Estado", en: "Status" },
+  audit_source: { es: "Fuente", en: "Source" },
+  audit_domain: { es: "Dominio", en: "Domain" },
+  audit_event_type: { es: "Tipo de evento", en: "Event type" },
+  audit_limit: { es: "Límite", en: "Limit" },
+  audit_offset: { es: "Offset", en: "Offset" },
+  audit_load_failed: { es: "No se pudo cargar la auditoría.", en: "Failed to load audit records." },
+  audit_detail_failed: { es: "No se pudo cargar el detalle de auditoría.", en: "Failed to load audit detail." },
+  audit_no_records: { es: "No hay registros de auditoría para estos filtros.", en: "No audit records for these filters." },
+  audit_filters: { es: "Filtros", en: "Filters" },
+  audit_scope: { es: "Alcance aplicado", en: "Applied scope" },
+  audit_count: { es: "Total", en: "Total" },
+  audit_operation_count: { es: "Operaciones", en: "Operations" },
+  audit_actor: { es: "Actor", en: "Actor" },
+  audit_time: { es: "Fecha", en: "Time" },
+  audit_reason: { es: "Motivo", en: "Reason" },
+  audit_request_id: { es: "Request ID", en: "Request ID" },
+  audit_detail: { es: "Detalle", en: "Detail" },
+  audit_redacted_notice: { es: "Los payloads se muestran con las redacciones del backend.", en: "Payloads are shown with backend-provided redactions." },
+  resource_exposure: { es: "Exposición de recursos", en: "Resource exposure" },
+  resource_exposure_title: { es: "Inspección de exposición de recursos", en: "Resource exposure inspection" },
+  resource_exposure_subtitle: {
+    es: "Revisá el manifiesto platform-only de clasificaciones ResourceMeta sin exponer tablas internas como CRUD genérico.",
+    en: "Review the platform-only ResourceMeta classification manifest without exposing internal tables as generic CRUD.",
+  },
+  resource_exposure_load_failed: { es: "No se pudo cargar el manifiesto de exposición.", en: "Failed to load resource exposure manifest." },
+  resource_exposure_counts: { es: "Conteos por exposición", en: "Counts by exposure" },
+  resource_exposure_redaction: { es: "Redacción interna", en: "Internal redaction" },
+  resource_exposure_filter: { es: "Filtrar exposición", en: "Filter exposure" },
+  resource_exposure_query: { es: "Buscar modelo/recurso/ruta", en: "Search model/resource/path" },
+  resource_exposure_manifest: { es: "Manifiesto", en: "Manifest" },
+  resource_exposure_no_resources: { es: "No hay recursos para estos filtros.", en: "No resources match these filters." },
+  resource_exposure_platform_only: { es: "Solo plataforma", en: "Platform only" },
 };
 
 function t(key: string): string {
@@ -687,30 +1258,48 @@ async function refreshAccessToken(): Promise<boolean> {
   return true;
 }
 
-async function apiFetch<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
+async function authorizedFetch(path: string, init: RequestInit = {}, retry = true): Promise<Response> {
   const session = readSession();
   const headers = new Headers(init.headers);
   if (session) {
     headers.set("Authorization", `Bearer ${session.token.access}`);
   }
-  if (init.body && !headers.has("Content-Type")) {
+  if (hasJsonRequestBody(init.body) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 
   const response = await fetch(apiUrl(path), { ...init, headers });
   if (response.status === 401 && retry && (await refreshAccessToken())) {
-    return apiFetch<T>(path, init, false);
+    return authorizedFetch(path, init, false);
   }
 
   if (!response.ok) {
     throw new ApiRequestError(await responseErrorMessage(response), response.status);
   }
 
+  return response;
+}
+
+function hasJsonRequestBody(body: BodyInit | null | undefined): boolean {
+  if (!body) {
+    return false;
+  }
+  return !(body instanceof FormData || body instanceof Blob || body instanceof URLSearchParams);
+}
+
+async function apiFetch<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
+  const response = await authorizedFetch(path, init, retry);
+
   if (response.status === 204) {
     return undefined as T;
   }
 
   return (await response.json()) as T;
+}
+
+async function apiFetchBlob(path: string, init: RequestInit = {}, retry = true): Promise<Blob> {
+  const response = await authorizedFetch(path, init, retry);
+  return response.blob();
 }
 
 async function responseErrorMessage(response: Response): Promise<string> {
@@ -1119,6 +1708,37 @@ function renderSidebar(session: AuthSession): HTMLElement {
     nav.append(el("div", { class: "empty" }, [t("no_resources_match")]));
   }
 
+  const workflowNav = el("nav", { class: "resource-nav workflow-nav", "aria-label": t("workflows") });
+  const setupWorkbookButton = el("button", {
+    class: state.selectedWorkflow === "setup_workbook" ? "active" : "",
+    type: "button",
+  }, [t("setup_workbook")]);
+  setupWorkbookButton.addEventListener("click", () => {
+    void selectSetupWorkbookPage();
+  });
+  const matrixEditorButton = el("button", {
+    class: state.selectedWorkflow === "matrix_editor" ? "active" : "",
+    type: "button",
+  }, [t("matrix_editor")]);
+  matrixEditorButton.addEventListener("click", () => {
+    void selectMatrixEditorPage();
+  });
+  const auditViewButton = el("button", {
+    class: state.selectedWorkflow === "audit_view" ? "active" : "",
+    type: "button",
+  }, [t("audit_view")]);
+  auditViewButton.addEventListener("click", () => {
+    void selectAuditViewPage();
+  });
+  const resourceExposureButton = el("button", {
+    class: state.selectedWorkflow === "resource_exposure" ? "active" : "",
+    type: "button",
+  }, [t("resource_exposure")]);
+  resourceExposureButton.addEventListener("click", () => {
+    void selectResourceExposurePage();
+  });
+  workflowNav.append(setupWorkbookButton, matrixEditorButton, auditViewButton, resourceExposureButton);
+
   const refresh = el("button", { class: "logout", type: "button" }, [t("refresh_resources")]);
   refresh.addEventListener("click", () => {
     void loadResources();
@@ -1142,6 +1762,7 @@ function renderSidebar(session: AuthSession): HTMLElement {
       el("strong", {}, [displayUser(session.user)]),
     ]),
     el("div", { class: "sidebar__section stack sidebar__controls" }, [filterInput, renderPreferenceControls(), refresh]),
+    el("div", { class: "sidebar__section stack" }, [workflowNav]),
     nav,
     el("div", { class: "sidebar__section sidebar__footer" }, [logout]),
   ]);
@@ -1164,6 +1785,22 @@ function renderMain(): HTMLElement {
   }
   if (state.error) {
     main.append(renderErrorPage(state.error));
+    return main;
+  }
+  if (state.selectedWorkflow === "setup_workbook") {
+    main.append(renderSetupWorkbookPage());
+    return main;
+  }
+  if (state.selectedWorkflow === "matrix_editor") {
+    main.append(renderMatrixEditorPage());
+    return main;
+  }
+  if (state.selectedWorkflow === "audit_view") {
+    main.append(renderAuditViewPage());
+    return main;
+  }
+  if (state.selectedWorkflow === "resource_exposure") {
+    main.append(renderResourceExposurePage());
     return main;
   }
   if (state.resources.length === 0) {
@@ -1304,6 +1941,1572 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
     view.loading ? renderLoadingPage(t("loading_records")) : renderRecordsTable(view),
     renderPagination(view),
   ]);
+}
+
+
+function renderAuditViewPage(): HTMLElement {
+  if (!state.auditView.list && !state.auditView.loading) {
+    void loadAuditViewList();
+  }
+
+  const kindSelect = el("select", { class: "select", "aria-label": t("audit_view") });
+  for (const kind of ["batches", "events"] as AuditViewKind[]) {
+    kindSelect.append(el("option", { value: kind, selected: state.auditView.kind === kind ? true : null }, [kind === "batches" ? t("audit_batches") : t("audit_events")]));
+  }
+  kindSelect.addEventListener("change", () => {
+    const nextKind: AuditViewKind = kindSelect.value === "events" ? "events" : "batches";
+    if (state.auditView.kind === nextKind) {
+      return;
+    }
+    state.auditView.kind = nextKind;
+    state.auditView.list = null;
+    state.auditView.detail = null;
+    state.auditView.selectedId = null;
+    state.auditView.filters.offset = "0";
+    state.auditView.error = null;
+    render();
+    void loadAuditViewList();
+  });
+
+  const loadButton = el("button", { class: "button", type: "button", disabled: state.auditView.loading ? true : null }, [t("refresh_resource")]);
+  loadButton.addEventListener("click", () => {
+    state.auditView.filters.offset = "0";
+    void loadAuditViewList();
+  });
+
+  const notices: HTMLElement[] = [];
+  if (state.auditView.error) {
+    notices.push(el("div", { class: "error" }, [state.auditView.error]));
+  }
+  if (state.auditView.loading) {
+    notices.push(el("div", { class: "notice" }, [t("loading_records")]));
+  }
+
+  return el("section", { class: "stack audit-view" }, [
+    el("div", { class: "page-header" }, [
+      el("div", {}, [
+        el("h2", { class: "page-title" }, [t("audit_view_title")]),
+        el("p", { class: "page-subtitle" }, [t("audit_view_subtitle")]),
+      ]),
+      el("div", { class: "toolbar" }, [kindSelect, loadButton]),
+    ]),
+    ...notices,
+    renderAuditFilterCard(),
+    renderAuditListCard(),
+    state.auditView.detail ? renderAuditDetailCard(state.auditView.detail) : null,
+  ]);
+}
+
+function renderAuditFilterCard(): HTMLElement {
+  const statusInput = auditFilterInput("status", t("audit_status"));
+  const sourceInput = auditFilterInput("source", t("audit_source"));
+  const domainInput = auditFilterInput("domain", t("audit_domain"));
+  const eventTypeInput = auditFilterInput("eventType", t("audit_event_type"));
+  const limitInput = auditFilterInput("limit", t("audit_limit"), "number");
+  const offsetInput = auditFilterInput("offset", t("audit_offset"), "number");
+  const applyButton = el("button", { class: "button primary", type: "button", disabled: state.auditView.loading ? true : null }, [t("audit_filters")]);
+  applyButton.addEventListener("click", () => {
+    void loadAuditViewList();
+  });
+
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("h3", {}, [t("audit_filters")]),
+      el("div", { class: "form-grid" }, [
+        auditFilterField(t("audit_status"), statusInput),
+        auditFilterField(t("audit_source"), sourceInput),
+        auditFilterField(t("audit_domain"), domainInput),
+        state.auditView.kind === "events" ? auditFilterField(t("audit_event_type"), eventTypeInput) : null,
+        auditFilterField(t("audit_limit"), limitInput),
+        auditFilterField(t("audit_offset"), offsetInput),
+      ]),
+      applyButton,
+    ]),
+  ]);
+}
+
+function auditFilterField(label: string, input: HTMLElement): HTMLElement {
+  return el("div", { class: "field field--third" }, [
+    el("label", {}, [label]),
+    input,
+  ]);
+}
+
+function auditFilterInput(key: keyof AuditViewFilters, label: string, type = "text"): HTMLInputElement {
+  const input = el("input", {
+    class: "input",
+    type,
+    placeholder: label,
+    value: state.auditView.filters[key],
+  });
+  input.addEventListener("input", () => {
+    state.auditView.filters[key] = input.value;
+  });
+  return input;
+}
+
+function renderAuditListCard(): HTMLElement {
+  const list = state.auditView.list;
+  const rows = list?.results ?? [];
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("div", { class: "toolbar" }, [
+        el("h3", {}, [state.auditView.kind === "batches" ? t("audit_batches") : t("audit_events")]),
+        list ? el("span", { class: "badge" }, [`${t("audit_count")}: ${list.count ?? rows.length}`]) : null,
+        list?.domain ? el("span", { class: "badge" }, [`${t("audit_domain")}: ${list.domain}`]) : null,
+      ]),
+      list?.scope ? el("div", { class: "notice" }, [`${t("audit_scope")}: ${safeJson(list.scope)}`]) : null,
+      el("p", { class: "cell-muted" }, [t("audit_redacted_notice")]),
+      rows.length ? renderAuditTable(rows) : el("div", { class: "empty" }, [t("audit_no_records")]),
+      renderAuditPagination(list),
+    ]),
+  ]);
+}
+
+function renderAuditTable(rows: AuditRecord[]): HTMLElement {
+  const header = state.auditView.kind === "batches"
+    ? ["id", "audit_time", "audit_actor", "audit_domain", "audit_source", "audit_status", "audit_operation_count", "audit_reason", "actions"]
+    : ["id", "audit_time", "audit_actor", "audit_event_type", "audit_status", "audit_domain", "audit_request_id", "actions"];
+  const table = el("table");
+  table.append(el("thead", {}, [el("tr", {}, header.map((key) => el("th", {}, [key === "id" ? "ID" : t(key)])))]));
+  const body = el("tbody");
+  for (const row of rows) {
+    const detailButton = el("button", { class: "button flat", type: "button" }, [t("audit_detail")]);
+    detailButton.addEventListener("click", () => {
+      const id = String(row.id ?? "");
+      if (id) {
+        void loadAuditViewDetail(id);
+      }
+    });
+    const cells = state.auditView.kind === "batches"
+      ? [
+          auditValue(row.id),
+          auditValue(row.created_at),
+          auditValue(row.actor_username),
+          auditValue(row.domain),
+          auditValue(row.source),
+          auditValue(row.status),
+          auditValue(row.operation_count),
+          auditValue(row.reason),
+          detailButton,
+        ]
+      : [
+          auditValue(row.id),
+          auditValue(row.occurred_at),
+          auditValue(row.actor_username),
+          auditValue(row.event_type),
+          auditValue(row.status),
+          auditValue(row.domain),
+          auditValue(row.request_id),
+          detailButton,
+        ];
+    body.append(el("tr", {}, cells.map((cell) => el("td", {}, [cell]))));
+  }
+  table.append(body);
+  return el("div", { class: "table-wrap" }, [table]);
+}
+
+function renderAuditPagination(list: AuditListResponse | null): HTMLElement {
+  if (!list) {
+    return el("div");
+  }
+  const limit = list.limit ?? parsePositiveInt(state.auditView.filters.limit, 50);
+  const offset = list.offset ?? parsePositiveInt(state.auditView.filters.offset, 0);
+  const count = list.count ?? 0;
+  const previousButton = el("button", { class: "button", type: "button", disabled: offset <= 0 || state.auditView.loading ? true : null }, [t("previous")]);
+  previousButton.addEventListener("click", () => {
+    state.auditView.filters.offset = String(Math.max(0, offset - limit));
+    void loadAuditViewList();
+  });
+  const nextButton = el("button", { class: "button", type: "button", disabled: offset + limit >= count || state.auditView.loading ? true : null }, [t("next")]);
+  nextButton.addEventListener("click", () => {
+    state.auditView.filters.offset = String(offset + limit);
+    void loadAuditViewList();
+  });
+  return el("div", { class: "pagination" }, [
+    el("span", {}, [`${offset + 1}-${Math.min(offset + limit, count)} / ${count}`]),
+    previousButton,
+    nextButton,
+  ]);
+}
+
+function renderAuditDetailCard(detail: AuditDetailResponse): HTMLElement {
+  return el("section", { class: "card audit-view__detail" }, [
+    el("div", { class: "card__body stack" }, [
+      el("div", { class: "toolbar" }, [
+        el("h3", {}, [t("audit_detail")]),
+        detail.domain ? el("span", { class: "badge" }, [`${t("audit_domain")}: ${detail.domain}`]) : null,
+      ]),
+      detail.scope ? el("div", { class: "notice" }, [`${t("audit_scope")}: ${safeJson(detail.scope)}`]) : null,
+      el("pre", { class: "cell-json" }, [safeJson((detail.result ?? {}) as RecordValue)]),
+    ]),
+  ]);
+}
+
+function auditValue(value: JsonValue | undefined): string | HTMLElement {
+  if (value === null || value === undefined || value === "") {
+    return "—";
+  }
+  if (Array.isArray(value) || typeof value === "object") {
+    return el("pre", { class: "cell-json" }, [safeJson(value)]);
+  }
+  return String(value);
+}
+
+
+function renderMatrixEditorPage(): HTMLElement {
+  if (!currentMatrixEditorUniverse() && !state.matrixEditor.loading) {
+    void loadMatrixEditorUniverse();
+  }
+
+  const domainSelect = el("select", { class: "select", "aria-label": t("matrix_domain") });
+  for (const domain of ["organization", "institution"] as MatrixEditorDomain[]) {
+    const option = el("option", { value: domain, selected: state.matrixEditor.domain === domain ? true : null }, [
+      domain === "organization" ? t("organization_domain") : t("institution_domain"),
+    ]);
+    domainSelect.append(option);
+  }
+  domainSelect.addEventListener("change", () => {
+    const nextDomain = domainSelect.value === "institution" ? "institution" : "organization";
+    if (state.matrixEditor.domain === nextDomain) {
+      return;
+    }
+    state.matrixEditor.domain = nextDomain;
+    state.matrixEditor.resourceDraft = emptyMatrixEditorResourceDraft();
+    state.matrixEditor.resourceProposals = [];
+    state.matrixEditor.apiEntrypoints = [];
+    state.matrixEditor.apiEntrypointDraft = "";
+    state.matrixEditor.rowScopeValues.clear();
+    state.matrixEditor.columnGrantSelections.clear();
+    state.matrixEditor.validation = null;
+    state.matrixEditor.preview = null;
+    state.matrixEditor.applyResult = null;
+    state.matrixEditor.confirmDangerous = false;
+    state.matrixEditor.error = null;
+    render();
+    void loadMatrixEditorUniverse();
+  });
+
+  const reloadButton = el("button", { class: "button", type: "button" }, [t("load_universe")]);
+  reloadButton.addEventListener("click", () => {
+    void loadMatrixEditorUniverse();
+  });
+
+  const validateButton = el("button", { class: "button", type: "button", disabled: state.matrixEditor.loading ? true : null }, [t("matrix_validate")]);
+  validateButton.addEventListener("click", () => {
+    void validateMatrixEditorProposal();
+  });
+  const previewButton = el("button", { class: "button", type: "button", disabled: state.matrixEditor.loading ? true : null }, [t("matrix_preview")]);
+  previewButton.addEventListener("click", () => {
+    void previewMatrixEditorProposal();
+  });
+  const applyButton = el("button", {
+    class: "button danger",
+    type: "button",
+    disabled: !state.matrixEditor.confirmDangerous || state.matrixEditor.loading ? true : null,
+  }, [t("matrix_apply")]);
+  applyButton.addEventListener("click", () => {
+    void applyMatrixEditorProposal();
+  });
+
+  const notices: HTMLElement[] = [];
+  if (state.matrixEditor.error) {
+    notices.push(el("div", { class: "error" }, [state.matrixEditor.error]));
+  }
+  if (state.matrixEditor.loading) {
+    notices.push(el("div", { class: "notice" }, [t("loading_resource")]));
+  }
+
+  return el("section", { class: "stack matrix-editor" }, [
+    el("div", { class: "page-header" }, [
+      el("div", {}, [
+        el("h2", { class: "page-title" }, [t("matrix_editor_title")]),
+        el("p", { class: "page-subtitle" }, [t("matrix_editor_subtitle")]),
+      ]),
+      el("div", { class: "toolbar" }, [domainSelect, reloadButton, validateButton, previewButton, applyButton]),
+    ]),
+    ...notices,
+    renderMatrixEditorUniverseCard(),
+    renderMatrixEditorResourceProposalCard(),
+    renderMatrixEditorApiEntrypointCard(),
+    renderMatrixEditorColumnGrantCard(),
+    renderMatrixEditorRowScopeCard(),
+    renderMatrixEditorAuditCard(),
+    renderMatrixEditorResultCards(),
+  ]);
+}
+
+function currentMatrixEditorUniverse(): MatrixEditorUniverse | null {
+  return state.matrixEditor.universeByDomain[state.matrixEditor.domain] ?? null;
+}
+
+function renderMatrixEditorUniverseCard(): HTMLElement {
+  const universe = currentMatrixEditorUniverse();
+  if (!universe) {
+    return el("section", { class: "card" }, [
+      el("div", { class: "card__body stack" }, [
+        el("h3", {}, [t("matrix_universe")]),
+        el("p", { class: "cell-muted" }, [t("loading_resource")]),
+      ]),
+    ]);
+  }
+  const resourceTiles = (universe.resources ?? []).map((resource) => {
+    const actions = matrixEditorAvailableResourceActions(resource).join(", ") || "—";
+    return el("div", { class: "summary-tile" }, [
+      el("strong", {}, [matrixEditorResourceLabel(resource.resource_key)]),
+      el("span", { class: "cell-muted" }, [actions]),
+    ]);
+  });
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("div", { class: "toolbar" }, [
+        el("h3", {}, [t("matrix_universe")]),
+        el("span", { class: "badge" }, [universe.domain]),
+        universe.role_mutation_status ? el("span", { class: "badge" }, [universe.role_mutation_status]) : null,
+      ]),
+      el("div", { class: "summary-grid" }, resourceTiles.length ? resourceTiles : [el("div", { class: "empty" }, [t("no_resources_match")])]),
+      el("p", { class: "notice" }, [t("matrix_warning_audit")]),
+    ]),
+  ]);
+}
+
+function renderMatrixEditorResourceProposalCard(): HTMLElement {
+  const universe = currentMatrixEditorUniverse();
+  const resources = universe?.resources ?? [];
+  const draft = state.matrixEditor.resourceDraft;
+  if (!draft.resource_key && resources[0]) {
+    draft.resource_key = resources[0].resource_key;
+  }
+  const selectedResource = resources.find((resource) => resource.resource_key === draft.resource_key) ?? resources[0] ?? null;
+  const actions = selectedResource ? matrixEditorAvailableResourceActions(selectedResource) : ["create", "update"] as Array<"create" | "update">;
+  if (!actions.includes(draft.action)) {
+    draft.action = actions[0] ?? "create";
+  }
+
+  const resourceSelect = el("select", { class: "select" });
+  for (const resource of resources) {
+    resourceSelect.append(el("option", { value: resource.resource_key, selected: draft.resource_key === resource.resource_key ? true : null }, [matrixEditorResourceLabel(resource.resource_key)]));
+  }
+  resourceSelect.addEventListener("change", () => {
+    state.matrixEditor.resourceDraft.resource_key = resourceSelect.value;
+    state.matrixEditor.resourceDraft.error = null;
+    render();
+  });
+
+  const actionSelect = el("select", { class: "select" });
+  for (const action of actions) {
+    actionSelect.append(el("option", { value: action, selected: draft.action === action ? true : null }, [action]));
+  }
+  actionSelect.addEventListener("change", () => {
+    state.matrixEditor.resourceDraft.action = actionSelect.value === "update" ? "update" : "create";
+    state.matrixEditor.resourceDraft.error = null;
+    render();
+  });
+
+  const identityInput = el("input", { class: "input", value: draft.record_identity, placeholder: t("matrix_record_identity") });
+  identityInput.addEventListener("input", () => {
+    state.matrixEditor.resourceDraft.record_identity = identityInput.value;
+  });
+  const afterInput = el("textarea", { class: "textarea", spellcheck: "false" }, [draft.after_json]);
+  afterInput.addEventListener("input", () => {
+    state.matrixEditor.resourceDraft.after_json = afterInput.value;
+    state.matrixEditor.resourceDraft.error = null;
+  });
+  const addButton = el("button", { class: "button", type: "button", disabled: resources.length ? null : true }, [t("matrix_add_operation")]);
+  addButton.addEventListener("click", () => addMatrixEditorResourceProposal());
+
+  const proposalRows = state.matrixEditor.resourceProposals.map((proposal, index) => {
+    const removeButton = el("button", { class: "button flat", type: "button" }, ["×"]);
+    removeButton.addEventListener("click", () => {
+      state.matrixEditor.resourceProposals.splice(index, 1);
+      clearMatrixEditorResults();
+      render();
+    });
+    return el("tr", {}, [
+      el("td", {}, [matrixEditorResourceLabel(proposal.resource_key)]),
+      el("td", {}, [proposal.action]),
+      el("td", {}, [proposal.record_identity || "—"]),
+      el("td", { class: "cell-json" }, [safeJson(proposal.after)]),
+      el("td", {}, [removeButton]),
+    ]);
+  });
+
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("h3", {}, [t("matrix_resource_operations")]),
+      el("div", { class: "form-grid" }, [
+        fieldShell(t("matrix_resource"), resourceSelect),
+        fieldShell(t("matrix_action"), actionSelect),
+        fieldShell(t("matrix_record_identity"), identityInput),
+        el("div", { class: "field field--full" }, [
+          el("label", {}, [t("matrix_after_json")]),
+          afterInput,
+          draft.error ? el("small", { class: "error" }, [draft.error]) : null,
+        ]),
+      ]),
+      addButton,
+      state.matrixEditor.resourceProposals.length
+        ? el("div", { class: "table-wrap" }, [el("table", {}, [
+            el("thead", {}, [el("tr", {}, [
+              el("th", {}, [t("matrix_resource")]),
+              el("th", {}, [t("matrix_action")]),
+              el("th", {}, [t("matrix_record_identity")]),
+              el("th", {}, [t("matrix_after_json")]),
+              el("th", {}, [""]),
+            ])]),
+            el("tbody", {}, proposalRows),
+          ])])
+        : el("div", { class: "empty" }, [t("matrix_no_operations")]),
+    ]),
+  ]);
+}
+
+function renderMatrixEditorApiEntrypointCard(): HTMLElement {
+  const input = el("input", { class: "input", value: state.matrixEditor.apiEntrypointDraft, placeholder: t("matrix_api_placeholder") });
+  input.addEventListener("input", () => {
+    state.matrixEditor.apiEntrypointDraft = input.value;
+  });
+  const addButton = el("button", { class: "button", type: "button" }, [t("matrix_add_api")]);
+  addButton.addEventListener("click", () => addMatrixEditorApiEntrypoint());
+  const chips = state.matrixEditor.apiEntrypoints.map((apiName, index) => {
+    const remove = el("button", { class: "button flat", type: "button" }, ["×"]);
+    remove.addEventListener("click", () => {
+      state.matrixEditor.apiEntrypoints.splice(index, 1);
+      clearMatrixEditorResults();
+      render();
+    });
+    return el("span", { class: "filter-chip" }, [apiName, remove]);
+  });
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("h3", {}, [t("matrix_api_entrypoints")]),
+      el("p", { class: "cell-muted" }, [t("matrix_api_entrypoints_help")]),
+      el("div", { class: "toolbar" }, [input, addButton]),
+      el("div", { class: "filter-list" }, chips.length ? chips : [el("span", { class: "badge" }, ["—"])]),
+    ]),
+  ]);
+}
+
+function renderMatrixEditorColumnGrantCard(): HTMLElement {
+  const universe = currentMatrixEditorUniverse();
+  const resources = universe?.column_grant_universe ?? [];
+  const resourceSections = resources.flatMap((resource) => {
+    const actions = resource.actions ?? [];
+    return actions.map((action) => renderMatrixEditorColumnGrantAction(resource, action));
+  });
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("h3", {}, [t("matrix_column_grants")]),
+      el("p", { class: "cell-muted" }, [t("matrix_column_grants_help")]),
+      resourceSections.length ? el("div", { class: "stack" }, resourceSections) : el("div", { class: "empty" }, [t("matrix_no_column_grants")]),
+    ]),
+  ]);
+}
+
+function renderMatrixEditorColumnGrantAction(resource: MatrixEditorColumnGrantResource, action: MatrixEditorColumnGrantAction): HTMLElement {
+  const selectionKey = matrixEditorColumnGrantSelectionKey(resource.resource_key, action.action);
+  const selected = state.matrixEditor.columnGrantSelections.get(selectionKey) ?? new Set<string>();
+  const checkboxes = (action.columns ?? []).map((column) => {
+    const checkbox = el("input", {
+      type: "checkbox",
+      checked: selected.has(column.key) ? true : null,
+      value: column.key,
+    });
+    checkbox.addEventListener("change", () => {
+      const nextSelected = new Set(state.matrixEditor.columnGrantSelections.get(selectionKey) ?? []);
+      if (checkbox.checked) {
+        nextSelected.add(column.key);
+      } else {
+        nextSelected.delete(column.key);
+      }
+      if (nextSelected.size) {
+        state.matrixEditor.columnGrantSelections.set(selectionKey, nextSelected);
+      } else {
+        state.matrixEditor.columnGrantSelections.delete(selectionKey);
+      }
+      clearMatrixEditorResults();
+      render();
+    });
+    const label = column.label || column.alias || column.key;
+    return el("label", { class: "checkbox-row" }, [checkbox, `${label} (${column.key})`]);
+  });
+  return el("div", { class: "panel" }, [
+    el("div", { class: "toolbar" }, [
+      el("strong", {}, [resource.label || resource.alias || resource.resource_key]),
+      el("span", { class: "badge" }, [action.action]),
+      action.row_scope_type ? el("span", { class: "badge" }, [`${t("matrix_row_scope_type")}: ${action.row_scope_type}`]) : null,
+    ]),
+    el("div", { class: "form-grid" }, checkboxes),
+  ]);
+}
+
+function matrixEditorColumnGrantSelectionKey(resourceKey: string, action: string): string {
+  return `${resourceKey}::${action}`;
+}
+
+function renderMatrixEditorRowScopeCard(): HTMLElement {
+  const universe = currentMatrixEditorUniverse();
+  const scopeTypes = universe?.row_scope_types ?? [];
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("h3", {}, [t("matrix_row_scopes")]),
+      el("p", { class: "cell-muted" }, [t("matrix_row_scopes_help")]),
+      scopeTypes.length
+        ? el("div", { class: "form-grid" }, scopeTypes.map((scopeType) => renderMatrixEditorRowScopeInput(scopeType)))
+        : el("div", { class: "empty" }, [t("no_resources_match")]),
+    ]),
+  ]);
+}
+
+function renderMatrixEditorRowScopeInput(scopeType: MatrixEditorRowScopeType): HTMLElement {
+  const input = el("input", {
+    class: "input",
+    value: state.matrixEditor.rowScopeValues.get(scopeType.key) ?? "",
+    placeholder: t("matrix_scope_value_placeholder"),
+  });
+  input.addEventListener("input", () => {
+    state.matrixEditor.rowScopeValues.set(scopeType.key, input.value);
+    clearMatrixEditorResults();
+  });
+  const label = String(scopeType.label || scopeType.key || t("matrix_row_scopes"));
+  return el("div", { class: "field field--third" }, [
+    el("label", {}, [label]),
+    input,
+    scopeType.description ? el("small", {}, [String(scopeType.description)]) : null,
+  ]);
+}
+
+function renderMatrixEditorAuditCard(): HTMLElement {
+  const reasonInput = el("textarea", { class: "textarea", placeholder: t("matrix_reason") }, [state.matrixEditor.reason]);
+  reasonInput.addEventListener("input", () => {
+    state.matrixEditor.reason = reasonInput.value;
+  });
+  const confirmInput = el("input", { type: "checkbox", checked: state.matrixEditor.confirmDangerous ? true : null });
+  confirmInput.addEventListener("change", () => {
+    state.matrixEditor.confirmDangerous = confirmInput.checked;
+    render();
+  });
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      fieldShell(t("matrix_reason"), reasonInput),
+      el("label", { class: "checkbox-row" }, [confirmInput, t("matrix_confirm_apply")]),
+    ]),
+  ]);
+}
+
+function renderMatrixEditorResultCards(): HTMLElement {
+  return el("div", { class: "stack" }, [
+    state.matrixEditor.validation ? renderMatrixEditorValidationCard(state.matrixEditor.validation) : null,
+    state.matrixEditor.preview ? renderMatrixEditorPreviewCard(state.matrixEditor.preview) : null,
+    state.matrixEditor.applyResult ? renderMatrixEditorApplyResultCard(state.matrixEditor.applyResult) : null,
+  ]);
+}
+
+function renderMatrixEditorValidationCard(validation: MatrixEditorValidationResponse): HTMLElement {
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("div", { class: "toolbar" }, [
+        el("h3", {}, [t("matrix_validation")]),
+        el("span", { class: validation.valid ? "badge badge--success" : "badge badge--danger" }, [validation.valid ? t("matrix_valid") : t("matrix_invalid")]),
+      ]),
+      renderMatrixEditorIssues(validation.errors ?? [], "error"),
+      renderMatrixEditorIssues(validation.warnings ?? [], "notice"),
+    ]),
+  ]);
+}
+
+function renderMatrixEditorPreviewCard(preview: MatrixEditorPreviewResponse): HTMLElement {
+  const validation = preview.validation;
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("div", { class: "toolbar" }, [
+        el("h3", {}, [t("matrix_preview_result")]),
+        el("span", { class: preview.valid ? "badge badge--success" : "badge badge--danger" }, [preview.valid ? t("matrix_valid") : t("matrix_invalid")]),
+      ]),
+      validation ? renderMatrixEditorIssues(validation.errors ?? [], "error") : null,
+      validation ? renderMatrixEditorIssues(validation.warnings ?? [], "notice") : null,
+      preview.column_grant_preview !== undefined ? el("pre", { class: "cell-json" }, [safeJson(preview.column_grant_preview)]) : null,
+      preview.row_scope_value_preview !== undefined ? el("pre", { class: "cell-json" }, [safeJson(preview.row_scope_value_preview)]) : null,
+    ]),
+  ]);
+}
+
+function renderMatrixEditorApplyResultCard(result: MatrixEditorApplyResponse): HTMLElement {
+  const summary = {
+    committed: result.committed === true,
+    applied_count: result.applied_count ?? 0,
+    deferred_count: result.deferred_count ?? 0,
+    batch_id: result.batch_id ?? "—",
+  } satisfies Record<string, JsonValue>;
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("h3", {}, [t("matrix_apply_result")]),
+      renderSummaryGrid(summary),
+    ]),
+  ]);
+}
+
+function renderMatrixEditorIssues(issues: MatrixEditorIssue[], toneClass: "error" | "notice"): HTMLElement {
+  if (issues.length === 0) {
+    return el("div", { class: "empty" }, [t("workbook_no_issues")]);
+  }
+  return el("div", { class: "stack" }, issues.map((issue) => el("div", { class: toneClass }, [
+    issue.path ? el("strong", {}, [issue.path]) : null,
+    issue.path ? " — " : null,
+    issue.message,
+  ])));
+}
+
+function matrixEditorAvailableResourceActions(resource: MatrixEditorUniverseResource): Array<"create" | "update"> {
+  const actions: Array<"create" | "update"> = [];
+  if (resource.actions?.create !== false) {
+    actions.push("create");
+  }
+  if (resource.actions?.update !== false) {
+    actions.push("update");
+  }
+  return actions.length ? actions : ["create", "update"];
+}
+
+function matrixEditorResourceLabel(resourceKey: string): string {
+  const resource = currentMatrixEditorUniverse()?.resources?.find((candidate) => candidate.resource_key === resourceKey);
+  return resource?.label || resource?.alias || t("matrix_resource");
+}
+
+function addMatrixEditorResourceProposal(): void {
+  const draft = state.matrixEditor.resourceDraft;
+  try {
+    const parsed = JSON.parse(draft.after_json) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("after must be a JSON object");
+    }
+    const after = parsed as Record<string, JsonValue>;
+    const proposal: MatrixEditorResourceProposal = {
+      resource_key: draft.resource_key,
+      action: draft.action,
+      after,
+    };
+    if (draft.action === "update" && draft.record_identity.trim()) {
+      proposal.record_identity = draft.record_identity.trim();
+    }
+    state.matrixEditor.resourceProposals.push(proposal);
+    state.matrixEditor.resourceDraft = emptyMatrixEditorResourceDraft();
+    const firstResource = currentMatrixEditorUniverse()?.resources?.[0];
+    if (firstResource) {
+      state.matrixEditor.resourceDraft.resource_key = firstResource.resource_key;
+    }
+    clearMatrixEditorResults();
+    render();
+  } catch (error) {
+    state.matrixEditor.resourceDraft.error = error instanceof Error ? error.message : "Invalid JSON";
+    render();
+  }
+}
+
+function addMatrixEditorApiEntrypoint(): void {
+  const apiName = state.matrixEditor.apiEntrypointDraft.trim();
+  const prefix = `db_admin.matrix_editor.${state.matrixEditor.domain}.`;
+  if (!apiName || !apiName.startsWith(prefix) || state.matrixEditor.apiEntrypoints.includes(apiName)) {
+    return;
+  }
+  state.matrixEditor.apiEntrypoints.push(apiName);
+  state.matrixEditor.apiEntrypointDraft = "";
+  clearMatrixEditorResults();
+  render();
+}
+
+function matrixEditorColumnGrantPayload(): MatrixEditorColumnGrantProposal[] {
+  const universe = currentMatrixEditorUniverse();
+  const proposals: MatrixEditorColumnGrantProposal[] = [];
+  for (const resource of universe?.column_grant_universe ?? []) {
+    for (const action of resource.actions ?? []) {
+      const selectionKey = matrixEditorColumnGrantSelectionKey(resource.resource_key, action.action);
+      const selected = state.matrixEditor.columnGrantSelections.get(selectionKey);
+      if (selected?.size) {
+        const availableColumns = new Set((action.columns ?? []).map((column) => column.key));
+        const columns = [...selected].filter((column) => availableColumns.has(column)).sort();
+        if (columns.length) {
+          proposals.push({ resource_key: resource.resource_key, action: action.action, columns });
+        }
+      }
+    }
+  }
+  return proposals;
+}
+
+function matrixEditorRowScopeValuePayload(): MatrixEditorRowScopeValueProposal[] {
+  const proposals: MatrixEditorRowScopeValueProposal[] = [];
+  for (const [rowScopeType, raw] of state.matrixEditor.rowScopeValues.entries()) {
+    const values = raw.split(",").map((value) => value.trim()).filter(Boolean).map(coerceMatrixEditorScalar);
+    if (values.length) {
+      proposals.push({ row_scope_type: rowScopeType, values });
+    }
+  }
+  return proposals;
+}
+
+function coerceMatrixEditorScalar(value: string): string | number | boolean {
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return coerceScalar(value);
+}
+
+function matrixEditorPayload(): MatrixEditorPayload {
+  const proposal: MatrixEditorProposalBody = {};
+  if (state.matrixEditor.resourceProposals.length) {
+    proposal.resources = state.matrixEditor.resourceProposals;
+  }
+  if (state.matrixEditor.apiEntrypoints.length) {
+    proposal.api_entrypoints = [...state.matrixEditor.apiEntrypoints];
+  }
+  const columnGrants = matrixEditorColumnGrantPayload();
+  if (columnGrants.length) {
+    proposal.column_grants = columnGrants;
+  }
+  const rowScopeValues = matrixEditorRowScopeValuePayload();
+  if (rowScopeValues.length) {
+    proposal.row_scope_values = rowScopeValues;
+  }
+  const payload: MatrixEditorPayload = {
+    domain: state.matrixEditor.domain,
+    proposal,
+  };
+  if (state.matrixEditor.reason.trim()) {
+    payload.reason = state.matrixEditor.reason.trim();
+  }
+  return payload;
+}
+
+function clearMatrixEditorResults(): void {
+  state.matrixEditor.validation = null;
+  state.matrixEditor.preview = null;
+  state.matrixEditor.applyResult = null;
+}
+
+async function loadMatrixEditorUniverse(): Promise<void> {
+  state.matrixEditor.loading = true;
+  state.matrixEditor.error = null;
+  try {
+    const universe = await apiFetch<MatrixEditorUniverse>(withSurface("/api/matrix-editor/universe/", { domain: state.matrixEditor.domain }));
+    state.matrixEditor.universeByDomain[state.matrixEditor.domain] = universe;
+  } catch (error) {
+    state.matrixEditor.error = error instanceof Error ? error.message : t("matrix_universe_failed");
+    notify("error", state.matrixEditor.error);
+  } finally {
+    state.matrixEditor.loading = false;
+    render();
+  }
+}
+
+async function validateMatrixEditorProposal(): Promise<void> {
+  state.matrixEditor.loading = true;
+  state.matrixEditor.error = null;
+  try {
+    state.matrixEditor.validation = await apiFetch<MatrixEditorValidationResponse>(withSurface("/api/matrix-editor/validate/"), {
+      method: "POST",
+      body: JSON.stringify(matrixEditorPayload()),
+    });
+    state.matrixEditor.preview = null;
+    state.matrixEditor.applyResult = null;
+  } catch (error) {
+    state.matrixEditor.error = error instanceof Error ? error.message : t("matrix_validate_failed");
+    notify("error", state.matrixEditor.error);
+  } finally {
+    state.matrixEditor.loading = false;
+    render();
+  }
+}
+
+async function previewMatrixEditorProposal(): Promise<void> {
+  state.matrixEditor.loading = true;
+  state.matrixEditor.error = null;
+  try {
+    state.matrixEditor.preview = await apiFetch<MatrixEditorPreviewResponse>(withSurface("/api/matrix-editor/preview/"), {
+      method: "POST",
+      body: JSON.stringify(matrixEditorPayload()),
+    });
+    state.matrixEditor.validation = state.matrixEditor.preview.validation ?? state.matrixEditor.validation;
+    state.matrixEditor.applyResult = null;
+  } catch (error) {
+    state.matrixEditor.error = error instanceof Error ? error.message : t("matrix_preview_failed");
+    notify("error", state.matrixEditor.error);
+  } finally {
+    state.matrixEditor.loading = false;
+    render();
+  }
+}
+
+async function applyMatrixEditorProposal(): Promise<void> {
+  if (!state.matrixEditor.confirmDangerous) {
+    return;
+  }
+  state.matrixEditor.loading = true;
+  state.matrixEditor.error = null;
+  try {
+    state.matrixEditor.applyResult = await apiFetch<MatrixEditorApplyResponse>(withSurface("/api/matrix-editor/apply/"), {
+      method: "POST",
+      body: JSON.stringify(matrixEditorPayload()),
+    });
+    notify("success", t("matrix_apply_result"));
+  } catch (error) {
+    state.matrixEditor.error = error instanceof Error ? error.message : t("matrix_apply_failed");
+    notify("error", state.matrixEditor.error);
+  } finally {
+    state.matrixEditor.loading = false;
+    render();
+  }
+}
+
+
+function auditViewListPath(): string {
+  const params: Record<string, string> = {};
+  const filters = state.auditView.filters;
+  if (filters.status.trim()) params.status = filters.status.trim();
+  if (filters.source.trim()) params.source = filters.source.trim();
+  if (filters.domain.trim()) params.domain = filters.domain.trim();
+  if (state.auditView.kind === "events" && filters.eventType.trim()) params.event_type = filters.eventType.trim();
+  if (filters.limit.trim()) params.limit = String(parsePositiveInt(filters.limit, 50));
+  if (filters.offset.trim()) params.offset = String(Math.max(0, parsePositiveInt(filters.offset, 0)));
+  return withQueryParams(`/api/db-admin-audit/${state.auditView.kind}/`, params);
+}
+
+function auditViewDetailPath(id: string): string {
+  return `/api/db-admin-audit/${state.auditView.kind}/${encodeURIComponent(id)}/`;
+}
+
+async function loadAuditViewList(): Promise<void> {
+  state.auditView.loading = true;
+  state.auditView.error = null;
+  try {
+    state.auditView.list = await apiFetch<AuditListResponse>(auditViewListPath());
+    state.auditView.detail = null;
+    state.auditView.selectedId = null;
+  } catch (error) {
+    state.auditView.error = error instanceof Error ? error.message : t("audit_load_failed");
+    notify("error", state.auditView.error);
+  } finally {
+    state.auditView.loading = false;
+    render();
+  }
+}
+
+async function loadAuditViewDetail(id: string): Promise<void> {
+  state.auditView.loading = true;
+  state.auditView.error = null;
+  try {
+    state.auditView.detail = await apiFetch<AuditDetailResponse>(auditViewDetailPath(id));
+    state.auditView.selectedId = id;
+  } catch (error) {
+    state.auditView.error = error instanceof Error ? error.message : t("audit_detail_failed");
+    notify("error", state.auditView.error);
+  } finally {
+    state.auditView.loading = false;
+    render();
+  }
+}
+
+async function loadResourceExposureManifest(): Promise<void> {
+  state.resourceExposure.loading = true;
+  state.resourceExposure.error = null;
+  try {
+    state.resourceExposure.manifest = await apiFetch<ResourceExposureManifest>("/api/db-admin-resource-exposure/manifest/");
+  } catch (error) {
+    state.resourceExposure.error = error instanceof Error ? error.message : t("resource_exposure_load_failed");
+    notify("error", state.resourceExposure.error);
+  } finally {
+    state.resourceExposure.loading = false;
+    render();
+  }
+}
+
+function renderResourceExposurePage(): HTMLElement {
+  if (!state.resourceExposure.manifest && !state.resourceExposure.loading) {
+    void loadResourceExposureManifest();
+  }
+
+  const refreshButton = el("button", { class: "button", type: "button", disabled: state.resourceExposure.loading ? true : null }, [t("refresh_resource")]);
+  refreshButton.addEventListener("click", () => {
+    void loadResourceExposureManifest();
+  });
+
+  const notices: Node[] = [];
+  if (state.resourceExposure.error) {
+    notices.push(el("div", { class: "error" }, [state.resourceExposure.error]));
+  }
+  if (state.resourceExposure.loading) {
+    notices.push(renderLoadingPage(t("loading_resource")));
+  }
+
+  return el("section", { class: "stack resource-exposure" }, [
+    el("header", { class: "page-header" }, [
+      el("div", {}, [
+        el("h2", { class: "page-title" }, [t("resource_exposure_title")]),
+        el("p", { class: "page-subtitle" }, [t("resource_exposure_subtitle")]),
+      ]),
+      el("div", { class: "toolbar" }, [refreshButton]),
+    ]),
+    ...notices,
+    renderResourceExposureSummary(),
+    renderResourceExposureFilters(),
+    renderResourceExposureTable(),
+    renderResourceExposureManifestJson(),
+  ]);
+}
+
+function renderResourceExposureSummary(): HTMLElement {
+  const manifest = state.resourceExposure.manifest;
+  if (!manifest) {
+    return el("section", { class: "card" }, [el("div", { class: "card__body cell-muted" }, [t("resource_exposure_load_failed")])]);
+  }
+  const counts = manifest.counts_by_exposure ?? {};
+  const countBadges = Object.entries(counts).map(([key, value]) => el("span", { class: "badge" }, [`${key}: ${value}`]));
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("div", { class: "toolbar" }, [
+        el("h3", {}, [t("resource_exposure_counts")]),
+        manifest.platform_only ? el("span", { class: "badge" }, [t("resource_exposure_platform_only")]) : null,
+      ]),
+      el("div", { class: "toolbar" }, countBadges),
+      manifest.classification_ssot ? el("p", { class: "meta-line" }, [`SSOT: ${manifest.classification_ssot}`]) : null,
+      manifest.redacted_internal_resource_inspection
+        ? el("div", { class: "notice" }, [`${t("resource_exposure_redaction")}: ${safeJson(manifest.redacted_internal_resource_inspection as RecordValue)}`])
+        : null,
+    ]),
+  ]);
+}
+
+function renderResourceExposureFilters(): HTMLElement {
+  const exposureSelect = el("select", { class: "input" });
+  exposureSelect.append(el("option", { value: "", selected: state.resourceExposure.exposureFilter === "" ? true : null }, [t("all")]));
+  for (const exposure of resourceExposureOptions()) {
+    exposureSelect.append(el("option", { value: exposure, selected: state.resourceExposure.exposureFilter === exposure ? true : null }, [exposure]));
+  }
+  exposureSelect.addEventListener("change", () => {
+    state.resourceExposure.exposureFilter = exposureSelect.value;
+    render();
+  });
+
+  const queryInput = el("input", { class: "input", type: "search", value: state.resourceExposure.query, placeholder: t("resource_exposure_query") });
+  queryInput.addEventListener("input", () => {
+    state.resourceExposure.query = queryInput.value;
+    render();
+  });
+
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body toolbar" }, [
+      fieldShell(t("resource_exposure_filter"), exposureSelect),
+      fieldShell(t("resource_exposure_query"), queryInput),
+    ]),
+  ]);
+}
+
+function renderResourceExposureTable(): HTMLElement {
+  const resources = filteredResourceExposureItems();
+  if (!resources.length) {
+    return el("section", { class: "card" }, [el("div", { class: "card__body empty" }, [t("resource_exposure_no_resources")])]);
+  }
+  const rows = resources.map((item) => el("tr", {}, [
+    el("td", {}, [item.resource_key]),
+    el("td", {}, [item.model]),
+    el("td", {}, [item.exposure]),
+    el("td", {}, [item.inspection_mode]),
+    el("td", {}, [item.generic_discovery_eligible ? t("yes") : t("no")]),
+    el("td", {}, [`${item.path}:${item.line}`]),
+  ]));
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body table-wrap" }, [
+      el("table", { class: "records-table" }, [
+        el("thead", {}, [el("tr", {}, [
+          el("th", {}, ["resource_key"]),
+          el("th", {}, ["model"]),
+          el("th", {}, ["exposure"]),
+          el("th", {}, ["inspection_mode"]),
+          el("th", {}, ["generic_discovery_eligible"]),
+          el("th", {}, ["source"]),
+        ])]),
+        el("tbody", {}, rows),
+      ]),
+    ]),
+  ]);
+}
+
+function renderResourceExposureManifestJson(): HTMLElement {
+  const manifest = state.resourceExposure.manifest;
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("h3", {}, [t("resource_exposure_manifest")]),
+      el("pre", { class: "cell-json" }, [safeJson((manifest ?? {}) as RecordValue)]),
+    ]),
+  ]);
+}
+
+function resourceExposureOptions(): string[] {
+  const manifest = state.resourceExposure.manifest;
+  return Object.keys(manifest?.counts_by_exposure ?? {}).sort();
+}
+
+function filteredResourceExposureItems(): ResourceExposureManifestItem[] {
+  const manifest = state.resourceExposure.manifest;
+  const resources = manifest?.resources ?? [];
+  const exposure = state.resourceExposure.exposureFilter;
+  const query = state.resourceExposure.query.trim().toLowerCase();
+  return resources.filter((item) => {
+    if (exposure && item.exposure !== exposure) {
+      return false;
+    }
+    if (!query) {
+      return true;
+    }
+    return [item.model, item.resource_key, item.path, item.inspection_mode, item.exposure]
+      .some((value) => value.toLowerCase().includes(query));
+  });
+}
+
+
+function renderSetupWorkbookPage(): HTMLElement {
+  if (!state.setupWorkbook.manifest && !state.setupWorkbook.loading) {
+    void loadSetupWorkbookManifest();
+  }
+
+  const templateButton = el("button", { class: "button", type: "button" }, [t("download_template")]);
+  templateButton.addEventListener("click", () => {
+    void downloadSetupWorkbookTemplate();
+  });
+
+  const fileInput = el("input", {
+    class: "input",
+    type: "file",
+    accept: ".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "aria-label": t("choose_workbook"),
+  }) as HTMLInputElement;
+  fileInput.addEventListener("change", () => {
+    state.setupWorkbook.selectedFile = fileInput.files?.[0] ?? null;
+    state.setupWorkbook.dryRunResult = null;
+    state.setupWorkbook.commitPlan = null;
+    state.setupWorkbook.omittedRows.clear();
+    state.setupWorkbook.confirmedWarningCodes.clear();
+    state.setupWorkbook.cellCorrections.clear();
+    state.setupWorkbook.error = null;
+    render();
+  });
+
+  const dryRunButton = el("button", {
+    class: "button primary",
+    type: "button",
+    disabled: state.setupWorkbook.selectedFile && !state.setupWorkbook.loading ? null : true,
+  }, [t("run_dry_run")]);
+  dryRunButton.addEventListener("click", () => {
+    void runSetupWorkbookDryRun();
+  });
+
+  const previewButton = el("button", {
+    class: "button",
+    type: "button",
+    disabled: state.setupWorkbook.selectedFile && state.setupWorkbook.dryRunResult && !state.setupWorkbook.loading ? null : true,
+  }, [t("build_preview")]);
+  previewButton.addEventListener("click", () => {
+    void buildSetupWorkbookCommitPlan();
+  });
+
+  const reasonInput = el("textarea", {
+    class: "textarea",
+    placeholder: t("workbook_reason"),
+  }, [state.setupWorkbook.reason]);
+  reasonInput.addEventListener("change", () => {
+    state.setupWorkbook.reason = reasonInput.value;
+  });
+
+  const notices: Node[] = [];
+  if (state.setupWorkbook.error) {
+    notices.push(el("div", { class: "error" }, [state.setupWorkbook.error]));
+  }
+  notices.push(el("div", { class: "notice" }, [t("workbook_no_business_writes")]));
+
+  return el("section", { class: "stack setup-workbook" }, [
+    el("header", { class: "page-header" }, [
+      el("div", {}, [
+        el("h2", { class: "page-title" }, [t("setup_workbook_title")]),
+        el("p", { class: "page-subtitle" }, [t("setup_workbook_subtitle")]),
+      ]),
+      el("div", { class: "toolbar" }, [templateButton]),
+    ]),
+    ...notices,
+    el("section", { class: "card" }, [
+      el("div", { class: "card__body stack" }, [
+        el("div", { class: "toolbar" }, [fileInput, dryRunButton, previewButton]),
+        fieldShell(t("workbook_reason"), reasonInput),
+        state.setupWorkbook.selectedFile
+          ? el("p", { class: "meta-line" }, [state.setupWorkbook.selectedFile.name])
+          : el("p", { class: "cell-muted" }, [t("workbook_select_file")]),
+      ]),
+    ]),
+    renderSetupWorkbookManifestCard(),
+    renderSetupWorkbookDryRunResult(),
+    renderSetupWorkbookCommitPlan(),
+  ]);
+}
+
+function renderSetupWorkbookManifestCard(): HTMLElement {
+  const manifest = state.setupWorkbook.manifest;
+  if (state.setupWorkbook.loading && !manifest) {
+    return renderLoadingPage(t("loading_resource"));
+  }
+  if (!manifest) {
+    return el("section", { class: "card" }, [
+      el("div", { class: "card__body cell-muted" }, [t("workbook_manifest_failed")]),
+    ]);
+  }
+  const sheets = manifest.sheets ?? [];
+  const sheetList = el("div", { class: "setup-workbook__sheet-grid" });
+  for (const sheet of sheets) {
+    const requiredColumns = (sheet.columns ?? []).filter((column) => column.required).length;
+    sheetList.append(el("div", { class: "setup-workbook__sheet-card" }, [
+      el("strong", {}, [sheet.title || sheet.key]),
+      el("span", { class: "cell-muted" }, [sheet.description || sheet.resource_key || ""]),
+      el("span", { class: "badge" }, [`${(sheet.columns ?? []).length} columns`]),
+      requiredColumns ? el("span", { class: "badge" }, [`${requiredColumns} required`]) : null,
+    ]));
+  }
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("h3", {}, [t("workbook_summary")]),
+      sheetList,
+    ]),
+  ]);
+}
+
+function renderSetupWorkbookDryRunResult(): HTMLElement {
+  const result = state.setupWorkbook.dryRunResult;
+  if (!result) {
+    return el("section", { class: "card" }, [el("div", { class: "card__body cell-muted" }, [t("workbook_no_preview")])]);
+  }
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("div", { class: "toolbar" }, [
+        el("h3", {}, [t("workbook_summary")]),
+        el("span", { class: `badge badge--${result.status === "valid" ? "success" : "danger"}` }, [result.status]),
+      ]),
+      renderSummaryGrid(result.summary ?? {}),
+      renderSetupWorkbookIssueGroups(result),
+      renderSetupWorkbookRows(result),
+    ]),
+  ]);
+}
+
+function renderSetupWorkbookIssueGroups(result: SetupWorkbookDryRunResult): HTMLElement {
+  const issues = [
+    ...(result.errors ?? []).map((issue) => ({ ...issue, severity: issue.severity ?? "error" })),
+    ...(result.warnings ?? []).map((issue) => ({ ...issue, severity: issue.severity ?? "warning" })),
+  ];
+  if (issues.length === 0) {
+    return el("section", { class: "stack" }, [
+      el("h3", {}, [t("workbook_issues")]),
+      el("div", { class: "success" }, [t("workbook_no_issues")]),
+    ]);
+  }
+
+  const groups = new Map<string, SetupWorkbookIssue[]>();
+  for (const issue of issues) {
+    const key = issue.sheet || "general";
+    groups.set(key, [...(groups.get(key) ?? []), issue]);
+  }
+  const container = el("section", { class: "stack" }, [el("h3", {}, [t("workbook_issues")])]);
+  for (const [sheet, sheetIssues] of groups) {
+    container.append(el("details", { class: "contract-details", open: true }, [
+      el("summary", {}, [`${sheet} (${sheetIssues.length})`]),
+      el("div", { class: "contract-details__body" }, sheetIssues.map(renderSetupWorkbookIssue)),
+    ]));
+  }
+  return container;
+}
+
+function renderSetupWorkbookIssue(issue: SetupWorkbookIssue): HTMLElement {
+  const rowKey = setupWorkbookIssueRowKey(issue);
+  const controls: Node[] = [];
+  if (issue.omittable && rowKey) {
+    const omit = el("input", {
+      type: "checkbox",
+      checked: state.setupWorkbook.omittedRows.has(rowKey),
+      "aria-label": t("workbook_omit_row"),
+    }) as HTMLInputElement;
+    omit.addEventListener("change", () => {
+      if (omit.checked) {
+        state.setupWorkbook.omittedRows.add(rowKey);
+      } else {
+        state.setupWorkbook.omittedRows.delete(rowKey);
+      }
+      state.setupWorkbook.commitPlan = null;
+      render();
+    });
+    controls.push(el("label", { class: "checkbox-row" }, [omit, t("workbook_omit_row")]));
+  }
+  if (issue.requires_confirmation) {
+    const confirm = el("input", {
+      type: "checkbox",
+      checked: state.setupWorkbook.confirmedWarningCodes.has(issue.code),
+      "aria-label": `${t("workbook_confirm_warning")} ${issue.code}`,
+    }) as HTMLInputElement;
+    confirm.addEventListener("change", () => {
+      if (confirm.checked) {
+        state.setupWorkbook.confirmedWarningCodes.add(issue.code);
+      } else {
+        state.setupWorkbook.confirmedWarningCodes.delete(issue.code);
+      }
+      state.setupWorkbook.commitPlan = null;
+      render();
+    });
+    controls.push(el("label", { class: "checkbox-row" }, [confirm, `${t("workbook_confirm_warning")}: ${issue.code}`]));
+  }
+  const location = [
+    issue.row ? `row ${issue.row}` : "",
+    issue.column ? `column ${issue.column}` : "",
+  ].filter(Boolean).join(" · ");
+  return el("div", { class: `setup-workbook__issue setup-workbook__issue--${issue.severity === "error" ? "error" : "warning"}` }, [
+    el("div", {}, [
+      el("strong", {}, [issue.code]),
+      location ? el("span", { class: "cell-muted" }, [` ${location}`]) : null,
+      el("p", {}, [issue.message]),
+    ]),
+    controls.length ? el("div", { class: "stack" }, controls) : null,
+  ]);
+}
+
+function renderSetupWorkbookRows(result: SetupWorkbookDryRunResult): HTMLElement {
+  const sheets = result.sheets ?? [];
+  if (sheets.length === 0) {
+    return el("section", { class: "stack" }, [el("h3", {}, [t("workbook_rows")]), el("div", { class: "empty" }, [t("no_records_returned")])]);
+  }
+  const table = el("table");
+  table.append(el("thead", {}, [el("tr", {}, [
+    el("th", {}, ["Sheet"]),
+    el("th", {}, ["Resource"]),
+    el("th", {}, ["Rows"]),
+    el("th", {}, ["Operations"]),
+  ])]));
+  const body = el("tbody");
+  for (const sheet of sheets) {
+    const operationCounts = new Map<string, number>();
+    for (const row of sheet.rows ?? []) {
+      const operation = row.operation || "create_or_update";
+      operationCounts.set(operation, (operationCounts.get(operation) ?? 0) + 1);
+    }
+    body.append(el("tr", {}, [
+      el("td", {}, [sheet.title || sheet.sheet]),
+      el("td", {}, [sheet.resource_key || "—"]),
+      el("td", {}, [String((sheet.rows ?? []).length)]),
+      el("td", {}, [[...operationCounts.entries()].map(([key, count]) => `${key}: ${count}`).join(", ") || "—"]),
+    ]));
+  }
+  table.append(body);
+  return el("section", { class: "stack" }, [
+    el("h3", {}, [t("workbook_rows")]),
+    el("div", { class: "table-wrap" }, [table]),
+    renderSetupWorkbookCellFixes(sheets),
+  ]);
+}
+
+function renderSetupWorkbookCellFixes(sheets: SetupWorkbookSheetResult[]): HTMLElement {
+  const details = el("section", { class: "stack" }, [
+    el("h3", {}, [t("workbook_cell_fixes")]),
+    el("p", { class: "cell-muted" }, [t("workbook_cell_fixes_help")]),
+    el("span", { class: "badge" }, [`${state.setupWorkbook.cellCorrections.size} ${t("workbook_changed_cells")}`]),
+  ]);
+  const sheetManifestByKey = new Map((state.setupWorkbook.manifest?.sheets ?? []).map((sheet) => [sheet.key, sheet]));
+  for (const sheet of sheets) {
+    const manifestSheet = sheetManifestByKey.get(sheet.sheet);
+    const rows = sheet.rows ?? [];
+    if (!manifestSheet || rows.length === 0) {
+      continue;
+    }
+    const editableColumns = manifestSheet.columns ?? [];
+    const table = el("table", { class: "setup-workbook__fix-table" });
+    table.append(el("thead", {}, [el("tr", {}, [
+      el("th", {}, ["Row"]),
+      el("th", {}, ["Operation"]),
+      ...editableColumns.map((column) => el("th", {}, [column.label || column.key])),
+    ])]));
+    const body = el("tbody");
+    for (const row of rows) {
+      body.append(el("tr", {}, [
+        el("td", {}, [String(row.row_number)]),
+        el("td", {}, [row.operation || "create_or_update"]),
+        ...editableColumns.map((column) => el("td", {}, [renderSetupWorkbookCellInput(sheet.sheet, row, column)])),
+      ]));
+    }
+    table.append(body);
+    details.append(el("details", { class: "contract-details" }, [
+      el("summary", {}, [`${sheet.title || sheet.sheet} (${rows.length})`]),
+      el("div", { class: "contract-details__body" }, [el("div", { class: "table-wrap" }, [table])]),
+    ]));
+  }
+  return details;
+}
+
+function renderSetupWorkbookCellInput(
+  sheet: string,
+  row: SetupWorkbookStagedRow,
+  column: SetupWorkbookColumnManifest,
+): HTMLElement {
+  const key = setupWorkbookCellCorrectionKey(sheet, row.row_number, column.key);
+  const originalValue = row.values?.[column.key];
+  const currentValue = state.setupWorkbook.cellCorrections.get(key)?.value ?? row.corrected_values?.[column.key] ?? originalValue;
+  const input = el("input", {
+    class: state.setupWorkbook.cellCorrections.has(key) ? "input setup-workbook__cell-input setup-workbook__cell-input--changed" : "input setup-workbook__cell-input",
+    type: "text",
+    "aria-label": `${sheet} row ${row.row_number} ${column.key}`,
+  }) as HTMLInputElement;
+  input.value = formatWorkbookCellInputValue(currentValue);
+  input.addEventListener("change", () => {
+    updateSetupWorkbookCellCorrection(sheet, row, column, input.value);
+  });
+  return input;
+}
+
+function updateSetupWorkbookCellCorrection(
+  sheet: string,
+  row: SetupWorkbookStagedRow,
+  column: SetupWorkbookColumnManifest,
+  rawValue: string,
+): void {
+  const key = setupWorkbookCellCorrectionKey(sheet, row.row_number, column.key);
+  const originalValue = formatWorkbookCellInputValue(row.values?.[column.key]);
+  if (rawValue === originalValue) {
+    state.setupWorkbook.cellCorrections.delete(key);
+  } else {
+    state.setupWorkbook.cellCorrections.set(key, {
+      sheet,
+      row_number: row.row_number,
+      column: column.key,
+      value: rawValue === "" ? null : rawValue,
+    });
+  }
+  state.setupWorkbook.commitPlan = null;
+  render();
+}
+
+
+function renderSetupWorkbookCommitPlan(): HTMLElement {
+  const plan = state.setupWorkbook.commitPlan;
+  if (!plan) {
+    return el("section", { class: "card" }, [
+      el("div", { class: "card__body cell-muted" }, [t("workbook_no_preview")]),
+    ]);
+  }
+  const notice = plan.commit_allowed
+    ? el("div", { class: "success" }, [t("workbook_plan_ready")])
+    : el("div", { class: "error" }, [t("workbook_plan_blocked")]);
+  const rejected = plan.rejected_reasons?.length
+    ? el("div", { class: "stack" }, plan.rejected_reasons.map((reason) => el("div", { class: "notice" }, [
+        el("strong", {}, [String(reason.code ?? "blocked")]),
+        el("p", {}, [String(reason.message ?? "")]),
+      ])))
+    : null;
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("h3", {}, [t("workbook_preview")]),
+      notice,
+      rejected,
+      renderSummaryGrid(plan.summary ?? {}),
+      renderSetupWorkbookOperations(plan.operations ?? []),
+    ]),
+  ]);
+}
+
+function renderSetupWorkbookOperations(operations: SetupWorkbookCommitOperation[]): HTMLElement {
+  if (operations.length === 0) {
+    return el("section", { class: "stack" }, [el("h3", {}, [t("workbook_operations")]), el("div", { class: "empty" }, [t("no_records_returned")])]);
+  }
+  const table = el("table");
+  table.append(el("thead", {}, [el("tr", {}, [
+    el("th", {}, ["#"]),
+    el("th", {}, ["Sheet"]),
+    el("th", {}, ["Row"]),
+    el("th", {}, ["Action"]),
+    el("th", {}, ["Status"]),
+    el("th", {}, ["Warnings"]),
+  ])]));
+  const body = el("tbody");
+  for (const operation of operations) {
+    body.append(el("tr", {}, [
+      el("td", {}, [String(operation.sequence)]),
+      el("td", {}, [operation.sheet || "—"]),
+      el("td", {}, [operation.row_number === null || operation.row_number === undefined ? "—" : String(operation.row_number)]),
+      el("td", {}, [operation.action || "—"]),
+      el("td", {}, [operation.status || "—"]),
+      el("td", {}, [(operation.warnings ?? []).map((warning) => warning.code).join(", ") || "—"]),
+    ]));
+  }
+  table.append(body);
+  return el("section", { class: "stack" }, [
+    el("h3", {}, [t("workbook_operations")]),
+    el("div", { class: "table-wrap" }, [table]),
+  ]);
+}
+
+function renderSummaryGrid(summary: Record<string, JsonValue>): HTMLElement {
+  const entries = Object.entries(summary);
+  if (entries.length === 0) {
+    return el("div", { class: "empty" }, ["—"]);
+  }
+  return el("div", { class: "summary-grid" }, entries.map(([key, value]) => el("div", { class: "summary-tile" }, [
+    el("span", { class: "cell-muted" }, [key.replaceAll("_", " ")]),
+    el("strong", {}, [formatSummaryValue(value)]),
+  ])));
+}
+
+function formatSummaryValue(value: JsonValue): string {
+  if (Array.isArray(value)) {
+    return value.map(formatSummaryValue).join(", ");
+  }
+  if (value && typeof value === "object") {
+    return JSON.stringify(value);
+  }
+  return value === null || value === undefined ? "—" : String(value);
+}
+
+function formatWorkbookCellInputValue(value: JsonValue | undefined): string {
+  if (Array.isArray(value)) {
+    return value.map(formatWorkbookCellInputValue).join("; ");
+  }
+  if (value && typeof value === "object") {
+    return JSON.stringify(value);
+  }
+  return value === null || value === undefined ? "" : String(value);
+}
+
+function setupWorkbookCellCorrectionKey(sheet: string, row: number, column: string): string {
+  return `${sheet}:${row}:${column}`;
+}
+
+function setupWorkbookCellCorrections(): SetupWorkbookCellCorrection[] {
+  return [...state.setupWorkbook.cellCorrections.values()].sort((left, right) => {
+    const sheetOrder = left.sheet.localeCompare(right.sheet);
+    if (sheetOrder !== 0) {
+      return sheetOrder;
+    }
+    const rowOrder = left.row_number - right.row_number;
+    if (rowOrder !== 0) {
+      return rowOrder;
+    }
+    return left.column.localeCompare(right.column);
+  });
+}
+
+function appendSetupWorkbookCellCorrections(formData: FormData): void {
+  for (const correction of setupWorkbookCellCorrections()) {
+    formData.append("corrected_values", JSON.stringify(correction));
+  }
+}
+
+function setupWorkbookIssueRowKey(issue: SetupWorkbookIssue): string | null {
+  if (!issue.sheet || !issue.row) {
+    return null;
+  }
+  return setupWorkbookRowKey(issue.sheet, issue.row);
+}
+
+function setupWorkbookRowKey(sheet: string, row: number): string {
+  return `${sheet}:${row}`;
+}
+
+function omittedSetupWorkbookRows(): Array<{ sheet: string; row_number: number }> {
+  return [...state.setupWorkbook.omittedRows].map((key) => {
+    const [sheet = "", rowNumber = "0"] = key.split(":");
+    return { sheet, row_number: Number.parseInt(rowNumber, 10) || 0 };
+  }).filter((row) => row.sheet && row.row_number > 0);
+}
+
+async function loadSetupWorkbookManifest(): Promise<void> {
+  state.setupWorkbook.loading = true;
+  state.setupWorkbook.error = null;
+  render();
+  try {
+    state.setupWorkbook.manifest = await apiFetch<SetupWorkbookManifest>(withSurface("/api/setup-workbook/manifest/"));
+  } catch (error) {
+    state.setupWorkbook.error = error instanceof Error ? error.message : t("workbook_manifest_failed");
+    notify("error", state.setupWorkbook.error);
+  } finally {
+    state.setupWorkbook.loading = false;
+    render();
+  }
+}
+
+async function downloadSetupWorkbookTemplate(): Promise<void> {
+  try {
+    const blob = await apiFetchBlob(withSurface("/api/setup-workbook/template/"));
+    const url = URL.createObjectURL(blob);
+    const link = el("a", { href: url, download: "db-admin-yearly-setup-template.xlsx" });
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    state.setupWorkbook.error = error instanceof Error ? error.message : t("workbook_template_failed");
+    notify("error", state.setupWorkbook.error);
+    render();
+  }
+}
+
+async function runSetupWorkbookDryRun(): Promise<void> {
+  if (!state.setupWorkbook.selectedFile) {
+    state.setupWorkbook.error = t("workbook_select_file");
+    render();
+    return;
+  }
+  state.setupWorkbook.loading = true;
+  state.setupWorkbook.error = null;
+  state.setupWorkbook.commitPlan = null;
+  render();
+  try {
+    const formData = new FormData();
+    formData.append("file", state.setupWorkbook.selectedFile);
+    appendSetupWorkbookCellCorrections(formData);
+    state.setupWorkbook.dryRunResult = await apiFetch<SetupWorkbookDryRunResult>(withSurface("/api/setup-workbook/dry-run/"), {
+      method: "POST",
+      body: formData,
+    });
+    state.setupWorkbook.omittedRows.clear();
+    state.setupWorkbook.confirmedWarningCodes.clear();
+  } catch (error) {
+    state.setupWorkbook.error = error instanceof Error ? error.message : t("workbook_dry_run_failed");
+    notify("error", state.setupWorkbook.error);
+  } finally {
+    state.setupWorkbook.loading = false;
+    render();
+  }
+}
+
+async function buildSetupWorkbookCommitPlan(): Promise<void> {
+  if (!state.setupWorkbook.selectedFile) {
+    state.setupWorkbook.error = t("workbook_select_file");
+    render();
+    return;
+  }
+  state.setupWorkbook.loading = true;
+  state.setupWorkbook.error = null;
+  render();
+  try {
+    const formData = new FormData();
+    formData.append("file", state.setupWorkbook.selectedFile);
+    appendSetupWorkbookCellCorrections(formData);
+    for (const code of [...state.setupWorkbook.confirmedWarningCodes].sort()) {
+      formData.append("confirmed_warning_codes", code);
+    }
+    for (const row of omittedSetupWorkbookRows()) {
+      formData.append("omitted_rows", JSON.stringify(row));
+    }
+    formData.append("reason", state.setupWorkbook.reason);
+    state.setupWorkbook.commitPlan = await apiFetch<SetupWorkbookCommitPlan>(withSurface("/api/setup-workbook/commit-plan/"), {
+      method: "POST",
+      body: formData,
+    });
+  } catch (error) {
+    state.setupWorkbook.error = error instanceof Error ? error.message : t("workbook_commit_plan_failed");
+    notify("error", state.setupWorkbook.error);
+  } finally {
+    state.setupWorkbook.loading = false;
+    render();
+  }
 }
 
 
@@ -1806,11 +4009,68 @@ async function selectResource(
   if (updateHash) {
     replaceResourceHash(resourceKey, params);
   }
+  state.selectedWorkflow = null;
   state.selectedResourceKey = resourceKey;
   state.resourceView = null;
   state.message = null;
   render();
   await loadResourceView(resourceKey, params);
+}
+
+async function selectSetupWorkbookPage(updateHash = true): Promise<void> {
+  if (updateHash && location.hash !== SETUP_WORKBOOK_HASH) {
+    history.replaceState(null, "", SETUP_WORKBOOK_HASH);
+  }
+  state.selectedWorkflow = "setup_workbook";
+  state.selectedResourceKey = null;
+  state.resourceView = null;
+  state.message = null;
+  render();
+  if (!state.setupWorkbook.manifest) {
+    await loadSetupWorkbookManifest();
+  }
+}
+
+async function selectMatrixEditorPage(updateHash = true): Promise<void> {
+  if (updateHash && location.hash !== MATRIX_EDITOR_HASH) {
+    history.replaceState(null, "", MATRIX_EDITOR_HASH);
+  }
+  state.selectedWorkflow = "matrix_editor";
+  state.selectedResourceKey = null;
+  state.resourceView = null;
+  state.message = null;
+  render();
+  if (!currentMatrixEditorUniverse()) {
+    await loadMatrixEditorUniverse();
+  }
+}
+
+async function selectAuditViewPage(updateHash = true): Promise<void> {
+  if (updateHash && location.hash !== AUDIT_VIEW_HASH) {
+    history.replaceState(null, "", AUDIT_VIEW_HASH);
+  }
+  state.selectedWorkflow = "audit_view";
+  state.selectedResourceKey = null;
+  state.resourceView = null;
+  state.message = null;
+  render();
+  if (!state.auditView.list) {
+    await loadAuditViewList();
+  }
+}
+
+async function selectResourceExposurePage(updateHash = true): Promise<void> {
+  if (updateHash && location.hash !== RESOURCE_EXPOSURE_HASH) {
+    history.replaceState(null, "", RESOURCE_EXPOSURE_HASH);
+  }
+  state.selectedWorkflow = "resource_exposure";
+  state.selectedResourceKey = null;
+  state.resourceView = null;
+  state.message = null;
+  render();
+  if (!state.resourceExposure.manifest) {
+    await loadResourceExposureManifest();
+  }
 }
 
 async function loadResourceView(resourceKey: string, params: URLSearchParams = new URLSearchParams()): Promise<void> {
@@ -2750,6 +5010,22 @@ function displayUser(user: AuthUser): string {
 }
 
 window.addEventListener("hashchange", () => {
+  if (location.hash === SETUP_WORKBOOK_HASH) {
+    void selectSetupWorkbookPage(false);
+    return;
+  }
+  if (location.hash === MATRIX_EDITOR_HASH) {
+    void selectMatrixEditorPage(false);
+    return;
+  }
+  if (location.hash === AUDIT_VIEW_HASH) {
+    void selectAuditViewPage(false);
+    return;
+  }
+  if (location.hash === RESOURCE_EXPOSURE_HASH) {
+    void selectResourceExposurePage(false);
+    return;
+  }
   const parsed = parseResourceHash();
   if (parsed.resourceKey) {
     void selectResource(parsed.resourceKey, parsed.params, false);
@@ -2764,6 +5040,26 @@ async function boot(): Promise<void> {
   }
   render();
   await loadResources();
+  if (location.hash === SETUP_WORKBOOK_HASH) {
+    await selectSetupWorkbookPage(false);
+    render();
+    return;
+  }
+  if (location.hash === MATRIX_EDITOR_HASH) {
+    await selectMatrixEditorPage(false);
+    render();
+    return;
+  }
+  if (location.hash === AUDIT_VIEW_HASH) {
+    await selectAuditViewPage(false);
+    render();
+    return;
+  }
+  if (location.hash === RESOURCE_EXPOSURE_HASH) {
+    await selectResourceExposurePage(false);
+    render();
+    return;
+  }
   const parsed = parseResourceHash();
   if (parsed.resourceKey && state.resources.some((resource) => resource.key === parsed.resourceKey)) {
     await selectResource(parsed.resourceKey, parsed.params, false);

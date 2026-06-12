@@ -26,13 +26,16 @@ The DB Admin frontend currently uses these schema areas:
 - destructive-action labels/messages/confirmation metadata;
 - `list_query_contract` operator metadata for generic filters.
 
-Removed from the public schema because the frontend does not use it at runtime:
+Removed from the public generic CRUD schema because the frontend does not use it at runtime:
 `model_ssot_contract`, `record_payload_contract`, `validation_contract`,
 `authorization_contract`, `authorization_matrix`, `migration_safety_contract`,
 `error_logging_contract`, `ux_ui_contract`, `testing_contract`, per-resource
 `capabilities`, `business_actions`, `visible_capability`, and `default_sort`.
 Instead, the backend publishes only frontend-used action booleans for the current
-resource/surface.
+resource/surface. Structured role/matrix editing is not added to resource schemas;
+it stays behind `/api/matrix-editor/**` so the backend remains the SSOT for the
+editable universe, column-grant universe, row-scope types, preview, validation,
+and audit-first apply.
 
 ## Completed metadata items
 

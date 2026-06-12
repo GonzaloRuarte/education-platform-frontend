@@ -153,3 +153,32 @@ tr:hover td { background: var(--surface-muted); }
 .toast--error { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
 .toast--info { border-color: var(--accent); color: var(--text); background: var(--accent-soft); }
 .toast__close { border: 0; background: transparent; color: inherit; font-size: 18px; line-height: 1; padding: 0 2px; box-shadow: none; }
+
+.workflow-nav { flex: 0 0 auto; overflow: visible; }
+.setup-workbook .card h3 { margin: 0; }
+.setup-workbook__sheet-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.setup-workbook__sheet-card { display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: var(--surface); }
+.setup-workbook__issue { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 10px; border: 1px solid var(--border); border-radius: 10px; }
+.setup-workbook__issue p { margin: 4px 0 0; }
+.setup-workbook__issue--error { border-color: var(--danger); background: var(--danger-soft); }
+.setup-workbook__issue--warning { border-color: var(--warning); background: var(--surface); }
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+.summary-tile { display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: var(--surface); }
+.badge--success { color: var(--success); }
+.badge--danger { color: var(--danger); }
+.setup-workbook__fix-table th, .setup-workbook__fix-table td { min-width: 150px; }
+.setup-workbook__cell-input { width: 100%; min-width: 140px; box-shadow: none; }
+.setup-workbook__cell-input--changed { border-color: var(--warning); background: var(--surface-muted); }
+
+.matrix-editor .card h3 { margin: 0; }
+.matrix-editor .textarea { font-family: inherit; }
+.matrix-editor .cell-json { max-width: 720px; }
+.matrix-editor .filter-chip button { border: 0; padding: 0 2px; box-shadow: none; }
+
+.audit-view .card h3 { margin: 0; }
+.audit-view .cell-json { max-width: 720px; }
+.audit-view__detail .cell-json { max-width: none; overflow: auto; }
+
+.resource-exposure .records-table td {
+  vertical-align: top;
+}

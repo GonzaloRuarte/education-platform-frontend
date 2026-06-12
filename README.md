@@ -25,10 +25,14 @@ GET /api/resources/{resource_key}/records/{record_pk}/?surface=db_admin
 PATCH /api/resources/{resource_key}/records/{record_pk}/?surface=db_admin
 DELETE /api/resources/{resource_key}/records/{record_pk}/?surface=db_admin
 GET /api/resources/{resource_key}/options/{field_key}/?surface=db_admin
+GET /api/matrix-editor/universe/?surface=db_admin&domain={organization|institution}
+POST /api/matrix-editor/validate/?surface=db_admin
+POST /api/matrix-editor/preview/?surface=db_admin
+POST /api/matrix-editor/apply/?surface=db_admin
 ```
 
-No capability name is compiled into the frontend. DB Admin access is inferred from backend resource-discovery responses and backend-provided action booleans.
-Resource/action/field truth still comes from backend metadata.
+No capability name is compiled into the generic CRUD frontend. DB Admin access is inferred from backend resource-discovery responses and backend-provided action booleans.
+Resource/action/field truth still comes from backend metadata. The structured matrix editor page uses only backend-owned matrix-editor endpoints for organization/institution domains; it renders row-scope selectors and column-grant checkboxes only from the backend universe (`row_scope_types` and `column_grant_universe`) and does not expose raw predicate authoring, audit bypass controls, or platform-domain editing.
 
 ## Local commands
 

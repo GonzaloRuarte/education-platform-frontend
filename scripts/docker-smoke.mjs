@@ -5,8 +5,81 @@ const frontendBase = process.env.RETROBOLT_FRONTEND_BASE_URL || "http://localhos
 const username = process.env.RETROBOLT_ADMIN_USERNAME;
 const password = process.env.RETROBOLT_ADMIN_PASSWORD;
 
-if (!username || !password) {
-  throw new Error("Set RETROBOLT_ADMIN_USERNAME and RETROBOLT_ADMIN_PASSWORD for the Docker smoke test.");
+const REQUIRED_GENERIC_DB_ADMIN_SMOKE_COVERAGE = Object.freeze([
+  "frontend_shell",
+  "authenticated_login",
+  "resource_discovery",
+  "resource_schema",
+  "list",
+  "detail",
+  "create",
+  "update",
+  "delete",
+  "batch_delete",
+  "relation_options",
+  "filters",
+  "sorting",
+  "pagination",
+  "url_state",
+  "institution_setup_chain",
+  "dependent_selectors",
+  "temporary_admin_cleanup",
+]);
+
+const INSTITUTION_SETUP_CHAIN_ENV = "RETROBOLT_SMOKE_SETUP_CHAIN_ALIASES";
+const WRITABLE_RESOURCE_ENV = "RETROBOLT_SMOKE_WRITABLE_RESOURCE_ALIAS";
+const CREATE_PAYLOAD_ENV = "RETROBOLT_SMOKE_CREATE_PAYLOAD";
+const UPDATE_PAYLOAD_ENV = "RETROBOLT_SMOKE_UPDATE_PAYLOAD";
+const FILTERS_ENV = "RETROBOLT_SMOKE_FILTERS_JSON";
+
+function requireEnv(name) {
+  const value = process.env[name];
+  if (!value || !value.trim()) {
+    throw new Error(`Set ${name} for the Docker smoke test.`);
+  }
+  return value.trim();
+}
+
+function parseJsonEnv(name) {
+  const raw = requireEnv(name);
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    throw new Error(`${name} must be valid JSON: ${error.message}`);
+  }
+}
+
+function setupChainAliases() {
+  return requireEnv(INSTITUTION_SETUP_CHAIN_ENV)
+    .split(",")
+    .map((alias) => alias.trim())
+    .filter(Boolean);
+}
+
+function assertSmokeContractIsComplete() {
+  const required = new Set(REQUIRED_GENERIC_DB_ADMIN_SMOKE_COVERAGE);
+  for (const item of [
+    "frontend_shell",
+    "authenticated_login",
+    "resource_discovery",
+    "resource_schema",
+    "list",
+    "detail",
+    "create",
+    "update",
+    "delete",
+    "batch_delete",
+    "relation_options",
+    "filters",
+    "sorting",
+    "pagination",
+    "url_state",
+    "institution_setup_chain",
+    "dependent_selectors",
+    "temporary_admin_cleanup",
+  ]) {
+    assert.ok(required.has(item), `smoke coverage should include ${item}`);
+  }
 }
 
 async function fetchJson(url, options = {}) {
@@ -26,6 +99,166 @@ async function fetchJson(url, options = {}) {
   return payload;
 }
 
+function withQuery(path, params = {}) {
+  const url = new URL(path, apiBase.endsWith("/") ? apiBase : `${apiBase}/`);
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== "") {
+      url.searchParams.set(key, String(value));
+    }
+  }
+  return url.toString();
+}
+
+function resourceSchemaUrl(resourceAlias) {
+  return withQuery(`resources/${encodeURIComponent(resourceAlias)}/`, { surface: "db_admin" });
+}
+
+function resourceRecordsUrl(resourceAlias, params = {}) {
+  return withQuery(`resources/${encodeURIComponent(resourceAlias)}/records/`, { surface: "db_admin", ...params });
+}
+
+function resourceDetailUrl(resourceAlias, identity) {
+  return withQuery(`resources/${encodeURIComponent(resourceAlias)}/records/${encodeURIComponent(identity)}/`, { surface: "db_admin" });
+}
+
+function resourceOptionsUrl(resourceAlias, fieldKey, params = {}) {
+  return withQuery(`resources/${encodeURIComponent(resourceAlias)}/options/${encodeURIComponent(fieldKey)}/`, { surface: "db_admin", ...params });
+}
+
+function authJsonHeaders(authHeaders) {
+  return { ...authHeaders, "content-type": "application/json" };
+}
+
+async function loadSchema(resourceAlias, authHeaders) {
+  const schema = await fetchJson(resourceSchemaUrl(resourceAlias), { headers: authHeaders });
+  assert.equal(schema.key, resourceAlias, "schema key should be the public resource alias");
+  assert.ok(!schema.alias || schema.alias === schema.key, "schema alias should be absent or match the public resource alias");
+  assert.equal(schema.resource_urls, undefined, "schema must not publish backend-owned resource URLs");
+  assert.equal(schema.list_query_contract, undefined, "schema must not publish a global list query contract");
+  assert.ok(schema.actions && typeof schema.actions === "object", "schema should publish action booleans");
+  assert.ok(schema.fields?.every((field) => field.key && field.i18n?.label?.en && field.i18n?.label?.es), "schema should publish aliased fields with bilingual labels");
+  assert.ok(schema.fields?.every((field) => !field.filterable || Array.isArray(field.filter?.operators)), "filterable fields should publish per-field operators");
+  return schema;
+}
+
+function assertRecordListContract(list) {
+  assert.equal(typeof list.count, "number", "list endpoint should return paginated count");
+  assert.ok(Array.isArray(list.results), "list endpoint should return results[]");
+  assert.ok(list.results.every((row) => typeof row.__identity === "string"), "records should include backend-issued __identity");
+  assert.ok(list.results.every((row) => row.__resource_urls === undefined && row.__label === undefined), "records must not include old metadata helpers");
+}
+
+async function smokeReadControls(schema, authHeaders) {
+  const pageOne = await fetchJson(resourceRecordsUrl(schema.key, { page: "1", page_size: "1" }), { headers: authHeaders });
+  assertRecordListContract(pageOne);
+
+  const pageTwo = await fetchJson(resourceRecordsUrl(schema.key, { page: "2", page_size: "1" }), { headers: authHeaders });
+  assertRecordListContract(pageTwo);
+
+  const sortable = schema.fields?.find((field) => field.sortable);
+  if (sortable) {
+    const sorted = await fetchJson(resourceRecordsUrl(schema.key, {
+      page: "1",
+      page_size: "1",
+      sort: JSON.stringify([{ field: sortable.key, sort: "asc" }]),
+    }), { headers: authHeaders });
+    assertRecordListContract(sorted);
+  }
+
+  const filterable = schema.fields?.find((field) => field.filterable && field.filter?.operators?.length);
+  if (filterable) {
+    const filters = process.env[FILTERS_ENV]
+      ? JSON.parse(process.env[FILTERS_ENV])
+      : { items: [], quickFilterValues: [], linkOperator: "and" };
+    const filtered = await fetchJson(resourceRecordsUrl(schema.key, {
+      page: "1",
+      page_size: "1",
+      filters: JSON.stringify(filters),
+    }), { headers: authHeaders });
+    assertRecordListContract(filtered);
+  }
+
+  if (pageOne.results.length > 0) {
+    const detail = await fetchJson(resourceDetailUrl(schema.key, pageOne.results[0].__identity), { headers: authHeaders });
+    assert.equal(typeof detail.__identity, "string", "detail endpoint should return a backend identity");
+  }
+
+  return pageOne;
+}
+
+async function smokeRelationOptions(schema, authHeaders) {
+  for (const field of schema.fields ?? []) {
+    if (!field.relation) continue;
+    const options = await fetchJson(resourceOptionsUrl(schema.key, field.key, { q: "", page: "1", page_size: "5" }), { headers: authHeaders });
+    assert.ok(Array.isArray(options.results) || Array.isArray(options.options), `relation options for ${schema.key}.${field.key} should return an options array`);
+    if (field.relation.depends_on?.length || field.relation.dependencies?.length) {
+      assert.ok(field.relation.depends_on?.length || field.relation.dependencies?.length, `dependent selector ${schema.key}.${field.key} should declare dependencies`);
+    }
+  }
+}
+
+async function smokeInstitutionSetupChain(discoveryAliases, authHeaders) {
+  const chain = setupChainAliases();
+  assert.equal(chain.length, 5, `${INSTITUTION_SETUP_CHAIN_ENV} must list institution,institution_year,institution_grade_offering,grade_subject_scope,grade_subject_division aliases`);
+  for (const alias of chain) {
+    assert.ok(discoveryAliases.has(alias), `setup-chain alias ${alias} must appear in DB Admin discovery`);
+    const schema = await loadSchema(alias, authHeaders);
+    await smokeReadControls(schema, authHeaders);
+    await smokeRelationOptions(schema, authHeaders);
+  }
+}
+
+async function smokeWrites(authHeaders) {
+  const alias = requireEnv(WRITABLE_RESOURCE_ENV);
+  const createPayload = parseJsonEnv(CREATE_PAYLOAD_ENV);
+  const updatePayload = parseJsonEnv(UPDATE_PAYLOAD_ENV);
+  const schema = await loadSchema(alias, authHeaders);
+  for (const action of ["create", "update", "delete", "batch_delete"]) {
+    assert.equal(schema.actions?.[action], true, `${alias} must allow ${action} for the smoke admin user`);
+  }
+
+  const created = await fetchJson(resourceRecordsUrl(alias), {
+    method: "POST",
+    headers: authJsonHeaders(authHeaders),
+    body: JSON.stringify(createPayload),
+  });
+  assert.equal(typeof created.__identity, "string", "create should return a backend identity");
+
+  const updated = await fetchJson(resourceDetailUrl(alias, created.__identity), {
+    method: "PATCH",
+    headers: authJsonHeaders(authHeaders),
+    body: JSON.stringify(updatePayload),
+  });
+  assert.equal(updated.__identity, created.__identity, "update should keep the same backend identity");
+
+  await fetchJson(resourceDetailUrl(alias, created.__identity), {
+    method: "DELETE",
+    headers: authHeaders,
+  });
+
+  const batchOne = await fetchJson(resourceRecordsUrl(alias), {
+    method: "POST",
+    headers: authJsonHeaders(authHeaders),
+    body: JSON.stringify(createPayload),
+  });
+  const batchTwo = await fetchJson(resourceRecordsUrl(alias), {
+    method: "POST",
+    headers: authJsonHeaders(authHeaders),
+    body: JSON.stringify(createPayload),
+  });
+  await fetchJson(resourceRecordsUrl(alias), {
+    method: "DELETE",
+    headers: authJsonHeaders(authHeaders),
+    body: JSON.stringify({ identities: [batchOne.__identity, batchTwo.__identity] }),
+  });
+}
+
+assertSmokeContractIsComplete();
+
+if (!username || !password) {
+  throw new Error("Set RETROBOLT_ADMIN_USERNAME and RETROBOLT_ADMIN_PASSWORD for the Docker smoke test.");
+}
+
 const shell = await fetch(frontendBase);
 assert.equal(shell.ok, true, `frontend shell should respond at ${frontendBase}`);
 const shellHtml = await shell.text();
@@ -43,25 +276,19 @@ const discovery = await fetchJson(`${apiBase}/resources/?surface=db_admin`, { he
 assert.ok(Array.isArray(discovery.resources), "resource discovery should return resources[]");
 assert.ok(discovery.resources.length > 0, "resource discovery should expose at least one DB Admin resource");
 
+const discoveryAliases = new Set(discovery.resources.map((resource) => resource.alias));
+for (const resource of discovery.resources) {
+  assert.ok(resource.alias, "discovered resource should have a public alias");
+  assert.ok(resource.i18n?.label?.en && resource.i18n?.label?.es, "discovery should publish bilingual resource labels");
+  assert.ok(resource.i18n?.plural_label?.en && resource.i18n?.plural_label?.es, "discovery should publish bilingual plural labels");
+  assert.equal(resource.key, undefined, "discovery must not expose internal resource keys");
+}
+
 const first = discovery.resources[0];
-assert.ok(first.alias, "discovered resource should have a public alias");
-assert.ok(first.i18n?.label?.en && first.i18n?.label?.es, "discovery should publish bilingual resource labels");
-assert.ok(first.i18n?.plural_label?.en && first.i18n?.plural_label?.es, "discovery should publish bilingual plural labels");
-assert.equal(first.key, undefined, "discovery must not expose internal resource keys");
+const schema = await loadSchema(first.alias, authHeaders);
+const list = await smokeReadControls(schema, authHeaders);
+await smokeRelationOptions(schema, authHeaders);
+await smokeInstitutionSetupChain(discoveryAliases, authHeaders);
+await smokeWrites(authHeaders);
 
-const schema = await fetchJson(`${apiBase}/resources/${encodeURIComponent(first.alias)}/?surface=db_admin`, { headers: authHeaders });
-assert.equal(schema.key, first.alias, "schema key should be the public resource alias");
-assert.ok(!schema.alias || schema.alias === schema.key, "schema alias should be absent or match the public resource alias");
-assert.equal(schema.resource_urls, undefined, "schema must not publish backend-owned resource URLs");
-assert.equal(schema.list_query_contract, undefined, "schema must not publish a global list query contract");
-assert.ok(schema.actions && typeof schema.actions === "object", "schema should publish action booleans");
-assert.ok(schema.fields?.every((field) => field.key && field.i18n?.label?.en && field.i18n?.label?.es), "schema should publish aliased fields with bilingual labels");
-assert.ok(schema.fields?.every((field) => !field.filterable || Array.isArray(field.filter?.operators)), "filterable fields should publish per-field operators");
-
-const list = await fetchJson(`${apiBase}/resources/${encodeURIComponent(schema.key)}/records/?surface=db_admin`, { headers: authHeaders });
-assert.equal(typeof list.count, "number", "list endpoint should return paginated count");
-assert.ok(Array.isArray(list.results), "list endpoint should return results[]");
-assert.ok(list.results.every((row) => typeof row.__identity === "string"), "records should include backend-issued __identity");
-assert.ok(list.results.every((row) => row.__resource_urls === undefined && row.__label === undefined), "records must not include old metadata helpers");
-
-console.log(`Docker smoke passed for ${schema.key}: ${list.count} records.`);
+console.log(`Docker smoke passed for ${schema.key}: ${list.count} records. Temporary admin cleanup remains owned by the caller/test fixture.`);
