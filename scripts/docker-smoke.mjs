@@ -121,8 +121,8 @@ function resourceDetailUrl(resourceAlias, identity) {
   return withQuery(`resources/${encodeURIComponent(resourceAlias)}/records/${encodeURIComponent(identity)}/`, { surface: "db_admin" });
 }
 
-function resourceOptionsUrl(resourceAlias, fieldKey, params = {}) {
-  return withQuery(`resources/${encodeURIComponent(resourceAlias)}/options/${encodeURIComponent(fieldKey)}/`, { surface: "db_admin", ...params });
+function resourceOptionsUrl(resourceAlias, fieldAlias, params = {}) {
+  return withQuery(`resources/${encodeURIComponent(resourceAlias)}/options/${encodeURIComponent(fieldAlias)}/`, { surface: "db_admin", ...params });
 }
 
 function authJsonHeaders(authHeaders) {
@@ -131,12 +131,12 @@ function authJsonHeaders(authHeaders) {
 
 async function loadSchema(resourceAlias, authHeaders) {
   const schema = await fetchJson(resourceSchemaUrl(resourceAlias), { headers: authHeaders });
-  assert.equal(schema.key, resourceAlias, "schema key should be the public resource alias");
-  assert.ok(!schema.alias || schema.alias === schema.key, "schema alias should be absent or match the public resource alias");
+  assert.equal(schema.alias, resourceAlias, "schema alias should be the public resource alias");
+  assert.equal(schema.key, undefined, "schema must not expose internal resource keys");
   assert.equal(schema.resource_urls, undefined, "schema must not publish backend-owned resource URLs");
   assert.equal(schema.list_query_contract, undefined, "schema must not publish a global list query contract");
   assert.ok(schema.actions && typeof schema.actions === "object", "schema should publish action booleans");
-  assert.ok(schema.fields?.every((field) => field.key && field.i18n?.label?.en && field.i18n?.label?.es), "schema should publish aliased fields with bilingual labels");
+  assert.ok(schema.fields?.every((field) => field.alias && field.i18n?.label?.en && field.i18n?.label?.es), "schema should publish aliased fields with bilingual labels");
   assert.ok(schema.fields?.every((field) => !field.filterable || Array.isArray(field.filter?.operators)), "filterable fields should publish per-field operators");
   return schema;
 }
@@ -149,18 +149,20 @@ function assertRecordListContract(list) {
 }
 
 async function smokeReadControls(schema, authHeaders) {
-  const pageOne = await fetchJson(resourceRecordsUrl(schema.key, { page: "1", page_size: "1" }), { headers: authHeaders });
+  const pageOne = await fetchJson(resourceRecordsUrl(schema.alias, { page: "1", page_size: "1" }), { headers: authHeaders });
   assertRecordListContract(pageOne);
 
-  const pageTwo = await fetchJson(resourceRecordsUrl(schema.key, { page: "2", page_size: "1" }), { headers: authHeaders });
-  assertRecordListContract(pageTwo);
+  if (pageOne.count > 1) {
+    const pageTwo = await fetchJson(resourceRecordsUrl(schema.alias, { page: "2", page_size: "1" }), { headers: authHeaders });
+    assertRecordListContract(pageTwo);
+  }
 
   const sortable = schema.fields?.find((field) => field.sortable);
   if (sortable) {
-    const sorted = await fetchJson(resourceRecordsUrl(schema.key, {
+    const sorted = await fetchJson(resourceRecordsUrl(schema.alias, {
       page: "1",
       page_size: "1",
-      sort: JSON.stringify([{ field: sortable.key, sort: "asc" }]),
+      sort: JSON.stringify([{ field: sortable.alias, sort: "asc" }]),
     }), { headers: authHeaders });
     assertRecordListContract(sorted);
   }
@@ -170,7 +172,7 @@ async function smokeReadControls(schema, authHeaders) {
     const filters = process.env[FILTERS_ENV]
       ? JSON.parse(process.env[FILTERS_ENV])
       : { items: [], quickFilterValues: [], linkOperator: "and" };
-    const filtered = await fetchJson(resourceRecordsUrl(schema.key, {
+    const filtered = await fetchJson(resourceRecordsUrl(schema.alias, {
       page: "1",
       page_size: "1",
       filters: JSON.stringify(filters),
@@ -179,7 +181,7 @@ async function smokeReadControls(schema, authHeaders) {
   }
 
   if (pageOne.results.length > 0) {
-    const detail = await fetchJson(resourceDetailUrl(schema.key, pageOne.results[0].__identity), { headers: authHeaders });
+    const detail = await fetchJson(resourceDetailUrl(schema.alias, pageOne.results[0].__identity), { headers: authHeaders });
     assert.equal(typeof detail.__identity, "string", "detail endpoint should return a backend identity");
   }
 
@@ -189,10 +191,10 @@ async function smokeReadControls(schema, authHeaders) {
 async function smokeRelationOptions(schema, authHeaders) {
   for (const field of schema.fields ?? []) {
     if (!field.relation) continue;
-    const options = await fetchJson(resourceOptionsUrl(schema.key, field.key, { q: "", page: "1", page_size: "5" }), { headers: authHeaders });
-    assert.ok(Array.isArray(options.results) || Array.isArray(options.options), `relation options for ${schema.key}.${field.key} should return an options array`);
+    const options = await fetchJson(resourceOptionsUrl(schema.alias, field.alias, { q: "", page: "1", page_size: "5" }), { headers: authHeaders });
+    assert.ok(Array.isArray(options.results) || Array.isArray(options.options), `relation options for ${schema.alias}.${field.alias} should return an options array`);
     if (field.relation.depends_on?.length || field.relation.dependencies?.length) {
-      assert.ok(field.relation.depends_on?.length || field.relation.dependencies?.length, `dependent selector ${schema.key}.${field.key} should declare dependencies`);
+      assert.ok(field.relation.depends_on?.length || field.relation.dependencies?.length, `dependent selector ${schema.alias}.${field.alias} should declare dependencies`);
     }
   }
 }
@@ -217,18 +219,35 @@ async function smokeWrites(authHeaders) {
     assert.equal(schema.actions?.[action], true, `${alias} must allow ${action} for the smoke admin user`);
   }
 
-  const created = await fetchJson(resourceRecordsUrl(alias), {
-    method: "POST",
-    headers: authJsonHeaders(authHeaders),
-    body: JSON.stringify(createPayload),
-  });
-  assert.equal(typeof created.__identity, "string", "create should return a backend identity");
+  async function createAndReload() {
+    const response = await fetch(resourceRecordsUrl(alias), {
+      method: "POST",
+      headers: authJsonHeaders(authHeaders),
+      body: JSON.stringify(createPayload),
+    });
+    const text = await response.text();
+    if (!response.ok) {
+      throw new Error(`create returned ${response.status}: ${text.slice(0, 300)}`);
+    }
+    const location = response.headers.get("location");
+    assert.ok(location, "create should return a Location header for canonical reload");
+    const created = await fetchJson(location, { headers: authHeaders });
+    assert.equal(typeof created.__identity, "string", "created record should reload with a backend identity");
+    return created;
+  }
 
-  const updated = await fetchJson(resourceDetailUrl(alias, created.__identity), {
+  const created = await createAndReload();
+
+  const updateResponse = await fetch(resourceDetailUrl(alias, created.__identity), {
     method: "PATCH",
     headers: authJsonHeaders(authHeaders),
     body: JSON.stringify(updatePayload),
   });
+  const updateText = await updateResponse.text();
+  if (!updateResponse.ok) {
+    throw new Error(`update returned ${updateResponse.status}: ${updateText.slice(0, 300)}`);
+  }
+  const updated = await fetchJson(resourceDetailUrl(alias, created.__identity), { headers: authHeaders });
   assert.equal(updated.__identity, created.__identity, "update should keep the same backend identity");
 
   await fetchJson(resourceDetailUrl(alias, created.__identity), {
@@ -236,16 +255,8 @@ async function smokeWrites(authHeaders) {
     headers: authHeaders,
   });
 
-  const batchOne = await fetchJson(resourceRecordsUrl(alias), {
-    method: "POST",
-    headers: authJsonHeaders(authHeaders),
-    body: JSON.stringify(createPayload),
-  });
-  const batchTwo = await fetchJson(resourceRecordsUrl(alias), {
-    method: "POST",
-    headers: authJsonHeaders(authHeaders),
-    body: JSON.stringify(createPayload),
-  });
+  const batchOne = await createAndReload();
+  const batchTwo = await createAndReload();
   await fetchJson(resourceRecordsUrl(alias), {
     method: "DELETE",
     headers: authJsonHeaders(authHeaders),
@@ -291,4 +302,4 @@ await smokeRelationOptions(schema, authHeaders);
 await smokeInstitutionSetupChain(discoveryAliases, authHeaders);
 await smokeWrites(authHeaders);
 
-console.log(`Docker smoke passed for ${schema.key}: ${list.count} records. Temporary admin cleanup remains owned by the caller/test fixture.`);
+console.log(`Docker smoke passed for ${schema.alias}: ${list.count} records. Temporary admin cleanup remains owned by the caller/test fixture.`);

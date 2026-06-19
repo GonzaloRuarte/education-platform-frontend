@@ -1058,9 +1058,12 @@ const UI_TEXT: Record<string, Record<Locale, string>> = {
   resource_exposure_redaction: { es: "Redacción interna", en: "Internal redaction" },
   resource_exposure_filter: { es: "Filtrar exposición", en: "Filter exposure" },
   resource_exposure_query: { es: "Buscar modelo/recurso/ruta", en: "Search model/resource/path" },
-  resource_exposure_manifest: { es: "Manifiesto", en: "Manifest" },
   resource_exposure_no_resources: { es: "No hay recursos para estos filtros.", en: "No resources match these filters." },
   resource_exposure_platform_only: { es: "Solo plataforma", en: "Platform only" },
+  resource_exposure_legend: {
+    es: "exposure define si el recurso aparece en CRUD genérico, flujo explícito o queda oculto. inspection_mode define cuánta metadata interna puede ver esta pantalla de plataforma.",
+    en: "exposure defines whether the resource appears in generic CRUD, explicit workflow, or stays hidden. inspection_mode defines how much internal metadata this platform screen may inspect.",
+  },
 };
 
 function t(key: string): string {
@@ -1133,19 +1136,19 @@ function resourceSchemaPath(resourceKey: string): string {
 }
 
 function resourceListPath(schema: ResourceSchema, params: Record<string, string> = {}): string {
-  return withQueryParams(`/api/resources/${encodeURIComponent(schema.key)}/records/?surface=${SURFACE}`, params);
+  return withQueryParams(`/api/resources/${encodeURIComponent(schema.alias || schema.key)}/records/?surface=${SURFACE}`, params);
 }
 
 function resourceCreatePath(schema: ResourceSchema): string {
-  return `/api/resources/${encodeURIComponent(schema.key)}/records/?surface=${SURFACE}`;
+  return `/api/resources/${encodeURIComponent(schema.alias || schema.key)}/records/?surface=${SURFACE}`;
 }
 
 function resourceBatchDeletePath(schema: ResourceSchema): string {
-  return `/api/resources/${encodeURIComponent(schema.key)}/records/?surface=${SURFACE}`;
+  return `/api/resources/${encodeURIComponent(schema.alias || schema.key)}/records/?surface=${SURFACE}`;
 }
 
 function resourceOptionsPath(schema: ResourceSchema, fieldKey: string, params: Record<string, string> = {}): string {
-  return withQueryParams(`/api/resources/${encodeURIComponent(schema.key)}/options/${encodeURIComponent(fieldKey)}/?surface=${SURFACE}`, params);
+  return withQueryParams(`/api/resources/${encodeURIComponent(schema.alias || schema.key)}/options/${encodeURIComponent(fieldKey)}/?surface=${SURFACE}`, params);
 }
 
 function parseResourceHash(): { resourceKey: string | null; params: URLSearchParams } {
@@ -1335,6 +1338,14 @@ function flattenApiError(payload: ApiErrorPayload): string {
   return lines.join("\n") || "Request failed.";
 }
 
+function publicErrorMessage(error: unknown, fallback: string): string {
+  if (!(error instanceof Error)) {
+    return fallback;
+  }
+  const requestId = error.message.match(/Request ID: ([^\n]+)/)?.[1];
+  return requestId ? `${fallback}\nRequest ID: ${requestId}` : fallback;
+}
+
 function defaultFilterModel(): GridFilterModel {
   return { items: [], quickFilterValues: [], linkOperator: "and" };
 }
@@ -1455,7 +1466,7 @@ function resourceViewParams(view: ResourceViewState): URLSearchParams {
 }
 
 function syncResourceViewHash(view: ResourceViewState): void {
-  replaceResourceHash(view.schema.key, resourceViewParams(view));
+  replaceResourceHash(view.schema.alias || view.schema.key, resourceViewParams(view));
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(
@@ -1627,7 +1638,7 @@ async function handleLogin(form: HTMLFormElement, submit: HTMLButtonElement, err
     await loadResources();
   } catch (error) {
     errorBox.hidden = false;
-    errorBox.textContent = error instanceof Error ? error.message : t("login_failed");
+    errorBox.textContent = publicErrorMessage(error, t("login_failed"));
   } finally {
     submit.disabled = false;
     submit.textContent = t("sign_in");
@@ -1811,7 +1822,7 @@ function renderMain(): HTMLElement {
     main.append(renderWelcomePage());
     return main;
   }
-  if (!state.resourceView || state.resourceView.schema.key !== state.selectedResourceKey) {
+  if (!state.resourceView || (state.resourceView.schema.alias || state.resourceView.schema.key) !== state.selectedResourceKey) {
     main.append(renderLoadingPage(t("loading_resource")));
     void loadResourceView(state.selectedResourceKey);
     return main;
@@ -2690,7 +2701,7 @@ async function loadMatrixEditorUniverse(): Promise<void> {
     const universe = await apiFetch<MatrixEditorUniverse>(withSurface("/api/matrix-editor/universe/", { domain: state.matrixEditor.domain }));
     state.matrixEditor.universeByDomain[state.matrixEditor.domain] = universe;
   } catch (error) {
-    state.matrixEditor.error = error instanceof Error ? error.message : t("matrix_universe_failed");
+    state.matrixEditor.error = publicErrorMessage(error, t("matrix_universe_failed"));
     notify("error", state.matrixEditor.error);
   } finally {
     state.matrixEditor.loading = false;
@@ -2709,7 +2720,7 @@ async function validateMatrixEditorProposal(): Promise<void> {
     state.matrixEditor.preview = null;
     state.matrixEditor.applyResult = null;
   } catch (error) {
-    state.matrixEditor.error = error instanceof Error ? error.message : t("matrix_validate_failed");
+    state.matrixEditor.error = publicErrorMessage(error, t("matrix_validate_failed"));
     notify("error", state.matrixEditor.error);
   } finally {
     state.matrixEditor.loading = false;
@@ -2728,7 +2739,7 @@ async function previewMatrixEditorProposal(): Promise<void> {
     state.matrixEditor.validation = state.matrixEditor.preview.validation ?? state.matrixEditor.validation;
     state.matrixEditor.applyResult = null;
   } catch (error) {
-    state.matrixEditor.error = error instanceof Error ? error.message : t("matrix_preview_failed");
+    state.matrixEditor.error = publicErrorMessage(error, t("matrix_preview_failed"));
     notify("error", state.matrixEditor.error);
   } finally {
     state.matrixEditor.loading = false;
@@ -2749,7 +2760,7 @@ async function applyMatrixEditorProposal(): Promise<void> {
     });
     notify("success", t("matrix_apply_result"));
   } catch (error) {
-    state.matrixEditor.error = error instanceof Error ? error.message : t("matrix_apply_failed");
+    state.matrixEditor.error = publicErrorMessage(error, t("matrix_apply_failed"));
     notify("error", state.matrixEditor.error);
   } finally {
     state.matrixEditor.loading = false;
@@ -2782,7 +2793,7 @@ async function loadAuditViewList(): Promise<void> {
     state.auditView.detail = null;
     state.auditView.selectedId = null;
   } catch (error) {
-    state.auditView.error = error instanceof Error ? error.message : t("audit_load_failed");
+    state.auditView.error = publicErrorMessage(error, t("audit_load_failed"));
     notify("error", state.auditView.error);
   } finally {
     state.auditView.loading = false;
@@ -2797,7 +2808,7 @@ async function loadAuditViewDetail(id: string): Promise<void> {
     state.auditView.detail = await apiFetch<AuditDetailResponse>(auditViewDetailPath(id));
     state.auditView.selectedId = id;
   } catch (error) {
-    state.auditView.error = error instanceof Error ? error.message : t("audit_detail_failed");
+    state.auditView.error = publicErrorMessage(error, t("audit_detail_failed"));
     notify("error", state.auditView.error);
   } finally {
     state.auditView.loading = false;
@@ -2811,7 +2822,7 @@ async function loadResourceExposureManifest(): Promise<void> {
   try {
     state.resourceExposure.manifest = await apiFetch<ResourceExposureManifest>("/api/db-admin-resource-exposure/manifest/");
   } catch (error) {
-    state.resourceExposure.error = error instanceof Error ? error.message : t("resource_exposure_load_failed");
+    state.resourceExposure.error = publicErrorMessage(error, t("resource_exposure_load_failed"));
     notify("error", state.resourceExposure.error);
   } finally {
     state.resourceExposure.loading = false;
@@ -2849,7 +2860,6 @@ function renderResourceExposurePage(): HTMLElement {
     renderResourceExposureSummary(),
     renderResourceExposureFilters(),
     renderResourceExposureTable(),
-    renderResourceExposureManifestJson(),
   ]);
 }
 
@@ -2868,6 +2878,7 @@ function renderResourceExposureSummary(): HTMLElement {
       ]),
       el("div", { class: "toolbar" }, countBadges),
       manifest.classification_ssot ? el("p", { class: "meta-line" }, [`SSOT: ${manifest.classification_ssot}`]) : null,
+      el("p", { class: "meta-line" }, [t("resource_exposure_legend")]),
       manifest.redacted_internal_resource_inspection
         ? el("div", { class: "notice" }, [`${t("resource_exposure_redaction")}: ${safeJson(manifest.redacted_internal_resource_inspection as RecordValue)}`])
         : null,
@@ -2926,16 +2937,6 @@ function renderResourceExposureTable(): HTMLElement {
         ])]),
         el("tbody", {}, rows),
       ]),
-    ]),
-  ]);
-}
-
-function renderResourceExposureManifestJson(): HTMLElement {
-  const manifest = state.resourceExposure.manifest;
-  return el("section", { class: "card" }, [
-    el("div", { class: "card__body stack" }, [
-      el("h3", {}, [t("resource_exposure_manifest")]),
-      el("pre", { class: "cell-json" }, [safeJson((manifest ?? {}) as RecordValue)]),
     ]),
   ]);
 }
@@ -3423,7 +3424,7 @@ async function loadSetupWorkbookManifest(): Promise<void> {
   try {
     state.setupWorkbook.manifest = await apiFetch<SetupWorkbookManifest>(withSurface("/api/setup-workbook/manifest/"));
   } catch (error) {
-    state.setupWorkbook.error = error instanceof Error ? error.message : t("workbook_manifest_failed");
+    state.setupWorkbook.error = publicErrorMessage(error, t("workbook_manifest_failed"));
     notify("error", state.setupWorkbook.error);
   } finally {
     state.setupWorkbook.loading = false;
@@ -3441,7 +3442,7 @@ async function downloadSetupWorkbookTemplate(): Promise<void> {
     link.remove();
     URL.revokeObjectURL(url);
   } catch (error) {
-    state.setupWorkbook.error = error instanceof Error ? error.message : t("workbook_template_failed");
+    state.setupWorkbook.error = publicErrorMessage(error, t("workbook_template_failed"));
     notify("error", state.setupWorkbook.error);
     render();
   }
@@ -3468,7 +3469,7 @@ async function runSetupWorkbookDryRun(): Promise<void> {
     state.setupWorkbook.omittedRows.clear();
     state.setupWorkbook.confirmedWarningCodes.clear();
   } catch (error) {
-    state.setupWorkbook.error = error instanceof Error ? error.message : t("workbook_dry_run_failed");
+    state.setupWorkbook.error = publicErrorMessage(error, t("workbook_dry_run_failed"));
     notify("error", state.setupWorkbook.error);
   } finally {
     state.setupWorkbook.loading = false;
@@ -3501,7 +3502,7 @@ async function buildSetupWorkbookCommitPlan(): Promise<void> {
       body: formData,
     });
   } catch (error) {
-    state.setupWorkbook.error = error instanceof Error ? error.message : t("workbook_commit_plan_failed");
+    state.setupWorkbook.error = publicErrorMessage(error, t("workbook_commit_plan_failed"));
     notify("error", state.setupWorkbook.error);
   } finally {
     state.setupWorkbook.loading = false;
@@ -3884,7 +3885,7 @@ function isScalarRecordValue(value: RecordValue): value is JsonPrimitive {
 }
 
 function recordDetailPath(schema: ResourceSchema, identity: string): string {
-  return `/api/resources/${encodeURIComponent(schema.key)}/records/${encodeURIComponent(identity)}/?surface=${SURFACE}`;
+  return `/api/resources/${encodeURIComponent(schema.alias || schema.key)}/records/${encodeURIComponent(identity)}/?surface=${SURFACE}`;
 }
 
 function recordUpdatePath(schema: ResourceSchema, identity: string): string {
@@ -3991,7 +3992,7 @@ async function loadResources(): Promise<void> {
     }
   } catch (error) {
     state.dbAdminAccessDenied = error instanceof ApiRequestError && error.status === 403;
-    state.error = error instanceof Error ? error.message : t("load_resources_failed");
+    state.error = publicErrorMessage(error, t("load_resources_failed"));
     if (!state.dbAdminAccessDenied) {
       notify("error", state.error);
     }
@@ -4099,7 +4100,7 @@ async function loadResourceView(resourceKey: string, params: URLSearchParams = n
     await loadRecords(view);
   } catch (error) {
     state.resourceView = null;
-    state.error = error instanceof Error ? error.message : t("load_resource_failed");
+    state.error = publicErrorMessage(error, t("load_resource_failed"));
     notify("error", state.error);
   } finally {
     render();
@@ -4128,7 +4129,7 @@ async function loadRecords(view: ResourceViewState): Promise<void> {
     const visibleIdentities = new Set(view.records.map((record) => recordIdentity(record)).filter((identity): identity is string => identity !== null));
     view.selectedIdentities = new Set([...view.selectedIdentities].filter((identity) => visibleIdentities.has(identity)));
   } catch (error) {
-    view.error = error instanceof Error ? error.message : t("load_records_failed");
+    view.error = publicErrorMessage(error, t("load_records_failed"));
     notify("error", view.error);
   } finally {
     view.loading = false;
@@ -4209,7 +4210,7 @@ async function populateRecordForm(
     body.append(renderRecordForm(modal, schema, mode, record, optionMaps, identity));
   } catch (error) {
     clear(body);
-    body.append(el("div", { class: "error" }, [error instanceof Error ? error.message : t("load_form_failed")]));
+    body.append(el("div", { class: "error" }, [publicErrorMessage(error, t("load_form_failed"))]));
   }
 }
 
@@ -4740,7 +4741,7 @@ async function submitRecordForm(
     modal.remove();
     await reloadResourceView();
   } catch (error) {
-    const message = error instanceof Error ? error.message : t("save_failed");
+    const message = publicErrorMessage(error, t("save_failed"));
     errorBox.hidden = false;
     errorBox.textContent = message;
     notify("error", message);
@@ -4858,7 +4859,7 @@ async function batchDeleteRecords(view: ResourceViewState): Promise<void> {
     await reloadResourceView();
   } catch (error) {
     state.message = null;
-    view.error = error instanceof Error ? error.message : t("batch_delete_failed");
+    view.error = publicErrorMessage(error, t("batch_delete_failed"));
     notify("error", view.error);
   } finally {
     render();
@@ -4881,7 +4882,7 @@ async function deleteRecord(schema: ResourceSchema, identity = "", label = ""): 
   } catch (error) {
     state.message = null;
     if (state.resourceView) {
-      state.resourceView.error = error instanceof Error ? error.message : t("delete_failed");
+      state.resourceView.error = publicErrorMessage(error, t("delete_failed"));
       notify("error", state.resourceView.error);
     }
   } finally {
@@ -4946,6 +4947,17 @@ function recordLabel(schema: ResourceSchema, record: ResourceRecord): string {
 function optionLabel(optionMap: Map<string, string> | undefined, value: RecordValue): string {
   if (value === null || value === undefined) {
     return "—";
+  }
+  if (typeof value === "object" && !Array.isArray(value)) {
+    const record = value as Record<string, RecordValue>;
+    for (const key of ["label", "name", "title", "display", "value", "__identity", "id"]) {
+      const candidate = record[key];
+      if (isScalarRecordValue(candidate) && candidate !== null && String(candidate).trim()) {
+        const candidateKey = String(candidate);
+        return optionMap?.get(candidateKey) ?? candidateKey;
+      }
+    }
+    return safeJson(value);
   }
   const key = String(value);
   return optionMap?.get(key) ?? key;
