@@ -182,3 +182,8 @@ tr:hover td { background: var(--surface-muted); }
 .resource-exposure .records-table td {
   vertical-align: top;
 }
+
+.manual-scoring .card h3 { margin: 0; }
+.manual-scoring .records-table td { vertical-align: top; }
+.manual-scoring .cell-json { max-width: 360px; white-space: pre-wrap; }
+.manual-scoring tr.selected td { background: var(--accent-soft); }

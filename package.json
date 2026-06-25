@@ -8,10 +8,17 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc && node scripts/copy-public.mjs",
     "validate": "npm run typecheck && npm run build && node scripts/check-dist.mjs",
-    "test:frontend-contracts": "node scripts/db-admin-contract.test.mjs",
+    "test:frontend-contracts": "node scripts/db-admin-contract.test.mjs && npm run test:smoke-contract && npm run test:backend-ssot-compliance && npm run test:e2e-contract && npm run test:page-object-contract && npm run test:e2e-payload-contract && npm run test:code-ssot",
     "test:docker-smoke": "node scripts/docker-smoke.mjs",
     "test": "npm run validate && npm run test:frontend-contracts",
-    "test:all": "npm run test && npm run test:docker-smoke"
+    "test:all": "npm run test && npm run test:docker-smoke",
+    "test:smoke-contract": "node scripts/frontend-browser-smoke-contract.test.mjs",
+    "test:backend-ssot-compliance": "node scripts/backend-ssot-compliance.test.mjs",
+    "test:e2e-contract": "node scripts/e2e-runtime-contract.test.mjs",
+    "test:page-object-contract": "node scripts/page-object-contract.test.mjs",
+    "test:e2e-payload-contract": "node scripts/e2e-payload-contract.test.mjs",
+    "test:e2e:browser": "node scripts/browser-e2e.mjs",
+    "test:code-ssot": "node scripts/code-ssot-change-propagation.test.mjs"
   },
   "devDependencies": {
     "typescript": "^5.8.3"

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { assertLoadedFrontendBrowserSmokeContract } from "./frontend-browser-smoke-contract.mjs";
 
 const apiBase = process.env.RETROBOLT_API_BASE_URL || "http://localhost:8000/api";
 const frontendBase = process.env.RETROBOLT_FRONTEND_BASE_URL || "http://localhost:3000";
@@ -265,6 +266,7 @@ async function smokeWrites(authHeaders) {
 }
 
 assertSmokeContractIsComplete();
+const backendSmokeContract = assertLoadedFrontendBrowserSmokeContract();
 
 if (!username || !password) {
   throw new Error("Set RETROBOLT_ADMIN_USERNAME and RETROBOLT_ADMIN_PASSWORD for the Docker smoke test.");
@@ -302,4 +304,4 @@ await smokeRelationOptions(schema, authHeaders);
 await smokeInstitutionSetupChain(discoveryAliases, authHeaders);
 await smokeWrites(authHeaders);
 
-console.log(`Docker smoke passed for ${schema.alias}: ${list.count} records. Temporary admin cleanup remains owned by the caller/test fixture.`);
+console.log(`Docker smoke passed for ${schema.alias}: ${list.count} records. Backend smoke contract ${backendSmokeContract.status} consumed. Temporary admin cleanup remains owned by the caller/test fixture.`);
