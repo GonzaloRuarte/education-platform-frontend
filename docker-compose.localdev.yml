@@ -49,6 +49,8 @@ services:
       NEXT_PUBLIC_APPOINTMENT_SCHEDULE_PROFILE: expanded_6_blocks
     ports:
       - "3000:3000"
+    volumes:
+      - ../meta-backend:/backend:ro
     depends_on: [backend]
 
 volumes:

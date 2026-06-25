@@ -202,7 +202,7 @@ async function smokeRelationOptions(schema, authHeaders) {
 
 async function smokeInstitutionSetupChain(discoveryAliases, authHeaders) {
   const chain = setupChainAliases();
-  assert.equal(chain.length, 5, `${INSTITUTION_SETUP_CHAIN_ENV} must list institution,institution_year,institution_grade_offering,grade_subject_scope,grade_subject_division aliases`);
+  assert.equal(chain.length, 5, `${INSTITUTION_SETUP_CHAIN_ENV} must list institution,institution_enrollment_period,period_grade,period_division,division_subject_offering aliases`);
   for (const alias of chain) {
     assert.ok(discoveryAliases.has(alias), `setup-chain alias ${alias} must appear in DB Admin discovery`);
     const schema = await loadSchema(alias, authHeaders);
