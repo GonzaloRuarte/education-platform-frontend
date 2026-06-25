@@ -160,11 +160,13 @@ async function runBrowserJourney() {
     await assertNoSecondPinFragments(page);
     completedSteps.push("setup_workbook_page_visible");
 
-    await clickAndWaitVisible(page, pageObjects.businessWorkflows.matrixEditor.nav, pageObjects.businessWorkflows.matrixEditor.page, "Matrix Editor page");
-    await waitVisible(page, pageObjects.businessWorkflows.matrixEditor.domainSelect, "Matrix Editor domain selector");
-    await waitVisible(page, pageObjects.businessWorkflows.matrixEditor.loadUniverseButton, "Matrix Editor load-universe button");
+    assert.equal(
+      await page.locator(pageObjects.businessWorkflows.matrixEditor.nav).count(),
+      0,
+      "Matrix Editor navigation should stay absent until backend workflow catalog admission exists",
+    );
     await assertNoSecondPinFragments(page);
-    completedSteps.push("matrix_editor_page_visible");
+    completedSteps.push("matrix_editor_nav_absent_without_catalog");
 
     await clickAndWaitVisible(page, pageObjects.businessWorkflows.auditView.nav, pageObjects.businessWorkflows.auditView.page, "Audit page");
     await assertNoSecondPinFragments(page);

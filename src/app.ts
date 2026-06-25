@@ -456,14 +456,6 @@ function renderSidebar(session: AuthSession): HTMLElement {
   setupWorkbookButton.addEventListener("click", () => {
     void selectSetupWorkbookPage();
   });
-  const matrixEditorButton = el("button", {
-    class: state.selectedWorkflow === "matrix_editor" ? "active" : "",
-    type: "button",
-    "data-testid": BUSINESS_WORKFLOW_TEST_IDS.matrixEditor.nav,
-  }, [t("matrix_editor")]);
-  matrixEditorButton.addEventListener("click", () => {
-    void selectMatrixEditorPage();
-  });
   const auditViewButton = el("button", {
     class: state.selectedWorkflow === "audit_view" ? "active" : "",
     type: "button",
@@ -488,7 +480,19 @@ function renderSidebar(session: AuthSession): HTMLElement {
   manualScoringButton.addEventListener("click", () => {
     void selectManualScoringPage();
   });
-  workflowNav.append(setupWorkbookButton, matrixEditorButton, auditViewButton, resourceExposureButton, manualScoringButton);
+  workflowNav.append(setupWorkbookButton);
+  if (matrixEditorNavigationEnabled()) {
+    const matrixEditorButton = el("button", {
+      class: state.selectedWorkflow === "matrix_editor" ? "active" : "",
+      type: "button",
+      "data-testid": BUSINESS_WORKFLOW_TEST_IDS.matrixEditor.nav,
+    }, [t("matrix_editor")]);
+    matrixEditorButton.addEventListener("click", () => {
+      void selectMatrixEditorPage();
+    });
+    workflowNav.append(matrixEditorButton);
+  }
+  workflowNav.append(auditViewButton, resourceExposureButton, manualScoringButton);
 
   const refresh = el("button", { class: "logout", type: "button", "data-testid": DB_ADMIN_TEST_IDS.refreshResources }, [t("refresh_resources")]);
   refresh.addEventListener("click", () => {
@@ -928,6 +932,17 @@ async function selectSetupWorkbookPage(updateHash = true): Promise<void> {
 }
 
 async function selectMatrixEditorPage(updateHash = true): Promise<void> {
+  if (!matrixEditorNavigationEnabled()) {
+    if (location.hash === MATRIX_EDITOR_HASH) {
+      history.replaceState(null, "", location.pathname || "/");
+    }
+    state.selectedWorkflow = null;
+    state.selectedResourceKey = null;
+    state.resourceView = null;
+    state.message = null;
+    render();
+    return;
+  }
   if (updateHash && location.hash !== MATRIX_EDITOR_HASH) {
     history.replaceState(null, "", MATRIX_EDITOR_HASH);
   }
@@ -1239,6 +1254,11 @@ function isStudentExamRoute(): boolean {
 
 function isStudentCorrectionRoute(): boolean {
   return location.hash === STUDENT_CORRECTION_HASH || location.hash.startsWith(`${STUDENT_CORRECTION_HASH}?`);
+}
+
+function matrixEditorNavigationEnabled(): boolean {
+  // Sensitive workflow navigation must come from a backend-owned catalog.
+  return false;
 }
 
 window.addEventListener("hashchange", () => {
