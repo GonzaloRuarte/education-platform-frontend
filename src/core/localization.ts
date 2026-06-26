@@ -6,8 +6,8 @@ import type {
   RelatedListDefinition,
   ResourceField,
   ResourceSchema,
-} from "./types";
-import { UI_TEXT } from "./i18n";
+} from "./types.js";
+import { UI_TEXT } from "./i18n.js";
 
 export function localizedTextForLocale(locale: Locale, fallback: string, text?: LocalizedText): string {
   if (!text) return fallback;

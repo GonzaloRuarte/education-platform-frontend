@@ -1,4 +1,4 @@
-import type { Locale } from "./types";
+import type { Locale } from "./types.js";
 
 export const UI_TEXT: Record<string, Record<Locale, string>> = {
   login_title: { es: "Administración de Base de Datos", en: "Database Administration" },

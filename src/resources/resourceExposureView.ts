@@ -1,7 +1,7 @@
-import type { JsonValue, ResourceExposureManifestItem, ResourceExposureState } from "../core/types";
-import { el } from "../core/dom";
-import { safeJson } from "../core/fieldFormatting";
-import { BUSINESS_WORKFLOW_TEST_IDS } from "../core/testIds";
+import type { JsonValue, ResourceExposureManifestItem, ResourceExposureState } from "../core/types.js";
+import { el } from "../core/dom.js";
+import { safeJson } from "../core/fieldFormatting.js";
+import { BUSINESS_WORKFLOW_TEST_IDS } from "../core/testIds.js";
 
 export interface ResourceExposureViewRuntime {
   state: ResourceExposureState;

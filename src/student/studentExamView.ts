@@ -1,7 +1,7 @@
-import { clear, el } from "../core/dom";
-import { publicErrorMessage, saveSession, withQueryParams } from "../api/api";
-import { FUTURE_BUSINESS_FRONTEND_TEST_IDS } from "../core/testIds";
-import type { Toast } from "../core/types";
+import { clear, el } from "../core/dom.js";
+import { publicErrorMessage, saveSession, withQueryParams } from "../api/api.js";
+import { FUTURE_BUSINESS_FRONTEND_TEST_IDS } from "../core/testIds.js";
+import type { Toast } from "../core/types.js";
 import {
   authorizeStudentExam,
   clearStudentExamOfflineState,
@@ -20,7 +20,7 @@ import {
   type StudentExamResolutionStatus,
   type StudentExamStateAnswer,
   type StudentExamStatePayload,
-} from "../api/studentExamApi";
+} from "../api/studentExamApi.js";
 
 export interface StudentExamRuntime {
   t: (key: string) => string;

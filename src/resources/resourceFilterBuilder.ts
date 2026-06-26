@@ -7,9 +7,9 @@ import type {
   RelationOption,
   ResourceField,
   ResourceViewState,
-} from "../core/types";
-import { clear, el } from "../core/dom";
-import { filterableFields, operatorNeedsValue, operatorsForField } from "../core/filters";
+} from "../core/types.js";
+import { clear, el } from "../core/dom.js";
+import { filterableFields, operatorNeedsValue, operatorsForField } from "../core/filters.js";
 
 export interface ResourceFilterBuilderRuntime {
   t: (key: string) => string;

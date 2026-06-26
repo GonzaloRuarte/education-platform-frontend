@@ -80,28 +80,28 @@ import type {
   ResourceExposureState,
   ManualScoringState,
   ApiErrorPayload
-} from "./core/types";
-import { appendChildren, clear, el } from "./core/dom";
-import { ApiRequestError, apiFetch, apiFetchBlob, clearSession, publicErrorMessage, readSession, saveSession, withQueryParams, withSurface } from "./api/api";
-import { AUDIT_VIEW_HASH, DEFAULT_PAGE_SIZE, MANUAL_SCORING_HASH, MATRIX_EDITOR_HASH, RESOURCE_EXPOSURE_HASH, SETUP_WORKBOOK_HASH, STORAGE_COLLAPSED_RESOURCE_GROUPS, STORAGE_LOCALE, STORAGE_THEME, STUDENT_CORRECTION_HASH, STUDENT_EXAM_HASH } from "./core/constants";
-import { actionLabelForLocale, actionMessageForLocale, fieldHelpTextForLocale, fieldNameForLocale, fieldUiTextForLocale, formatTextForLocale, localizedTextForLocale, operatorLabelForLocale, relatedListNameForLocale, resourceNameForLocale, translateForLocale } from "./core/localization";
-import { BUSINESS_WORKFLOW_TEST_IDS, DB_ADMIN_TEST_IDS } from "./core/testIds";
-import { emptyAuditViewState, emptyManualScoringState, emptyMatrixEditorResourceDraft, emptyMatrixEditorState, emptyResourceExposureState, emptySetupWorkbookState, loadCollapsedResourceGroups, loadLocale, loadTheme } from "./core/initialState";
-import { recordDeletePath, recordDetailPath, recordUpdatePath, resourceBatchDeletePath, resourceCreatePath, resourceListPath, resourceOptionsPath, resourceSchemaPath } from "./api/resourceEndpoints";
-import { parseResourceHash, replaceResourceHash, resourceHash } from "./core/routes";
-import { defaultFilterModel, filterModelForRequest, filterModelWithQuickSearch, filterableFields, hasActiveFilters, operatorNeedsValue, operatorsForField, parseFilterModel, parsePositiveInt, parseSortState, resourceViewParams, sanitizeFilterModel, sanitizeSortState } from "./core/filters";
-import { canResourceAction, detailFields, editableFields, listFields, recordIdentity, schemaHasDependentRelations } from "./resources/resourceModel";
-import { renderPagination as renderResourcePagination, renderRecordsTable as renderResourceRecordsTable, type ResourceTableRuntime } from "./resources/resourceTable";
-import { optionQueryParams } from "./resources/relationOptions";
-import { controlForField, loadFormOptions, renderRecordForm, type ResourceFormRuntime } from "./resources/resourceForm";
-import { coerceScalar, isScalarRecordValue, safeJson } from "./core/fieldFormatting";
-import { renderAuditViewPage, type AuditViewRuntime } from "./reports/auditView";
-import { renderResourceExposurePage, type ResourceExposureViewRuntime } from "./resources/resourceExposureView";
-import { renderManualScoringPage, type ManualScoringViewRuntime } from "./reports/manualScoringView";
-import { renderMatrixEditorPage, type MatrixEditorViewRuntime } from "./resources/matrixEditorView";
-import { renderSetupWorkbookPage, type SetupWorkbookViewRuntime } from "./resources/setupWorkbookView";
-import { renderStudentCorrectionPage, renderStudentExamPage, type StudentExamRuntime } from "./student/studentExamView";
-import { renderFilterBuilder, type ResourceFilterBuilderRuntime } from "./resources/resourceFilterBuilder";
+} from "./core/types.js";
+import { appendChildren, clear, el } from "./core/dom.js";
+import { ApiRequestError, apiFetch, apiFetchBlob, clearSession, publicErrorMessage, readSession, saveSession, withQueryParams, withSurface } from "./api/api.js";
+import { AUDIT_VIEW_HASH, DEFAULT_PAGE_SIZE, MANUAL_SCORING_HASH, MATRIX_EDITOR_HASH, RESOURCE_EXPOSURE_HASH, SETUP_WORKBOOK_HASH, STORAGE_COLLAPSED_RESOURCE_GROUPS, STORAGE_LOCALE, STORAGE_THEME, STUDENT_CORRECTION_HASH, STUDENT_EXAM_HASH } from "./core/constants.js";
+import { actionLabelForLocale, actionMessageForLocale, fieldHelpTextForLocale, fieldNameForLocale, fieldUiTextForLocale, formatTextForLocale, localizedTextForLocale, operatorLabelForLocale, relatedListNameForLocale, resourceNameForLocale, translateForLocale } from "./core/localization.js";
+import { BUSINESS_WORKFLOW_TEST_IDS, DB_ADMIN_TEST_IDS } from "./core/testIds.js";
+import { emptyAuditViewState, emptyManualScoringState, emptyMatrixEditorResourceDraft, emptyMatrixEditorState, emptyResourceExposureState, emptySetupWorkbookState, loadCollapsedResourceGroups, loadLocale, loadTheme } from "./core/initialState.js";
+import { recordDeletePath, recordDetailPath, recordUpdatePath, resourceBatchDeletePath, resourceCreatePath, resourceListPath, resourceOptionsPath, resourceSchemaPath } from "./api/resourceEndpoints.js";
+import { parseResourceHash, replaceResourceHash, resourceHash } from "./core/routes.js";
+import { defaultFilterModel, filterModelForRequest, filterModelWithQuickSearch, filterableFields, hasActiveFilters, operatorNeedsValue, operatorsForField, parseFilterModel, parsePositiveInt, parseSortState, resourceViewParams, sanitizeFilterModel, sanitizeSortState } from "./core/filters.js";
+import { canResourceAction, detailFields, editableFields, listFields, recordIdentity, schemaHasDependentRelations } from "./resources/resourceModel.js";
+import { renderPagination as renderResourcePagination, renderRecordsTable as renderResourceRecordsTable, type ResourceTableRuntime } from "./resources/resourceTable.js";
+import { optionQueryParams } from "./resources/relationOptions.js";
+import { controlForField, loadFormOptions, renderRecordForm, type ResourceFormRuntime } from "./resources/resourceForm.js";
+import { coerceScalar, isScalarRecordValue, safeJson } from "./core/fieldFormatting.js";
+import { renderAuditViewPage, type AuditViewRuntime } from "./reports/auditView.js";
+import { renderResourceExposurePage, type ResourceExposureViewRuntime } from "./resources/resourceExposureView.js";
+import { renderManualScoringPage, type ManualScoringViewRuntime } from "./reports/manualScoringView.js";
+import { renderMatrixEditorPage, type MatrixEditorViewRuntime } from "./resources/matrixEditorView.js";
+import { renderSetupWorkbookPage, type SetupWorkbookViewRuntime } from "./resources/setupWorkbookView.js";
+import { renderStudentCorrectionPage, renderStudentExamPage, type StudentExamRuntime } from "./student/studentExamView.js";
+import { renderFilterBuilder, type ResourceFilterBuilderRuntime } from "./resources/resourceFilterBuilder.js";
 const appRootElement = document.getElementById("app");
 
 if (!(appRootElement instanceof HTMLElement)) {

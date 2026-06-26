@@ -1,5 +1,5 @@
-import { apiFetch, apiFetchBlob } from "./api";
-import type { JsonValue } from "../core/types";
+import { apiFetch, apiFetchBlob } from "./api.js";
+import type { JsonValue } from "../core/types.js";
 
 export type ReportExportFormat = "json" | "html" | "pdf" | "csv" | "xlsx";
 export type ReportExportDeliveryMode = "in_app_render" | "download" | "scheduled_delivery";

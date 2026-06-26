@@ -8,8 +8,8 @@ import type {
   SetupWorkbookCellCorrection,
   SetupWorkbookState,
   ThemeMode,
-} from "./types";
-import { STORAGE_COLLAPSED_RESOURCE_GROUPS, STORAGE_LOCALE, STORAGE_THEME } from "./constants";
+} from "./types.js";
+import { STORAGE_COLLAPSED_RESOURCE_GROUPS, STORAGE_LOCALE, STORAGE_THEME } from "./constants.js";
 
 export function emptySetupWorkbookState(): SetupWorkbookState {
   return {

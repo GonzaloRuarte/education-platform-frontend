@@ -1,4 +1,4 @@
-import type { JsonValue } from "../core/types";
+import type { JsonValue } from "../core/types.js";
 
 export type ManualScoringAnnotationDraft = {
   anchor_start: number;

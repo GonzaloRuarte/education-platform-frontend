@@ -1,8 +1,8 @@
-import { publicErrorMessage } from "../api/api";
-import { clear, el } from "../core/dom";
-import { inputType, inputValue, safeJson } from "../core/fieldFormatting";
-import { fetchRelationOptions, optionQueryParams, relationDependencyFilterModel } from "./relationOptions";
-import { detailFields, editableFields } from "./resourceModel";
+import { publicErrorMessage } from "../api/api.js";
+import { clear, el } from "../core/dom.js";
+import { inputType, inputValue, safeJson } from "../core/fieldFormatting.js";
+import { fetchRelationOptions, optionQueryParams, relationDependencyFilterModel } from "./relationOptions.js";
+import { detailFields, editableFields } from "./resourceModel.js";
 import type {
   AdminControl,
   JsonValue,
@@ -12,7 +12,7 @@ import type {
   ResourceField,
   ResourceRecord,
   ResourceSchema,
-} from "../core/types";
+} from "../core/types.js";
 
 export type ResourceFormMode = "create" | "view" | "edit";
 

@@ -1,5 +1,5 @@
-import { apiFetch } from "../api/api";
-import { resourceOptionsPath } from "../api/resourceEndpoints";
+import { apiFetch } from "../api/api.js";
+import { resourceOptionsPath } from "../api/resourceEndpoints.js";
 import type {
   GridFilterItem,
   GridFilterModel,
@@ -10,7 +10,7 @@ import type {
   RelationOption,
   ResourceField,
   ResourceSchema,
-} from "../core/types";
+} from "../core/types.js";
 
 export async function fetchRelationOptions(
   schema: ResourceSchema,

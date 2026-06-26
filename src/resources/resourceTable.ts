@@ -8,10 +8,10 @@ import type {
   ResourceRecord,
   ResourceSchema,
   ResourceViewState,
-} from "../core/types";
-import { el } from "../core/dom";
-import { formatDateTime, isScalarRecordValue, optionLabel, safeJson, stripTags } from "../core/fieldFormatting";
-import { canResourceAction, editableFields, listFields, recordIdentity } from "./resourceModel";
+} from "../core/types.js";
+import { el } from "../core/dom.js";
+import { formatDateTime, isScalarRecordValue, optionLabel, safeJson, stripTags } from "../core/fieldFormatting.js";
+import { canResourceAction, editableFields, listFields, recordIdentity } from "./resourceModel.js";
 
 export type ResourceTableRuntime = {
   controlForField: (field: ResourceField) => AdminControl;

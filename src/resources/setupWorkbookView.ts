@@ -14,10 +14,10 @@ import type {
   SetupWorkbookManifest,
   SetupWorkbookState,
   Toast,
-} from "../core/types";
-import { el } from "../core/dom";
-import { apiFetch, apiFetchBlob, publicErrorMessage, withSurface } from "../api/api";
-import { BUSINESS_WORKFLOW_TEST_IDS } from "../core/testIds";
+} from "../core/types.js";
+import { el } from "../core/dom.js";
+import { apiFetch, apiFetchBlob, publicErrorMessage, withSurface } from "../api/api.js";
+import { BUSINESS_WORKFLOW_TEST_IDS } from "../core/testIds.js";
 
 export interface SetupWorkbookViewRuntime {
   setupWorkbook: SetupWorkbookState;

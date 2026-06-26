@@ -7,11 +7,11 @@ import type {
   AuditDetailResponse,
   AuditViewFilters,
   AuditViewState,
-} from "../core/types";
-import { el } from "../core/dom";
-import { parsePositiveInt } from "../core/filters";
-import { safeJson } from "../core/fieldFormatting";
-import { BUSINESS_WORKFLOW_TEST_IDS } from "../core/testIds";
+} from "../core/types.js";
+import { el } from "../core/dom.js";
+import { parsePositiveInt } from "../core/filters.js";
+import { safeJson } from "../core/fieldFormatting.js";
+import { BUSINESS_WORKFLOW_TEST_IDS } from "../core/testIds.js";
 
 export interface AuditViewRuntime {
   state: AuditViewState;

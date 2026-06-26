@@ -1,4 +1,4 @@
-import { RESOURCE_HASH_PREFIX } from "./constants";
+import { RESOURCE_HASH_PREFIX } from "./constants.js";
 
 export function parseResourceHash(): { resourceKey: string | null; params: URLSearchParams } {
   if (!location.hash.startsWith(RESOURCE_HASH_PREFIX)) {

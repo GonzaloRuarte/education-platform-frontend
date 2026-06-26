@@ -1,5 +1,5 @@
-import { apiFetch } from "./api";
-import type { JsonValue } from "../core/types";
+import { apiFetch } from "./api.js";
+import type { JsonValue } from "../core/types.js";
 
 export type AppointmentTargetSubjectOffering = {
   id: number;

@@ -1,4 +1,4 @@
-import type { ResourceAction, ResourceField, ResourceRecord, ResourceSchema } from "../core/types";
+import type { ResourceAction, ResourceField, ResourceRecord, ResourceSchema } from "../core/types.js";
 
 export function listFields(schema: ResourceSchema): ResourceField[] {
   return schema.fields.filter((field) => !field.write_only && field.visible_in_list);

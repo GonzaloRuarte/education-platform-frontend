@@ -1,5 +1,5 @@
-import type { ApiErrorPayload, AuthSession } from "../core/types";
-import { STORAGE_SESSION, SURFACE } from "../core/constants";
+import type { ApiErrorPayload, AuthSession } from "../core/types.js";
+import { STORAGE_SESSION, SURFACE } from "../core/constants.js";
 
 export {};
 declare global {

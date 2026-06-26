@@ -5,7 +5,7 @@ import type {
   ResourceField,
   ResourceSchema,
   ResourceViewState,
-} from "./types";
+} from "./types.js";
 
 export function defaultFilterModel(): GridFilterModel {
   return { items: [], quickFilterValues: [], linkOperator: "and" };

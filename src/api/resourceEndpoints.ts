@@ -1,6 +1,6 @@
-import type { ResourceSchema } from "../core/types";
-import { SURFACE } from "../core/constants";
-import { withQueryParams } from "./api";
+import type { ResourceSchema } from "../core/types.js";
+import { SURFACE } from "../core/constants.js";
+import { withQueryParams } from "./api.js";
 
 export function resourceSchemaPath(resourceKey: string): string {
   return `/api/resources/${encodeURIComponent(resourceKey)}/?surface=${SURFACE}`;

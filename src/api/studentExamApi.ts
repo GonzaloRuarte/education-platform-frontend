@@ -1,5 +1,5 @@
-import { apiFetch, withQueryParams } from "./api";
-import type { JsonValue, TokenPair } from "../core/types";
+import { apiFetch, withQueryParams } from "./api.js";
+import type { JsonValue, TokenPair } from "../core/types.js";
 
 export type StudentExamAuthorizeInput = {
   personal_id: string;

@@ -1,4 +1,4 @@
-import type { AdminControl, JsonPrimitive, RecordValue, ResourceField } from "./types";
+import type { AdminControl, JsonPrimitive, RecordValue, ResourceField } from "./types.js";
 
 export function isScalarRecordValue(value: RecordValue): value is JsonPrimitive {
   return ["string", "number", "boolean"].includes(typeof value);
