@@ -75,28 +75,24 @@ import type {
   AuditDetailResponse,
   AuditViewFilters,
   AuditViewState,
-  ResourceExposureManifestItem,
-  ResourceExposureManifest,
-  ResourceExposureState,
   ManualScoringState,
   ApiErrorPayload
 } from "./core/types.js";
 import { appendChildren, clear, el } from "./core/dom.js";
-import { ApiRequestError, apiFetch, apiFetchBlob, clearSession, publicErrorMessage, readSession, saveSession, withQueryParams, withSurface } from "./api/api.js";
-import { AUDIT_VIEW_HASH, DEFAULT_PAGE_SIZE, MANUAL_SCORING_HASH, MATRIX_EDITOR_HASH, RESOURCE_EXPOSURE_HASH, SETUP_WORKBOOK_HASH, STORAGE_COLLAPSED_RESOURCE_GROUPS, STORAGE_LOCALE, STORAGE_THEME, STUDENT_CORRECTION_HASH, STUDENT_EXAM_HASH } from "./core/constants.js";
+import { ApiRequestError, apiFetch, apiFetchBlob, clearSession, configDebugUi, publicErrorMessage, readSession, saveSession, withQueryParams, withSurface } from "./api/api.js";
+import { AUDIT_VIEW_HASH, DEFAULT_PAGE_SIZE, MANUAL_SCORING_HASH, MATRIX_EDITOR_HASH, SETUP_WORKBOOK_HASH, STORAGE_COLLAPSED_RESOURCE_GROUPS, STORAGE_LOCALE, STORAGE_THEME, STUDENT_CORRECTION_HASH, STUDENT_EXAM_HASH } from "./core/constants.js";
 import { actionLabelForLocale, actionMessageForLocale, fieldHelpTextForLocale, fieldNameForLocale, fieldUiTextForLocale, formatTextForLocale, localizedTextForLocale, operatorLabelForLocale, relatedListNameForLocale, resourceNameForLocale, translateForLocale } from "./core/localization.js";
 import { BUSINESS_WORKFLOW_TEST_IDS, DB_ADMIN_TEST_IDS } from "./core/testIds.js";
-import { emptyAuditViewState, emptyManualScoringState, emptyMatrixEditorResourceDraft, emptyMatrixEditorState, emptyResourceExposureState, emptySetupWorkbookState, loadCollapsedResourceGroups, loadLocale, loadTheme } from "./core/initialState.js";
+import { emptyAuditViewState, emptyManualScoringState, emptyMatrixEditorResourceDraft, emptyMatrixEditorState, emptySetupWorkbookState, loadCollapsedResourceGroups, loadLocale, loadTheme } from "./core/initialState.js";
 import { recordDeletePath, recordDetailPath, recordUpdatePath, resourceBatchDeletePath, resourceCreatePath, resourceListPath, resourceOptionsPath, resourceSchemaPath } from "./api/resourceEndpoints.js";
 import { parseResourceHash, replaceResourceHash, resourceHash } from "./core/routes.js";
 import { defaultFilterModel, filterModelForRequest, filterModelWithQuickSearch, filterableFields, hasActiveFilters, operatorNeedsValue, operatorsForField, parseFilterModel, parsePositiveInt, parseSortState, resourceViewParams, sanitizeFilterModel, sanitizeSortState } from "./core/filters.js";
 import { canResourceAction, detailFields, editableFields, listFields, recordIdentity, schemaHasDependentRelations } from "./resources/resourceModel.js";
 import { renderPagination as renderResourcePagination, renderRecordsTable as renderResourceRecordsTable, type ResourceTableRuntime } from "./resources/resourceTable.js";
-import { optionQueryParams } from "./resources/relationOptions.js";
+import { clearRelationOptionCache, optionQueryParams } from "./resources/relationOptions.js";
 import { controlForField, loadFormOptions, renderRecordForm, type ResourceFormRuntime } from "./resources/resourceForm.js";
 import { coerceScalar, isScalarRecordValue, safeJson } from "./core/fieldFormatting.js";
 import { renderAuditViewPage, type AuditViewRuntime } from "./reports/auditView.js";
-import { renderResourceExposurePage, type ResourceExposureViewRuntime } from "./resources/resourceExposureView.js";
 import { renderManualScoringPage, type ManualScoringViewRuntime } from "./reports/manualScoringView.js";
 import { renderMatrixEditorPage, type MatrixEditorViewRuntime } from "./resources/matrixEditorView.js";
 import { renderSetupWorkbookPage, type SetupWorkbookViewRuntime } from "./resources/setupWorkbookView.js";
@@ -110,6 +106,23 @@ if (!(appRootElement instanceof HTMLElement)) {
 
 const appRoot: HTMLElement = appRootElement;
 let nextToastId = 1;
+let sidebarScrollTop = 0;
+
+function captureSidebarScroll(): void {
+  const nav = appRoot.querySelector<HTMLElement>("[data-resource-nav-scroll]");
+  if (nav) {
+    sidebarScrollTop = nav.scrollTop;
+  }
+}
+
+function restoreSidebarScroll(): void {
+  window.requestAnimationFrame(() => {
+    const nav = appRoot.querySelector<HTMLElement>("[data-resource-nav-scroll]");
+    if (nav) {
+      nav.scrollTop = sidebarScrollTop;
+    }
+  });
+}
 
 const state: AppState = {
   resources: [],
@@ -121,7 +134,6 @@ const state: AppState = {
   setupWorkbook: emptySetupWorkbookState(),
   matrixEditor: emptyMatrixEditorState(),
   auditView: emptyAuditViewState(),
-  resourceExposure: emptyResourceExposureState(),
   manualScoring: emptyManualScoringState(),
   loading: false,
   error: null,
@@ -234,6 +246,7 @@ function renderToastRegion(): HTMLElement {
 }
 
 function render(): void {
+  captureSidebarScroll();
   applyTheme();
   clear(appRoot);
   if (isStudentExamRoute()) {
@@ -259,6 +272,7 @@ function render(): void {
   }
 
   appRoot.append(renderShell(session));
+  restoreSidebarScroll();
 }
 
 function renderPreferenceControls(): HTMLElement {
@@ -345,6 +359,7 @@ async function handleLogin(form: HTMLFormElement, submit: HTMLButtonElement, err
       method: "POST",
       body: JSON.stringify({ username, password }),
     }, false);
+    clearRelationOptionCache();
     saveSession(payload);
     state.error = null;
     state.message = null;
@@ -361,6 +376,7 @@ async function handleLogin(form: HTMLFormElement, submit: HTMLButtonElement, err
 function renderForbidden(session: AuthSession): HTMLElement {
   const logoutButton = el("button", { class: "button" }, [t("sign_out")]);
   logoutButton.addEventListener("click", () => {
+    clearRelationOptionCache();
     clearSession();
     state.resources = [];
     state.dbAdminAccessDenied = false;
@@ -380,13 +396,46 @@ function renderForbidden(session: AuthSession): HTMLElement {
 
 function renderShell(session: AuthSession): HTMLElement {
   const shell = el("div", { class: "app-shell", "data-testid": DB_ADMIN_TEST_IDS.appShell });
-  shell.append(renderSidebar(session));
+  shell.append(renderTopBar(session));
+  shell.append(renderSidebar());
   shell.append(renderMain());
   shell.append(renderToastRegion());
   return shell;
 }
 
-function renderSidebar(session: AuthSession): HTMLElement {
+function renderTopBar(session: AuthSession): HTMLElement {
+  const logout = el("button", { class: "button", type: "button", "data-testid": DB_ADMIN_TEST_IDS.signOut }, [t("sign_out")]);
+  logout.addEventListener("click", () => {
+    clearRelationOptionCache();
+    clearSession();
+    state.resources = [];
+    state.selectedResourceKey = null;
+    state.resourceView = null;
+    state.dbAdminAccessDenied = false;
+    render();
+  });
+
+  const controls: Node[] = [
+    el("strong", { class: "topbar__user" }, [displayUser(session.user)]),
+    renderPreferenceControls(),
+  ];
+  if (configDebugUi()) {
+    const refresh = el("button", { class: "button", type: "button", "data-testid": DB_ADMIN_TEST_IDS.refreshResources }, [t("refresh_resources")]);
+    refresh.addEventListener("click", () => {
+      clearRelationOptionCache();
+      void loadResources();
+    });
+    controls.push(refresh);
+  }
+  controls.push(logout);
+
+  return el("header", { class: "topbar" }, [
+    el("div", { class: "topbar__brand" }, [t("admin_title")]),
+    el("div", { class: "topbar__controls" }, controls),
+  ]);
+}
+
+function renderSidebar(): HTMLElement {
   const filterInput = el("input", {
     class: "resource-filter",
     "data-testid": DB_ADMIN_TEST_IDS.resourceFilter,
@@ -398,7 +447,7 @@ function renderSidebar(session: AuthSession): HTMLElement {
     render();
   });
 
-  const nav = el("nav", { class: "resource-nav", "aria-label": t("resources"), "data-testid": DB_ADMIN_TEST_IDS.resourceNav });
+  const nav = el("nav", { class: "resource-nav", "aria-label": t("resources"), "data-testid": DB_ADMIN_TEST_IDS.resourceNav, "data-resource-nav-scroll": "true" });
   const groupedResources = resourcesByNavigationGroup(filteredResources());
   for (const [group, resources] of groupedResources) {
     const collapsed = state.collapsedResourceGroups.has(group);
@@ -449,14 +498,6 @@ function renderSidebar(session: AuthSession): HTMLElement {
   auditViewButton.addEventListener("click", () => {
     void selectAuditViewPage();
   });
-  const resourceExposureButton = el("button", {
-    class: state.selectedWorkflow === "resource_exposure" ? "active" : "",
-    type: "button",
-    "data-testid": BUSINESS_WORKFLOW_TEST_IDS.resourceExposure.nav,
-  }, [t("resource_exposure")]);
-  resourceExposureButton.addEventListener("click", () => {
-    void selectResourceExposurePage();
-  });
   const manualScoringButton = el("button", {
     class: state.selectedWorkflow === "manual_scoring" ? "active" : "",
     type: "button",
@@ -477,34 +518,12 @@ function renderSidebar(session: AuthSession): HTMLElement {
     });
     workflowNav.append(matrixEditorButton);
   }
-  workflowNav.append(auditViewButton, resourceExposureButton, manualScoringButton);
-
-  const refresh = el("button", { class: "logout", type: "button", "data-testid": DB_ADMIN_TEST_IDS.refreshResources }, [t("refresh_resources")]);
-  refresh.addEventListener("click", () => {
-    void loadResources();
-  });
-
-  const logout = el("button", { class: "logout", type: "button", "data-testid": DB_ADMIN_TEST_IDS.signOut }, [t("sign_out")]);
-  logout.addEventListener("click", () => {
-    clearSession();
-    state.resources = [];
-    state.selectedResourceKey = null;
-    state.resourceView = null;
-    state.dbAdminAccessDenied = false;
-    render();
-  });
+  workflowNav.append(auditViewButton, manualScoringButton);
 
   return el("aside", { class: "sidebar", "data-testid": DB_ADMIN_TEST_IDS.sidebar }, [
-    el("div", {}, [
-      el("h1", { class: "sidebar__title" }, [t("admin_title")]),
-    ]),
-    el("div", { class: "user-card" }, [
-      el("strong", {}, [displayUser(session.user)]),
-    ]),
-    el("div", { class: "sidebar__section stack sidebar__controls" }, [filterInput, renderPreferenceControls(), refresh]),
+    el("div", { class: "sidebar__section stack sidebar__controls" }, [filterInput]),
     el("div", { class: "sidebar__section stack" }, [workflowNav]),
     nav,
-    el("div", { class: "sidebar__section sidebar__footer" }, [logout]),
   ]);
 }
 
@@ -537,10 +556,6 @@ function renderMain(): HTMLElement {
   }
   if (state.selectedWorkflow === "audit_view") {
     main.append(renderAuditViewPage(auditViewRuntime()));
-    return main;
-  }
-  if (state.selectedWorkflow === "resource_exposure") {
-    main.append(renderResourceExposurePage(resourceExposureViewRuntime()));
     return main;
   }
   if (state.selectedWorkflow === "manual_scoring") {
@@ -764,22 +779,6 @@ async function loadAuditViewDetail(id: string): Promise<void> {
   }
 }
 
-async function loadResourceExposureManifest(): Promise<void> {
-  state.resourceExposure.loading = true;
-  state.resourceExposure.error = null;
-  try {
-    state.resourceExposure.manifest = await apiFetch<ResourceExposureManifest>("/api/db-admin-resource-exposure/manifest/");
-  } catch (error) {
-    state.resourceExposure.error = publicErrorMessage(error, t("resource_exposure_load_failed"));
-    notify("error", state.resourceExposure.error);
-  } finally {
-    state.resourceExposure.loading = false;
-    render();
-  }
-}
-
-
-
 function fieldShell(label: string, input: HTMLElement, helpText?: string): HTMLElement {
   return el("div", { class: "field" }, [
     el("label", {}, [label]),
@@ -877,17 +876,6 @@ function auditViewRuntime(): AuditViewRuntime {
   };
 }
 
-function resourceExposureViewRuntime(): ResourceExposureViewRuntime {
-  return {
-    state: state.resourceExposure,
-    t,
-    render,
-    loadResourceExposureManifest,
-    renderLoadingPage,
-    fieldShell,
-  };
-}
-
 function manualScoringViewRuntime(): ManualScoringViewRuntime {
   return {
     manualScoring: state.manualScoring,
@@ -949,20 +937,6 @@ async function selectAuditViewPage(updateHash = true): Promise<void> {
   render();
   if (!state.auditView.list) {
     await loadAuditViewList();
-  }
-}
-
-async function selectResourceExposurePage(updateHash = true): Promise<void> {
-  if (updateHash && location.hash !== RESOURCE_EXPOSURE_HASH) {
-    history.replaceState(null, "", RESOURCE_EXPOSURE_HASH);
-  }
-  state.selectedWorkflow = "resource_exposure";
-  state.selectedResourceKey = null;
-  state.resourceView = null;
-  state.message = null;
-  render();
-  if (!state.resourceExposure.manifest) {
-    await loadResourceExposureManifest();
   }
 }
 
@@ -1041,8 +1015,13 @@ async function loadRecords(view: ResourceViewState): Promise<void> {
 
 async function loadListOptionMaps(view: ResourceViewState): Promise<void> {
   const optionFields = new Map<string, ResourceField>();
-  for (const field of [...listFields(view.schema), ...filterableFields(view.schema)]) {
+  for (const field of filterableFields(view.schema)) {
     if (field.option_source || field.relation) {
+      optionFields.set(field.key, field);
+    }
+  }
+  for (const field of listFields(view.schema)) {
+    if (field.option_source) {
       optionFields.set(field.key, field);
     }
   }
@@ -1076,6 +1055,161 @@ async function loadOptionMap(view: ResourceViewState, field: ResourceField): Pro
   view.optionMaps[field.key] = map;
 }
 
+
+function normalizeRecordValue(value: RecordValue): string {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  if (typeof value === "object" && !Array.isArray(value)) {
+    const record = value as ResourceRecord;
+    for (const key of ["value", "__identity", "id", "label", "name", "title"]) {
+      const candidate = record[key];
+      if (isScalarRecordValue(candidate)) {
+        return String(candidate);
+      }
+    }
+    return safeJson(value);
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeRecordValue(item as RecordValue)).join(" ");
+  }
+  return String(value);
+}
+
+function recordFieldText(record: ResourceRecord, field: ResourceField): string {
+  return normalizeRecordValue(record[field.key]).toLowerCase();
+}
+
+function recordMatchesQuickSearch(view: ResourceViewState, record: ResourceRecord): boolean {
+  const query = view.quickSearch.trim().toLowerCase();
+  if (!query) {
+    return true;
+  }
+  return listFields(view.schema).some((field) => recordFieldText(record, field).includes(query));
+}
+
+function filterItemMatchesRecord(view: ResourceViewState, item: GridFilterItem, record: ResourceRecord): boolean {
+  const field = view.schema.fields.find((candidate) => candidate.key === item.field);
+  if (!field) {
+    return true;
+  }
+  const raw = record[field.key];
+  const text = normalizeRecordValue(raw).toLowerCase();
+  const value = item.value;
+  const operator = item.operator;
+  const compareValues = Array.isArray(value) ? value.map((entry) => normalizeRecordValue(entry as RecordValue).toLowerCase()) : [normalizeRecordValue(value as RecordValue).toLowerCase()];
+
+  if (operator === "isEmpty") {
+    return raw === null || raw === undefined || raw === "" || (Array.isArray(raw) && raw.length === 0);
+  }
+  if (operator === "isNotEmpty") {
+    return !(raw === null || raw === undefined || raw === "" || (Array.isArray(raw) && raw.length === 0));
+  }
+  if (operator === "contains") {
+    return compareValues.every((needle) => !needle || text.includes(needle));
+  }
+  if (operator === "startsWith") {
+    return compareValues.every((needle) => !needle || text.startsWith(needle));
+  }
+  if (operator === "endsWith") {
+    return compareValues.every((needle) => !needle || text.endsWith(needle));
+  }
+  if (operator === "isAnyOf" || operator === "in") {
+    return compareValues.some((needle) => needle && text === needle);
+  }
+  if (operator === "equals" || operator === "eq" || operator === "exact") {
+    return compareValues.every((needle) => text === needle);
+  }
+  if (operator === "notEquals" || operator === "ne") {
+    return compareValues.every((needle) => text !== needle);
+  }
+  return true;
+}
+
+function recordMatchesCurrentView(view: ResourceViewState, record: ResourceRecord): boolean {
+  if (!recordMatchesQuickSearch(view, record)) {
+    return false;
+  }
+  const items = view.filterModel.items.filter((item) => item.field && item.operator);
+  if (items.length === 0) {
+    return true;
+  }
+  const matches = items.map((item) => filterItemMatchesRecord(view, item, record));
+  return view.filterModel.linkOperator === "or" ? matches.some(Boolean) : matches.every(Boolean);
+}
+
+function compareRecordsBySort(view: ResourceViewState, left: ResourceRecord, right: ResourceRecord): number {
+  const field = view.schema.fields.find((candidate) => candidate.key === view.sortField);
+  if (!field) {
+    return 0;
+  }
+  const leftText = normalizeRecordValue(left[field.key]);
+  const rightText = normalizeRecordValue(right[field.key]);
+  const result = leftText.localeCompare(rightText, undefined, { numeric: true, sensitivity: "base" });
+  return view.sortDirection === "desc" ? -result : result;
+}
+
+function applySavedRecordToCurrentView(schema: ResourceSchema, mode: "create" | "edit", record: ResourceRecord): boolean {
+  const view = state.resourceView;
+  if (!view || (view.schema.alias || view.schema.key) !== (schema.alias || schema.key)) {
+    return false;
+  }
+  const identity = recordIdentity(record);
+  if (!identity) {
+    return false;
+  }
+
+  if (view.page !== 1 || view.sortField || hasActiveFilters(view)) {
+    return false;
+  }
+
+  const existingIndex = view.records.findIndex((candidate) => recordIdentity(candidate) === identity);
+  const matches = recordMatchesCurrentView(view, record);
+  if (!matches) {
+    if (existingIndex >= 0) {
+      view.records.splice(existingIndex, 1);
+      view.count = Math.max(0, view.count - (mode === "create" ? 0 : 1));
+    }
+    return true;
+  }
+
+  if (existingIndex >= 0) {
+    view.records.splice(existingIndex, 1, record);
+  } else if (mode === "create") {
+    view.records.push(record);
+    view.count += 1;
+  }
+
+  if (view.sortField) {
+    view.records.sort((left, right) => compareRecordsBySort(view, left, right));
+  }
+  if (view.records.length > view.pageSize) {
+    view.records = view.records.slice(0, view.pageSize);
+  }
+  const visibleIdentities = new Set(view.records.map((candidate) => recordIdentity(candidate)).filter((candidate): candidate is string => candidate !== null));
+  view.selectedIdentities = new Set([...view.selectedIdentities].filter((candidate) => visibleIdentities.has(candidate)));
+  return true;
+}
+
+function removeRecordsFromCurrentView(schema: ResourceSchema, identities: string[]): boolean {
+  const view = state.resourceView;
+  if (!view || (view.schema.alias || view.schema.key) !== (schema.alias || schema.key)) {
+    return false;
+  }
+  const identitySet = new Set(identities);
+  const before = view.records.length;
+  view.records = view.records.filter((record) => {
+    const identity = recordIdentity(record);
+    return identity === null || !identitySet.has(identity);
+  });
+  const removedFromPage = before - view.records.length;
+  view.count = Math.max(0, view.count - Math.max(removedFromPage, identities.length));
+  for (const identity of identities) {
+    view.selectedIdentities.delete(identity);
+  }
+  return true;
+}
+
 function resourceFormRuntime(): ResourceFormRuntime {
   return {
     t,
@@ -1086,21 +1220,22 @@ function resourceFormRuntime(): ResourceFormRuntime {
     fieldUiText,
     submitRecordPayload: async ({ schema, mode, identity, payload }) => {
       if (mode === "create") {
-        await apiFetch<ResourceRecord>(resourceCreatePath(schema), {
+        return apiFetch<ResourceRecord>(resourceCreatePath(schema), {
           method: "POST",
           body: JSON.stringify(payload),
         });
-      } else {
-        await apiFetch<ResourceRecord>(recordUpdatePath(schema, identity), {
-          method: "PATCH",
-          body: JSON.stringify(payload),
-        });
       }
+      return apiFetch<ResourceRecord>(recordUpdatePath(schema, identity), {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
     },
-    afterSuccessfulSubmit: async (schema, mode) => {
+    afterSuccessfulSubmit: async (schema, mode, record) => {
       state.message = null;
       notify("success", `${resourceName(schema)} ${mode === "create" ? t("created") : t("updated")}.`);
-      await reloadResourceView();
+      if (!applySavedRecordToCurrentView(schema, mode, record)) {
+        await reloadResourceView();
+      }
     },
     reportError: (message) => notify("error", message),
     render,
@@ -1166,7 +1301,7 @@ async function batchDeleteRecords(view: ResourceViewState): Promise<void> {
     view.selectedIdentities.clear();
     state.message = null;
     notify("success", `${identities.length} ${resourceName(view.schema, true)} ${t("deleted")}.`);
-    await reloadResourceView();
+    removeRecordsFromCurrentView(view.schema, identities);
   } catch (error) {
     state.message = null;
     view.error = publicErrorMessage(error, t("batch_delete_failed"));
@@ -1188,7 +1323,9 @@ async function deleteRecord(schema: ResourceSchema, identity = "", label = ""): 
     await apiFetch<void>(recordDeletePath(schema, identity), { method: "DELETE" });
     state.message = null;
     notify("success", label ? `${schemaName} ${label} deleted.` : `${schemaName} deleted.`);
-    await reloadResourceView();
+    if (!removeRecordsFromCurrentView(schema, [identity])) {
+      await reloadResourceView();
+    }
   } catch (error) {
     state.message = null;
     if (state.resourceView) {
@@ -1263,10 +1400,6 @@ window.addEventListener("hashchange", () => {
     void selectAuditViewPage(false);
     return;
   }
-  if (location.hash === RESOURCE_EXPOSURE_HASH) {
-    void selectResourceExposurePage(false);
-    return;
-  }
   if (location.hash === MANUAL_SCORING_HASH) {
     void selectManualScoringPage(false);
     return;
@@ -1301,11 +1434,6 @@ async function boot(): Promise<void> {
   }
   if (location.hash === AUDIT_VIEW_HASH) {
     await selectAuditViewPage(false);
-    render();
-    return;
-  }
-  if (location.hash === RESOURCE_EXPOSURE_HASH) {
-    await selectResourceExposurePage(false);
     render();
     return;
   }

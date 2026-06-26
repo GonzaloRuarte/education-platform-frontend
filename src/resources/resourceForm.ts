@@ -30,8 +30,8 @@ export type ResourceFormRuntime = {
   fieldName: (field: ResourceField) => string;
   fieldHelpText: (field: ResourceField) => string | undefined;
   fieldUiText: (field: ResourceField, key: "section" | "placeholder") => string | undefined;
-  submitRecordPayload: (args: FormSubmitArgs) => Promise<void>;
-  afterSuccessfulSubmit: (schema: ResourceSchema, mode: Exclude<ResourceFormMode, "view">) => Promise<void>;
+  submitRecordPayload: (args: FormSubmitArgs) => Promise<ResourceRecord>;
+  afterSuccessfulSubmit: (schema: ResourceSchema, mode: Exclude<ResourceFormMode, "view">, record: ResourceRecord) => Promise<void>;
   reportError: (message: string) => void;
   render: () => void;
 };
@@ -489,9 +489,9 @@ async function submitRecordForm(
       return;
     }
     const payload = formPayload(form, fields, mode);
-    await runtime.submitRecordPayload({ schema, mode, identity, payload });
+    const savedRecord = await runtime.submitRecordPayload({ schema, mode, identity, payload });
     modal.remove();
-    await runtime.afterSuccessfulSubmit(schema, mode);
+    await runtime.afterSuccessfulSubmit(schema, mode, savedRecord);
   } catch (error) {
     const message = publicErrorMessage(error, runtime.t("save_failed"));
     errorBox.hidden = false;

@@ -8,7 +8,6 @@ export const RESOURCE_HASH_PREFIX = "#/resources/";
 export const SETUP_WORKBOOK_HASH = "#/setup-workbook";
 export const MATRIX_EDITOR_HASH = "#/matrix-editor";
 export const AUDIT_VIEW_HASH = "#/audit";
-export const RESOURCE_EXPOSURE_HASH = "#/resource-exposure";
 export const MANUAL_SCORING_HASH = "#/manual-scoring";
 export const STUDENT_EXAM_HASH = "#/student-exam";
 export const STUDENT_CORRECTION_HASH = "#/student-correction";

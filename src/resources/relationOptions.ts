@@ -12,6 +12,19 @@ import type {
   ResourceSchema,
 } from "../core/types.js";
 
+const RELATION_OPTION_CACHE_TTL_MS = 5 * 60 * 1000;
+
+type CachedOptions = {
+  expiresAt: number;
+  options: RelationOption[];
+};
+
+const relationOptionCache = new Map<string, CachedOptions>();
+
+export function clearRelationOptionCache(): void {
+  relationOptionCache.clear();
+}
+
 export async function fetchRelationOptions(
   schema: ResourceSchema,
   field: ResourceField,
@@ -23,12 +36,29 @@ export async function fetchRelationOptions(
   if (!params) {
     return [];
   }
+  const cacheKey = relationOptionCacheKey(schema, field, params);
+  const cached = relationOptionCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.options;
+  }
   try {
     const response = await apiFetch<OptionsResponse>(resourceOptionsPath(schema, field.key, params));
+    relationOptionCache.set(cacheKey, {
+      expiresAt: Date.now() + RELATION_OPTION_CACHE_TTL_MS,
+      options: response.options,
+    });
     return response.options;
   } catch {
-    return [];
+    return cached?.options ?? [];
   }
+}
+
+function relationOptionCacheKey(schema: ResourceSchema, field: ResourceField, params: Record<string, string>): string {
+  return JSON.stringify({
+    resource: schema.key,
+    field: field.key,
+    params: Object.fromEntries(Object.entries(params).sort(([left], [right]) => left.localeCompare(right))),
+  });
 }
 
 export function optionQueryParams(

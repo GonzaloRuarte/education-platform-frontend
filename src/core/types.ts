@@ -39,7 +39,7 @@ export type FieldType =
 
 export type ResourceAction = "list" | "retrieve" | "create" | "update" | "delete" | "batch_delete";
 export type ResourceActions = Partial<Record<ResourceAction, boolean>>;
-export type WorkflowPage = "setup_workbook" | "matrix_editor" | "audit_view" | "resource_exposure" | "manual_scoring";
+export type WorkflowPage = "setup_workbook" | "matrix_editor" | "audit_view" | "manual_scoring";
 
 export type StaticOption = {
   value: string;
@@ -250,7 +250,6 @@ export type AppState = {
   setupWorkbook: SetupWorkbookState;
   matrixEditor: MatrixEditorState;
   auditView: AuditViewState;
-  resourceExposure: ResourceExposureState;
   manualScoring: ManualScoringState;
   loading: boolean;
   error: string | null;
@@ -423,7 +422,6 @@ export type MatrixEditorUniverseResource = {
   resource_key: string;
   alias?: string;
   label?: string;
-  exposure?: string;
   structured_editor_only?: boolean;
   actions?: Partial<Record<ResourceAction, boolean>>;
 };
@@ -447,7 +445,6 @@ export type MatrixEditorColumnGrantResource = {
   resource_key: string;
   alias?: string;
   label?: string;
-  exposure?: string;
   structured_editor_only?: boolean;
   actions?: MatrixEditorColumnGrantAction[];
 };
@@ -463,6 +460,27 @@ export type MatrixEditorRowScopeType = {
   [key: string]: JsonValue | undefined;
 };
 
+
+export type MatrixEditorPermissionBundle = {
+  key: string;
+  label?: LocalizedText;
+  description?: LocalizedText;
+  resources?: string[];
+  actions?: string[];
+  api_entrypoints?: string[];
+  scope_hint?: string | null;
+};
+
+export type MatrixEditorUserTypePreset = {
+  key: string;
+  name: string;
+  description?: string;
+  resource_key: string;
+  target: "organization" | "institution" | "institution_template";
+  permission_bundle_keys?: string[];
+  scope_hint?: string | null;
+};
+
 export type MatrixEditorUniverse = {
   version?: number;
   domain: MatrixEditorDomain;
@@ -472,8 +490,11 @@ export type MatrixEditorUniverse = {
   role_type_bindings?: Record<string, JsonValue>;
   row_scope_types?: MatrixEditorRowScopeType[];
   column_grant_universe?: MatrixEditorColumnGrantResource[];
+  permission_bundles?: MatrixEditorPermissionBundle[];
+  role_type_presets?: MatrixEditorUserTypePreset[];
   forbidden_customer_features?: string[];
   role_mutation_status?: string;
+  target_role_grant_editor?: Record<string, JsonValue>;
 };
 
 export type MatrixEditorIssue = {
@@ -529,11 +550,36 @@ export type MatrixEditorColumnGrantProposal = {
   columns: string[];
 };
 
+export type MatrixEditorRoleGrantProposal = {
+  action: "create" | "update" | "revoke";
+  record_identity?: string;
+  after?: Record<string, JsonValue>;
+  before?: Record<string, JsonValue>;
+};
+
+export type MatrixEditorRoleGrantForm = {
+  action: "create" | "update" | "revoke";
+  record_identity: string;
+  user: string;
+  role: string;
+  organization: string;
+  institution: string;
+  status: string;
+  starts_on: string;
+  ends_on: string;
+  grant_reason: string;
+  support_reason: string;
+  scope_target: string;
+  scope_ids: string;
+  error: string | null;
+};
+
 export type MatrixEditorProposalBody = {
   resources?: MatrixEditorResourceProposal[];
   api_entrypoints?: string[];
   row_scope_values?: MatrixEditorRowScopeValueProposal[];
   column_grants?: MatrixEditorColumnGrantProposal[];
+  role_grants?: MatrixEditorRoleGrantProposal[];
 };
 
 export type MatrixEditorPayload = {
@@ -557,6 +603,9 @@ export type MatrixEditorState = {
   resourceProposals: MatrixEditorResourceProposal[];
   apiEntrypointDraft: string;
   apiEntrypoints: string[];
+  roleGrantDraft: string;
+  roleGrantForm: MatrixEditorRoleGrantForm;
+  roleGrantProposals: MatrixEditorRoleGrantProposal[];
   rowScopeValues: Map<string, string>;
   columnGrantSelections: Map<string, Set<string>>;
   validation: MatrixEditorValidationResponse | null;
@@ -618,38 +667,6 @@ export type AuditViewState = {
   list: AuditListResponse | null;
   detail: AuditDetailResponse | null;
   selectedId: string | null;
-  loading: boolean;
-  error: string | null;
-};
-
-export type ResourceExposureManifestItem = {
-  model: string;
-  resource_key: string;
-  exposure: string;
-  register_resource: boolean;
-  generic_discovery_eligible: boolean;
-  inspection_mode: string;
-  path: string;
-  line: number;
-};
-
-export type ResourceExposureManifest = {
-  version?: number;
-  owner?: string;
-  workflow?: string;
-  platform_only?: boolean;
-  classification_ssot?: string;
-  change_workflow?: string[];
-  break_glass?: Record<string, JsonValue>;
-  redacted_internal_resource_inspection?: Record<string, JsonValue>;
-  counts_by_exposure?: Record<string, number>;
-  resources?: ResourceExposureManifestItem[];
-};
-
-export type ResourceExposureState = {
-  manifest: ResourceExposureManifest | null;
-  exposureFilter: string;
-  query: string;
   loading: boolean;
   error: string | null;
 };

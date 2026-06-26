@@ -27,6 +27,141 @@ export interface SetupWorkbookViewRuntime {
 }
 
 let runtime: SetupWorkbookViewRuntime;
+const SETUP_WORKBOOK_DRAFT_KEY = "retrobolt.setupWorkbookDraft.v1";
+let setupWorkbookDraftRestored = false;
+
+type SetupWorkbookDraft = {
+  reason?: string;
+  omittedRows?: string[];
+  confirmedWarningCodes?: string[];
+  cellCorrections?: SetupWorkbookCellCorrection[];
+};
+
+type SetupWorkbookDraftRowPayload = {
+  row_number: number;
+  values: Record<string, JsonValue>;
+};
+
+type SetupWorkbookDraftSheetPayload = {
+  sheet: string;
+  rows: SetupWorkbookDraftRowPayload[];
+};
+
+function restoreSetupWorkbookDraft(state: SetupWorkbookState): void {
+  if (setupWorkbookDraftRestored) {
+    return;
+  }
+  setupWorkbookDraftRestored = true;
+  try {
+    const raw = localStorage.getItem(SETUP_WORKBOOK_DRAFT_KEY);
+    if (!raw) {
+      return;
+    }
+    const draft = JSON.parse(raw) as SetupWorkbookDraft;
+    state.reason = typeof draft.reason === "string" ? draft.reason : state.reason;
+    state.omittedRows = new Set((draft.omittedRows ?? []).map(String).filter(Boolean));
+    state.confirmedWarningCodes = new Set((draft.confirmedWarningCodes ?? []).map(String).filter(Boolean));
+    state.cellCorrections = new Map((draft.cellCorrections ?? [])
+      .filter((correction) => correction && correction.sheet && correction.row_number && correction.column)
+      .map((correction) => [setupWorkbookCellCorrectionKey(correction.sheet, correction.row_number, correction.column), correction]));
+  } catch {
+    // A corrupt local draft should not block yearly setup.
+  }
+}
+
+function clearSetupWorkbookDraft(): void {
+  try {
+    localStorage.removeItem(SETUP_WORKBOOK_DRAFT_KEY);
+  } catch {
+    // Ignore unavailable storage.
+  }
+}
+
+function resetSetupWorkbookLocalDraftState(): void {
+  runtime.setupWorkbook.reason = "";
+  runtime.setupWorkbook.omittedRows.clear();
+  runtime.setupWorkbook.confirmedWarningCodes.clear();
+  runtime.setupWorkbook.cellCorrections.clear();
+  runtime.setupWorkbook.commitPlan = null;
+  runtime.setupWorkbook.auditStageResult = null;
+  runtime.setupWorkbook.runtimeCommitResult = null;
+  runtime.setupWorkbook.error = null;
+}
+
+function discardSetupWorkbookLocalDraft(): void {
+  clearSetupWorkbookDraft();
+  resetSetupWorkbookLocalDraftState();
+  runtime.notify("info", runtime.t("workbook_draft_cleared"));
+  runtime.render();
+}
+
+function setupWorkbookHasLocalDraft(): boolean {
+  return Boolean(
+    runtime.setupWorkbook.reason.trim() ||
+    runtime.setupWorkbook.omittedRows.size ||
+    runtime.setupWorkbook.confirmedWarningCodes.size ||
+    runtime.setupWorkbook.cellCorrections.size
+  );
+}
+
+function installSetupWorkbookBeforeUnloadGuard(): void {
+  if ((window as unknown as { __setupWorkbookDraftGuard?: boolean }).__setupWorkbookDraftGuard) {
+    return;
+  }
+  (window as unknown as { __setupWorkbookDraftGuard?: boolean }).__setupWorkbookDraftGuard = true;
+  window.addEventListener("beforeunload", (event) => {
+    if (!runtime || !setupWorkbookHasLocalDraft()) {
+      return;
+    }
+    event.preventDefault();
+    event.returnValue = "";
+  });
+}
+
+function persistSetupWorkbookDraft(): void {
+  try {
+    const draft: SetupWorkbookDraft = {
+      reason: runtime.setupWorkbook.reason,
+      omittedRows: [...runtime.setupWorkbook.omittedRows],
+      confirmedWarningCodes: [...runtime.setupWorkbook.confirmedWarningCodes],
+      cellCorrections: setupWorkbookCellCorrections(),
+    };
+    localStorage.setItem(SETUP_WORKBOOK_DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    // Storage may be unavailable/private; the workflow should still work.
+  }
+}
+
+function setupWorkbookDraftSourceLabel(): string {
+  if (runtime.setupWorkbook.selectedFile) {
+    return runtime.t("workbook_source_excel");
+  }
+  if (setupWorkbookHasDraftRows()) {
+    return runtime.t("workbook_source_current");
+  }
+  return runtime.t("workbook_select_file");
+}
+
+function renderSetupWorkbookDraftStatus(): HTMLElement {
+  const changedCells = runtime.setupWorkbook.cellCorrections.size;
+  const omittedRows = runtime.setupWorkbook.omittedRows.size;
+  const confirmedWarnings = runtime.setupWorkbook.confirmedWarningCodes.size;
+  const clearButton = el("button", { class: "button", type: "button", disabled: setupWorkbookHasLocalDraft() ? null : true }, [runtime.t("workbook_clear_draft")]);
+  clearButton.addEventListener("click", () => discardSetupWorkbookLocalDraft());
+  return el("div", { class: "setup-workbook__draft-status" }, [
+    el("div", {}, [
+      el("strong", {}, [runtime.t("workbook_draft_status")]),
+      el("p", { class: "cell-muted" }, [runtime.t("workbook_draft_saved")]),
+    ]),
+    el("div", { class: "meta-line" }, [
+      el("span", { class: "badge" }, [setupWorkbookDraftSourceLabel()]),
+      el("span", { class: "badge" }, [`${changedCells} ${runtime.t("workbook_changed_cells")}`]),
+      el("span", { class: "badge" }, [`${omittedRows} ${runtime.t("workbook_omit_row")}`]),
+      el("span", { class: "badge" }, [`${confirmedWarnings} ${runtime.t("workbook_confirm_warning")}`]),
+      clearButton,
+    ]),
+  ]);
+}
 
 function fieldShell(label: string, input: HTMLElement, helpText?: string): HTMLElement {
   return el("div", { class: "field" }, [
@@ -44,12 +179,19 @@ function renderSetupWorkbookLoading(message: string): HTMLElement {
 
 export function renderSetupWorkbookPage(nextRuntime: SetupWorkbookViewRuntime): HTMLElement {
   runtime = nextRuntime;
+  restoreSetupWorkbookDraft(runtime.setupWorkbook);
+  installSetupWorkbookBeforeUnloadGuard();
   if (!runtime.setupWorkbook.manifest && !runtime.setupWorkbook.loading) {
     void loadSetupWorkbookManifest();
   }
   const templateButton = el("button", { class: "button", type: "button", "data-testid": BUSINESS_WORKFLOW_TEST_IDS.setupWorkbook.templateButton }, [runtime.t("download_template")]);
   templateButton.addEventListener("click", () => {
     void downloadSetupWorkbookTemplate();
+  });
+
+  const draftButton = el("button", { class: "button", type: "button", "data-testid": BUSINESS_WORKFLOW_TEST_IDS.setupWorkbook.draftButton }, [runtime.t("load_current_setup")]);
+  draftButton.addEventListener("click", () => {
+    void loadSetupWorkbookDraft();
   });
 
   const fileInput = el("input", {
@@ -69,13 +211,14 @@ export function renderSetupWorkbookPage(nextRuntime: SetupWorkbookViewRuntime): 
     runtime.setupWorkbook.confirmedWarningCodes.clear();
     runtime.setupWorkbook.cellCorrections.clear();
     runtime.setupWorkbook.error = null;
+    persistSetupWorkbookDraft();
     runtime.render();
   });
 
   const dryRunButton = el("button", {
     class: "button primary",
     type: "button",
-    disabled: runtime.setupWorkbook.selectedFile && !runtime.setupWorkbook.loading ? null : true,
+    disabled: (runtime.setupWorkbook.selectedFile || runtime.setupWorkbook.dryRunResult) && !runtime.setupWorkbook.loading ? null : true,
     "data-testid": BUSINESS_WORKFLOW_TEST_IDS.setupWorkbook.dryRunButton,
   }, [runtime.t("run_dry_run")]);
   dryRunButton.addEventListener("click", () => {
@@ -85,7 +228,7 @@ export function renderSetupWorkbookPage(nextRuntime: SetupWorkbookViewRuntime): 
   const previewButton = el("button", {
     class: "button",
     type: "button",
-    disabled: runtime.setupWorkbook.selectedFile && runtime.setupWorkbook.dryRunResult && !runtime.setupWorkbook.loading ? null : true,
+    disabled: runtime.setupWorkbook.dryRunResult && !runtime.setupWorkbook.loading ? null : true,
     "data-testid": BUSINESS_WORKFLOW_TEST_IDS.setupWorkbook.previewButton,
   }, [runtime.t("build_preview")]);
   previewButton.addEventListener("click", () => {
@@ -95,7 +238,7 @@ export function renderSetupWorkbookPage(nextRuntime: SetupWorkbookViewRuntime): 
   const auditStageButton = el("button", {
     class: "button primary",
     type: "button",
-    disabled: runtime.setupWorkbook.selectedFile && runtime.setupWorkbook.commitPlan?.commit_allowed && !runtime.setupWorkbook.loading ? null : true,
+    disabled: runtime.setupWorkbook.dryRunResult && runtime.setupWorkbook.commitPlan?.commit_allowed && !runtime.setupWorkbook.loading ? null : true,
     "data-testid": BUSINESS_WORKFLOW_TEST_IDS.setupWorkbook.auditStageButton,
   }, [runtime.t("stage_workbook_audit")]);
   auditStageButton.addEventListener("click", () => {
@@ -105,7 +248,7 @@ export function renderSetupWorkbookPage(nextRuntime: SetupWorkbookViewRuntime): 
   const runtimeCommitButton = el("button", {
     class: "button danger",
     type: "button",
-    disabled: runtime.setupWorkbook.selectedFile && runtime.setupWorkbook.commitPlan?.commit_allowed && !runtime.setupWorkbook.loading ? null : true,
+    disabled: runtime.setupWorkbook.dryRunResult && runtime.setupWorkbook.commitPlan?.commit_allowed && !runtime.setupWorkbook.loading ? null : true,
     "data-testid": BUSINESS_WORKFLOW_TEST_IDS.setupWorkbook.runtimeCommitButton,
   }, [runtime.t("commit_workbook_runtime")]);
   runtimeCommitButton.addEventListener("click", () => {
@@ -119,6 +262,7 @@ export function renderSetupWorkbookPage(nextRuntime: SetupWorkbookViewRuntime): 
   }, [runtime.setupWorkbook.reason]);
   reasonInput.addEventListener("change", () => {
     runtime.setupWorkbook.reason = reasonInput.value;
+    persistSetupWorkbookDraft();
   });
 
   const notices: Node[] = [];
@@ -133,16 +277,19 @@ export function renderSetupWorkbookPage(nextRuntime: SetupWorkbookViewRuntime): 
         el("h2", { class: "page-title" }, [runtime.t("setup_workbook_title")]),
         el("p", { class: "page-subtitle" }, [runtime.t("setup_workbook_subtitle")]),
       ]),
-      el("div", { class: "toolbar" }, [templateButton]),
+      el("div", { class: "toolbar" }, [templateButton, draftButton]),
     ]),
     ...notices,
     el("section", { class: "card" }, [
       el("div", { class: "card__body stack" }, [
+        renderSetupWorkbookDraftStatus(),
         el("div", { class: "toolbar" }, [fileInput, dryRunButton, previewButton, auditStageButton, runtimeCommitButton]),
         fieldShell(runtime.t("workbook_reason"), reasonInput),
         runtime.setupWorkbook.selectedFile
           ? el("p", { class: "meta-line" }, [runtime.setupWorkbook.selectedFile.name])
-          : el("p", { class: "cell-muted" }, [runtime.t("workbook_select_file")]),
+          : runtime.setupWorkbook.dryRunResult
+            ? el("p", { class: "meta-line" }, [runtime.t("workbook_current_draft")])
+            : el("p", { class: "cell-muted" }, [runtime.t("workbook_select_file")]),
       ]),
     ]),
     renderSetupWorkbookManifestCard(),
@@ -244,6 +391,7 @@ function renderSetupWorkbookIssue(issue: SetupWorkbookIssue): HTMLElement {
         runtime.setupWorkbook.omittedRows.delete(rowKey);
       }
       runtime.setupWorkbook.commitPlan = null;
+      persistSetupWorkbookDraft();
       runtime.render();
     });
     controls.push(el("label", { class: "checkbox-row" }, [omit, runtime.t("workbook_omit_row")]));
@@ -261,6 +409,7 @@ function renderSetupWorkbookIssue(issue: SetupWorkbookIssue): HTMLElement {
         runtime.setupWorkbook.confirmedWarningCodes.delete(issue.code);
       }
       runtime.setupWorkbook.commitPlan = null;
+      persistSetupWorkbookDraft();
       runtime.render();
     });
     controls.push(el("label", { class: "checkbox-row" }, [confirm, `${runtime.t("workbook_confirm_warning")}: ${issue.code}`]));
@@ -390,6 +539,7 @@ function updateSetupWorkbookCellCorrection(
   }
   runtime.setupWorkbook.commitPlan = null;
   runtime.setupWorkbook.auditStageResult = null;
+  persistSetupWorkbookDraft();
   runtime.setupWorkbook.runtimeCommitResult = null;
   runtime.render();
 }
@@ -582,6 +732,43 @@ function omittedSetupWorkbookRows(): Array<{ sheet: string; row_number: number }
   }).filter((row) => row.sheet && row.row_number > 0);
 }
 
+function setupWorkbookHasDraftRows(): boolean {
+  return Boolean(runtime.setupWorkbook.dryRunResult?.sheets?.length);
+}
+
+function setupWorkbookDraftSheetsPayload(): SetupWorkbookDraftSheetPayload[] {
+  const correctionByKey = new Map(setupWorkbookCellCorrections().map((correction) => [
+    setupWorkbookCellCorrectionKey(correction.sheet, correction.row_number, correction.column),
+    correction,
+  ]));
+  return (runtime.setupWorkbook.dryRunResult?.sheets ?? []).map((sheet) => ({
+    sheet: sheet.sheet,
+    rows: (sheet.rows ?? []).map((row) => {
+      const values: Record<string, JsonValue> = { ...(row.values ?? {}) };
+      for (const column of Object.keys(values)) {
+        const correction = correctionByKey.get(setupWorkbookCellCorrectionKey(sheet.sheet, row.row_number, column));
+        if (correction) {
+          values[column] = correction.value;
+        }
+      }
+      return { row_number: row.row_number, values };
+    }),
+  }));
+}
+
+function setupWorkbookDraftRequestBody(includeCommitInputs = false): string {
+  const body: Record<string, JsonValue> = {
+    existing_data_diff_mode: "upsert",
+    sheets: setupWorkbookDraftSheetsPayload() as unknown as JsonValue,
+  };
+  if (includeCommitInputs) {
+    body.confirmed_warning_codes = [...runtime.setupWorkbook.confirmedWarningCodes].sort();
+    body.omitted_rows = omittedSetupWorkbookRows() as unknown as JsonValue;
+    body.reason = runtime.setupWorkbook.reason;
+  }
+  return JSON.stringify(body);
+}
+
 async function loadSetupWorkbookManifest(): Promise<void> {
   runtime.setupWorkbook.loading = true;
   runtime.setupWorkbook.error = null;
@@ -614,8 +801,31 @@ async function downloadSetupWorkbookTemplate(): Promise<void> {
   }
 }
 
+async function loadSetupWorkbookDraft(): Promise<void> {
+  runtime.setupWorkbook.loading = true;
+  runtime.setupWorkbook.error = null;
+  runtime.render();
+  try {
+    runtime.setupWorkbook.dryRunResult = await apiFetch<SetupWorkbookDryRunResult>(withSurface("/api/setup-workbook/draft/"));
+    runtime.setupWorkbook.selectedFile = null;
+    runtime.setupWorkbook.commitPlan = null;
+    runtime.setupWorkbook.auditStageResult = null;
+    runtime.setupWorkbook.runtimeCommitResult = null;
+    runtime.setupWorkbook.omittedRows.clear();
+    runtime.setupWorkbook.confirmedWarningCodes.clear();
+    runtime.setupWorkbook.cellCorrections.clear();
+    persistSetupWorkbookDraft();
+  } catch (error) {
+    runtime.setupWorkbook.error = publicErrorMessage(error, runtime.t("workbook_draft_failed"));
+    runtime.notify("error", runtime.setupWorkbook.error);
+  } finally {
+    runtime.setupWorkbook.loading = false;
+    runtime.render();
+  }
+}
+
 async function runSetupWorkbookDryRun(): Promise<void> {
-  if (!runtime.setupWorkbook.selectedFile) {
+  if (!runtime.setupWorkbook.selectedFile && !setupWorkbookHasDraftRows()) {
     runtime.setupWorkbook.error = runtime.t("workbook_select_file");
     runtime.render();
     return;
@@ -627,15 +837,23 @@ async function runSetupWorkbookDryRun(): Promise<void> {
   runtime.setupWorkbook.runtimeCommitResult = null;
   runtime.render();
   try {
-    const formData = new FormData();
-    formData.append("file", runtime.setupWorkbook.selectedFile);
-    appendSetupWorkbookCellCorrections(formData);
-    runtime.setupWorkbook.dryRunResult = await apiFetch<SetupWorkbookDryRunResult>(withSurface("/api/setup-workbook/dry-run/"), {
-      method: "POST",
-      body: formData,
-    });
+    if (setupWorkbookHasDraftRows()) {
+      runtime.setupWorkbook.dryRunResult = await apiFetch<SetupWorkbookDryRunResult>(withSurface("/api/setup-workbook/draft/dry-run/"), {
+        method: "POST",
+        body: setupWorkbookDraftRequestBody(false),
+      });
+    } else {
+      const formData = new FormData();
+      formData.append("file", runtime.setupWorkbook.selectedFile as File);
+      appendSetupWorkbookCellCorrections(formData);
+      runtime.setupWorkbook.dryRunResult = await apiFetch<SetupWorkbookDryRunResult>(withSurface("/api/setup-workbook/dry-run/"), {
+        method: "POST",
+        body: formData,
+      });
+    }
     runtime.setupWorkbook.omittedRows.clear();
     runtime.setupWorkbook.confirmedWarningCodes.clear();
+    persistSetupWorkbookDraft();
   } catch (error) {
     runtime.setupWorkbook.error = publicErrorMessage(error, runtime.t("workbook_dry_run_failed"));
     runtime.notify("error", runtime.setupWorkbook.error);
@@ -657,7 +875,7 @@ function appendSetupWorkbookCommitInputs(formData: FormData): void {
 }
 
 async function buildSetupWorkbookCommitPlan(): Promise<void> {
-  if (!runtime.setupWorkbook.selectedFile) {
+  if (!setupWorkbookHasDraftRows()) {
     runtime.setupWorkbook.error = runtime.t("workbook_select_file");
     runtime.render();
     return;
@@ -668,12 +886,9 @@ async function buildSetupWorkbookCommitPlan(): Promise<void> {
   runtime.setupWorkbook.runtimeCommitResult = null;
   runtime.render();
   try {
-    const formData = new FormData();
-    formData.append("file", runtime.setupWorkbook.selectedFile);
-    appendSetupWorkbookCommitInputs(formData);
-    runtime.setupWorkbook.commitPlan = await apiFetch<SetupWorkbookCommitPlan>(withSurface("/api/setup-workbook/commit-plan/"), {
+    runtime.setupWorkbook.commitPlan = await apiFetch<SetupWorkbookCommitPlan>(withSurface("/api/setup-workbook/draft/commit-plan/"), {
       method: "POST",
-      body: formData,
+      body: setupWorkbookDraftRequestBody(true),
     });
   } catch (error) {
     runtime.setupWorkbook.error = publicErrorMessage(error, runtime.t("workbook_commit_plan_failed"));
@@ -687,7 +902,7 @@ async function buildSetupWorkbookCommitPlan(): Promise<void> {
 
 
 async function stageSetupWorkbookAuditBatch(): Promise<void> {
-  if (!runtime.setupWorkbook.selectedFile) {
+  if (!setupWorkbookHasDraftRows()) {
     runtime.setupWorkbook.error = runtime.t("workbook_select_file");
     runtime.render();
     return;
@@ -701,12 +916,9 @@ async function stageSetupWorkbookAuditBatch(): Promise<void> {
   runtime.setupWorkbook.error = null;
   runtime.render();
   try {
-    const formData = new FormData();
-    formData.append("file", runtime.setupWorkbook.selectedFile);
-    appendSetupWorkbookCommitInputs(formData);
-    runtime.setupWorkbook.auditStageResult = await apiFetch<SetupWorkbookAuditStageResult>(withSurface("/api/setup-workbook/commit-audit-stage/"), {
+    runtime.setupWorkbook.auditStageResult = await apiFetch<SetupWorkbookAuditStageResult>(withSurface("/api/setup-workbook/draft/commit-audit-stage/"), {
       method: "POST",
-      body: formData,
+      body: setupWorkbookDraftRequestBody(true),
     });
   } catch (error) {
     runtime.setupWorkbook.error = publicErrorMessage(error, runtime.t("workbook_audit_stage_failed"));
@@ -718,7 +930,7 @@ async function stageSetupWorkbookAuditBatch(): Promise<void> {
 }
 
 async function commitSetupWorkbookRuntime(): Promise<void> {
-  if (!runtime.setupWorkbook.selectedFile) {
+  if (!setupWorkbookHasDraftRows()) {
     runtime.setupWorkbook.error = runtime.t("workbook_select_file");
     runtime.render();
     return;
@@ -732,13 +944,14 @@ async function commitSetupWorkbookRuntime(): Promise<void> {
   runtime.setupWorkbook.error = null;
   runtime.render();
   try {
-    const formData = new FormData();
-    formData.append("file", runtime.setupWorkbook.selectedFile);
-    appendSetupWorkbookCommitInputs(formData);
-    runtime.setupWorkbook.runtimeCommitResult = await apiFetch<SetupWorkbookRuntimeCommitResult>(withSurface("/api/setup-workbook/commit/"), {
+    runtime.setupWorkbook.runtimeCommitResult = await apiFetch<SetupWorkbookRuntimeCommitResult>(withSurface("/api/setup-workbook/draft/commit/"), {
       method: "POST",
-      body: formData,
+      body: setupWorkbookDraftRequestBody(true),
     });
+    clearSetupWorkbookDraft();
+    runtime.setupWorkbook.omittedRows.clear();
+    runtime.setupWorkbook.confirmedWarningCodes.clear();
+    runtime.setupWorkbook.cellCorrections.clear();
   } catch (error) {
     runtime.setupWorkbook.error = publicErrorMessage(error, runtime.t("workbook_runtime_commit_failed"));
     runtime.notify("error", runtime.setupWorkbook.error);

@@ -2,8 +2,8 @@ import type {
   AuditViewState,
   Locale,
   MatrixEditorResourceDraft,
+  MatrixEditorRoleGrantForm,
   MatrixEditorState,
-  ResourceExposureState,
   ManualScoringState,
   SetupWorkbookCellCorrection,
   SetupWorkbookState,
@@ -38,6 +38,25 @@ export function emptyMatrixEditorResourceDraft(): MatrixEditorResourceDraft {
   };
 }
 
+export function emptyMatrixEditorRoleGrantForm(): MatrixEditorRoleGrantForm {
+  return {
+    action: "create",
+    record_identity: "",
+    user: "",
+    role: "",
+    organization: "",
+    institution: "",
+    status: "active",
+    starts_on: "",
+    ends_on: "",
+    grant_reason: "",
+    support_reason: "",
+    scope_target: "",
+    scope_ids: "",
+    error: null,
+  };
+}
+
 export function emptyMatrixEditorState(): MatrixEditorState {
   return {
     domain: "organization",
@@ -46,6 +65,9 @@ export function emptyMatrixEditorState(): MatrixEditorState {
     resourceProposals: [],
     apiEntrypointDraft: "",
     apiEntrypoints: [],
+    roleGrantDraft: JSON.stringify({ action: "create", after: { user: 0, role: 0, institution: 0, grant_reason: "" } }, null, 2),
+    roleGrantForm: emptyMatrixEditorRoleGrantForm(),
+    roleGrantProposals: [],
     rowScopeValues: new Map<string, string>(),
     columnGrantSelections: new Map<string, Set<string>>(),
     validation: null,
@@ -72,16 +94,6 @@ export function emptyAuditViewState(): AuditViewState {
     list: null,
     detail: null,
     selectedId: null,
-    loading: false,
-    error: null,
-  };
-}
-
-export function emptyResourceExposureState(): ResourceExposureState {
-  return {
-    manifest: null,
-    exposureFilter: "",
-    query: "",
     loading: false,
     error: null,
   };

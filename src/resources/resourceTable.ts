@@ -10,7 +10,7 @@ import type {
   ResourceViewState,
 } from "../core/types.js";
 import { el } from "../core/dom.js";
-import { formatDateTime, isScalarRecordValue, optionLabel, safeJson, stripTags } from "../core/fieldFormatting.js";
+import { formatDateTime, optionLabel, safeJson, stripTags } from "../core/fieldFormatting.js";
 import { canResourceAction, editableFields, listFields, recordIdentity } from "./resourceModel.js";
 
 export type ResourceTableRuntime = {
@@ -166,21 +166,23 @@ function renderRowActions(schema: ResourceSchema, record: ResourceRecord, runtim
 }
 
 function relatedListButtons(schema: ResourceSchema, record: ResourceRecord, runtime: ResourceTableRuntime): HTMLButtonElement[] {
-  return (schema.related_lists ?? []).map((relatedList) => {
-    const value = record[relatedList.source_field];
-    const canOpen = value !== null && value !== undefined && isScalarRecordValue(value)
-      && runtime.resourceExists(relatedList.target_resource_alias);
+  const parentIdentity = recordIdentity(record);
+  if (!parentIdentity) {
+    return [];
+  }
+
+  return (schema.related_lists ?? []).flatMap((relatedList) => {
+    if (!runtime.resourceExists(relatedList.target_resource_alias)) {
+      return [];
+    }
+
     const button = el("button", {
       class: "button",
       type: "button",
-      disabled: canOpen ? null : true,
-      title: canOpen ? `${runtime.t("open_related")} ${runtime.relatedListName(relatedList)}` : runtime.t("related_unavailable"),
+      title: `${runtime.t("open_related")} ${runtime.relatedListName(relatedList)}`,
     }, [runtime.relatedListName(relatedList)]);
     button.addEventListener("click", () => {
-      if (!canOpen || !isScalarRecordValue(value)) {
-        return;
-      }
-      const filterValue: JsonValue = relatedList.operator === "isAnyOf" ? [value] : value;
+      const filterValue: JsonValue = relatedList.operator === "isAnyOf" ? [parentIdentity] : parentIdentity;
       const filterModel: GridFilterModel = {
         items: [{
           field: relatedList.target_field,
@@ -195,7 +197,7 @@ function relatedListButtons(schema: ResourceSchema, record: ResourceRecord, runt
       params.set("filters", JSON.stringify(filterModel));
       void runtime.selectResource(relatedList.target_resource_alias, params);
     });
-    return button;
+    return [button];
   });
 }
 

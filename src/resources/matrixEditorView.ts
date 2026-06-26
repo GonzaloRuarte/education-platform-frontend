@@ -14,13 +14,17 @@ import type {
   MatrixEditorColumnGrantProposal,
   MatrixEditorPayload,
   MatrixEditorProposalBody,
+  MatrixEditorPermissionBundle,
+  MatrixEditorUserTypePreset,
+  MatrixEditorRoleGrantProposal,
+  MatrixEditorRoleGrantForm,
   MatrixEditorState,
   JsonValue,
   Toast,
 } from "../core/types.js";
 import { el } from "../core/dom.js";
 import { apiFetch, publicErrorMessage, withSurface } from "../api/api.js";
-import { emptyMatrixEditorResourceDraft } from "../core/initialState.js";
+import { emptyMatrixEditorResourceDraft, emptyMatrixEditorRoleGrantForm } from "../core/initialState.js";
 import { coerceScalar, safeJson } from "../core/fieldFormatting.js";
 import { BUSINESS_WORKFLOW_TEST_IDS } from "../core/testIds.js";
 
@@ -79,6 +83,9 @@ export function renderMatrixEditorPage(nextRuntime: MatrixEditorViewRuntime): HT
     runtime.matrixEditor.resourceProposals = [];
     runtime.matrixEditor.apiEntrypoints = [];
     runtime.matrixEditor.apiEntrypointDraft = "";
+    runtime.matrixEditor.roleGrantDraft = JSON.stringify({ action: "create", after: { user: 0, role: 0, institution: 0, grant_reason: "" } }, null, 2);
+    runtime.matrixEditor.roleGrantForm = emptyMatrixEditorRoleGrantForm();
+    runtime.matrixEditor.roleGrantProposals = [];
     runtime.matrixEditor.rowScopeValues.clear();
     runtime.matrixEditor.columnGrantSelections.clear();
     runtime.matrixEditor.validation = null;
@@ -134,6 +141,9 @@ export function renderMatrixEditorPage(nextRuntime: MatrixEditorViewRuntime): HT
     renderMatrixEditorResourceProposalCard(),
     renderMatrixEditorApiEntrypointCard(),
     renderMatrixEditorColumnGrantCard(),
+    renderMatrixEditorUserTypePresetCard(),
+    renderMatrixEditorPermissionBundlesCard(),
+    renderMatrixEditorRoleGrantCard(),
     renderMatrixEditorRowScopeCard(),
     renderMatrixEditorAuditCard(),
     renderMatrixEditorResultCards(),
@@ -346,6 +356,502 @@ function renderMatrixEditorColumnGrantAction(resource: MatrixEditorColumnGrantRe
 
 function matrixEditorColumnGrantSelectionKey(resourceKey: string, action: string): string {
   return `${resourceKey}::${action}`;
+}
+
+
+function renderMatrixEditorUserTypePresetCard(): HTMLElement {
+  const presets = currentMatrixEditorUniverse()?.role_type_presets ?? [];
+  const bundles = currentMatrixEditorUniverse()?.permission_bundles ?? [];
+  const organizationInput = el("input", {
+    class: "input",
+    value: runtime.matrixEditor.roleGrantForm.organization,
+    placeholder: runtime.t("matrix_role_grant_organization"),
+  }) as HTMLInputElement;
+  organizationInput.addEventListener("input", () => {
+    runtime.matrixEditor.roleGrantForm.organization = organizationInput.value;
+  });
+  const institutionInput = el("input", {
+    class: "input",
+    value: runtime.matrixEditor.roleGrantForm.institution,
+    placeholder: runtime.t("matrix_role_grant_institution"),
+  }) as HTMLInputElement;
+  institutionInput.addEventListener("input", () => {
+    runtime.matrixEditor.roleGrantForm.institution = institutionInput.value;
+  });
+
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("div", { class: "toolbar" }, [
+        el("h3", {}, [runtime.t("matrix_user_type_presets")]),
+        el("span", { class: "badge" }, [runtime.matrixEditor.domain]),
+      ]),
+      el("p", { class: "cell-muted" }, [runtime.t("matrix_user_type_presets_help")]),
+      el("div", { class: "form-grid" }, [
+        fieldShell(runtime.t("matrix_role_grant_organization"), organizationInput, runtime.t("matrix_user_type_organization_help")),
+        fieldShell(runtime.t("matrix_role_grant_institution"), institutionInput, runtime.t("matrix_user_type_institution_help")),
+      ]),
+      presets.length
+        ? el("div", { class: "permission-bundle-grid" }, presets.map((preset) => renderMatrixEditorUserTypePresetTile(preset, bundles)))
+        : el("div", { class: "empty" }, [runtime.t("matrix_user_type_presets_empty")]),
+    ]),
+  ]);
+}
+
+function renderMatrixEditorUserTypePresetTile(preset: MatrixEditorUserTypePreset, bundles: MatrixEditorPermissionBundle[]): HTMLElement {
+  const targetLabel = matrixEditorUserTypeTargetLabel(preset);
+  const bundleKeys = preset.permission_bundle_keys ?? [];
+  const bundleLabels = bundleKeys.map((key) => {
+    const bundle = bundles.find((candidate) => candidate.key === key);
+    return bundle ? localizedBundleText(bundle.label, key) : key;
+  });
+  const addTypeButton = el("button", { class: "button", type: "button" }, [runtime.t("matrix_user_type_add")]);
+  addTypeButton.addEventListener("click", () => addMatrixEditorUserTypePresetProposal(preset, { applyBundles: false }));
+  const addWithBundlesButton = el("button", { class: "button primary", type: "button" }, [runtime.t("matrix_user_type_add_with_permissions")]);
+  addWithBundlesButton.addEventListener("click", () => addMatrixEditorUserTypePresetProposal(preset, { applyBundles: true }));
+
+  return el("div", { class: "permission-bundle permission-bundle--preset" }, [
+    el("div", { class: "permission-bundle__header" }, [
+      el("strong", {}, [preset.name || preset.key]),
+      el("span", { class: "badge" }, [targetLabel]),
+    ]),
+    preset.description ? el("p", { class: "cell-muted" }, [preset.description]) : null,
+    el("div", { class: "permission-bundle__chips" }, [
+      el("span", { class: "filter-chip" }, [matrixEditorResourceLabel(preset.resource_key)]),
+      preset.scope_hint ? el("span", { class: "filter-chip" }, [`${runtime.t("matrix_scope_hint")}: ${preset.scope_hint}`]) : null,
+      ...bundleLabels.map((label) => el("span", { class: "filter-chip" }, [label])),
+    ]),
+    el("div", { class: "toolbar" }, [addTypeButton, addWithBundlesButton]),
+  ]);
+}
+
+function matrixEditorUserTypeTargetLabel(preset: MatrixEditorUserTypePreset): string {
+  if (preset.target === "institution_template") return runtime.t("matrix_user_type_template_target");
+  if (preset.target === "institution") return runtime.t("institution_domain");
+  return runtime.t("organization_domain");
+}
+
+function addMatrixEditorUserTypePresetProposal(preset: MatrixEditorUserTypePreset, options: { applyBundles: boolean }): void {
+  try {
+    const after: Record<string, JsonValue> = {
+      key: preset.key,
+      name: preset.name,
+      description: preset.description ?? "",
+      active: true,
+    };
+    if (preset.target === "institution") {
+      after.institution = matrixEditorInteger(runtime.matrixEditor.roleGrantForm.institution, "institution", true) as number;
+    } else {
+      after.organization = matrixEditorInteger(runtime.matrixEditor.roleGrantForm.organization, "organization", true) as number;
+    }
+    runtime.matrixEditor.resourceProposals.push({
+      resource_key: preset.resource_key,
+      action: "create",
+      after,
+    });
+    if (options.applyBundles) {
+      applyMatrixEditorPermissionBundlesByKey(preset.permission_bundle_keys ?? []);
+    }
+    clearMatrixEditorResults();
+    runtime.notify("success", runtime.t("matrix_user_type_added"));
+    runtime.render();
+  } catch (error) {
+    runtime.notify("error", error instanceof Error ? error.message : "Invalid user type preset.");
+  }
+}
+
+function applyMatrixEditorPermissionBundlesByKey(bundleKeys: string[]): void {
+  const bundles = currentMatrixEditorUniverse()?.permission_bundles ?? [];
+  const wanted = new Set(bundleKeys);
+  for (const bundle of bundles) {
+    if (wanted.has(bundle.key)) {
+      applyMatrixEditorPermissionBundle(bundle, { notify: false });
+    }
+  }
+}
+
+
+function renderMatrixEditorPermissionBundlesCard(): HTMLElement {
+  const bundles = currentMatrixEditorUniverse()?.permission_bundles ?? [];
+  const applyAllButton = el("button", { class: "button", type: "button", disabled: bundles.length ? null : true }, [runtime.t("permission_bundle_apply_all")]);
+  applyAllButton.addEventListener("click", () => {
+    for (const bundle of bundles) {
+      applyMatrixEditorPermissionBundle(bundle, { notify: false });
+    }
+    runtime.notify("success", runtime.t("permission_bundle_applied"));
+    runtime.render();
+  });
+
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("div", { class: "toolbar" }, [
+        el("h3", {}, [runtime.t("permission_bundles")]),
+        applyAllButton,
+      ]),
+      el("p", { class: "cell-muted" }, [runtime.t("permission_bundles_help")]),
+      bundles.length
+        ? el("div", { class: "permission-bundle-grid" }, bundles.map(renderMatrixEditorPermissionBundleTile))
+        : el("div", { class: "empty" }, [runtime.t("permission_bundles_empty")]),
+    ]),
+  ]);
+}
+
+function renderMatrixEditorPermissionBundleTile(bundle: MatrixEditorPermissionBundle): HTMLElement {
+  const status = matrixEditorPermissionBundleStatus(bundle);
+  const isApplied = status === "applied";
+  const actionButton = el("button", { class: isApplied ? "button" : "button primary", type: "button" }, [
+    isApplied ? runtime.t("permission_bundle_remove") : runtime.t("permission_bundle_apply"),
+  ]);
+  actionButton.addEventListener("click", () => {
+    if (isApplied) {
+      removeMatrixEditorPermissionBundle(bundle);
+    } else {
+      applyMatrixEditorPermissionBundle(bundle);
+    }
+  });
+  const statusLabel = status === "applied"
+    ? runtime.t("permission_bundle_applied_status")
+    : status === "partial"
+      ? runtime.t("permission_bundle_partial_status")
+      : runtime.t("permission_bundle_empty_status");
+  return el("div", { class: `permission-bundle permission-bundle--${status}` }, [
+    el("div", { class: "permission-bundle__header" }, [
+      el("strong", {}, [localizedBundleText(bundle.label, bundle.key)]),
+      el("span", { class: "badge" }, [statusLabel]),
+    ]),
+    bundle.description ? el("p", { class: "cell-muted" }, [localizedBundleText(bundle.description, "")]) : null,
+    el("div", { class: "permission-bundle__chips" }, [
+      bundle.scope_hint ? el("span", { class: "filter-chip" }, [`${runtime.t("matrix_scope_hint")}: ${bundle.scope_hint}`]) : null,
+      ...(bundle.resources ?? []).map((resource) => el("span", { class: "filter-chip" }, [matrixEditorResourceLabel(resource)])),
+      ...(bundle.actions ?? []).map((action) => el("span", { class: "filter-chip" }, [`:${action}`])),
+      ...(bundle.api_entrypoints ?? []).map((api) => el("span", { class: "filter-chip" }, [`api:${api}`])),
+    ]),
+    actionButton,
+  ]);
+}
+
+function matrixEditorPermissionBundleStatus(bundle: MatrixEditorPermissionBundle): "empty" | "partial" | "applied" {
+  const checks: boolean[] = [];
+  for (const apiName of bundle.api_entrypoints ?? []) {
+    checks.push(runtime.matrixEditor.apiEntrypoints.includes(apiName));
+  }
+  const resourceKeys = new Set(bundle.resources ?? []);
+  const actionKeys = new Set(bundle.actions ?? []);
+  for (const resource of currentMatrixEditorUniverse()?.column_grant_universe ?? []) {
+    if (resourceKeys.size && !resourceKeys.has(resource.resource_key)) {
+      continue;
+    }
+    for (const action of resource.actions ?? []) {
+      if (actionKeys.size && !actionKeys.has(action.action)) {
+        continue;
+      }
+      const availableColumns = (action.columns ?? []).map((column) => column.key).filter(Boolean);
+      if (!availableColumns.length) {
+        continue;
+      }
+      const selected = runtime.matrixEditor.columnGrantSelections.get(matrixEditorColumnGrantSelectionKey(resource.resource_key, action.action));
+      checks.push(availableColumns.every((column) => selected?.has(column)));
+    }
+  }
+  if (!checks.length || checks.every((value) => !value)) {
+    return "empty";
+  }
+  return checks.every(Boolean) ? "applied" : "partial";
+}
+
+function localizedBundleText(text: Partial<Record<string, string>> | undefined, fallback: string): string {
+  if (!text) return fallback;
+  return text.es || text.en || fallback;
+}
+
+function applyMatrixEditorPermissionBundle(bundle: MatrixEditorPermissionBundle, options: { notify?: boolean } = {}): void {
+  const resourceKeys = new Set(bundle.resources ?? []);
+  const actionKeys = new Set(bundle.actions ?? []);
+  for (const apiName of bundle.api_entrypoints ?? []) {
+    if (!runtime.matrixEditor.apiEntrypoints.includes(apiName)) {
+      runtime.matrixEditor.apiEntrypoints.push(apiName);
+    }
+  }
+  for (const resource of currentMatrixEditorUniverse()?.column_grant_universe ?? []) {
+    if (resourceKeys.size && !resourceKeys.has(resource.resource_key)) {
+      continue;
+    }
+    for (const action of resource.actions ?? []) {
+      if (actionKeys.size && !actionKeys.has(action.action)) {
+        continue;
+      }
+      const columns = (action.columns ?? []).map((column) => column.key).filter(Boolean);
+      if (!columns.length) {
+        continue;
+      }
+      const selectionKey = matrixEditorColumnGrantSelectionKey(resource.resource_key, action.action);
+      const selected = runtime.matrixEditor.columnGrantSelections.get(selectionKey) ?? new Set<string>();
+      for (const column of columns) {
+        selected.add(column);
+      }
+      runtime.matrixEditor.columnGrantSelections.set(selectionKey, selected);
+    }
+  }
+  clearMatrixEditorResults();
+  if (options.notify !== false) {
+    runtime.notify("success", runtime.t("permission_bundle_applied"));
+    runtime.render();
+  }
+}
+
+function removeMatrixEditorPermissionBundle(bundle: MatrixEditorPermissionBundle): void {
+  const apiNames = new Set(bundle.api_entrypoints ?? []);
+  runtime.matrixEditor.apiEntrypoints = runtime.matrixEditor.apiEntrypoints.filter((apiName) => !apiNames.has(apiName));
+  const resourceKeys = new Set(bundle.resources ?? []);
+  const actionKeys = new Set(bundle.actions ?? []);
+  for (const resource of currentMatrixEditorUniverse()?.column_grant_universe ?? []) {
+    if (resourceKeys.size && !resourceKeys.has(resource.resource_key)) {
+      continue;
+    }
+    for (const action of resource.actions ?? []) {
+      if (actionKeys.size && !actionKeys.has(action.action)) {
+        continue;
+      }
+      const selectionKey = matrixEditorColumnGrantSelectionKey(resource.resource_key, action.action);
+      const selected = runtime.matrixEditor.columnGrantSelections.get(selectionKey);
+      if (!selected) {
+        continue;
+      }
+      for (const column of (action.columns ?? []).map((candidate) => candidate.key)) {
+        selected.delete(column);
+      }
+      if (selected.size) {
+        runtime.matrixEditor.columnGrantSelections.set(selectionKey, selected);
+      } else {
+        runtime.matrixEditor.columnGrantSelections.delete(selectionKey);
+      }
+    }
+  }
+  clearMatrixEditorResults();
+  runtime.notify("info", runtime.t("permission_bundle_removed"));
+  runtime.render();
+}
+
+function renderMatrixEditorRoleGrantCard(): HTMLElement {
+  const manifest = currentMatrixEditorUniverse()?.target_role_grant_editor;
+  const form = runtime.matrixEditor.roleGrantForm;
+  const actionSelect = el("select", { class: "select" }) as HTMLSelectElement;
+  for (const action of ["create", "update", "revoke"] as const) {
+    actionSelect.append(el("option", { value: action, selected: form.action === action ? true : null }, [action]));
+  }
+  actionSelect.addEventListener("change", () => {
+    form.action = actionSelect.value === "update" || actionSelect.value === "revoke" ? actionSelect.value : "create";
+    form.error = null;
+    runtime.render();
+  });
+  const identityFieldsDisabled = form.action !== "create";
+  const mutationFieldsDisabled = form.action === "revoke";
+  const inputs = {
+    record_identity: roleGrantTextInput(form.record_identity, (value) => { form.record_identity = value; }, runtime.t("matrix_record_identity")),
+    user: roleGrantTextInput(form.user, (value) => { form.user = value; }, runtime.t("matrix_role_grant_user"), identityFieldsDisabled),
+    role: roleGrantTextInput(form.role, (value) => { form.role = value; }, runtime.t("matrix_role_grant_role"), identityFieldsDisabled),
+    organization: roleGrantTextInput(form.organization, (value) => { form.organization = value; }, runtime.t("matrix_role_grant_organization"), identityFieldsDisabled),
+    institution: roleGrantTextInput(form.institution, (value) => { form.institution = value; }, runtime.t("matrix_role_grant_institution"), identityFieldsDisabled),
+    starts_on: roleGrantTextInput(form.starts_on, (value) => { form.starts_on = value; }, "YYYY-MM-DD", mutationFieldsDisabled, "date"),
+    ends_on: roleGrantTextInput(form.ends_on, (value) => { form.ends_on = value; }, "YYYY-MM-DD", mutationFieldsDisabled, "date"),
+  };
+  const statusSelect = el("select", { class: "select", disabled: mutationFieldsDisabled ? true : null }) as HTMLSelectElement;
+  for (const status of ["active", "inactive", "suspended", "revoked"]) {
+    statusSelect.append(el("option", { value: status, selected: form.status === status ? true : null }, [status]));
+  }
+  statusSelect.addEventListener("change", () => {
+    form.status = statusSelect.value;
+    form.error = null;
+  });
+  const reasonInput = el("textarea", { class: "textarea", disabled: mutationFieldsDisabled ? true : null, placeholder: runtime.t("matrix_reason") }, [form.grant_reason]) as HTMLTextAreaElement;
+  reasonInput.addEventListener("input", () => {
+    form.grant_reason = reasonInput.value;
+    form.error = null;
+  });
+  const scopeTargetSelect = el("select", { class: "select", disabled: mutationFieldsDisabled ? true : null }) as HTMLSelectElement;
+  const scopeTargets = ["", "enrollment_period", "period_grade", "period_division", "division_subject_offering"];
+  for (const target of scopeTargets) {
+    scopeTargetSelect.append(el("option", { value: target, selected: form.scope_target === target ? true : null }, [target || "—"]));
+  }
+  scopeTargetSelect.addEventListener("change", () => {
+    form.scope_target = scopeTargetSelect.value;
+    form.error = null;
+  });
+  const scopeIdsInput = roleGrantTextInput(form.scope_ids, (value) => { form.scope_ids = value; }, runtime.t("matrix_role_grant_scope_ids"), mutationFieldsDisabled);
+  const addButton = el("button", { class: "button primary", type: "button" }, [runtime.t("matrix_add_role_grant")]);
+  addButton.addEventListener("click", () => addMatrixEditorStructuredRoleGrantProposal());
+
+  const textarea = el("textarea", { class: "textarea", spellcheck: "false" }, [runtime.matrixEditor.roleGrantDraft]);
+  textarea.addEventListener("input", () => {
+    runtime.matrixEditor.roleGrantDraft = textarea.value;
+  });
+  const addJsonButton = el("button", { class: "button", type: "button" }, [runtime.t("matrix_add_role_grant_json")]);
+  addJsonButton.addEventListener("click", () => addMatrixEditorRoleGrantProposal());
+
+  const rows = runtime.matrixEditor.roleGrantProposals.map((proposal, index) => {
+    const removeButton = el("button", { class: "button flat", type: "button" }, ["×"]);
+    removeButton.addEventListener("click", () => {
+      runtime.matrixEditor.roleGrantProposals.splice(index, 1);
+      clearMatrixEditorResults();
+      runtime.render();
+    });
+    return el("tr", {}, [
+      el("td", {}, [proposal.action]),
+      el("td", {}, [proposal.record_identity || "—"]),
+      el("td", { class: "cell-json" }, [safeJson(proposal.after ?? {})]),
+      el("td", {}, [removeButton]),
+    ]);
+  });
+
+  return el("section", { class: "card" }, [
+    el("div", { class: "card__body stack" }, [
+      el("div", { class: "toolbar" }, [
+        el("h3", {}, [runtime.t("matrix_role_grants")]),
+        manifest?.status ? el("span", { class: "badge" }, [String(manifest.status)]) : null,
+      ]),
+      el("p", { class: "cell-muted" }, [runtime.t("matrix_role_grants_help")]),
+      el("div", { class: "form-grid" }, [
+        fieldShell(runtime.t("matrix_role_grant_action"), actionSelect),
+        fieldShell(runtime.t("matrix_record_identity"), inputs.record_identity),
+        fieldShell(runtime.t("matrix_role_grant_user"), inputs.user),
+        fieldShell(runtime.t("matrix_role_grant_role"), inputs.role),
+        fieldShell(runtime.t("matrix_role_grant_organization"), inputs.organization),
+        fieldShell(runtime.t("matrix_role_grant_institution"), inputs.institution),
+        fieldShell(runtime.t("matrix_role_grant_status"), statusSelect),
+        fieldShell(runtime.t("matrix_role_grant_starts_on"), inputs.starts_on),
+        fieldShell(runtime.t("matrix_role_grant_ends_on"), inputs.ends_on),
+        fieldShell(runtime.t("matrix_role_grant_scope_target"), scopeTargetSelect, runtime.t("matrix_role_grant_scope_help")),
+        fieldShell(runtime.t("matrix_role_grant_scope_ids"), scopeIdsInput),
+        el("div", { class: "field field--full" }, [
+          el("label", {}, [runtime.t("matrix_reason")]),
+          reasonInput,
+        ]),
+      ]),
+      form.error ? el("div", { class: "error" }, [form.error]) : null,
+      addButton,
+      el("details", { class: "contract-details" }, [
+        el("summary", {}, [runtime.t("matrix_role_grant_json")]),
+        el("div", { class: "contract-details__body" }, [fieldShell(runtime.t("matrix_role_grant_json"), textarea), addJsonButton]),
+      ]),
+      runtime.matrixEditor.roleGrantProposals.length
+        ? el("div", { class: "table-wrap" }, [el("table", {}, [
+            el("thead", {}, [el("tr", {}, [
+              el("th", {}, [runtime.t("matrix_action")]),
+              el("th", {}, [runtime.t("matrix_record_identity")]),
+              el("th", {}, [runtime.t("matrix_after_json")]),
+              el("th", {}, [""]),
+            ])]),
+            el("tbody", {}, rows),
+          ])])
+        : el("div", { class: "empty" }, [runtime.t("matrix_no_role_grants")]),
+    ]),
+  ]);
+}
+
+function roleGrantTextInput(value: string, onInput: (value: string) => void, placeholder: string, disabled = false, type = "text"): HTMLInputElement {
+  const input = el("input", { class: "input", type, value, placeholder, disabled: disabled ? true : null }) as HTMLInputElement;
+  input.addEventListener("input", () => {
+    onInput(input.value);
+    runtime.matrixEditor.roleGrantForm.error = null;
+  });
+  return input;
+}
+
+function matrixEditorInteger(value: string, field: string, required = false): number | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    if (required) {
+      throw new Error(`${field} is required.`);
+    }
+    return undefined;
+  }
+  const parsed = Number.parseInt(trimmed, 10);
+  if (!Number.isFinite(parsed) || String(parsed) !== trimmed) {
+    throw new Error(`${field} must be an integer ID.`);
+  }
+  return parsed;
+}
+
+function addMatrixEditorStructuredRoleGrantProposal(): void {
+  const form = runtime.matrixEditor.roleGrantForm;
+  try {
+    const proposal: MatrixEditorRoleGrantProposal = { action: form.action };
+    if (form.action !== "create") {
+      const recordIdentity = form.record_identity.trim();
+      if (!recordIdentity) {
+        throw new Error("record_identity is required for update/revoke.");
+      }
+      proposal.record_identity = recordIdentity;
+    }
+    if (form.action !== "revoke") {
+      const after: Record<string, JsonValue> = {};
+      if (form.action === "create") {
+        after.user = matrixEditorInteger(form.user, "user", true) as number;
+        after.role = matrixEditorInteger(form.role, "role", true) as number;
+        const organization = matrixEditorInteger(form.organization, "organization");
+        const institution = matrixEditorInteger(form.institution, "institution");
+        if (organization !== undefined) after.organization = organization;
+        if (institution !== undefined) after.institution = institution;
+      }
+      if (form.status.trim()) after.status = form.status.trim();
+      if (form.starts_on.trim()) after.starts_on = form.starts_on.trim();
+      if (form.ends_on.trim()) after.ends_on = form.ends_on.trim();
+      if (form.grant_reason.trim()) after.grant_reason = form.grant_reason.trim();
+      if (form.support_reason.trim()) after.support_reason = form.support_reason.trim();
+      if (form.scope_target.trim() && form.scope_ids.trim()) {
+        after.scopes = form.scope_ids.split(",").map((raw) => raw.trim()).filter(Boolean).map((rawId) => ({
+          target: form.scope_target.trim(),
+          target_id: matrixEditorInteger(rawId, "scope id", true) as number,
+        })) as unknown as JsonValue;
+      }
+      proposal.after = after;
+    }
+    runtime.matrixEditor.roleGrantProposals.push(proposal);
+    runtime.matrixEditor.roleGrantForm = emptyMatrixEditorRoleGrantForm();
+    clearMatrixEditorResults();
+    runtime.render();
+  } catch (error) {
+    form.error = error instanceof Error ? error.message : "Invalid role grant.";
+    runtime.render();
+  }
+}
+
+
+function normalizeMatrixEditorRoleGrantProposal(raw: unknown): MatrixEditorRoleGrantProposal {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new Error("Role grant must be a JSON object.");
+  }
+  const obj = raw as Record<string, unknown>;
+  const action = obj.action === "update" || obj.action === "revoke" ? obj.action : "create";
+  const proposal: MatrixEditorRoleGrantProposal = { action };
+  if (typeof obj.record_identity === "string" && obj.record_identity.trim()) {
+    proposal.record_identity = obj.record_identity.trim();
+  }
+  if (obj.before && typeof obj.before === "object" && !Array.isArray(obj.before)) {
+    proposal.before = obj.before as Record<string, JsonValue>;
+  }
+  const after = obj.after ?? obj;
+  if (after && typeof after === "object" && !Array.isArray(after) && action !== "revoke") {
+    const afterObj = { ...(after as Record<string, JsonValue>) };
+    delete afterObj.action;
+    delete afterObj.before;
+    delete afterObj.record_identity;
+    proposal.after = afterObj;
+  }
+  return proposal;
+}
+
+function addMatrixEditorRoleGrantProposal(): void {
+  try {
+    const parsed = JSON.parse(runtime.matrixEditor.roleGrantDraft) as unknown;
+    const proposals = Array.isArray(parsed)
+      ? parsed.map(normalizeMatrixEditorRoleGrantProposal)
+      : [normalizeMatrixEditorRoleGrantProposal(parsed)];
+    runtime.matrixEditor.roleGrantProposals.push(...proposals);
+    clearMatrixEditorResults();
+    runtime.render();
+  } catch (error) {
+    runtime.notify("error", error instanceof Error ? error.message : "Invalid JSON");
+  }
 }
 
 function renderMatrixEditorRowScopeCard(): HTMLElement {
@@ -570,6 +1076,9 @@ function matrixEditorPayload(): MatrixEditorPayload {
   const rowScopeValues = matrixEditorRowScopeValuePayload();
   if (rowScopeValues.length) {
     proposal.row_scope_values = rowScopeValues;
+  }
+  if (runtime.matrixEditor.roleGrantProposals.length) {
+    proposal.role_grants = [...runtime.matrixEditor.roleGrantProposals];
   }
   const payload: MatrixEditorPayload = {
     domain: runtime.matrixEditor.domain,

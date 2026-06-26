@@ -6,6 +6,7 @@ declare global {
   interface Window {
     __RETROBOLT_ADMIN_CONFIG__?: {
       apiBaseUrl?: string;
+      debugUi?: boolean;
     };
   }
 }
@@ -24,6 +25,10 @@ export class ApiRequestError extends Error {
 
 export function configApiBaseUrl(): string {
   return window.__RETROBOLT_ADMIN_CONFIG__?.apiBaseUrl ?? "";
+}
+
+export function configDebugUi(): boolean {
+  return window.__RETROBOLT_ADMIN_CONFIG__?.debugUi === true;
 }
 
 export function trimTrailingSlash(value: string): string {

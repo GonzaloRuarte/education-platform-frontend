@@ -26,6 +26,7 @@ export const BUSINESS_WORKFLOW_TEST_IDS = {
     nav: "rb-workflow-setup-workbook-nav",
     page: "rb-setup-workbook-page",
     templateButton: "rb-setup-workbook-template",
+    draftButton: "rb-setup-workbook-draft",
     fileInput: "rb-setup-workbook-file",
     dryRunButton: "rb-setup-workbook-dry-run",
     previewButton: "rb-setup-workbook-preview",
@@ -50,10 +51,6 @@ export const BUSINESS_WORKFLOW_TEST_IDS = {
   auditView: {
     nav: "rb-workflow-audit-nav",
     page: "rb-audit-page",
-  },
-  resourceExposure: {
-    nav: "rb-workflow-resource-exposure-nav",
-    page: "rb-resource-exposure-page",
   },
   manualScoring: {
     nav: "rb-workflow-manual-scoring-nav",
