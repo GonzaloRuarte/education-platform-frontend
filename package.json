@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc && node scripts/build/copy-public.mjs",
     "validate": "npm run typecheck && npm run build && node scripts/build/check-dist.mjs",
-    "test:frontend-contracts": "node scripts/contracts/db-admin-contract.test.mjs && npm run test:smoke-contract && npm run test:backend-ssot-compliance && npm run test:e2e-contract && npm run test:page-object-contract && npm run test:e2e-payload-contract && npm run test:code-ssot",
+    "test:frontend-contracts": "node scripts/contracts/db-admin-contract.test.mjs && npm run test:smoke-contract && npm run test:backend-ssot-compliance && npm run test:e2e-contract && npm run test:page-object-contract && npm run test:e2e-payload-contract && npm run test:code-ssot && npm run test:e2e-coverage-contract",
     "test:docker-smoke": "node scripts/runtime/docker-smoke.mjs",
     "test": "npm run validate && npm run test:frontend-contracts",
     "test:all": "npm run test && npm run test:docker-smoke",
@@ -18,7 +18,8 @@
     "test:page-object-contract": "node scripts/contracts/page-object-contract.test.mjs",
     "test:e2e-payload-contract": "node scripts/contracts/e2e-payload-contract.test.mjs",
     "test:e2e:browser": "node scripts/runtime/browser-e2e.mjs",
-    "test:code-ssot": "node scripts/contracts/code-ssot-change-propagation.test.mjs"
+    "test:code-ssot": "node scripts/contracts/code-ssot-change-propagation.test.mjs",
+    "test:e2e-coverage-contract": "node scripts/contracts/full-coverage-e2e-contract.test.mjs"
   },
   "devDependencies": {
     "playwright": "^1.61.1",

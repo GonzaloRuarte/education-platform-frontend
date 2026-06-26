@@ -4,11 +4,13 @@ import { join } from "node:path";
 import { assertLoadedE2eRuntimeContract } from "../contracts/e2e-runtime-contract.mjs";
 import { buildBrowserPageObjects } from "./browser-page-objects.mjs";
 import { assertLoadedE2ePayloadContract, materializeE2ePayloadArtifactPlans } from "../contracts/e2e-payload-contract.mjs";
+import { assertFullCoverageE2eContract } from "../contracts/full-coverage-e2e-contract.mjs";
 
 import { STUDENT_SELF_SERVICE_SUPPORT_DRAWER } from "../contracts/backend-contract-policy.mjs";
 const contract = assertLoadedE2eRuntimeContract();
 const pageObjects = buildBrowserPageObjects();
 const payloadContract = assertLoadedE2ePayloadContract();
+const fullCoverageE2eContract = assertFullCoverageE2eContract();
 const runEnabled = process.env.RETROBOLT_RUN_BROWSER_E2E === "1";
 
 const requiredEnv = [
@@ -49,6 +51,10 @@ async function loadPlaywright() {
 async function waitVisible(page, selector, label) {
   await page.locator(selector).waitFor({ state: "visible", timeout: 30_000 });
   assert.ok(await page.locator(selector).count(), `${label} should be visible`);
+}
+
+function htmlIncludes(html, fragment) {
+  return String(html || "").includes(fragment);
 }
 
 async function clickAndWaitVisible(page, clickSelector, visibleSelector, label) {
@@ -101,6 +107,7 @@ async function runBrowserJourney() {
   assert.ok(pageObjects.businessWorkflows.setupWorkbook.page, "Setup Workbook overlay page object should extend DB Admin base selectors");
   assert.ok(payloadArtifacts.length >= 3, "E2E payload artifact plans should be materialized before browser actions");
   assert.ok(payloadContract.payload_case_groups.setup_workbook.includes("alpha_valid_full_setup_workbook"), "Setup Workbook payload builder should be available");
+  assert.ok(fullCoverageE2eContract.journeys.length >= 5, "Full-coverage E2E user journey contract should be loaded");
 
   const playwright = await loadPlaywright();
   const engineName = process.env.RETROBOLT_BROWSER_ENGINE || "chromium";
@@ -172,9 +179,8 @@ async function runBrowserJourney() {
     await assertSupportControlsSelfService(page);
     completedSteps.push("audit_page_visible");
 
-    await clickAndWaitVisible(page, pageObjects.businessWorkflows.resourceExposure.nav, pageObjects.businessWorkflows.resourceExposure.page, "Resource Exposure page");
-    await assertSupportControlsSelfService(page);
-    completedSteps.push("resource_exposure_page_visible");
+    assert.equal(htmlIncludes(await page.content(), "rb-resource-exposure-page"), false, "Resource Exposure must not be visible in browser runtime");
+    completedSteps.push("resource_exposure_absent");
 
     await clickAndWaitVisible(page, pageObjects.businessWorkflows.manualScoring.nav, pageObjects.businessWorkflows.manualScoring.page, "Manual Scoring page");
     await waitVisible(page, pageObjects.businessWorkflows.manualScoring.stateFilter, "Manual Scoring state filter");

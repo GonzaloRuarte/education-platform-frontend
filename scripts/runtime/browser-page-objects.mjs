@@ -60,10 +60,6 @@ export function buildBrowserPageObjects(contract = assertLoadedPageObjectSelecto
         nav: testIdSelector(workflows.audit_view.nav),
         page: testIdSelector(workflows.audit_view.page),
       },
-      resourceExposure: {
-        nav: testIdSelector(workflows.resource_exposure.nav),
-        page: testIdSelector(workflows.resource_exposure.page),
-      },
       manualScoring: {
         nav: testIdSelector(workflows.manual_scoring.nav),
         page: testIdSelector(workflows.manual_scoring.page),
