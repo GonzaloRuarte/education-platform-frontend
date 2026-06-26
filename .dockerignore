@@ -7,5 +7,9 @@ dist
 .github
 .vscode
 .venv
+.env
+.env.*
+!.env.example
+README.md
 Dockerfile*
 docker*

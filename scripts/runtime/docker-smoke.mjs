@@ -32,6 +32,7 @@ const WRITABLE_RESOURCE_ENV = "RETROBOLT_SMOKE_WRITABLE_RESOURCE_ALIAS";
 const CREATE_PAYLOAD_ENV = "RETROBOLT_SMOKE_CREATE_PAYLOAD";
 const UPDATE_PAYLOAD_ENV = "RETROBOLT_SMOKE_UPDATE_PAYLOAD";
 const FILTERS_ENV = "RETROBOLT_SMOKE_FILTERS_JSON";
+const SMOKE_RUN_SUFFIX = process.env.RETROBOLT_SMOKE_RUN_SUFFIX || Date.now().toString(36).slice(-6);
 
 function requireEnv(name) {
   const value = process.env[name];
@@ -220,11 +221,20 @@ async function smokeWrites(authHeaders) {
     assert.equal(schema.actions?.[action], true, `${alias} must allow ${action} for the smoke admin user`);
   }
 
-  async function createAndReload() {
+  function payloadForCreate(attempt) {
+    return Object.fromEntries(
+      Object.entries(createPayload).map(([key, value]) => [
+        key,
+        typeof value === "string" ? `${value}-${SMOKE_RUN_SUFFIX}-${attempt}` : value,
+      ]),
+    );
+  }
+
+  async function createAndReload(attempt) {
     const response = await fetch(resourceRecordsUrl(alias), {
       method: "POST",
       headers: authJsonHeaders(authHeaders),
-      body: JSON.stringify(createPayload),
+      body: JSON.stringify(payloadForCreate(attempt)),
     });
     const text = await response.text();
     if (!response.ok) {
@@ -237,7 +247,7 @@ async function smokeWrites(authHeaders) {
     return created;
   }
 
-  const created = await createAndReload();
+  const created = await createAndReload(1);
 
   const updateResponse = await fetch(resourceDetailUrl(alias, created.__identity), {
     method: "PATCH",
@@ -256,8 +266,8 @@ async function smokeWrites(authHeaders) {
     headers: authHeaders,
   });
 
-  const batchOne = await createAndReload();
-  const batchTwo = await createAndReload();
+  const batchOne = await createAndReload(2);
+  const batchTwo = await createAndReload(3);
   await fetchJson(resourceRecordsUrl(alias), {
     method: "DELETE",
     headers: authJsonHeaders(authHeaders),

@@ -1,20 +1,34 @@
 services:
-  # ── infrastructure ─────────────────────────────────────────────
   db:
     image: postgres:18-alpine
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     env_file: ../meta-backend/.env
-    volumes: ["pgdata:/var/lib/postgresql"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   redis:
     image: redis:7-alpine
-    command: sh -c 'exec redis-server --requirepass "$$REDIS_PASSWORD"'
+    command: >
+      sh -c 'if [ -n "$$REDIS_PASSWORD" ]; then
+        exec redis-server --requirepass "$$REDIS_PASSWORD";
+      else
+        exec redis-server;
+      fi'
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     env_file: ../meta-backend/.env
+    healthcheck:
+      test: ["CMD-SHELL", "if [ -n \"$$REDIS_PASSWORD\" ]; then redis-cli -a \"$$REDIS_PASSWORD\" ping; else redis-cli ping; fi"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
-  # ── Django API ─────────────────────────────────────────────────
   backend:
     build:
       context: ../meta-backend
@@ -23,35 +37,31 @@ services:
       sh -c "python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
     volumes:
-      - ../meta-backend:/application  # live-reload code on save
+      - ../meta-backend:/application
     env_file: ../meta-backend/.env
     environment:
-      # override ONLY the hostnames (because inside Docker, localhost != your machine)
       POSTGRES_HOST: db
       REDIS_HOST: redis
-      APPOINTMENT_SCHEDULE_PROFILE: expanded_6_blocks
+      REDIS_PORT: 6379
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
-      # optional, but keep it here if you like:
-      DJANGO_EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
-    ports: ["8000:8000"]
-    depends_on: [db, redis]
-
-  # ── React hot-reload server (optional) ─────────────────────────
   frontend-dev:
     build:
       context: ../meta-frontend
       dockerfile: Dockerfile.pre_staging-local_test
       target: runner
     environment:
-      PORT: 3000
-      HOSTNAME: 0.0.0.0
-      NEXT_PUBLIC_API_BASE_PATH: http://localhost:8000/api
-      NEXT_PUBLIC_APPOINTMENT_SCHEDULE_PROFILE: expanded_6_blocks
+      API_BASE_URL: http://localhost:8000/api
     ports:
-      - "3000:3000"
-    volumes:
-      - ../meta-backend:/backend:ro
-    depends_on: [backend]
+      - "3000:80"
+    depends_on:
+      - backend
 
 volumes:
   pgdata:

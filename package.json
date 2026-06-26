@@ -21,6 +21,7 @@
     "test:code-ssot": "node scripts/contracts/code-ssot-change-propagation.test.mjs"
   },
   "devDependencies": {
+    "playwright": "^1.61.1",
     "typescript": "^5.8.3"
   }
 }
