@@ -353,10 +353,8 @@ async function handleLogin(form: HTMLFormElement, submit: HTMLButtonElement, err
   } catch (error) {
     errorBox.hidden = false;
     errorBox.textContent = publicErrorMessage(error, t("login_failed"));
-  } finally {
     submit.disabled = false;
     submit.textContent = t("sign_in");
-    render();
   }
 }
 

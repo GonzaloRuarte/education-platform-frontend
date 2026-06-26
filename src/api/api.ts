@@ -12,11 +12,13 @@ declare global {
 
 export class ApiRequestError extends Error {
   readonly status: number;
+  readonly requestId: string | undefined;
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, requestId?: string) {
     super(message);
     this.name = "ApiRequestError";
     this.status = status;
+    this.requestId = requestId;
   }
 }
 
@@ -138,7 +140,8 @@ async function authorizedFetch(path: string, init: RequestInit = {}, retry = tru
   }
 
   if (!response.ok) {
-    throw new ApiRequestError(await responseErrorMessage(response), response.status);
+    const errorDetails = await responseErrorDetails(response);
+    throw new ApiRequestError(errorDetails.message, response.status, errorDetails.requestId);
   }
 
   return response;
@@ -166,7 +169,7 @@ export async function apiFetchBlob(path: string, init: RequestInit = {}, retry =
   return response.blob();
 }
 
-async function responseErrorMessage(response: Response): Promise<string> {
+async function responseErrorDetails(response: Response): Promise<{ message: string; requestId: string | undefined }> {
   let payload: ApiErrorPayload | null = null;
   try {
     payload = (await response.json()) as ApiErrorPayload;
@@ -177,8 +180,8 @@ async function responseErrorMessage(response: Response): Promise<string> {
   const message = payload?.detail
     || payload?.message
     || (payload ? flattenApiError(payload) : `${response.status} ${response.statusText}`);
-  const requestId = payload?.request_id || response.headers.get("X-Request-ID");
-  return requestId ? `${message}\nRequest ID: ${requestId}` : message;
+  const requestId = payload?.request_id || response.headers.get("X-Request-ID") || undefined;
+  return { message, requestId };
 }
 
 function flattenApiError(payload: ApiErrorPayload): string {
@@ -202,6 +205,32 @@ export function publicErrorMessage(error: unknown, fallback: string): string {
   if (!(error instanceof Error)) {
     return fallback;
   }
-  const requestId = error.message.match(/Request ID: ([^\n]+)/)?.[1];
-  return requestId ? `${fallback}\nRequest ID: ${requestId}` : fallback;
+
+  logRequestId(error);
+
+  // Backend 4xx responses are intended user-facing validation/auth messages
+  // (for example invalid login credentials or form validation errors). Keep
+  // 5xx/server failures generic so implementation details are not exposed.
+  if (error instanceof ApiRequestError && error.status >= 400 && error.status < 500 && error.message.trim()) {
+    return error.message;
+  }
+
+  return fallback;
+}
+
+function logRequestId(error: Error): void {
+  const requestId = error instanceof ApiRequestError
+    ? error.requestId
+    : error.message.match(/Request ID: ([^\n]+)/)?.[1];
+
+  if (!requestId) {
+    return;
+  }
+
+  if (error instanceof ApiRequestError) {
+    console.warn(`[api] Request ID: ${requestId} (HTTP ${error.status})`);
+    return;
+  }
+
+  console.warn(`[api] Request ID: ${requestId}`);
 }

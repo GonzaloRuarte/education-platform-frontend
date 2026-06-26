@@ -1,11 +1,11 @@
 services:
   db:
-    image: postgres:18-alpine
+    image: postgres:alpine
     ports:
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     env_file: ../meta-backend/.env
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -13,7 +13,7 @@ services:
       retries: 20
 
   redis:
-    image: redis:7-alpine
+    image: redis:alpine
     command: >
       sh -c 'if [ -n "$$REDIS_PASSWORD" ]; then
         exec redis-server --requirepass "$$REDIS_PASSWORD";
@@ -33,9 +33,26 @@ services:
     build:
       context: ../meta-backend
       dockerfile: Dockerfile
-    command: >
-      sh -c "python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
+    command: |
+      sh -lc '
+        set -eu
+        python manage.py migrate
+        if [ "$${DEV_BOOTSTRAP_ADMIN:-1}" = "1" ]; then
+          python manage.py bootstrap_db_admin \
+            --username "$${DEV_ADMIN_USER:-admin}" \
+            --password "$${DEV_ADMIN_PASSWORD:-admin-change-me}" \
+            --email "$${DEV_ADMIN_EMAIL:-admin@example.local}" \
+            --no-input
+        fi
+        if [ "$${DEV_SEED_DEMO_DATA:-1}" = "1" ]; then
+          seed_args="--no-input"
+          if [ "$${DEV_SEED_DEMO_RESET:-0}" = "1" ]; then
+            seed_args="--reset --no-input"
+          fi
+          python manage.py seed_cold_start_demo_data $$seed_args
+        fi
+        python manage.py runserver 0.0.0.0:8000
+      '
     volumes:
       - ../meta-backend:/application
     env_file: ../meta-backend/.env
