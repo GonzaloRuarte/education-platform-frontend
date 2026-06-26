@@ -60,32 +60,33 @@ This README must not restate product policy from those docs. If frontend behavio
 Frontend modules own implementation structure, not backend policy:
 
 - `src/app.ts` — orchestration entrypoint.
-- `src/types.ts` — runtime DTO/type aliases.
-- `src/i18n.ts` — localized UI copy.
-- `src/dom.ts` — policy-free DOM helpers.
-- `src/api.ts` — API URL/session/fetch/error helpers.
-- `src/constants.ts` — runtime constants and storage/hash keys.
-- `src/routes.ts` — resource hash parsing/building.
-- `src/resourceEndpoints.ts` — generic resource endpoint path builders.
-- `src/initialState.ts` — empty runtime state factories and storage-backed preferences.
-- `src/filters.ts` — filter/sort/resource-view query-state helpers.
-- `src/resourceModel.ts` — metadata-derived resource field/action/identity helpers.
-- `src/fieldFormatting.ts` — policy-free field/value formatting helpers.
-- `src/resourceTable.ts` — backend-metadata-driven table rendering.
-- `src/relationOptions.ts` — backend-selector-driven relation option helpers.
-- `src/resourceForm.ts` — backend-metadata-driven form rendering and payload extraction.
-- `src/resourceFilterBuilder.ts` — backend-metadata-driven column filter UI.
-- `src/auditView.ts` — audit workflow page rendering over backend APIs.
-- `src/resourceExposureView.ts` — resource exposure manifest page rendering.
-- `src/matrixEditorView.ts` — Matrix Editor workflow page rendering over backend APIs.
-- `src/setupWorkbookView.ts` — Setup Workbook workflow page rendering over backend APIs.
-- `src/appointmentApi.ts` — appointment API helper functions typed from backend contracts.
-- `src/reportApi.ts` — report API helper functions typed from backend contracts.
-- `src/studentExamApi.ts` — student exam/correction API helper functions typed from backend contracts.
-- `src/studentExamView.ts` — student exam/correction route rendering over backend contracts.
-- `src/manualScoringDrafts.ts` — local-only manual-scoring draft persistence helpers.
-- `src/manualScoringView.ts` — manual-scoring workflow rendering over backend contracts.
-- `src/testIds.ts` — selector exports validated against backend-generated page-object contracts.
+- `src/core/types.ts` — runtime DTO/type aliases.
+- `src/core/i18n.ts` — localized UI copy table.
+- `src/core/localization.ts` — locale-aware copy/resource/action/field label helpers over the UI copy table and backend i18n payloads.
+- `src/core/dom.ts` — policy-free DOM helpers.
+- `src/api/api.ts` — API URL/session/fetch/error helpers.
+- `src/core/constants.ts` — runtime constants and storage/hash keys.
+- `src/core/routes.ts` — resource hash parsing/building.
+- `src/api/resourceEndpoints.ts` — generic resource endpoint path builders.
+- `src/core/initialState.ts` — empty runtime state factories and storage-backed preferences.
+- `src/core/filters.ts` — filter/sort/resource-view query-state helpers.
+- `src/resources/resourceModel.ts` — metadata-derived resource field/action/identity helpers.
+- `src/core/fieldFormatting.ts` — policy-free field/value formatting helpers.
+- `src/resources/resourceTable.ts` — backend-metadata-driven table rendering.
+- `src/resources/relationOptions.ts` — backend-selector-driven relation option helpers.
+- `src/resources/resourceForm.ts` — backend-metadata-driven form rendering and payload extraction.
+- `src/resources/resourceFilterBuilder.ts` — backend-metadata-driven column filter UI.
+- `src/reports/auditView.ts` — audit workflow page rendering over backend APIs.
+- `src/resources/resourceExposureView.ts` — resource exposure manifest page rendering.
+- `src/resources/matrixEditorView.ts` — Matrix Editor workflow page rendering over backend APIs.
+- `src/resources/setupWorkbookView.ts` — Setup Workbook workflow page rendering over backend APIs.
+- `src/api/appointmentApi.ts` — appointment API helper functions typed from backend contracts.
+- `src/api/reportApi.ts` — report API helper functions typed from backend contracts.
+- `src/api/studentExamApi.ts` — student exam/correction API helper functions typed from backend contracts.
+- `src/student/studentExamView.ts` — student exam/correction route rendering over backend contracts.
+- `src/reports/manualScoringDrafts.ts` — local-only manual-scoring draft persistence helpers.
+- `src/reports/manualScoringView.ts` — manual-scoring workflow rendering over backend contracts.
+- `src/core/testIds.ts` — selector exports validated against backend-generated page-object contracts.
 
 None of these modules may become a frontend source of truth for resource exposure, permissions, validators, relation scope, workflow eligibility, business state transitions, exam policy, report policy, or correction policy.
 

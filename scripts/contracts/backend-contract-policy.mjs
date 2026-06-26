@@ -1,0 +1,2 @@
+export const STUDENT_SELF_SERVICE_SUPPORT_DRAWER = "student_self_service_support_drawer";
+export const STUDENT_SUPPORT_DRAWER_SELF_SERVICE = "student_exam_support_drawer_self_service";

@@ -80,28 +80,28 @@ import type {
   ResourceExposureState,
   ManualScoringState,
   ApiErrorPayload
-} from "./types";
-import { UI_TEXT } from "./i18n";
-import { appendChildren, clear, el } from "./dom";
-import { ApiRequestError, apiFetch, apiFetchBlob, clearSession, publicErrorMessage, readSession, saveSession, withQueryParams, withSurface } from "./api";
-import { AUDIT_VIEW_HASH, DEFAULT_PAGE_SIZE, MANUAL_SCORING_HASH, MATRIX_EDITOR_HASH, RESOURCE_EXPOSURE_HASH, SETUP_WORKBOOK_HASH, STORAGE_COLLAPSED_RESOURCE_GROUPS, STORAGE_LOCALE, STORAGE_THEME, STUDENT_CORRECTION_HASH, STUDENT_EXAM_HASH } from "./constants";
-import { BUSINESS_WORKFLOW_TEST_IDS, DB_ADMIN_TEST_IDS } from "./testIds";
-import { emptyAuditViewState, emptyManualScoringState, emptyMatrixEditorResourceDraft, emptyMatrixEditorState, emptyResourceExposureState, emptySetupWorkbookState, loadCollapsedResourceGroups, loadLocale, loadTheme } from "./initialState";
-import { recordDeletePath, recordDetailPath, recordUpdatePath, resourceBatchDeletePath, resourceCreatePath, resourceListPath, resourceOptionsPath, resourceSchemaPath } from "./resourceEndpoints";
-import { parseResourceHash, replaceResourceHash, resourceHash } from "./routes";
-import { defaultFilterModel, filterModelForRequest, filterModelWithQuickSearch, filterableFields, hasActiveFilters, operatorNeedsValue, operatorsForField, parseFilterModel, parsePositiveInt, parseSortState, resourceViewParams, sanitizeFilterModel, sanitizeSortState } from "./filters";
-import { canResourceAction, detailFields, editableFields, listFields, recordIdentity, schemaHasDependentRelations } from "./resourceModel";
-import { renderPagination as renderResourcePagination, renderRecordsTable as renderResourceRecordsTable, type ResourceTableRuntime } from "./resourceTable";
-import { optionQueryParams } from "./relationOptions";
-import { controlForField, loadFormOptions, renderRecordForm, type ResourceFormRuntime } from "./resourceForm";
-import { coerceScalar, isScalarRecordValue, safeJson } from "./fieldFormatting";
-import { renderAuditViewPage, type AuditViewRuntime } from "./auditView";
-import { renderResourceExposurePage, type ResourceExposureViewRuntime } from "./resourceExposureView";
-import { renderManualScoringPage, type ManualScoringViewRuntime } from "./manualScoringView";
-import { renderMatrixEditorPage, type MatrixEditorViewRuntime } from "./matrixEditorView";
-import { renderSetupWorkbookPage, type SetupWorkbookViewRuntime } from "./setupWorkbookView";
-import { renderStudentCorrectionPage, renderStudentExamPage, type StudentExamRuntime } from "./studentExamView";
-import { renderFilterBuilder, type ResourceFilterBuilderRuntime } from "./resourceFilterBuilder";
+} from "./core/types";
+import { appendChildren, clear, el } from "./core/dom";
+import { ApiRequestError, apiFetch, apiFetchBlob, clearSession, publicErrorMessage, readSession, saveSession, withQueryParams, withSurface } from "./api/api";
+import { AUDIT_VIEW_HASH, DEFAULT_PAGE_SIZE, MANUAL_SCORING_HASH, MATRIX_EDITOR_HASH, RESOURCE_EXPOSURE_HASH, SETUP_WORKBOOK_HASH, STORAGE_COLLAPSED_RESOURCE_GROUPS, STORAGE_LOCALE, STORAGE_THEME, STUDENT_CORRECTION_HASH, STUDENT_EXAM_HASH } from "./core/constants";
+import { actionLabelForLocale, actionMessageForLocale, fieldHelpTextForLocale, fieldNameForLocale, fieldUiTextForLocale, formatTextForLocale, localizedTextForLocale, operatorLabelForLocale, relatedListNameForLocale, resourceNameForLocale, translateForLocale } from "./core/localization";
+import { BUSINESS_WORKFLOW_TEST_IDS, DB_ADMIN_TEST_IDS } from "./core/testIds";
+import { emptyAuditViewState, emptyManualScoringState, emptyMatrixEditorResourceDraft, emptyMatrixEditorState, emptyResourceExposureState, emptySetupWorkbookState, loadCollapsedResourceGroups, loadLocale, loadTheme } from "./core/initialState";
+import { recordDeletePath, recordDetailPath, recordUpdatePath, resourceBatchDeletePath, resourceCreatePath, resourceListPath, resourceOptionsPath, resourceSchemaPath } from "./api/resourceEndpoints";
+import { parseResourceHash, replaceResourceHash, resourceHash } from "./core/routes";
+import { defaultFilterModel, filterModelForRequest, filterModelWithQuickSearch, filterableFields, hasActiveFilters, operatorNeedsValue, operatorsForField, parseFilterModel, parsePositiveInt, parseSortState, resourceViewParams, sanitizeFilterModel, sanitizeSortState } from "./core/filters";
+import { canResourceAction, detailFields, editableFields, listFields, recordIdentity, schemaHasDependentRelations } from "./resources/resourceModel";
+import { renderPagination as renderResourcePagination, renderRecordsTable as renderResourceRecordsTable, type ResourceTableRuntime } from "./resources/resourceTable";
+import { optionQueryParams } from "./resources/relationOptions";
+import { controlForField, loadFormOptions, renderRecordForm, type ResourceFormRuntime } from "./resources/resourceForm";
+import { coerceScalar, isScalarRecordValue, safeJson } from "./core/fieldFormatting";
+import { renderAuditViewPage, type AuditViewRuntime } from "./reports/auditView";
+import { renderResourceExposurePage, type ResourceExposureViewRuntime } from "./resources/resourceExposureView";
+import { renderManualScoringPage, type ManualScoringViewRuntime } from "./reports/manualScoringView";
+import { renderMatrixEditorPage, type MatrixEditorViewRuntime } from "./resources/matrixEditorView";
+import { renderSetupWorkbookPage, type SetupWorkbookViewRuntime } from "./resources/setupWorkbookView";
+import { renderStudentCorrectionPage, renderStudentExamPage, type StudentExamRuntime } from "./student/studentExamView";
+import { renderFilterBuilder, type ResourceFilterBuilderRuntime } from "./resources/resourceFilterBuilder";
 const appRootElement = document.getElementById("app");
 
 if (!(appRootElement instanceof HTMLElement)) {
@@ -162,60 +162,47 @@ function applyTheme(): void {
 }
 
 function localizedText(fallback: string, text?: LocalizedText): string {
-  if (!text) return fallback;
-  return text[state.locale] || text.en || text.es || fallback;
+  return localizedTextForLocale(state.locale, fallback, text);
 }
 
-
-
 function t(key: string): string {
-  return UI_TEXT[key]?.[state.locale] ?? UI_TEXT[key]?.es ?? key;
+  return translateForLocale(state.locale, key);
 }
 
 function formatText(key: string, values: Record<string, string | number>): string {
-  return Object.entries(values).reduce(
-    (text, [name, value]) => text.replaceAll(`{${name}}`, String(value)),
-    t(key),
-  );
+  return formatTextForLocale(state.locale, key, values);
 }
 
 function resourceName(resource: ResourceSchema, plural = false): string {
-  return localizedText(
-    plural ? (resource.plural_label || resource.label || resource.key) : (resource.label || resource.key),
-    plural ? resource.i18n?.plural_label : resource.i18n?.label,
-  );
+  return resourceNameForLocale(state.locale, resource, plural);
 }
 
 function fieldName(field: ResourceField): string {
-  return localizedText(field.label || field.key, field.i18n?.label);
+  return fieldNameForLocale(state.locale, field);
 }
 
 function relatedListName(relatedList: RelatedListDefinition): string {
-  return localizedText(relatedList.label ?? "", relatedList.i18n?.label);
+  return relatedListNameForLocale(state.locale, relatedList);
 }
 
 function fieldHelpText(field: ResourceField): string | undefined {
-  const fallback = field.help_text ?? "";
-  const text = localizedText(fallback, field.i18n?.help_text);
-  return text || undefined;
+  return fieldHelpTextForLocale(state.locale, field);
 }
 
 function fieldUiText(field: ResourceField, key: "section" | "placeholder"): string | undefined {
-  const fallback = field.ui?.[key] ?? "";
-  const text = localizedText(fallback, field.i18n?.ui?.[key]);
-  return text || undefined;
+  return fieldUiTextForLocale(state.locale, field, key);
 }
 
 function actionLabel(action: DestructiveAction | undefined, fallback: string): string {
-  return localizedText(action?.label ?? fallback, action?.i18n?.label);
+  return actionLabelForLocale(state.locale, action, fallback);
 }
 
 function actionMessage(action: DestructiveAction | undefined, fallback: string): string {
-  return localizedText(action?.message ?? fallback, action?.i18n?.message);
+  return actionMessageForLocale(state.locale, action, fallback);
 }
 
 function operatorLabel(operator: FilterOperatorDefinition): string {
-  return localizedText(operator.label || operator.key, operator.i18n?.label);
+  return operatorLabelForLocale(state.locale, operator);
 }
 
 function syncResourceViewHash(view: ResourceViewState): void {

@@ -6,19 +6,19 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsc && node scripts/copy-public.mjs",
-    "validate": "npm run typecheck && npm run build && node scripts/check-dist.mjs",
-    "test:frontend-contracts": "node scripts/db-admin-contract.test.mjs && npm run test:smoke-contract && npm run test:backend-ssot-compliance && npm run test:e2e-contract && npm run test:page-object-contract && npm run test:e2e-payload-contract && npm run test:code-ssot",
-    "test:docker-smoke": "node scripts/docker-smoke.mjs",
+    "build": "tsc && node scripts/build/copy-public.mjs",
+    "validate": "npm run typecheck && npm run build && node scripts/build/check-dist.mjs",
+    "test:frontend-contracts": "node scripts/contracts/db-admin-contract.test.mjs && npm run test:smoke-contract && npm run test:backend-ssot-compliance && npm run test:e2e-contract && npm run test:page-object-contract && npm run test:e2e-payload-contract && npm run test:code-ssot",
+    "test:docker-smoke": "node scripts/runtime/docker-smoke.mjs",
     "test": "npm run validate && npm run test:frontend-contracts",
     "test:all": "npm run test && npm run test:docker-smoke",
-    "test:smoke-contract": "node scripts/frontend-browser-smoke-contract.test.mjs",
-    "test:backend-ssot-compliance": "node scripts/backend-ssot-compliance.test.mjs",
-    "test:e2e-contract": "node scripts/e2e-runtime-contract.test.mjs",
-    "test:page-object-contract": "node scripts/page-object-contract.test.mjs",
-    "test:e2e-payload-contract": "node scripts/e2e-payload-contract.test.mjs",
-    "test:e2e:browser": "node scripts/browser-e2e.mjs",
-    "test:code-ssot": "node scripts/code-ssot-change-propagation.test.mjs"
+    "test:smoke-contract": "node scripts/contracts/frontend-browser-smoke-contract.test.mjs",
+    "test:backend-ssot-compliance": "node scripts/contracts/backend-ssot-compliance.test.mjs",
+    "test:e2e-contract": "node scripts/contracts/e2e-runtime-contract.test.mjs",
+    "test:page-object-contract": "node scripts/contracts/page-object-contract.test.mjs",
+    "test:e2e-payload-contract": "node scripts/contracts/e2e-payload-contract.test.mjs",
+    "test:e2e:browser": "node scripts/runtime/browser-e2e.mjs",
+    "test:code-ssot": "node scripts/contracts/code-ssot-change-propagation.test.mjs"
   },
   "devDependencies": {
     "typescript": "^5.8.3"
