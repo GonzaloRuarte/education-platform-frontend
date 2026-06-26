@@ -54,7 +54,7 @@ services:
   frontend-dev:
     build:
       context: ../meta-frontend
-      dockerfile: Dockerfile.pre_staging-local_test
+      dockerfile: Dockerfile
       target: runner
     environment:
       API_BASE_URL: http://localhost:8000/api
