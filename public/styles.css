@@ -182,9 +182,6 @@ tr:hover td { background: var(--surface-muted); }
 .audit-view .cell-json { max-width: 720px; }
 .audit-view__detail .cell-json { max-width: none; overflow: auto; }
 
-.resource-exposure .records-table td {
-  vertical-align: top;
-}
 
 .manual-scoring .card h3 { margin: 0; }
 .manual-scoring .records-table td { vertical-align: top; }
@@ -201,3 +198,4 @@ tr:hover td { background: var(--surface-muted); }
 .setup-workbook__draft-status p { margin: 4px 0 0; }
 .permission-bundle--preset { background: var(--surface-muted); }
 .permission-bundle--preset .toolbar { justify-content: flex-start; }
+

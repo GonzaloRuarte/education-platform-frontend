@@ -71,8 +71,6 @@ export const REQUIRED_BUSINESS_WORKFLOW_TEST_IDS = Object.freeze([
   "rb-matrix-apply",
   "rb-workflow-audit-nav",
   "rb-audit-page",
-  "rb-workflow-resource-exposure-nav",
-  "rb-resource-exposure-page",
   "rb-workflow-manual-scoring-nav",
   "rb-manual-scoring-page",
   "rb-manual-scoring-reload",
@@ -144,3 +142,4 @@ export function assertLoadedPageObjectSelectorContract(path = pageObjectSelector
   assertPageObjectSelectorContract(contract);
   return contract;
 }
+

@@ -32,9 +32,9 @@ function notContains(label, haystack, needle) {
 }
 
 
-contains("frontend app split", app, 'from "./core/types"');
-contains("frontend localization split", source, 'from "./i18n"');
-contains("frontend app split", app, 'from "./core/dom"');
+contains("frontend app split", app, 'from "./core/types.js"');
+contains("frontend localization split", app, 'from "./core/localization.js"');
+contains("frontend app split", app, 'from "./core/dom.js"');
 contains("frontend types module", typesSource, "export type JsonValue");
 contains("frontend i18n module", i18nSource, "export const UI_TEXT");
 contains("frontend dom module", domSource, "export function el");
@@ -57,7 +57,7 @@ contains("frontend source", source, "target_resource_alias");
 contains("frontend source", source, "canResourceAction(schema");
 contains("frontend source", source, "SETUP_WORKBOOK_HASH");
 contains("frontend source", source, "/api/setup-workbook/dry-run/");
-contains("frontend source", source, "/api/setup-workbook/commit-plan/");
+contains("frontend source", source, "/api/setup-workbook/draft/commit-plan/");
 contains("frontend source", source, "runtime.setupWorkbook.omittedRows");
 contains("frontend source", source, "runtime.setupWorkbook.confirmedWarningCodes");
 contains("frontend source", source, "runtime.setupWorkbook.cellCorrections");
@@ -77,12 +77,6 @@ contains("frontend source", source, "matrixEditorColumnGrantPayload()");
 contains("frontend source", source, "runtime.matrixEditor.confirmDangerous");
 contains("frontend source", source, "matrixEditorPayload()");
 contains("frontend source", source, "AUDIT_VIEW_HASH");
-contains("frontend source", source, "RESOURCE_EXPOSURE_HASH");
-contains("frontend source", source, "/api/db-admin-resource-exposure/manifest/");
-contains("frontend source", source, "state.resourceExposure.manifest");
-contains("frontend source", source, "renderResourceExposurePage(resourceExposureViewRuntime())");
-contains("frontend source", source, "resource_exposure_platform_only");
-contains("frontend source", source, "resource_exposure_legend");
 contains("frontend source", source, "MANUAL_SCORING_HASH");
 contains("frontend source", source, "renderManualScoringPage(manualScoringViewRuntime())");
 contains("frontend source", source, "/api/resolutions/manual-scoring-queue/");
@@ -110,11 +104,12 @@ contains("frontend styles", css, ".setup-workbook__cell-input--changed");
 contains("frontend styles", css, ".matrix-editor .card h3");
 contains("frontend styles", css, ".audit-view .card h3");
 contains("frontend styles", css, ".audit-view__detail .cell-json");
-contains("frontend styles", css, ".resource-exposure .records-table td");
 contains("frontend styles", css, ".manual-scoring");
 contains("frontend styles", css, ".summary-grid");
-contains("frontend styles", css, ".main { min-width: 0; height: 100vh; overflow: auto;");
-contains("frontend styles", css, ".sidebar { background: var(--sidebar-bg, #101828); color: white; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; height: 100vh;");
+contains("frontend styles", css, ".main { grid-row: 2; min-width: 0;");
+contains("frontend styles", css, "height: calc(100vh - 52px); overflow: auto;");
+contains("frontend styles", css, ".sidebar { grid-row: 2;");
+contains("frontend styles", css, "height: calc(100vh - 52px); min-height: 0; overflow: hidden;");
 
 contains("docker smoke", smoke, "REQUIRED_GENERIC_DB_ADMIN_SMOKE_COVERAGE");
 contains("docker smoke", smoke, "RETROBOLT_SMOKE_SETUP_CHAIN_ALIASES");
@@ -148,6 +143,13 @@ notContains("frontend source", source, "migration_safety_contract?:");
 notContains("frontend source", source, "model_ssot_contract?:");
 notContains("frontend source", source, "record_payload_contract?:");
 notContains("frontend source", source, "validation_contract?:");
+notContains("frontend source", source, "RESOURCE_EXPOSURE_HASH");
+notContains("frontend source", source, "/api/db-admin-resource-exposure/manifest/");
+notContains("frontend source", source, "state.resourceExposure");
+notContains("frontend source", source, "renderResourceExposurePage");
+notContains("frontend source", source, "resource_exposure_platform_only");
+notContains("frontend source", source, "resource_exposure_legend");
+notContains("frontend styles", css, ".resource-exposure");
 notContains("frontend source", source, "schema.capabilities");
 notContains("frontend source", source, "visible_capability");
 notContains("frontend source", source, "access_db_admin");
@@ -180,3 +182,8 @@ assert.ok(/@media \(max-width:/.test(css), "styles should include responsive rul
 assert.ok(html.includes('id="app"'), "public shell should include the runtime app root");
 
 console.log("DB Admin frontend contract tests passed.");
+
+
+
+
+

@@ -52,7 +52,6 @@ const productionSource = [
   readFileSync(join(FRONTEND_ROOT, "src", "resources", "setupWorkbookView.ts"), "utf8"),
   readFileSync(join(FRONTEND_ROOT, "src", "resources", "matrixEditorView.ts"), "utf8"),
   readFileSync(join(FRONTEND_ROOT, "src", "reports", "auditView.ts"), "utf8"),
-  readFileSync(join(FRONTEND_ROOT, "src", "resources", "resourceExposureView.ts"), "utf8"),
   readFileSync(join(FRONTEND_ROOT, "src", "reports", "manualScoringView.ts"), "utf8"),
 ].join("\n");
 for (const testId of [...REQUIRED_DB_ADMIN_TEST_IDS, ...REQUIRED_BUSINESS_WORKFLOW_TEST_IDS]) {
@@ -72,3 +71,4 @@ for (const bad of [
 }
 
 console.log("E2E page-object selector contract tests passed.");
+
