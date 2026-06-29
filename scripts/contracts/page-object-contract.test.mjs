@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { STUDENT_SELF_SERVICE_SUPPORT_DRAWER } from "./backend-contract-policy.mjs";
 import {
   REQUIRED_BUSINESS_WORKFLOW_TEST_IDS,
-  REQUIRED_DB_ADMIN_TEST_IDS,
+  REQUIRED_DATABASE_ADMIN_TEST_IDS,
   REQUIRED_FUTURE_STUDENT_EXAM_TEST_IDS,
   assertLoadedPageObjectSelectorContract,
   assertPageObjectSelectorContract,
@@ -12,7 +12,7 @@ import {
 const FRONTEND_ROOT = new URL("../..", import.meta.url).pathname;
 
 const validContract = {
-  status: "student_exam_selector_contract_personal_id_only_ready",
+  status: "student_exam_selector_contract_personal_id_plus_optional_passkey_ready",
   policy: {
     backend_docs_are_ssot: true,
     db_admin_is_base_layer: true,
@@ -28,7 +28,7 @@ const validContract = {
     { key: "db_admin_base" },
     { key: "business_workflow_overlays" },
   ],
-  db_admin_base_test_ids: Object.fromEntries(REQUIRED_DB_ADMIN_TEST_IDS.map((testId) => [testId, testId])),
+  db_admin_base_test_ids: Object.fromEntries(REQUIRED_DATABASE_ADMIN_TEST_IDS.map((testId) => [testId, testId])),
   business_workflow_test_ids: {
     available: Object.fromEntries(REQUIRED_BUSINESS_WORKFLOW_TEST_IDS.map((testId) => [testId, testId])),
   },
@@ -43,7 +43,7 @@ assertPageObjectSelectorContract(validContract);
 assertLoadedPageObjectSelectorContract();
 
 const testIdSource = readFileSync(join(FRONTEND_ROOT, "src", "core", "testIds.ts"), "utf8");
-for (const testId of [...REQUIRED_DB_ADMIN_TEST_IDS, ...REQUIRED_BUSINESS_WORKFLOW_TEST_IDS, ...REQUIRED_FUTURE_STUDENT_EXAM_TEST_IDS]) {
+for (const testId of [...REQUIRED_DATABASE_ADMIN_TEST_IDS, ...REQUIRED_BUSINESS_WORKFLOW_TEST_IDS, ...REQUIRED_FUTURE_STUDENT_EXAM_TEST_IDS]) {
   assert.ok(testIdSource.includes(testId), `src/core/testIds.ts should export ${testId}`);
 }
 
@@ -54,8 +54,8 @@ const productionSource = [
   readFileSync(join(FRONTEND_ROOT, "src", "reports", "auditView.ts"), "utf8"),
   readFileSync(join(FRONTEND_ROOT, "src", "reports", "manualScoringView.ts"), "utf8"),
 ].join("\n");
-for (const testId of [...REQUIRED_DB_ADMIN_TEST_IDS, ...REQUIRED_BUSINESS_WORKFLOW_TEST_IDS]) {
-  assert.ok(productionSource.includes(testId) || productionSource.includes("DB_ADMIN_TEST_IDS") || productionSource.includes("BUSINESS_WORKFLOW_TEST_IDS"), `production source should wire selector ${testId}`);
+for (const testId of [...REQUIRED_DATABASE_ADMIN_TEST_IDS, ...REQUIRED_BUSINESS_WORKFLOW_TEST_IDS]) {
+  assert.ok(productionSource.includes(testId) || productionSource.includes("DATABASE_ADMIN_TEST_IDS") || productionSource.includes("BUSINESS_WORKFLOW_TEST_IDS"), `production source should wire selector ${testId}`);
 }
 
 for (const bad of [

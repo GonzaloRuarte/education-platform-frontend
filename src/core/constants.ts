@@ -9,5 +9,6 @@ export const SETUP_WORKBOOK_HASH = "#/setup-workbook";
 export const MATRIX_EDITOR_HASH = "#/matrix-editor";
 export const AUDIT_VIEW_HASH = "#/audit";
 export const MANUAL_SCORING_HASH = "#/manual-scoring";
+export const APPOINTMENT_ENTRY_GATE_HASH = "#/appointment-entry-gate";
 export const STUDENT_EXAM_HASH = "#/student-exam";
 export const STUDENT_CORRECTION_HASH = "#/student-correction";

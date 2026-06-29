@@ -33,6 +33,7 @@ type SyncState = "idle" | "local" | "syncing" | "synced" | "failed" | "submitted
 const TEST_IDS = FUTURE_BUSINESS_FRONTEND_TEST_IDS.studentExam;
 let runtime: StudentExamRuntime;
 let personalId = "";
+let passkey = "";
 let loading = false;
 let error: string | null = null;
 let examStatus: StudentExamResolutionStatus | null = null;
@@ -83,6 +84,20 @@ function renderEntryPage(): HTMLElement {
     personalId = input.value;
   });
 
+  const passkeyInput = el("input", {
+    class: "input",
+    name: "passkey",
+    required: false,
+    type: "password",
+    autocomplete: "one-time-code",
+    value: passkey,
+    placeholder: runtime.t("student_exam_passkey"),
+    "data-testid": TEST_IDS.passkeyInput,
+  }) as HTMLInputElement;
+  passkeyInput.addEventListener("input", () => {
+    passkey = passkeyInput.value;
+  });
+
   const submit = el("button", {
     class: "button primary",
     type: "submit",
@@ -92,6 +107,7 @@ function renderEntryPage(): HTMLElement {
 
   const form = el("form", { class: "stack", "data-testid": TEST_IDS.authorizeForm }, [
     field(runtime.t("student_exam_personal_id"), input),
+    field(runtime.t("student_exam_passkey_optional"), passkeyInput),
     el("p", { class: "meta-line" }, [runtime.t("student_exam_personal_id_context")]),
     error ? el("div", { class: "error" }, [error]) : null,
     submit,
@@ -122,8 +138,22 @@ async function authorizeAndResume(): Promise<void> {
   error = null;
   runtime.render();
   try {
-    const token: StudentExamAuthorizeResponse = await authorizeStudentExam({ personal_id: personalId.trim() });
-    saveSession({ token, user: { username: personalId.trim() } });
+    const authorizePayload = passkey.trim()
+      ? { personal_id: personalId.trim(), passkey: passkey.trim() }
+      : { personal_id: personalId.trim() };
+    const token: StudentExamAuthorizeResponse = await authorizeStudentExam(authorizePayload);
+    saveSession({
+      kind: token.kind,
+      token: { access: token.access, token_type: token.token_type, expires_at: token.expires_at },
+      student: {
+        personal_id: personalId.trim(),
+        student_profile_id: token.student_profile_id,
+        appointment_id: token.appointment_id,
+        institution_id: token.institution_id,
+      },
+      requires_app_user: token.requires_app_user,
+      requires_role_grant: token.requires_role_grant,
+    });
     await resumeExam();
   } catch (err) {
     error = publicErrorMessage(err, runtime.t("student_exam_authorize_failed"));

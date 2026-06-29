@@ -6,7 +6,7 @@ const frontendBase = process.env.RETROBOLT_FRONTEND_BASE_URL || "http://localhos
 const username = process.env.RETROBOLT_ADMIN_USERNAME;
 const password = process.env.RETROBOLT_ADMIN_PASSWORD;
 
-const REQUIRED_GENERIC_DB_ADMIN_SMOKE_COVERAGE = Object.freeze([
+const REQUIRED_GENERIC_DATABASE_ADMIN_SMOKE_COVERAGE = Object.freeze([
   "frontend_shell",
   "authenticated_login",
   "resource_discovery",
@@ -58,7 +58,7 @@ function setupChainAliases() {
 }
 
 function assertSmokeContractIsComplete() {
-  const required = new Set(REQUIRED_GENERIC_DB_ADMIN_SMOKE_COVERAGE);
+  const required = new Set(REQUIRED_GENERIC_DATABASE_ADMIN_SMOKE_COVERAGE);
   for (const item of [
     "frontend_shell",
     "authenticated_login",

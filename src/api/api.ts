@@ -1,4 +1,4 @@
-import type { ApiErrorPayload, AuthSession } from "../core/types.js";
+import type { ApiErrorPayload, AppAuthSession, AuthSession, StudentExamAuthSession } from "../core/types.js";
 import { STORAGE_SESSION, SURFACE } from "../core/constants.js";
 
 export {};
@@ -71,15 +71,12 @@ export function readSession(): AuthSession | null {
     return null;
   }
   try {
-    const parsed = JSON.parse(raw) as Partial<AuthSession>;
-    if (
-      parsed.token &&
-      typeof parsed.token.access === "string" &&
-      typeof parsed.token.refresh === "string" &&
-      parsed.user &&
-      typeof parsed.user.username === "string"
-    ) {
-      return parsed as AuthSession;
+    const parsed = JSON.parse(raw) as unknown;
+    if (isStoredAppSession(parsed)) {
+      return parsed;
+    }
+    if (isStoredStudentExamSession(parsed)) {
+      return parsed;
     }
   } catch {
     // Ignore malformed storage and force login.
@@ -92,13 +89,51 @@ export function saveSession(session: AuthSession): void {
   localStorage.setItem(STORAGE_SESSION, JSON.stringify(session));
 }
 
+export function isAppAuthSession(value: AuthSession | null): value is AppAuthSession {
+  return value !== null && "user" in value && "refresh" in value.token;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isStoredAppSession(value: unknown): value is AppAuthSession {
+  if (!isRecord(value) || !isRecord(value.token) || !isRecord(value.user)) {
+    return false;
+  }
+  return (
+    typeof value.token.access === "string" &&
+    typeof value.token.refresh === "string" &&
+    typeof value.user.username === "string"
+  );
+}
+
+function isStoredStudentExamSession(value: unknown): value is StudentExamAuthSession {
+  if (!isRecord(value) || !isRecord(value.token) || !isRecord(value.student)) {
+    return false;
+  }
+  return (
+    value.kind === "student_exam_access_session" &&
+    typeof value.token.access === "string" &&
+    value.token.token_type === "StudentExam" &&
+    typeof value.token.expires_at === "string" &&
+    typeof value.student.personal_id === "string" &&
+    typeof value.student.student_profile_id === "number" &&
+    typeof value.student.appointment_id === "number" &&
+    typeof value.student.institution_id === "number" &&
+    value.requires_app_user === false &&
+    value.requires_role_grant === false
+  );
+}
+
 export function clearSession(): void {
   localStorage.removeItem(STORAGE_SESSION);
 }
 
 async function refreshAccessToken(): Promise<boolean> {
   const session = readSession();
-  if (!session) {
+  if (!isAppAuthSession(session)) {
+    clearSession();
     return false;
   }
 
@@ -133,7 +168,8 @@ async function authorizedFetch(path: string, init: RequestInit = {}, retry = tru
   const session = readSession();
   const headers = new Headers(init.headers);
   if (session) {
-    headers.set("Authorization", `Bearer ${session.token.access}`);
+    const scheme = "token_type" in session.token ? session.token.token_type : "Bearer";
+    headers.set("Authorization", `${scheme} ${session.token.access}`);
   }
   if (hasJsonRequestBody(init.body) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");

@@ -37,7 +37,7 @@ import type {
   OptionsResponse,
   TokenPair,
   AuthUser,
-  AuthSession,
+  AppAuthSession,
   AppState,
   ResourceViewState,
   SetupWorkbookColumnManifest,
@@ -76,14 +76,15 @@ import type {
   AuditViewFilters,
   AuditViewState,
   ManualScoringState,
+  AppointmentEntryGateState,
   ApiErrorPayload
 } from "./core/types.js";
 import { appendChildren, clear, el } from "./core/dom.js";
-import { ApiRequestError, apiFetch, apiFetchBlob, clearSession, configDebugUi, publicErrorMessage, readSession, saveSession, withQueryParams, withSurface } from "./api/api.js";
-import { AUDIT_VIEW_HASH, DEFAULT_PAGE_SIZE, MANUAL_SCORING_HASH, MATRIX_EDITOR_HASH, SETUP_WORKBOOK_HASH, STORAGE_COLLAPSED_RESOURCE_GROUPS, STORAGE_LOCALE, STORAGE_THEME, STUDENT_CORRECTION_HASH, STUDENT_EXAM_HASH } from "./core/constants.js";
+import { ApiRequestError, apiFetch, apiFetchBlob, clearSession, configDebugUi, isAppAuthSession, publicErrorMessage, readSession, saveSession, withQueryParams, withSurface } from "./api/api.js";
+import { AUDIT_VIEW_HASH, DEFAULT_PAGE_SIZE, MANUAL_SCORING_HASH, APPOINTMENT_ENTRY_GATE_HASH, MATRIX_EDITOR_HASH, SETUP_WORKBOOK_HASH, STORAGE_COLLAPSED_RESOURCE_GROUPS, STORAGE_LOCALE, STORAGE_THEME, STUDENT_CORRECTION_HASH, STUDENT_EXAM_HASH } from "./core/constants.js";
 import { actionLabelForLocale, actionMessageForLocale, fieldHelpTextForLocale, fieldNameForLocale, fieldUiTextForLocale, formatTextForLocale, localizedTextForLocale, operatorLabelForLocale, relatedListNameForLocale, resourceNameForLocale, translateForLocale } from "./core/localization.js";
-import { BUSINESS_WORKFLOW_TEST_IDS, DB_ADMIN_TEST_IDS } from "./core/testIds.js";
-import { emptyAuditViewState, emptyManualScoringState, emptyMatrixEditorResourceDraft, emptyMatrixEditorState, emptySetupWorkbookState, loadCollapsedResourceGroups, loadLocale, loadTheme } from "./core/initialState.js";
+import { BUSINESS_WORKFLOW_TEST_IDS, DATABASE_ADMIN_TEST_IDS } from "./core/testIds.js";
+import { emptyAppointmentEntryGateState, emptyAuditViewState, emptyManualScoringState, emptyMatrixEditorResourceDraft, emptyMatrixEditorState, emptySetupWorkbookState, loadCollapsedResourceGroups, loadLocale, loadTheme } from "./core/initialState.js";
 import { recordDeletePath, recordDetailPath, recordUpdatePath, resourceBatchDeletePath, resourceCreatePath, resourceListPath, resourceOptionsPath, resourceSchemaPath } from "./api/resourceEndpoints.js";
 import { parseResourceHash, replaceResourceHash, resourceHash } from "./core/routes.js";
 import { defaultFilterModel, filterModelForRequest, filterModelWithQuickSearch, filterableFields, hasActiveFilters, operatorNeedsValue, operatorsForField, parseFilterModel, parsePositiveInt, parseSortState, resourceViewParams, sanitizeFilterModel, sanitizeSortState } from "./core/filters.js";
@@ -96,6 +97,7 @@ import { renderAuditViewPage, type AuditViewRuntime } from "./reports/auditView.
 import { renderManualScoringPage, type ManualScoringViewRuntime } from "./reports/manualScoringView.js";
 import { renderMatrixEditorPage, type MatrixEditorViewRuntime } from "./resources/matrixEditorView.js";
 import { renderSetupWorkbookPage, type SetupWorkbookViewRuntime } from "./resources/setupWorkbookView.js";
+import { renderAppointmentEntryGatePage, type AppointmentEntryGateViewRuntime } from "./resources/appointmentEntryGateView.js";
 import { renderStudentCorrectionPage, renderStudentExamPage, type StudentExamRuntime } from "./student/studentExamView.js";
 import { renderFilterBuilder, type ResourceFilterBuilderRuntime } from "./resources/resourceFilterBuilder.js";
 const appRootElement = document.getElementById("app");
@@ -135,6 +137,7 @@ const state: AppState = {
   matrixEditor: emptyMatrixEditorState(),
   auditView: emptyAuditViewState(),
   manualScoring: emptyManualScoringState(),
+  appointmentEntryGate: emptyAppointmentEntryGateState(),
   loading: false,
   error: null,
   message: null,
@@ -236,7 +239,7 @@ function dismissToast(toastId: number): void {
 }
 
 function renderToastRegion(): HTMLElement {
-  const region = el("div", { class: "toast-region", role: "status", "aria-live": "polite", "data-testid": DB_ADMIN_TEST_IDS.toastRegion });
+  const region = el("div", { class: "toast-region", role: "status", "aria-live": "polite", "data-testid": DATABASE_ADMIN_TEST_IDS.toastRegion });
   for (const toast of state.toasts) {
     const close = el("button", { class: "toast__close", type: "button", "aria-label": "Dismiss" }, ["×"]);
     close.addEventListener("click", () => dismissToast(toast.id));
@@ -261,7 +264,7 @@ function render(): void {
   }
 
   const session = readSession();
-  if (!session) {
+  if (!isAppAuthSession(session)) {
     appRoot.append(renderLogin());
     return;
   }
@@ -302,7 +305,7 @@ function preferenceButton(label: string, active: boolean, apply: () => void): HT
 function renderLogin(): HTMLElement {
   const usernameInput = el("input", {
     class: "input",
-    "data-testid": DB_ADMIN_TEST_IDS.loginUsername,
+    "data-testid": DATABASE_ADMIN_TEST_IDS.loginUsername,
     name: "username",
     autocomplete: "username",
     required: true,
@@ -310,7 +313,7 @@ function renderLogin(): HTMLElement {
   });
   const passwordInput = el("input", {
     class: "input",
-    "data-testid": DB_ADMIN_TEST_IDS.loginPassword,
+    "data-testid": DATABASE_ADMIN_TEST_IDS.loginPassword,
     name: "password",
     type: "password",
     autocomplete: "current-password",
@@ -318,9 +321,9 @@ function renderLogin(): HTMLElement {
     placeholder: t("password"),
   });
   const errorBox = el("div", { class: "error", hidden: true });
-  const submit = el("button", { class: "button primary", type: "submit", "data-testid": DB_ADMIN_TEST_IDS.loginSubmit }, [t("sign_in")]);
+  const submit = el("button", { class: "button primary", type: "submit", "data-testid": DATABASE_ADMIN_TEST_IDS.loginSubmit }, [t("sign_in")]);
 
-  const form = el("form", { class: "stack", "data-testid": DB_ADMIN_TEST_IDS.loginForm }, [
+  const form = el("form", { class: "stack", "data-testid": DATABASE_ADMIN_TEST_IDS.loginForm }, [
     fieldShell(t("username"), usernameInput),
     fieldShell(t("password"), passwordInput),
     errorBox,
@@ -332,7 +335,7 @@ function renderLogin(): HTMLElement {
     void handleLogin(form, submit, errorBox);
   });
 
-  return el("main", { class: "login-page", "data-testid": DB_ADMIN_TEST_IDS.loginPage }, [
+  return el("main", { class: "login-page", "data-testid": DATABASE_ADMIN_TEST_IDS.loginPage }, [
     el("section", { class: "card login-card" }, [
       el("div", { class: "card__body stack" }, [
         el("div", {}, [
@@ -355,7 +358,7 @@ async function handleLogin(form: HTMLFormElement, submit: HTMLButtonElement, err
   errorBox.textContent = "";
 
   try {
-    const payload = await apiFetch<AuthSession>("/api/token/", {
+    const payload = await apiFetch<AppAuthSession>("/api/token/", {
       method: "POST",
       body: JSON.stringify({ username, password }),
     }, false);
@@ -373,7 +376,7 @@ async function handleLogin(form: HTMLFormElement, submit: HTMLButtonElement, err
   }
 }
 
-function renderForbidden(session: AuthSession): HTMLElement {
+function renderForbidden(session: AppAuthSession): HTMLElement {
   const logoutButton = el("button", { class: "button" }, [t("sign_out")]);
   logoutButton.addEventListener("click", () => {
     clearRelationOptionCache();
@@ -383,7 +386,7 @@ function renderForbidden(session: AuthSession): HTMLElement {
     render();
   });
 
-  return el("main", { class: "login-page", "data-testid": DB_ADMIN_TEST_IDS.loginPage }, [
+  return el("main", { class: "login-page", "data-testid": DATABASE_ADMIN_TEST_IDS.loginPage }, [
     el("section", { class: "card login-card" }, [
       el("div", { class: "card__body stack" }, [
         el("h1", {}, [t("db_admin_required")]),
@@ -394,8 +397,8 @@ function renderForbidden(session: AuthSession): HTMLElement {
   ]);
 }
 
-function renderShell(session: AuthSession): HTMLElement {
-  const shell = el("div", { class: "app-shell", "data-testid": DB_ADMIN_TEST_IDS.appShell });
+function renderShell(session: AppAuthSession): HTMLElement {
+  const shell = el("div", { class: "app-shell", "data-testid": DATABASE_ADMIN_TEST_IDS.appShell });
   shell.append(renderTopBar(session));
   shell.append(renderSidebar());
   shell.append(renderMain());
@@ -403,8 +406,8 @@ function renderShell(session: AuthSession): HTMLElement {
   return shell;
 }
 
-function renderTopBar(session: AuthSession): HTMLElement {
-  const logout = el("button", { class: "button", type: "button", "data-testid": DB_ADMIN_TEST_IDS.signOut }, [t("sign_out")]);
+function renderTopBar(session: AppAuthSession): HTMLElement {
+  const logout = el("button", { class: "button", type: "button", "data-testid": DATABASE_ADMIN_TEST_IDS.signOut }, [t("sign_out")]);
   logout.addEventListener("click", () => {
     clearRelationOptionCache();
     clearSession();
@@ -420,7 +423,7 @@ function renderTopBar(session: AuthSession): HTMLElement {
     renderPreferenceControls(),
   ];
   if (configDebugUi()) {
-    const refresh = el("button", { class: "button", type: "button", "data-testid": DB_ADMIN_TEST_IDS.refreshResources }, [t("refresh_resources")]);
+    const refresh = el("button", { class: "button", type: "button", "data-testid": DATABASE_ADMIN_TEST_IDS.refreshResources }, [t("refresh_resources")]);
     refresh.addEventListener("click", () => {
       clearRelationOptionCache();
       void loadResources();
@@ -438,7 +441,7 @@ function renderTopBar(session: AuthSession): HTMLElement {
 function renderSidebar(): HTMLElement {
   const filterInput = el("input", {
     class: "resource-filter",
-    "data-testid": DB_ADMIN_TEST_IDS.resourceFilter,
+    "data-testid": DATABASE_ADMIN_TEST_IDS.resourceFilter,
     placeholder: t("filter_resources"),
     value: state.resourceFilter,
   });
@@ -447,7 +450,7 @@ function renderSidebar(): HTMLElement {
     render();
   });
 
-  const nav = el("nav", { class: "resource-nav", "aria-label": t("resources"), "data-testid": DB_ADMIN_TEST_IDS.resourceNav, "data-resource-nav-scroll": "true" });
+  const nav = el("nav", { class: "resource-nav", "aria-label": t("resources"), "data-testid": DATABASE_ADMIN_TEST_IDS.resourceNav, "data-resource-nav-scroll": "true" });
   const groupedResources = resourcesByNavigationGroup(filteredResources());
   for (const [group, resources] of groupedResources) {
     const collapsed = state.collapsedResourceGroups.has(group);
@@ -481,7 +484,7 @@ function renderSidebar(): HTMLElement {
     nav.append(el("div", { class: "empty" }, [t("no_resources_match")]));
   }
 
-  const workflowNav = el("nav", { class: "resource-nav workflow-nav", "aria-label": t("workflows"), "data-testid": DB_ADMIN_TEST_IDS.workflowNav });
+  const workflowNav = el("nav", { class: "resource-nav workflow-nav", "aria-label": t("workflows"), "data-testid": DATABASE_ADMIN_TEST_IDS.workflowNav });
   const setupWorkbookButton = el("button", {
     class: state.selectedWorkflow === "setup_workbook" ? "active" : "",
     type: "button",
@@ -506,6 +509,14 @@ function renderSidebar(): HTMLElement {
   manualScoringButton.addEventListener("click", () => {
     void selectManualScoringPage();
   });
+  const appointmentEntryGateButton = el("button", {
+    class: state.selectedWorkflow === "appointment_entry_gate" ? "active" : "",
+    type: "button",
+    "data-testid": BUSINESS_WORKFLOW_TEST_IDS.appointmentEntryGate.nav,
+  }, [t("appointment_entry_gate")]);
+  appointmentEntryGateButton.addEventListener("click", () => {
+    void selectAppointmentEntryGatePage();
+  });
   workflowNav.append(setupWorkbookButton);
   if (matrixEditorNavigationEnabled()) {
     const matrixEditorButton = el("button", {
@@ -518,9 +529,9 @@ function renderSidebar(): HTMLElement {
     });
     workflowNav.append(matrixEditorButton);
   }
-  workflowNav.append(auditViewButton, manualScoringButton);
+  workflowNav.append(auditViewButton, manualScoringButton, appointmentEntryGateButton);
 
-  return el("aside", { class: "sidebar", "data-testid": DB_ADMIN_TEST_IDS.sidebar }, [
+  return el("aside", { class: "sidebar", "data-testid": DATABASE_ADMIN_TEST_IDS.sidebar }, [
     el("div", { class: "sidebar__section stack sidebar__controls" }, [filterInput]),
     el("div", { class: "sidebar__section stack" }, [workflowNav]),
     nav,
@@ -537,7 +548,7 @@ function resourcesByNavigationGroup(resources: ResourceSchema[]): Array<[string,
 }
 
 function renderMain(): HTMLElement {
-  const main = el("main", { class: "main", "data-testid": DB_ADMIN_TEST_IDS.main });
+  const main = el("main", { class: "main", "data-testid": DATABASE_ADMIN_TEST_IDS.main });
   if (state.loading) {
     main.append(renderLoadingPage(t("loading_admin_resources")));
     return main;
@@ -560,6 +571,10 @@ function renderMain(): HTMLElement {
   }
   if (state.selectedWorkflow === "manual_scoring") {
     main.append(renderManualScoringPage(manualScoringViewRuntime()));
+    return main;
+  }
+  if (state.selectedWorkflow === "appointment_entry_gate") {
+    main.append(renderAppointmentEntryGatePage(appointmentEntryGateViewRuntime()));
     return main;
   }
   if (state.resources.length === 0) {
@@ -642,11 +657,11 @@ function resourceTableRuntime(): ResourceTableRuntime {
 
 function renderResourcePage(view: ResourceViewState): HTMLElement {
   const schema = view.schema;
-  const createButton = el("button", { class: "button primary", type: "button", "data-testid": DB_ADMIN_TEST_IDS.resourceCreate }, [t("create_resource")]);
+  const createButton = el("button", { class: "button primary", type: "button", "data-testid": DATABASE_ADMIN_TEST_IDS.resourceCreate }, [t("create_resource")]);
   createButton.disabled = !canResourceAction(schema, "create") || editableFields(schema, true).length === 0;
   createButton.addEventListener("click", () => openRecordForm(schema, "create"));
 
-  const refreshButton = el("button", { class: "button", type: "button", "data-testid": DB_ADMIN_TEST_IDS.resourceRefresh }, [t("refresh_resource")]);
+  const refreshButton = el("button", { class: "button", type: "button", "data-testid": DATABASE_ADMIN_TEST_IDS.resourceRefresh }, [t("refresh_resource")]);
   refreshButton.addEventListener("click", () => {
     void reloadResourceView();
   });
@@ -656,7 +671,7 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
     class: "button danger",
     type: "button",
     disabled: canResourceAction(schema, "batch_delete") && view.selectedIdentities.size > 0 ? null : true,
-    "data-testid": DB_ADMIN_TEST_IDS.resourceBatchDelete,
+    "data-testid": DATABASE_ADMIN_TEST_IDS.resourceBatchDelete,
   }, [actionLabel(batchAction, `${t("delete_selected")} (${view.selectedIdentities.size})`)]);
   batchDeleteButton.addEventListener("click", () => {
     if (view.selectedIdentities.size > 0) {
@@ -666,7 +681,7 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
 
   const quickSearch = el("input", {
     class: "input search",
-    "data-testid": DB_ADMIN_TEST_IDS.resourceQuickSearch,
+    "data-testid": DATABASE_ADMIN_TEST_IDS.resourceQuickSearch,
     placeholder: t("quick_search"),
     value: view.quickSearch,
   });
@@ -677,7 +692,7 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
     void reloadResourceView();
   });
 
-  const pageSize = el("select", { class: "select small", "data-testid": DB_ADMIN_TEST_IDS.resourcePageSize });
+  const pageSize = el("select", { class: "select small", "data-testid": DATABASE_ADMIN_TEST_IDS.resourcePageSize });
   for (const size of [10, 25, 50, 100]) {
     pageSize.append(el("option", { value: size, selected: size === view.pageSize }, [String(size)]));
   }
@@ -711,7 +726,7 @@ function renderResourcePage(view: ResourceViewState): HTMLElement {
     notices.push(el("div", { class: "error" }, [view.error]));
   }
 
-  return el("section", { class: "stack", "data-testid": DB_ADMIN_TEST_IDS.resourcePage }, [
+  return el("section", { class: "stack", "data-testid": DATABASE_ADMIN_TEST_IDS.resourcePage }, [
     el("header", { class: "page-header" }, [
       el("div", {}, [
         el("h2", { class: "page-title" }, [resourceName(schema, true)]),
@@ -885,6 +900,15 @@ function manualScoringViewRuntime(): ManualScoringViewRuntime {
   };
 }
 
+function appointmentEntryGateViewRuntime(): AppointmentEntryGateViewRuntime {
+  return {
+    state: state.appointmentEntryGate,
+    t,
+    render,
+    notify,
+  };
+}
+
 function studentExamRuntime(): StudentExamRuntime {
   return {
     t,
@@ -945,6 +969,17 @@ async function selectManualScoringPage(updateHash = true): Promise<void> {
     history.replaceState(null, "", MANUAL_SCORING_HASH);
   }
   state.selectedWorkflow = "manual_scoring";
+  state.selectedResourceKey = null;
+  state.resourceView = null;
+  state.message = null;
+  render();
+}
+
+async function selectAppointmentEntryGatePage(updateHash = true): Promise<void> {
+  if (updateHash && location.hash !== APPOINTMENT_ENTRY_GATE_HASH) {
+    history.replaceState(null, "", APPOINTMENT_ENTRY_GATE_HASH);
+  }
+  state.selectedWorkflow = "appointment_entry_gate";
   state.selectedResourceKey = null;
   state.resourceView = null;
   state.message = null;
@@ -1404,6 +1439,10 @@ window.addEventListener("hashchange", () => {
     void selectManualScoringPage(false);
     return;
   }
+  if (location.hash === APPOINTMENT_ENTRY_GATE_HASH) {
+    void selectAppointmentEntryGatePage(false);
+    return;
+  }
   const parsed = parseResourceHash();
   if (parsed.resourceKey) {
     void selectResource(parsed.resourceKey, parsed.params, false);
@@ -1416,7 +1455,7 @@ async function boot(): Promise<void> {
     return;
   }
   const session = readSession();
-  if (!session) {
+  if (!isAppAuthSession(session)) {
     render();
     return;
   }
@@ -1439,6 +1478,11 @@ async function boot(): Promise<void> {
   }
   if (location.hash === MANUAL_SCORING_HASH) {
     await selectManualScoringPage(false);
+    render();
+    return;
+  }
+  if (location.hash === APPOINTMENT_ENTRY_GATE_HASH) {
+    await selectAppointmentEntryGatePage(false);
     render();
     return;
   }

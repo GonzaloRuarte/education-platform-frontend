@@ -26,6 +26,8 @@ export type AppointmentDetailResponse = {
   evaluation_content_hash_at_schedule?: string;
   evaluation_content_hash_checked_at?: string | null;
   evaluation_content_hash_mismatch_at?: string | null;
+  student_entry_passkey_required?: boolean;
+  student_entry_passkey_configured?: boolean;
 };
 
 export type AppointmentDirectScheduleInput = {
@@ -54,6 +56,21 @@ export type AppointmentRescheduleInput = {
   reason?: string;
 };
 
+export type AppointmentStudentEntryGateInput = {
+  appointment_id: number;
+  passkey_required: boolean;
+  generate_new_passkey?: boolean;
+  passkey?: string;
+};
+
+export type AppointmentStudentEntryGateResponse = {
+  appointment: AppointmentDetailResponse;
+  generated_passkey?: string | null;
+  passkey_required: boolean;
+  passkey_configured: boolean;
+  distribution: string;
+};
+
 export function appointmentSchedulePath(): string {
   return "/api/appointments/schedule/";
 }
@@ -72,6 +89,10 @@ export function appointmentReschedulePath(): string {
 
 export function appointmentAdminInstitutionDashboardPath(): string {
   return "/api/appointments/admin-institution-dashboard/";
+}
+
+export function appointmentStudentEntryGatePath(): string {
+  return "/api/appointments/student-entry-gate/";
 }
 
 export async function scheduleAppointmentDirect(input: AppointmentDirectScheduleInput): Promise<AppointmentDetailResponse> {
@@ -104,4 +125,11 @@ export async function rescheduleAppointment(input: AppointmentRescheduleInput): 
 
 export async function fetchAppointmentAdminInstitutionDashboard(): Promise<Array<Record<string, JsonValue>>> {
   return apiFetch<Array<Record<string, JsonValue>>>(appointmentAdminInstitutionDashboardPath());
+}
+
+export async function configureAppointmentStudentEntryGate(input: AppointmentStudentEntryGateInput): Promise<AppointmentStudentEntryGateResponse> {
+  return apiFetch<AppointmentStudentEntryGateResponse>(appointmentStudentEntryGatePath(), {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }

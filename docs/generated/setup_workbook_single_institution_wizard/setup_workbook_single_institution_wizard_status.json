@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "slice_number": 6,
+  "slice_title": "Frontend merged single-institution setup wizard",
+  "status": "completed_pending_runtime_validation",
+  "plan_only_scope": true,
+  "production_data_allowed": false,
+  "runtime_checks_pending": true,
+  "missing_static_blockers": [],
+  "static_capabilities_present": true,
+  "source_plan": "backend/docs/current_build/RBAC_AUTHORIZATION_IMPLEMENTATION_PLAN.md",
+  "source_paths": {
+    "setup_workbook_view": "src/resources/setupWorkbookView.ts",
+    "setup_workbook_types": "src/core/types.ts",
+    "setup_workbook_initial_state": "src/core/initialState.ts",
+    "setup_workbook_i18n": "src/core/i18n.ts",
+    "setup_workbook_test_ids": "src/core/testIds.ts",
+    "static_contract_test": "scripts/contracts/setup-workbook-single-institution-wizard.test.mjs",
+    "package_scripts": "package.json"
+  },
+  "ssot_constraints": [
+    "do not create a merged backend setup-workbook endpoint",
+    "use existing stage-specific setup-workbook endpoints for Organization Setup and Institution Setup",
+    "use the generic resource API plus backend-owned selector manifests for context discovery",
+    "do not hardcode Organization subscription statuses, Institution lifecycle statuses, resource aliases, field aliases, or role keys in frontend code",
+    "keep audit/commit boundaries separate per backend stage"
+  ],
+  "static_capabilities": {
+    "guided_wizard_rendered": {
+      "present": true,
+      "owner": "renderSetupWorkbookSingleInstitutionWizard",
+      "source": "src/resources/setupWorkbookView.ts"
+    },
+    "organization_stage_manifest_loaded": {
+      "present": true,
+      "owner": "setupWorkbookEndpointForStage(\"organization\", \"manifest/\")",
+      "source": "src/resources/setupWorkbookView.ts"
+    },
+    "institution_stage_manifest_loaded": {
+      "present": true,
+      "owner": "setupWorkbookEndpointForStage(\"institution\", \"manifest/\")",
+      "source": "src/resources/setupWorkbookView.ts"
+    },
+    "generic_context_selector_reused": {
+      "present": true,
+      "owner": "fetchSetupWorkbookContextOptions",
+      "source": "src/resources/setupWorkbookView.ts"
+    },
+    "separate_stage_selection_preserved": {
+      "present": true,
+      "owner": "selectSetupWorkbookStage",
+      "source": "src/resources/setupWorkbookView.ts"
+    },
+    "partial_stage_completion_persisted": {
+      "present": true,
+      "owner": "SetupWorkbookWizardState and persisted local draft wizard fields",
+      "source": "src/core/types.ts; src/resources/setupWorkbookView.ts"
+    },
+    "static_contract_guard_added": {
+      "present": true,
+      "owner": "scripts/contracts/setup-workbook-single-institution-wizard.test.mjs",
+      "source": "scripts/contracts/setup-workbook-single-institution-wizard.test.mjs"
+    }
+  },
+  "runtime_evidence_still_required": [
+    "browser evidence that one guided experience appears only when generic context discovery makes it safe",
+    "browser evidence that Organization Setup is submitted before Institution Setup",
+    "browser/API evidence that Organization and Institution audit/commit boundaries remain separate",
+    "browser evidence that Stage A committed/Stage B pending state survives reload",
+    "live backend evidence that generic resource selector filtering returns the intended single visible Organization and Institution"
+  ]
+}

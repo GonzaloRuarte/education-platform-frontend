@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 import { STUDENT_SELF_SERVICE_SUPPORT_DRAWER } from "./backend-contract-policy.mjs";
 const DEFAULT_PAGE_OBJECT_CONTRACT_PATH = "../backend/docs/generated/e2e_page_object_selector_contract/e2e_page_object_selector_contract_manifest.json";
 
-export const REQUIRED_DB_ADMIN_TEST_IDS = Object.freeze([
+export const REQUIRED_DATABASE_ADMIN_TEST_IDS = Object.freeze([
   "rb-login-page",
   "rb-login-form",
   "rb-login-username",
@@ -32,6 +32,7 @@ export const REQUIRED_FUTURE_STUDENT_EXAM_TEST_IDS = Object.freeze([
   "rb-student-exam-entry-page",
   "rb-student-exam-authorize-form",
   "rb-student-exam-personal-id",
+  "rb-student-exam-passkey",
   "rb-student-exam-authorize-submit",
   "rb-student-exam-shell",
   "rb-student-exam-content",
@@ -113,7 +114,7 @@ function assertIncludesEvery(label, actual, expected) {
 }
 
 export function assertPageObjectSelectorContract(contract) {
-  assert.equal(contract?.status, "student_exam_selector_contract_personal_id_only_ready");
+  assert.equal(contract?.status, "student_exam_selector_contract_personal_id_plus_optional_passkey_ready");
   assert.equal(contract?.policy?.backend_docs_are_ssot, true);
   assert.equal(contract?.policy?.db_admin_is_base_layer, true);
   assert.equal(contract?.policy?.business_workflows_extend_db_admin_base, true);
@@ -124,7 +125,7 @@ export function assertPageObjectSelectorContract(contract) {
   assert.equal(contract?.policy?.student_support_self_service_required, true);
   assert.equal(contract?.policy?.student_support_surface, STUDENT_SELF_SERVICE_SUPPORT_DRAWER);
 
-  assertIncludesEvery("DB Admin base test IDs", Object.values(contract?.db_admin_base_test_ids || {}), REQUIRED_DB_ADMIN_TEST_IDS);
+  assertIncludesEvery("DB Admin base test IDs", Object.values(contract?.db_admin_base_test_ids || {}), REQUIRED_DATABASE_ADMIN_TEST_IDS);
   assertIncludesEvery("business workflow test IDs", flattenIds(contract?.business_workflow_test_ids), REQUIRED_BUSINESS_WORKFLOW_TEST_IDS);
 
   const layerKeys = new Set((contract?.page_object_layers || []).map((entry) => entry?.key));

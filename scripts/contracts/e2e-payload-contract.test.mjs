@@ -30,7 +30,7 @@ const validContract = {
     { key: "beta_teacher", email: "teacher@beta.example.invalid", fake_only: true },
   ],
   seeded_student_actors: [
-    { key: "alpha_student_01", student_support_self_service_required: true, support_surface: STUDENT_SELF_SERVICE_SUPPORT_DRAWER },
+    { key: "alpha_student_01", auth_kind: "personal_id_plus_optional_appointment_passkey", passkey: "alpha-student-passkey", passkey_required: true, student_support_self_service_required: true, support_surface: STUDENT_SELF_SERVICE_SUPPORT_DRAWER },
   ],
   payload_case_groups: {
     setup_workbook: ["alpha_valid_full_setup_workbook", "beta_reference_inside_alpha_commit", "unsupported_delete_operation_rejected"],

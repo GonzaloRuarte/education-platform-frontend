@@ -39,7 +39,7 @@ export type FieldType =
 
 export type ResourceAction = "list" | "retrieve" | "create" | "update" | "delete" | "batch_delete";
 export type ResourceActions = Partial<Record<ResourceAction, boolean>>;
-export type WorkflowPage = "setup_workbook" | "matrix_editor" | "audit_view" | "manual_scoring";
+export type WorkflowPage = "setup_workbook" | "matrix_editor" | "audit_view" | "manual_scoring" | "appointment_entry_gate";
 
 export type StaticOption = {
   value: string;
@@ -229,16 +229,38 @@ export type TokenPair = {
   refresh: string;
 };
 
+export type StudentExamAccessToken = {
+  access: string;
+  token_type: "StudentExam";
+  expires_at: string;
+};
+
 export type AuthUser = {
   username: string;
   first_name?: string;
   last_name?: string;
 };
 
-export type AuthSession = {
+export type AppAuthSession = {
+  kind?: "app_user";
   token: TokenPair;
   user: AuthUser;
 };
+
+export type StudentExamAuthSession = {
+  kind: "student_exam_access_session";
+  token: StudentExamAccessToken;
+  student: {
+    personal_id: string;
+    student_profile_id: number;
+    appointment_id: number;
+    institution_id: number;
+  };
+  requires_app_user: false;
+  requires_role_grant: false;
+};
+
+export type AuthSession = AppAuthSession | StudentExamAuthSession;
 
 export type AppState = {
   resources: ResourceSchema[];
@@ -251,6 +273,7 @@ export type AppState = {
   matrixEditor: MatrixEditorState;
   auditView: AuditViewState;
   manualScoring: ManualScoringState;
+  appointmentEntryGate: AppointmentEntryGateState;
   loading: boolean;
   error: string | null;
   message: string | null;
@@ -296,10 +319,46 @@ export type SetupWorkbookSheetManifest = {
   columns?: SetupWorkbookColumnManifest[];
 };
 
+export type SetupWorkbookContextSelectorManifest = {
+  resource_key?: string;
+  resource_alias?: string;
+  context_field?: "organization_id" | "institution_id" | string;
+  value_field?: string;
+  value_field_alias?: string;
+  label_field?: string;
+  label_field_alias?: string;
+  filters?: GridFilterModel;
+  help_text?: string;
+  api_boundary?: string;
+};
+
 export type SetupWorkbookManifest = {
+  stage?: string;
   sheets?: SetupWorkbookSheetManifest[];
+  context_selector?: SetupWorkbookContextSelectorManifest | null;
   workflows?: Record<string, unknown>;
   import?: Record<string, unknown>;
+};
+
+export type SetupWorkbookContextOption = {
+  value: string;
+  label: string;
+};
+
+export type SetupWorkbookWizardDiscoveryStatus = "idle" | "loading" | "ready" | "unavailable" | "error";
+
+export type SetupWorkbookWizardState = {
+  enabled: boolean;
+  discoveryStatus: SetupWorkbookWizardDiscoveryStatus;
+  discoveryError: string | null;
+  organizationOptionCount: number | null;
+  institutionOptionCount: number | null;
+  organizationAutoSelected: boolean;
+  institutionAutoSelected: boolean;
+  organizationCommittedAt: string | null;
+  institutionCommittedAt: string | null;
+  organizationAuditBatchId: string | number | null;
+  institutionAuditBatchId: string | number | null;
 };
 
 export type SetupWorkbookIssue = {
@@ -401,7 +460,16 @@ export type SetupWorkbookRuntimeCommitResult = {
   [key: string]: JsonValue | undefined;
 };
 
+export type SetupWorkbookStageSlug = "organization" | "institution";
+
 export type SetupWorkbookState = {
+  selectedStage: SetupWorkbookStageSlug;
+  organizationContextId: string;
+  institutionContextId: string;
+  contextOptions: SetupWorkbookContextOption[];
+  contextOptionsLoading: boolean;
+  contextOptionsError: string | null;
+  wizard: SetupWorkbookWizardState;
   manifest: SetupWorkbookManifest | null;
   selectedFile: File | null;
   dryRunResult: SetupWorkbookDryRunResult | null;
@@ -728,6 +796,22 @@ export type ManualScoringState = {
   reason: string;
   loading: boolean;
   error: string | null;
+};
+
+export type AppointmentEntryGateState = {
+  appointmentId: string;
+  passkeyRequired: boolean;
+  generateNewPasskey: boolean;
+  customPasskey: string;
+  loading: boolean;
+  error: string | null;
+  result: {
+    appointment_id?: number;
+    passkey_required?: boolean;
+    passkey_configured?: boolean;
+    generated_passkey?: string | null;
+    distribution?: string;
+  } | null;
 };
 
 export type ApiErrorPayload = {

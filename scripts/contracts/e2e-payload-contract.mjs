@@ -52,6 +52,9 @@ export function assertE2ePayloadContract(contract) {
   for (const student of contract?.seeded_student_actors || []) {
     assert.equal(student.student_support_self_service_required, true, `${student.key} must expose self-service support controls`);
     assert.equal(student.support_surface, STUDENT_SELF_SERVICE_SUPPORT_DRAWER);
+    assert.equal(student.auth_kind, "personal_id_plus_optional_appointment_passkey", `${student.key} must use the student exam optional appointment passkey flow`);
+    assert.equal(typeof student.passkey, "string", `${student.key} must include a passkey field, which may be blank when appointment passkey is not required`);
+    assert.equal(typeof student.passkey_required, "boolean", `${student.key} must say whether the appointment requires a passkey`);
   }
 
   assertCaseGroup(contract, "setup_workbook", [

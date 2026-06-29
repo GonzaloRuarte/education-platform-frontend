@@ -47,6 +47,7 @@ Use the backend documentation SSOT, especially:
 - `docs/guardrails/FRONTEND_SSOT_GUARDRAILS.md`
 - `docs/current_build/FRONTEND_CURRENT_BUILD.md`
 - `docs/current_build/PROVISIONED_RUNTIME_HANDOFF.md`
+- `docs/current_build/SETUP_WORKBOOK_CURRENT_BUILD.md` for the current two-stage setup workflow state
 - `docs/generated/frontend_backend_ssot_compliance/*`
 - `docs/generated/frontend_browser_smoke_runtime_gates/*`
 - `docs/generated/e2e_browser_runtime_plan/*`

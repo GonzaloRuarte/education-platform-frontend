@@ -199,3 +199,5 @@ tr:hover td { background: var(--surface-muted); }
 .permission-bundle--preset { background: var(--surface-muted); }
 .permission-bundle--preset .toolbar { justify-content: flex-start; }
 
+.setup-workbook__wizard-step { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: var(--surface); }
+.setup-workbook__wizard-step p { margin: 4px 0 0; }

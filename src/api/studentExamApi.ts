@@ -1,11 +1,23 @@
 import { apiFetch, withQueryParams } from "./api.js";
-import type { JsonValue, TokenPair } from "../core/types.js";
+import type { JsonValue } from "../core/types.js";
 
 export type StudentExamAuthorizeInput = {
   personal_id: string;
+  passkey?: string;
 };
 
-export type StudentExamAuthorizeResponse = TokenPair;
+export type StudentExamAuthorizeResponse = {
+  kind: "student_exam_access_session";
+  access: string;
+  token_type: "StudentExam";
+  expires_at: string;
+  student_profile_id: number;
+  appointment_id: number;
+  institution_id: number;
+  requires_app_user: false;
+  requires_role_grant: false;
+  passkey_required?: boolean;
+};
 
 export type StudentExamAnswerType = "Numeric" | "MultipleChoice" | "OpenEnded";
 

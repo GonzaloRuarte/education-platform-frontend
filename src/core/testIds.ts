@@ -1,4 +1,4 @@
-export const DB_ADMIN_TEST_IDS = {
+export const DATABASE_ADMIN_TEST_IDS = {
   loginPage: "rb-login-page",
   loginForm: "rb-login-form",
   loginUsername: "rb-login-username",
@@ -38,6 +38,10 @@ export const BUSINESS_WORKFLOW_TEST_IDS = {
     commitPlan: "rb-setup-workbook-commit-plan",
     auditStageResult: "rb-setup-workbook-audit-stage-result",
     runtimeCommitResult: "rb-setup-workbook-runtime-commit-result",
+    wizard: "rb-setup-workbook-single-institution-wizard",
+    wizardRefresh: "rb-setup-workbook-wizard-refresh",
+    wizardOrganizationStep: "rb-setup-workbook-wizard-organization-step",
+    wizardInstitutionStep: "rb-setup-workbook-wizard-institution-step",
   },
   matrixEditor: {
     nav: "rb-workflow-matrix-editor-nav",
@@ -63,6 +67,17 @@ export const BUSINESS_WORKFLOW_TEST_IDS = {
     textAnnotationEditor: "rb-manual-scoring-text-annotation-editor",
     releaseCorrectionButton: "rb-manual-scoring-release-correction",
   },
+  appointmentEntryGate: {
+    nav: "rb-workflow-appointment-entry-gate-nav",
+    page: "rb-appointment-entry-gate-page",
+    appointmentId: "rb-appointment-entry-gate-appointment-id",
+    requiredToggle: "rb-appointment-entry-gate-required-toggle",
+    generateToggle: "rb-appointment-entry-gate-generate-toggle",
+    customPasskey: "rb-appointment-entry-gate-custom-passkey",
+    submitButton: "rb-appointment-entry-gate-submit",
+    result: "rb-appointment-entry-gate-result",
+    generatedPasskey: "rb-appointment-entry-gate-generated-passkey",
+  },
   reportExports: {
     page: "rb-report-exports-page",
     createButton: "rb-report-export-create",
@@ -78,6 +93,7 @@ export const FUTURE_BUSINESS_FRONTEND_TEST_IDS = {
     entryPage: "rb-student-exam-entry-page",
     authorizeForm: "rb-student-exam-authorize-form",
     personalIdInput: "rb-student-exam-personal-id",
+    passkeyInput: "rb-student-exam-passkey",
     authorizeSubmit: "rb-student-exam-authorize-submit",
     shell: "rb-student-exam-shell",
     content: "rb-student-exam-content",

@@ -1,4 +1,5 @@
 import type {
+  AppointmentEntryGateState,
   AuditViewState,
   Locale,
   MatrixEditorResourceDraft,
@@ -13,6 +14,25 @@ import { STORAGE_COLLAPSED_RESOURCE_GROUPS, STORAGE_LOCALE, STORAGE_THEME } from
 
 export function emptySetupWorkbookState(): SetupWorkbookState {
   return {
+    selectedStage: "institution",
+    organizationContextId: "",
+    institutionContextId: "",
+    contextOptions: [],
+    contextOptionsLoading: false,
+    contextOptionsError: null,
+    wizard: {
+      enabled: false,
+      discoveryStatus: "idle",
+      discoveryError: null,
+      organizationOptionCount: null,
+      institutionOptionCount: null,
+      organizationAutoSelected: false,
+      institutionAutoSelected: false,
+      organizationCommittedAt: null,
+      institutionCommittedAt: null,
+      organizationAuditBatchId: null,
+      institutionAuditBatchId: null,
+    },
     manifest: null,
     selectedFile: null,
     dryRunResult: null,
@@ -110,6 +130,18 @@ export function emptyManualScoringState(): ManualScoringState {
     reason: "",
     loading: false,
     error: null,
+  };
+}
+
+export function emptyAppointmentEntryGateState(): AppointmentEntryGateState {
+  return {
+    appointmentId: "",
+    passkeyRequired: false,
+    generateNewPasskey: false,
+    customPasskey: "",
+    loading: false,
+    error: null,
+    result: null,
   };
 }
 
