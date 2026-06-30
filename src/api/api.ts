@@ -1,4 +1,4 @@
-import type { ApiErrorPayload, AppAuthSession, AuthSession, StudentExamAuthSession } from "../core/types.js";
+import type { ApiErrorPayload, AppAuthSession, AppSessionPolicy, AuthSession, StudentExamAuthSession } from "../core/types.js";
 import { STORAGE_SESSION, SURFACE } from "../core/constants.js";
 
 export {};
@@ -108,6 +108,26 @@ function isStoredAppSession(value: unknown): value is AppAuthSession {
   );
 }
 
+export function hasSessionSurfacePolicy(session: AppAuthSession): boolean {
+  return isSessionSurfacePolicy(session);
+}
+
+function isSessionSurfacePolicy(value: unknown): value is AppSessionPolicy {
+  if (!isRecord(value) || !isRecord(value.user) || !isRecord(value.surfaces)) {
+    return false;
+  }
+  const dashboard = value.surfaces.dashboard;
+  const dbAdmin = value.surfaces.db_admin;
+  return (
+    typeof value.user.username === "string" &&
+    isRecord(dashboard) &&
+    isRecord(dbAdmin) &&
+    typeof dashboard.can_enter === "boolean" &&
+    typeof dbAdmin.can_enter === "boolean" &&
+    (value.default_surface === "dashboard" || value.default_surface === "db_admin" || value.default_surface === null)
+  );
+}
+
 function isStoredStudentExamSession(value: unknown): value is StudentExamAuthSession {
   if (!isRecord(value) || !isRecord(value.token) || !isRecord(value.student)) {
     return false;
@@ -208,6 +228,14 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}, retry = 
 export async function apiFetchBlob(path: string, init: RequestInit = {}, retry = true): Promise<Blob> {
   const response = await authorizedFetch(path, init, retry);
   return response.blob();
+}
+
+export async function fetchAppSessionPolicy(): Promise<AppSessionPolicy> {
+  const policy = await apiFetch<AppSessionPolicy>("/api/auth/session/");
+  if (!isSessionSurfacePolicy(policy)) {
+    throw new ApiRequestError("The backend returned an invalid session policy.", 500);
+  }
+  return policy;
 }
 
 async function responseErrorDetails(response: Response): Promise<{ message: string; requestId: string | undefined }> {

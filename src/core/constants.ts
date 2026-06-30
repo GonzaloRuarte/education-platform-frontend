@@ -1,9 +1,13 @@
-export const SURFACE = "db_admin";
+export const SURFACE_DB_ADMIN = "db_admin";
+export const SURFACE_BUSINESS = "business";
+export const SURFACE = SURFACE_DB_ADMIN;
 export const DEFAULT_PAGE_SIZE = 25;
 export const STORAGE_SESSION = "retrobolt.admin.session";
 export const STORAGE_LOCALE = "retrobolt.admin.locale";
 export const STORAGE_THEME = "retrobolt.admin.theme";
 export const STORAGE_COLLAPSED_RESOURCE_GROUPS = "retrobolt.admin.collapsedResourceGroups";
+export const DASHBOARD_HASH = "#/dashboard";
+export const DB_ADMIN_HASH = "#/db-admin";
 export const RESOURCE_HASH_PREFIX = "#/resources/";
 export const SETUP_WORKBOOK_HASH = "#/setup-workbook";
 export const MATRIX_EDITOR_HASH = "#/matrix-editor";

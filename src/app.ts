@@ -38,6 +38,8 @@ import type {
   TokenPair,
   AuthUser,
   AppAuthSession,
+  AppSessionPolicy,
+  AppSurfaceKey,
   AppState,
   ResourceViewState,
   SetupWorkbookColumnManifest,
@@ -80,8 +82,8 @@ import type {
   ApiErrorPayload
 } from "./core/types.js";
 import { appendChildren, clear, el } from "./core/dom.js";
-import { ApiRequestError, apiFetch, apiFetchBlob, clearSession, configDebugUi, isAppAuthSession, publicErrorMessage, readSession, saveSession, withQueryParams, withSurface } from "./api/api.js";
-import { AUDIT_VIEW_HASH, DEFAULT_PAGE_SIZE, MANUAL_SCORING_HASH, APPOINTMENT_ENTRY_GATE_HASH, MATRIX_EDITOR_HASH, SETUP_WORKBOOK_HASH, STORAGE_COLLAPSED_RESOURCE_GROUPS, STORAGE_LOCALE, STORAGE_THEME, STUDENT_CORRECTION_HASH, STUDENT_EXAM_HASH } from "./core/constants.js";
+import { ApiRequestError, apiFetch, apiFetchBlob, clearSession, configDebugUi, fetchAppSessionPolicy, hasSessionSurfacePolicy, isAppAuthSession, publicErrorMessage, readSession, saveSession, withQueryParams, withSurface } from "./api/api.js";
+import { AUDIT_VIEW_HASH, DASHBOARD_HASH, DB_ADMIN_HASH, DEFAULT_PAGE_SIZE, MANUAL_SCORING_HASH, APPOINTMENT_ENTRY_GATE_HASH, MATRIX_EDITOR_HASH, RESOURCE_HASH_PREFIX, SETUP_WORKBOOK_HASH, STORAGE_COLLAPSED_RESOURCE_GROUPS, STORAGE_LOCALE, STORAGE_THEME, STUDENT_CORRECTION_HASH, STUDENT_EXAM_HASH } from "./core/constants.js";
 import { actionLabelForLocale, actionMessageForLocale, fieldHelpTextForLocale, fieldNameForLocale, fieldUiTextForLocale, formatTextForLocale, localizedTextForLocale, operatorLabelForLocale, relatedListNameForLocale, resourceNameForLocale, translateForLocale } from "./core/localization.js";
 import { BUSINESS_WORKFLOW_TEST_IDS, DATABASE_ADMIN_TEST_IDS } from "./core/testIds.js";
 import { emptyAppointmentEntryGateState, emptyAuditViewState, emptyManualScoringState, emptyMatrixEditorResourceDraft, emptyMatrixEditorState, emptySetupWorkbookState, loadCollapsedResourceGroups, loadLocale, loadTheme } from "./core/initialState.js";
@@ -145,6 +147,7 @@ const state: AppState = {
   theme: loadTheme(),
   toasts: [],
   dbAdminAccessDenied: false,
+  activeSurface: null,
 };
 
 function persistCollapsedResourceGroups(): void {
@@ -246,6 +249,110 @@ function renderToastRegion(): HTMLElement {
     region.append(el("div", { class: `toast toast--${toast.tone}` }, [el("span", {}, [toast.message]), close]));
   }
   return region;
+}
+
+
+function sessionCanEnterSurface(session: AppAuthSession, surface: AppSurfaceKey): boolean {
+  return session.surfaces?.[surface]?.can_enter === true;
+}
+
+function defaultSurfaceForSession(session: AppAuthSession): AppSurfaceKey | null {
+  if (session.default_surface && sessionCanEnterSurface(session, session.default_surface)) {
+    return session.default_surface;
+  }
+  if (sessionCanEnterSurface(session, "dashboard")) {
+    return "dashboard";
+  }
+  if (sessionCanEnterSurface(session, "db_admin")) {
+    return "db_admin";
+  }
+  return null;
+}
+
+function hashForSurface(surface: AppSurfaceKey): string {
+  return surface === "dashboard" ? DASHBOARD_HASH : DB_ADMIN_HASH;
+}
+
+function routeSurface(hash = location.hash): AppSurfaceKey | null {
+  if (hash === DASHBOARD_HASH || isWorkflowHash(hash)) {
+    return "dashboard";
+  }
+  if (hash === DB_ADMIN_HASH || hash.startsWith(RESOURCE_HASH_PREFIX)) {
+    return "db_admin";
+  }
+  return null;
+}
+
+function isWorkflowHash(hash = location.hash): boolean {
+  return (
+    hash === SETUP_WORKBOOK_HASH ||
+    hash === MATRIX_EDITOR_HASH ||
+    hash === AUDIT_VIEW_HASH ||
+    hash === MANUAL_SCORING_HASH ||
+    hash === APPOINTMENT_ENTRY_GATE_HASH
+  );
+}
+
+function navigateToDefaultSurface(session: AppAuthSession): boolean {
+  const surface = defaultSurfaceForSession(session);
+  if (!surface) {
+    state.dbAdminAccessDenied = true;
+    state.activeSurface = null;
+    return false;
+  }
+  state.dbAdminAccessDenied = false;
+  state.activeSurface = surface;
+  history.replaceState(null, "", hashForSurface(surface));
+  return true;
+}
+
+async function ensureSessionSurfacePolicy(session: AppAuthSession): Promise<AppAuthSession> {
+  if (hasSessionSurfacePolicy(session)) {
+    return session;
+  }
+  const policy = await fetchAppSessionPolicy();
+  const refreshed: AppAuthSession = { ...session, ...policy };
+  saveSession(refreshed);
+  return refreshed;
+}
+
+function applySessionPolicyToSavedSession(policy: AppSessionPolicy): void {
+  const current = readSession();
+  if (!isAppAuthSession(current)) {
+    return;
+  }
+  saveSession({ ...current, ...policy });
+}
+
+function clearAppSelection(): void {
+  state.selectedResourceKey = null;
+  state.selectedWorkflow = null;
+  state.resourceView = null;
+  state.message = null;
+}
+
+function currentAppSession(): AppAuthSession | null {
+  const session = readSession();
+  return isAppAuthSession(session) ? session : null;
+}
+
+function denyAppSurface(): void {
+  state.dbAdminAccessDenied = true;
+  state.activeSurface = null;
+  clearAppSelection();
+  render();
+}
+
+function enterDashboardSurface(): boolean {
+  const session = currentAppSession();
+  if (!session || !sessionCanEnterSurface(session, "dashboard")) {
+    denyAppSurface();
+    return false;
+  }
+  state.activeSurface = "dashboard";
+  state.dbAdminAccessDenied = false;
+  state.resources = [];
+  return true;
 }
 
 function render(): void {
@@ -366,8 +473,17 @@ async function handleLogin(form: HTMLFormElement, submit: HTMLButtonElement, err
     saveSession(payload);
     state.error = null;
     state.message = null;
-    state.dbAdminAccessDenied = false;
-    await loadResources();
+    state.resources = [];
+    clearAppSelection();
+    if (!navigateToDefaultSurface(payload)) {
+      render();
+      return;
+    }
+    if (state.activeSurface === "db_admin") {
+      await loadResources();
+    } else {
+      render();
+    }
   } catch (error) {
     errorBox.hidden = false;
     errorBox.textContent = publicErrorMessage(error, t("login_failed"));
@@ -382,16 +498,31 @@ function renderForbidden(session: AppAuthSession): HTMLElement {
     clearRelationOptionCache();
     clearSession();
     state.resources = [];
+    state.activeSurface = null;
     state.dbAdminAccessDenied = false;
     render();
   });
 
+  const actions: Node[] = [logoutButton];
+  const fallbackSurface = defaultSurfaceForSession(session);
+  if (fallbackSurface) {
+    const fallbackButton = el("button", { class: "button primary", type: "button" }, [
+      fallbackSurface === "dashboard" ? t("open_dashboard") : t("open_db_admin"),
+    ]);
+    fallbackButton.addEventListener("click", () => {
+      state.dbAdminAccessDenied = false;
+      history.replaceState(null, "", hashForSurface(fallbackSurface));
+      void handleAppRoute();
+    });
+    actions.unshift(fallbackButton);
+  }
+
   return el("main", { class: "login-page", "data-testid": DATABASE_ADMIN_TEST_IDS.loginPage }, [
     el("section", { class: "card login-card" }, [
       el("div", { class: "card__body stack" }, [
-        el("h1", {}, [t("db_admin_required")]),
-        el("p", {}, [`${displayUser(session.user)} ${t("db_admin_required_message")}`]),
-        logoutButton,
+        el("h1", {}, [t("app_surface_required")]),
+        el("p", {}, [`${displayUser(session.user)} ${t("app_surface_required_message")}`]),
+        el("div", { class: "toolbar" }, actions),
       ]),
     ]),
   ]);
@@ -414,6 +545,7 @@ function renderTopBar(session: AppAuthSession): HTMLElement {
     state.resources = [];
     state.selectedResourceKey = null;
     state.resourceView = null;
+    state.activeSurface = null;
     state.dbAdminAccessDenied = false;
     render();
   });
@@ -422,7 +554,21 @@ function renderTopBar(session: AppAuthSession): HTMLElement {
     el("strong", { class: "topbar__user" }, [displayUser(session.user)]),
     renderPreferenceControls(),
   ];
-  if (configDebugUi()) {
+  if (state.activeSurface === "dashboard" && sessionCanEnterSurface(session, "db_admin")) {
+    const dbAdminLink = el("button", { class: "button", type: "button", "data-testid": DATABASE_ADMIN_TEST_IDS.dbAdminSurfaceLink }, [t("open_db_admin")]);
+    dbAdminLink.addEventListener("click", () => {
+      void selectDbAdminPage();
+    });
+    controls.push(dbAdminLink);
+  }
+  if (state.activeSurface === "db_admin" && sessionCanEnterSurface(session, "dashboard")) {
+    const dashboardLink = el("button", { class: "button", type: "button", "data-testid": DATABASE_ADMIN_TEST_IDS.dashboardSurfaceLink }, [t("open_dashboard")]);
+    dashboardLink.addEventListener("click", () => {
+      void selectDashboardPage();
+    });
+    controls.push(dashboardLink);
+  }
+  if (configDebugUi() && state.activeSurface === "db_admin") {
     const refresh = el("button", { class: "button", type: "button", "data-testid": DATABASE_ADMIN_TEST_IDS.refreshResources }, [t("refresh_resources")]);
     refresh.addEventListener("click", () => {
       clearRelationOptionCache();
@@ -439,6 +585,12 @@ function renderTopBar(session: AppAuthSession): HTMLElement {
 }
 
 function renderSidebar(): HTMLElement {
+  if (state.activeSurface === "dashboard") {
+    return el("aside", { class: "sidebar", "data-testid": DATABASE_ADMIN_TEST_IDS.sidebar }, [
+      el("div", { class: "sidebar__section stack" }, [renderWorkflowNavigation()]),
+    ]);
+  }
+
   const filterInput = el("input", {
     class: "resource-filter",
     "data-testid": DATABASE_ADMIN_TEST_IDS.resourceFilter,
@@ -484,6 +636,13 @@ function renderSidebar(): HTMLElement {
     nav.append(el("div", { class: "empty" }, [t("no_resources_match")]));
   }
 
+  return el("aside", { class: "sidebar", "data-testid": DATABASE_ADMIN_TEST_IDS.sidebar }, [
+    el("div", { class: "sidebar__section stack sidebar__controls" }, [filterInput]),
+    nav,
+  ]);
+}
+
+function renderWorkflowNavigation(): HTMLElement {
   const workflowNav = el("nav", { class: "resource-nav workflow-nav", "aria-label": t("workflows"), "data-testid": DATABASE_ADMIN_TEST_IDS.workflowNav });
   const setupWorkbookButton = el("button", {
     class: state.selectedWorkflow === "setup_workbook" ? "active" : "",
@@ -530,12 +689,7 @@ function renderSidebar(): HTMLElement {
     workflowNav.append(matrixEditorButton);
   }
   workflowNav.append(auditViewButton, manualScoringButton, appointmentEntryGateButton);
-
-  return el("aside", { class: "sidebar", "data-testid": DATABASE_ADMIN_TEST_IDS.sidebar }, [
-    el("div", { class: "sidebar__section stack sidebar__controls" }, [filterInput]),
-    el("div", { class: "sidebar__section stack" }, [workflowNav]),
-    nav,
-  ]);
+  return workflowNav;
 }
 
 function resourcesByNavigationGroup(resources: ResourceSchema[]): Array<[string, ResourceSchema[]]> {
@@ -575,6 +729,10 @@ function renderMain(): HTMLElement {
   }
   if (state.selectedWorkflow === "appointment_entry_gate") {
     main.append(renderAppointmentEntryGatePage(appointmentEntryGateViewRuntime()));
+    return main;
+  }
+  if (state.activeSurface === "dashboard") {
+    main.append(renderWelcomePage());
     return main;
   }
   if (state.resources.length === 0) {
@@ -815,6 +973,7 @@ function normalizeResourceSchema(schema: ResourceSchema): ResourceSchema {
 }
 
 async function loadResources(): Promise<void> {
+  state.activeSurface = "db_admin";
   state.loading = true;
   state.error = null;
   state.message = null;
@@ -835,7 +994,7 @@ async function loadResources(): Promise<void> {
       state.resourceView = null;
     }
   } catch (error) {
-    state.dbAdminAccessDenied = error instanceof ApiRequestError && error.status === 403;
+    state.dbAdminAccessDenied = error instanceof ApiRequestError && (error.status === 403 || error.status === 404);
     state.error = publicErrorMessage(error, t("load_resources_failed"));
     if (!state.dbAdminAccessDenied) {
       notify("error", state.error);
@@ -854,6 +1013,7 @@ async function selectResource(
   if (updateHash) {
     replaceResourceHash(resourceKey, params);
   }
+  state.activeSurface = "db_admin";
   state.selectedWorkflow = null;
   state.selectedResourceKey = resourceKey;
   state.resourceView = null;
@@ -917,7 +1077,40 @@ function studentExamRuntime(): StudentExamRuntime {
   };
 }
 
+async function selectDashboardPage(updateHash = true): Promise<void> {
+  const session = currentAppSession();
+  if (!session || !sessionCanEnterSurface(session, "dashboard")) {
+    denyAppSurface();
+    return;
+  }
+  if (updateHash && location.hash !== DASHBOARD_HASH) {
+    history.replaceState(null, "", DASHBOARD_HASH);
+  }
+  state.activeSurface = "dashboard";
+  state.dbAdminAccessDenied = false;
+  state.resources = [];
+  clearAppSelection();
+  render();
+}
+
+async function selectDbAdminPage(updateHash = true): Promise<void> {
+  const session = currentAppSession();
+  if (!session || !sessionCanEnterSurface(session, "db_admin")) {
+    denyAppSurface();
+    return;
+  }
+  if (updateHash && location.hash !== DB_ADMIN_HASH) {
+    history.replaceState(null, "", DB_ADMIN_HASH);
+  }
+  state.dbAdminAccessDenied = false;
+  clearAppSelection();
+  await loadResources();
+}
+
 async function selectSetupWorkbookPage(updateHash = true): Promise<void> {
+  if (!enterDashboardSurface()) {
+    return;
+  }
   if (updateHash && location.hash !== SETUP_WORKBOOK_HASH) {
     history.replaceState(null, "", SETUP_WORKBOOK_HASH);
   }
@@ -929,6 +1122,9 @@ async function selectSetupWorkbookPage(updateHash = true): Promise<void> {
 }
 
 async function selectMatrixEditorPage(updateHash = true): Promise<void> {
+  if (!enterDashboardSurface()) {
+    return;
+  }
   if (!matrixEditorNavigationEnabled()) {
     if (location.hash === MATRIX_EDITOR_HASH) {
       history.replaceState(null, "", location.pathname || "/");
@@ -951,6 +1147,9 @@ async function selectMatrixEditorPage(updateHash = true): Promise<void> {
 }
 
 async function selectAuditViewPage(updateHash = true): Promise<void> {
+  if (!enterDashboardSurface()) {
+    return;
+  }
   if (updateHash && location.hash !== AUDIT_VIEW_HASH) {
     history.replaceState(null, "", AUDIT_VIEW_HASH);
   }
@@ -965,6 +1164,9 @@ async function selectAuditViewPage(updateHash = true): Promise<void> {
 }
 
 async function selectManualScoringPage(updateHash = true): Promise<void> {
+  if (!enterDashboardSurface()) {
+    return;
+  }
   if (updateHash && location.hash !== MANUAL_SCORING_HASH) {
     history.replaceState(null, "", MANUAL_SCORING_HASH);
   }
@@ -976,6 +1178,9 @@ async function selectManualScoringPage(updateHash = true): Promise<void> {
 }
 
 async function selectAppointmentEntryGatePage(updateHash = true): Promise<void> {
+  if (!enterDashboardSurface()) {
+    return;
+  }
   if (updateHash && location.hash !== APPOINTMENT_ENTRY_GATE_HASH) {
     history.replaceState(null, "", APPOINTMENT_ENTRY_GATE_HASH);
   }
@@ -1418,79 +1623,90 @@ function matrixEditorNavigationEnabled(): boolean {
   return false;
 }
 
-window.addEventListener("hashchange", () => {
+async function handleAppRoute(): Promise<void> {
   if (isStudentExamRoute() || isStudentCorrectionRoute()) {
     render();
     return;
   }
-  if (location.hash === SETUP_WORKBOOK_HASH) {
-    void selectSetupWorkbookPage(false);
+  const existingSession = readSession();
+  if (!isAppAuthSession(existingSession)) {
+    render();
     return;
   }
-  if (location.hash === MATRIX_EDITOR_HASH) {
-    void selectMatrixEditorPage(false);
-    return;
-  }
-  if (location.hash === AUDIT_VIEW_HASH) {
-    void selectAuditViewPage(false);
-    return;
-  }
-  if (location.hash === MANUAL_SCORING_HASH) {
-    void selectManualScoringPage(false);
-    return;
-  }
-  if (location.hash === APPOINTMENT_ENTRY_GATE_HASH) {
-    void selectAppointmentEntryGatePage(false);
-    return;
-  }
-  const parsed = parseResourceHash();
-  if (parsed.resourceKey) {
-    void selectResource(parsed.resourceKey, parsed.params, false);
-  }
-});
 
-async function boot(): Promise<void> {
-  if (isStudentExamRoute() || isStudentCorrectionRoute()) {
+  let session: AppAuthSession;
+  try {
+    session = await ensureSessionSurfacePolicy(existingSession);
+  } catch (error) {
+    clearSession();
+    state.error = publicErrorMessage(error, t("login_failed"));
     render();
     return;
   }
-  const session = readSession();
-  if (!isAppAuthSession(session)) {
-    render();
+
+  const surface = routeSurface();
+  if (!surface) {
+    if (!navigateToDefaultSurface(session)) {
+      render();
+      return;
+    }
+    await handleAppRoute();
     return;
   }
-  render();
-  await loadResources();
+
+  if (!sessionCanEnterSurface(session, surface)) {
+    denyAppSurface();
+    return;
+  }
+
+  if (location.hash === DASHBOARD_HASH) {
+    await selectDashboardPage(false);
+    return;
+  }
+  if (location.hash === DB_ADMIN_HASH) {
+    await selectDbAdminPage(false);
+    return;
+  }
   if (location.hash === SETUP_WORKBOOK_HASH) {
     await selectSetupWorkbookPage(false);
-    render();
     return;
   }
   if (location.hash === MATRIX_EDITOR_HASH) {
     await selectMatrixEditorPage(false);
-    render();
     return;
   }
   if (location.hash === AUDIT_VIEW_HASH) {
     await selectAuditViewPage(false);
-    render();
     return;
   }
   if (location.hash === MANUAL_SCORING_HASH) {
     await selectManualScoringPage(false);
-    render();
     return;
   }
   if (location.hash === APPOINTMENT_ENTRY_GATE_HASH) {
     await selectAppointmentEntryGatePage(false);
-    render();
     return;
   }
+
   const parsed = parseResourceHash();
-  if (parsed.resourceKey && state.resources.some((resource) => resource.key === parsed.resourceKey)) {
-    await selectResource(parsed.resourceKey, parsed.params, false);
+  if (parsed.resourceKey) {
+    if (state.activeSurface !== "db_admin" || state.resources.length === 0) {
+      await selectDbAdminPage(false);
+    }
+    if (state.resources.some((resource) => resource.key === parsed.resourceKey)) {
+      await selectResource(parsed.resourceKey, parsed.params, false);
+      return;
+    }
   }
   render();
+}
+
+window.addEventListener("hashchange", () => {
+  void handleAppRoute();
+});
+
+async function boot(): Promise<void> {
+  await handleAppRoute();
 }
 
 void boot();

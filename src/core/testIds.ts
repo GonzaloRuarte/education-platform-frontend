@@ -13,6 +13,8 @@ export const DATABASE_ADMIN_TEST_IDS = {
   resourceFilter: "rb-resource-filter",
   refreshResources: "rb-refresh-resources",
   signOut: "rb-sign-out",
+  dashboardSurfaceLink: "rb-surface-dashboard-link",
+  dbAdminSurfaceLink: "rb-surface-db-admin-link",
   resourcePage: "rb-resource-page",
   resourceCreate: "rb-resource-create",
   resourceBatchDelete: "rb-resource-batch-delete",

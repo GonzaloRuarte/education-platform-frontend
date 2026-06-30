@@ -38,6 +38,7 @@ export type FieldType =
   | "json";
 
 export type ResourceAction = "list" | "retrieve" | "create" | "update" | "delete" | "batch_delete";
+export type AppSurfaceKey = "dashboard" | "db_admin";
 export type ResourceActions = Partial<Record<ResourceAction, boolean>>;
 export type WorkflowPage = "setup_workbook" | "matrix_editor" | "audit_view" | "manual_scoring" | "appointment_entry_gate";
 
@@ -241,10 +242,31 @@ export type AuthUser = {
   last_name?: string;
 };
 
-export type AppAuthSession = {
+export type InstitutionSummary = {
+  id: number;
+  name: string;
+};
+
+export type SurfaceAccess = {
+  can_enter: boolean;
+};
+
+export type SessionSurfaceAccess = {
+  dashboard: SurfaceAccess;
+  db_admin: SurfaceAccess;
+};
+
+export type AppSessionPolicy = {
+  user: AuthUser;
+  institution?: InstitutionSummary | null;
+  institutions?: InstitutionSummary[];
+  surfaces: SessionSurfaceAccess;
+  default_surface: AppSurfaceKey | null;
+};
+
+export type AppAuthSession = AppSessionPolicy & {
   kind?: "app_user";
   token: TokenPair;
-  user: AuthUser;
 };
 
 export type StudentExamAuthSession = {
@@ -281,6 +303,7 @@ export type AppState = {
   theme: ThemeMode;
   toasts: Toast[];
   dbAdminAccessDenied: boolean;
+  activeSurface: AppSurfaceKey | null;
 };
 
 export type ResourceViewState = {

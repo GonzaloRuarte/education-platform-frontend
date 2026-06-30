@@ -23,12 +23,14 @@ export const UI_TEXT: Record<string, Record<Locale, string>> = {
   
   refresh_resources: { es: "Actualizar recursos", en: "Refresh resources" },
   sign_out: { es: "Salir", en: "Sign out" },
-  admin_title: { es: "Retrobolt Admin", en: "Retrobolt Admin" },
-  db_admin_required: { es: "Se requiere acceso DB Admin", en: "DB Admin access required" },
-  db_admin_required_message: {
-    es: "está autenticado, pero el backend no habilitó la superficie DB Admin para esta sesión.",
-    en: "is authenticated, but the backend did not enable the DB Admin surface for this session.",
+  admin_title: { es: "Retrobolt", en: "Retrobolt" },
+  app_surface_required: { es: "No hay superficie disponible", en: "No available workspace" },
+  app_surface_required_message: {
+    es: "está autenticado, pero el backend no habilitó esta superficie para esta sesión.",
+    en: "is authenticated, but the backend did not enable this workspace for this session.",
   },
+  open_dashboard: { es: "Abrir Dashboard", en: "Open Dashboard" },
+  open_db_admin: { es: "Abrir DB Admin", en: "Open DB Admin" },
   loading_admin_resources: { es: "Cargando recursos de administración...", en: "Loading admin resources..." },
   loading_resource: { es: "Cargando recurso...", en: "Loading resource..." },
   retry: { es: "Reintentar", en: "Retry" },
