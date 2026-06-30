@@ -33,6 +33,8 @@ services:
     build:
       context: ../meta-backend
       dockerfile: Dockerfile
+      args :
+        INSTALL_DEV: "true"
     command: |
       sh -lc '
         set -eu
