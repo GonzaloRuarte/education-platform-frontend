@@ -196,6 +196,9 @@ const institutionSetupWorkbookSheets = Object.freeze([
   },
 ]);
 
+const SETUP_WORKBOOK_ASSIGNABILITY_ACTIVE = "active";
+const SETUP_WORKBOOK_TEACHER_ROLE_KEY = "teacher";
+
 function buildInstitutionSetupRows(prefix) {
   return {
     enrollment_periods: [{
@@ -232,7 +235,7 @@ function buildInstitutionSetupRows(prefix) {
       last_name: "Proof Teacher",
       email: `${prefix}-teacher@alpha.example.invalid`,
       account_setup_state: "password_not_setup",
-      assignability_status: "active",
+      assignability_status: SETUP_WORKBOOK_ASSIGNABILITY_ACTIVE,
     }],
     students: [{
       student_key: `${prefix}_student`,
@@ -251,7 +254,7 @@ function buildInstitutionSetupRows(prefix) {
     role_grants: [{
       assignment_key: `${prefix}_teacher_assignment`,
       user_key: `${prefix}_teacher`,
-      role_key: "teacher",
+      role_key: SETUP_WORKBOOK_TEACHER_ROLE_KEY,
       enrollment_period_key: `${prefix}_2032`,
       status: "active",
       starts_on: "2032-03-01",

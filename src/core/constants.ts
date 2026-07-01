@@ -1,6 +1,6 @@
-export const SURFACE_DB_ADMIN = "db_admin";
+export const SURFACE = "db_admin";
+export const SURFACE_DB_ADMIN = SURFACE;
 export const SURFACE_BUSINESS = "business";
-export const SURFACE = SURFACE_DB_ADMIN;
 export const DEFAULT_PAGE_SIZE = 25;
 export const STORAGE_SESSION = "retrobolt.admin.session";
 export const STORAGE_LOCALE = "retrobolt.admin.locale";

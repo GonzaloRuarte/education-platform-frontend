@@ -28,6 +28,21 @@ function Run-Step {
     if ($LASTEXITCODE -ne 0) { throw "Step failed: $Name" }
 }
 
+function Resolve-BackendRepoForFrontendContracts {
+    $candidatePaths = @(
+        $BackendRepo,
+        (Join-Path $ComposeRepo "backend")
+    )
+
+    foreach ($candidate in $candidatePaths) {
+        if ([string]::IsNullOrWhiteSpace($candidate)) { continue }
+        $manifest = Join-Path $candidate "docs\generated\frontend_backend_ssot_compliance\frontend_backend_ssot_compliance_manifest.json"
+        if (Test-Path $manifest) { return (Resolve-Path $candidate).Path }
+    }
+
+    throw "Backend SSOT manifest not found. Run backend artifact generation and pass -BackendRepo pointing at the backend repo containing docs\generated\frontend_backend_ssot_compliance\frontend_backend_ssot_compliance_manifest.json."
+}
+
 # Use a one-off backend container for setup steps so the backend service startup command
 # cannot run migrations/bootstrap concurrently with seed or generated-policy DDL.
 function Run-Backend-Once {
@@ -188,7 +203,18 @@ try {
     if (!$SkipFrontendContracts) {
         Run-Step "Frontend contract tests in Node Docker" {
             $frontend = (Resolve-Path $ComposeRepo).Path
-            docker run --rm -v "${frontend}:/app" -v meta_frontend_node_modules:/app/node_modules -w /app node:20-bookworm-slim sh -lc "npm install && npm run test:frontend-contracts"
+            $backendForContracts = Resolve-BackendRepoForFrontendContracts
+            Write-Host "Using backend SSOT contract repo: $backendForContracts"
+            docker run --rm `
+                -v "${frontend}:/app" `
+                -v "${backendForContracts}:/backend:ro" `
+                -v meta_frontend_node_modules:/app/node_modules `
+                -e RETROBOLT_FRONTEND_BACKEND_SSOT_CONTRACT_PATH=/backend/docs/generated/frontend_backend_ssot_compliance/frontend_backend_ssot_compliance_manifest.json `
+                -e RETROBOLT_FRONTEND_SMOKE_CONTRACT_PATH=/backend/docs/generated/frontend_browser_smoke_runtime_gates/frontend_browser_smoke_runtime_gate_manifest.json `
+                -e RETROBOLT_E2E_RUNTIME_CONTRACT_PATH=/backend/docs/generated/e2e_browser_runtime_plan/e2e_browser_runtime_plan_manifest.json `
+                -e RETROBOLT_PAGE_OBJECT_SELECTOR_CONTRACT_PATH=/backend/docs/generated/e2e_page_object_selector_contract/e2e_page_object_selector_contract_manifest.json `
+                -e RETROBOLT_E2E_PAYLOAD_CONTRACT_PATH=/backend/docs/generated/e2e_seeded_payload_contract/e2e_seeded_payload_contract_manifest.json `
+                -w /app node:20-bookworm-slim sh -lc "npm install && npm run test:frontend-contracts"
         }
     }
 
