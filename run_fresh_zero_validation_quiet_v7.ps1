@@ -230,6 +230,8 @@ try {
 
             Run-Step "Frontend browser E2E in Node Docker" {
                 $frontend = (Resolve-Path $ComposeRepo).Path
+                $backendForContracts = Resolve-BackendRepoForFrontendContracts
+                Write-Host "Using backend browser E2E contract repo: $backendForContracts"
                 $frontendBrowserArtifacts = Join-Path $ComposeRepo "browser_e2e_artifacts"
                 $frontendBrowserPayloadArtifacts = Join-Path $frontendBrowserArtifacts "payloads"
                 New-Item -ItemType Directory -Force -Path $frontendBrowserArtifacts | Out-Null
@@ -237,9 +239,13 @@ try {
 
                 docker run --rm --add-host=host.docker.internal:host-gateway `
                     -v "${frontend}:/app" `
+                    -v "${backendForContracts}:/backend:ro" `
                     -v meta_frontend_node_modules:/app/node_modules `
                     -v "${frontendBrowserArtifacts}:/tmp/browser_e2e_artifacts" `
                     -v "${frontendBrowserPayloadArtifacts}:/tmp/browser_e2e_payload_artifacts" `
+                    -e RETROBOLT_E2E_RUNTIME_CONTRACT_PATH=/backend/docs/generated/e2e_browser_runtime_plan/e2e_browser_runtime_plan_manifest.json `
+                    -e RETROBOLT_PAGE_OBJECT_SELECTOR_CONTRACT_PATH=/backend/docs/generated/e2e_page_object_selector_contract/e2e_page_object_selector_contract_manifest.json `
+                    -e RETROBOLT_E2E_PAYLOAD_CONTRACT_PATH=/backend/docs/generated/e2e_seeded_payload_contract/e2e_seeded_payload_contract_manifest.json `
                     -w /app node:20-bookworm-slim sh -lc "npm install && mkdir -p /tmp/browser_e2e_artifacts /tmp/browser_e2e_payload_artifacts && npx playwright install --with-deps chromium && RETROBOLT_RUN_BROWSER_E2E=1 RETROBOLT_FRONTEND_BASE_URL=http://host.docker.internal:5173 RETROBOLT_API_BASE_URL=http://host.docker.internal:8000 RETROBOLT_ADMIN_USERNAME=full-coverage-admin RETROBOLT_ADMIN_PASSWORD=admin-change-me RETROBOLT_E2E_ARTIFACT_DIR=/tmp/browser_e2e_artifacts RETROBOLT_E2E_PAYLOAD_ARTIFACT_DIR=/tmp/browser_e2e_payload_artifacts RETROBOLT_BROWSER_ENGINE=chromium npm run test:e2e:browser"
             }
         }
