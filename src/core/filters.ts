@@ -54,7 +54,7 @@ export function filterableFields(schema: ResourceSchema): ResourceField[] {
   return schema.fields.filter((field) => field.filterable && !field.write_only);
 }
 
-export function operatorsForField(schema: ResourceSchema, field: ResourceField): FilterOperatorDefinition[] {
+export function operatorsForField(field: ResourceField): FilterOperatorDefinition[] {
   return field.filter?.operators ?? [];
 }
 
@@ -67,7 +67,7 @@ export function sanitizeFilterModel(schema: ResourceSchema, filterModel: GridFil
   const items = filterModel.items.filter((item) => {
     const field = fieldsByKey.get(item.field);
     if (!field) return false;
-    return operatorsForField(schema, field).some((operator) => operator.key === item.operator);
+    return operatorsForField(field).some((operator) => operator.key === item.operator);
   });
   return {
     items,

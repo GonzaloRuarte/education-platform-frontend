@@ -1,7 +1,6 @@
 import type {
   JsonValue,
   SetupWorkbookColumnManifest,
-  SetupWorkbookSheetManifest,
   SetupWorkbookIssue,
   SetupWorkbookStagedRow,
   SetupWorkbookCellCorrection,
@@ -1334,17 +1333,6 @@ function appendSetupWorkbookContext(formData: FormData): void {
   }
 }
 
-function appendSetupWorkbookCommitInputs(formData: FormData): void {
-  appendSetupWorkbookContext(formData);
-  appendSetupWorkbookCellCorrections(formData);
-  for (const code of [...runtime.setupWorkbook.confirmedWarningCodes].sort()) {
-    formData.append("confirmed_warning_codes", code);
-  }
-  for (const row of omittedSetupWorkbookRows()) {
-    formData.append("omitted_rows", JSON.stringify(row));
-  }
-  formData.append("reason", runtime.setupWorkbook.reason);
-}
 
 async function buildSetupWorkbookCommitPlan(): Promise<void> {
   if (!setupWorkbookHasDraftRows()) {

@@ -17,7 +17,6 @@ import type {
   MatrixEditorPermissionBundle,
   MatrixEditorUserTypePreset,
   MatrixEditorRoleGrantProposal,
-  MatrixEditorRoleGrantForm,
   MatrixEditorState,
   JsonValue,
   Toast,

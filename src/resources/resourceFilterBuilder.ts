@@ -33,7 +33,7 @@ export function renderFilterBuilder(view: ResourceViewState, runtime: ResourceFi
   } else {
     itemFilters.forEach((item, index) => {
       const field = fields.find((candidate) => candidate.key === item.field);
-      const operator = field ? operatorsForField(view.schema, field).find((candidate) => candidate.key === item.operator) : undefined;
+      const operator = field ? operatorsForField(field).find((candidate) => candidate.key === item.operator) : undefined;
       const remove = el("button", { class: "button flat", type: "button", title: t("remove_filter") }, ["×"]);
       remove.addEventListener("click", () => {
         view.filterModel.items.splice(index, 1);
@@ -72,11 +72,11 @@ export function renderFilterBuilder(view: ResourceViewState, runtime: ResourceFi
   });
 
   const selectedField = (): ResourceField => fields.find((field) => field.key === fieldSelect.value) ?? firstField;
-  const selectedOperator = (): FilterOperatorDefinition | undefined => operatorsForField(view.schema, selectedField()).find((operator) => operator.key === operatorSelect.value);
+  const selectedOperator = (): FilterOperatorDefinition | undefined => operatorsForField(selectedField()).find((operator) => operator.key === operatorSelect.value);
 
   function refreshOperators(): void {
     clear(operatorSelect);
-    for (const operator of operatorsForField(view.schema, selectedField())) {
+    for (const operator of operatorsForField(selectedField())) {
       operatorSelect.append(el("option", { value: operator.key }, [operatorLabel(operator)]));
     }
     refreshValueControl();

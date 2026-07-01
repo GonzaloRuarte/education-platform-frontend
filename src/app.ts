@@ -1,100 +1,41 @@
 import type {
-  JsonPrimitive,
-  JsonValue,
   RecordValue,
   ResourceRecord,
   Locale,
   ThemeMode,
   LocalizedText,
-  FieldI18n,
-  ResourceI18n,
-  ActionI18n,
-  FieldType,
-  ResourceAction,
-  ResourceActions,
-  WorkflowPage,
-  StaticOption,
-  OptionSource,
-  RelationDefinition,
-  AdminControl,
-  FieldValidation,
-  FieldUi,
   ResourceField,
   DestructiveAction,
-  ResourceNavigation,
   RelatedListDefinition,
   Toast,
   GridFilterItem,
-  GridFilterModel,
-  FilterValueControl,
   FilterOperatorDefinition,
-  FilterControlReader,
   ResourceSchema,
-  ResourceDiscoveryItem,
   ResourcesResponse,
   PaginatedRecords,
-  RelationOption,
   OptionsResponse,
-  TokenPair,
   AuthUser,
   AppAuthSession,
-  AppSessionPolicy,
   AppSurfaceKey,
   AppState,
   ResourceViewState,
-  SetupWorkbookColumnManifest,
-  SetupWorkbookSheetManifest,
-  SetupWorkbookManifest,
-  SetupWorkbookIssue,
-  SetupWorkbookStagedRow,
-  SetupWorkbookCellCorrection,
-  SetupWorkbookSheetResult,
-  SetupWorkbookDryRunResult,
-  SetupWorkbookCommitOperation,
-  SetupWorkbookCommitPlan,
-  SetupWorkbookState,
-  MatrixEditorDomain,
-  MatrixEditorUniverseResource,
-  MatrixEditorColumnGrantColumn,
-  MatrixEditorColumnGrantAction,
-  MatrixEditorColumnGrantResource,
-  MatrixEditorRowScopeType,
-  MatrixEditorUniverse,
-  MatrixEditorIssue,
-  MatrixEditorValidationResponse,
-  MatrixEditorPreviewResponse,
-  MatrixEditorApplyResponse,
-  MatrixEditorResourceProposal,
-  MatrixEditorRowScopeValueProposal,
-  MatrixEditorColumnGrantProposal,
-  MatrixEditorProposalBody,
-  MatrixEditorPayload,
-  MatrixEditorResourceDraft,
-  MatrixEditorState,
-  AuditViewKind,
-  AuditRecord,
   AuditListResponse,
-  AuditDetailResponse,
-  AuditViewFilters,
-  AuditViewState,
-  ManualScoringState,
-  AppointmentEntryGateState,
-  ApiErrorPayload
+  AuditDetailResponse
 } from "./core/types.js";
-import { appendChildren, clear, el } from "./core/dom.js";
-import { ApiRequestError, apiFetch, apiFetchBlob, clearSession, configDebugUi, fetchAppSessionPolicy, hasSessionSurfacePolicy, isAppAuthSession, publicErrorMessage, readSession, saveSession, withQueryParams, withSurface } from "./api/api.js";
+import { clear, el } from "./core/dom.js";
+import { ApiRequestError, apiFetch, clearSession, configDebugUi, fetchAppSessionPolicy, hasSessionSurfacePolicy, isAppAuthSession, publicErrorMessage, readSession, saveSession, withQueryParams, withSurface } from "./api/api.js";
 import { AUDIT_VIEW_HASH, DASHBOARD_HASH, DB_ADMIN_HASH, DEFAULT_PAGE_SIZE, MANUAL_SCORING_HASH, APPOINTMENT_ENTRY_GATE_HASH, MATRIX_EDITOR_HASH, RESOURCE_HASH_PREFIX, SETUP_WORKBOOK_HASH, STORAGE_COLLAPSED_RESOURCE_GROUPS, STORAGE_LOCALE, STORAGE_THEME, STUDENT_CORRECTION_HASH, STUDENT_EXAM_HASH } from "./core/constants.js";
 import { actionLabelForLocale, actionMessageForLocale, fieldHelpTextForLocale, fieldNameForLocale, fieldUiTextForLocale, formatTextForLocale, localizedTextForLocale, operatorLabelForLocale, relatedListNameForLocale, resourceNameForLocale, translateForLocale } from "./core/localization.js";
 import { BUSINESS_WORKFLOW_TEST_IDS, DATABASE_ADMIN_TEST_IDS } from "./core/testIds.js";
-import { emptyAppointmentEntryGateState, emptyAuditViewState, emptyManualScoringState, emptyMatrixEditorResourceDraft, emptyMatrixEditorState, emptySetupWorkbookState, loadCollapsedResourceGroups, loadLocale, loadTheme } from "./core/initialState.js";
+import { emptyAppointmentEntryGateState, emptyAuditViewState, emptyManualScoringState, emptyMatrixEditorState, emptySetupWorkbookState, loadCollapsedResourceGroups, loadLocale, loadTheme } from "./core/initialState.js";
 import { recordDeletePath, recordDetailPath, recordUpdatePath, resourceBatchDeletePath, resourceCreatePath, resourceListPath, resourceOptionsPath, resourceSchemaPath } from "./api/resourceEndpoints.js";
-import { parseResourceHash, replaceResourceHash, resourceHash } from "./core/routes.js";
-import { defaultFilterModel, filterModelForRequest, filterModelWithQuickSearch, filterableFields, hasActiveFilters, operatorNeedsValue, operatorsForField, parseFilterModel, parsePositiveInt, parseSortState, resourceViewParams, sanitizeFilterModel, sanitizeSortState } from "./core/filters.js";
+import { parseResourceHash, replaceResourceHash } from "./core/routes.js";
+import { defaultFilterModel, filterModelWithQuickSearch, filterableFields, hasActiveFilters, parseFilterModel, parsePositiveInt, parseSortState, resourceViewParams, sanitizeFilterModel, sanitizeSortState } from "./core/filters.js";
 import { canResourceAction, detailFields, editableFields, listFields, recordIdentity, schemaHasDependentRelations } from "./resources/resourceModel.js";
 import { renderPagination as renderResourcePagination, renderRecordsTable as renderResourceRecordsTable, type ResourceTableRuntime } from "./resources/resourceTable.js";
 import { clearRelationOptionCache, optionQueryParams } from "./resources/relationOptions.js";
 import { controlForField, loadFormOptions, renderRecordForm, type ResourceFormRuntime } from "./resources/resourceForm.js";
-import { coerceScalar, isScalarRecordValue, safeJson } from "./core/fieldFormatting.js";
+import { isScalarRecordValue, safeJson } from "./core/fieldFormatting.js";
 import { renderAuditViewPage, type AuditViewRuntime } from "./reports/auditView.js";
 import { renderManualScoringPage, type ManualScoringViewRuntime } from "./reports/manualScoringView.js";
 import { renderMatrixEditorPage, type MatrixEditorViewRuntime } from "./resources/matrixEditorView.js";
@@ -316,13 +257,6 @@ async function ensureSessionSurfacePolicy(session: AppAuthSession): Promise<AppA
   return refreshed;
 }
 
-function applySessionPolicyToSavedSession(policy: AppSessionPolicy): void {
-  const current = readSession();
-  if (!isAppAuthSession(current)) {
-    return;
-  }
-  saveSession({ ...current, ...policy });
-}
 
 function clearAppSelection(): void {
   state.selectedResourceKey = null;
